@@ -14,3 +14,30 @@ a {
 * {
   box-sizing: border-box;
 }
+
+.parameter {
+	width: 250px;
+	background-color: aquamarine;
+	height: 40px;
+}
+
+.slider {
+	width: 100%;
+	height: 4px;
+	background-color:blanchedalmond;
+	position: relative;
+}
+
+.activeRange {
+	height: 100%;
+	background-color: blue;
+}
+
+.sliderKnob {
+	width: 30px;
+	height: 30px;
+	border-radius: 15px;
+	background-color: white;
+	position: absolute;
+	top: -15px;
+}
