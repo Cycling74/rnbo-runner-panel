@@ -17,30 +17,42 @@ a {
 
 .parameter {
 	width: 250px;
-	background-color: aquamarine;
-	height: 40px;
+	height: 60px;
 	margin: 5px;
+	box-shadow: 1.5px 1.5px darkgray;
+	border-radius: 2px;
+	border: 1px darkgray solid;
+	padding: 2px;
+	position: relative;
+}
+
+.parameterLabel {
+	display: flex;
+	justify-content: space-between;
+	user-select: none;
 }
 
 .slider {
 	width: 90%;
 	margin-left: 5%;
 	height: 4px;
-	background-color:blanchedalmond;
-	position: relative;
+	background-color:lightgray;
+	position: absolute;
+	top: 50%;
 }
 
 .activeRange {
 	height: 100%;
-	background-color: blue;
+	background-color: lightskyblue;
 }
 
 .sliderKnob {
-	width: 30px;
-	height: 30px;
-	margin-left: -15px;
-	border-radius: 15px;
-	background-color: white;
+	width: 18px;
+	height: 18px;
+	margin-left: -9px;
+	top: -9px;
+	border-radius: 9px;
+	background-color: #eeeeee;
 	position: absolute;
-	top: -15px;
+	box-shadow: 1px 1px darkgray;
 }
