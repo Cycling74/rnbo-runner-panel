@@ -11,7 +11,7 @@ export default function Parameter({ record, onSetValue } : ParameterProps) {
 	const pref = useRef<HTMLDivElement>(null);
 
 	const sendValueForEvent = (event: React.PointerEvent) => {
-		const normX = event.clientX / pref.current.offsetWidth;
+		const normX = (event.clientX - pref.current.offsetLeft) / pref.current.offsetWidth;
 		const clipNormX = Math.max(0, Math.min(1, normX));
 		onSetValue(clipNormX);
 	};

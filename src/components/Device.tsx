@@ -3,7 +3,8 @@ import Overlay from "./Overlay";
 import Parameter from "./Parameter";
 import { DeviceContext } from "../contexts/device";
 import { ParameterRecord } from "../models/parameter";
-import { List, OrderedMap } from "immutable";
+import { OrderedMap } from "immutable";
+import styles from "../../styles/Device.module.css"
 
 export default function Device() {
 
@@ -20,9 +21,12 @@ export default function Device() {
 
 	return (
 		<>
-			<h1>This is a device</h1>
 			<Overlay status={connectionString}/>
-			{parameters.valueSeq()}
+			<div className={styles.container}>
+				<div className={styles.grid}>
+					{parameters.valueSeq()}
+				</div>
+			</div>
 		</>
 	)
 }
