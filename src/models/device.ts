@@ -1,4 +1,4 @@
-import { List, Map, Record as ImmuRecord } from "immutable";
+import { OrderedMap, Record as ImmuRecord } from "immutable";
 import { AnyJson, JsonMap } from "../lib/types";
 import { ParameterRecord } from "./parameter";
 
@@ -6,7 +6,7 @@ let deviceSequence = 0;
 export class DeviceRecord extends ImmuRecord({
 
 	id: "",
-	parameters: List<ParameterRecord>()
+	parameters: OrderedMap<string, ParameterRecord>()
 
 }) {
 
@@ -18,7 +18,7 @@ export class DeviceRecord extends ImmuRecord({
 
 		return new DeviceRecord({
 			id: `${++deviceSequence}`,
-			parameters: ParameterRecord.listFromParamDescription(parameterDescriptions)
+			parameters: ParameterRecord.mapFromParamDescription(parameterDescriptions)
 		});
 	}
 }
