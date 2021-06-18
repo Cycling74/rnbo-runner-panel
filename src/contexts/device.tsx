@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useReducer } from "react";
 import { parse as parseQuery } from "querystring";
 import { Map, Record as ImmuRecord } from "immutable";
 import { DeviceRecord } from "../models/device";
-import { writePacket } from "osc";
+import { writePacket, readPacket } from "osc";
 
 export type AppContext = {
 	connectionState: WebSocket["CLOSED"] | WebSocket["CLOSING"] | WebSocket["OPEN"] | WebSocket["CONNECTING"],
@@ -49,6 +49,7 @@ export const DeviceProvider = ({children}) => {
 	const [state, dispatch] = useReducer(reducer, null, initState);
 	const connectionState = state.get("connectionState");
 	const device = state.get("device");
+
 	const setParameterValueNormalized = async (name: string, value: number) => {
 		const address = `/rnbo/inst/0/params/${name}/normalized`;
 		const message = {
@@ -63,6 +64,10 @@ export const DeviceProvider = ({children}) => {
 		}
 	};
 
+	const handleOSCMessage = (packet) => {
+		// You can't store parameters in a list if you're going to want to update one now, can you?
+	};
+
 	const handleMessage = (m) => {
 		try {
 			if (typeof m.data === "string") {
@@ -72,7 +77,8 @@ export const DeviceProvider = ({children}) => {
 					payload: data
 				});
 			} else {
-
+				const message = readPacket(m.data);
+				handleOSCMessage(message);
 			}
 		} catch (e) {
 			// console.error(e);

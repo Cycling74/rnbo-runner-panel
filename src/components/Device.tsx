@@ -11,10 +11,6 @@ export default function Device() {
 
 	const connectionString = connectionState !== WebSocket.OPEN ? "Not connected" : "Connected";
 
-	const onSetValue = () => {
-		setParameterValueNormalized
-	}
-
 	const parameters = !device ? List<ParameterRecord>() : device.parameters.map(parameter => {
 		const onSetValue = (value: number) => {
 			setParameterValueNormalized(parameter.name, value);

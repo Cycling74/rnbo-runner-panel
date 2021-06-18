@@ -10,22 +10,23 @@ export default function Parameter({ record, onSetValue } : ParameterProps) {
 
 	const pref = useRef<HTMLDivElement>(null);
 
-	const handlePointerDown = (event: React.PointerEvent) => {
+	const sendValueForEvent = (event: React.PointerEvent) => {
 		const normX = event.clientX / pref.current.offsetWidth;
 		const clipNormX = Math.max(0, Math.min(1, normX));
 		onSetValue(clipNormX);
+	};
 
-		// TODO capture pointer?
+	const handlePointerDown = (event: React.PointerEvent) => {
+		pref.current.setPointerCapture(event.pointerId);
+		sendValueForEvent(event);
 	};
 
 	const handlePointerUp = (event: React.PointerEvent) => {
-		// TODO release pointer?
+		pref.current.releasePointerCapture(event.pointerId);
 	};
 
 	const handlePointerMove = (event: React.PointerEvent) => {
-		const normX = event.clientX / pref.current.offsetWidth;
-		const clipNormX = Math.max(0, Math.min(1, normX));
-		onSetValue(clipNormX);
+		sendValueForEvent(event);
 	};
 
 	return (
