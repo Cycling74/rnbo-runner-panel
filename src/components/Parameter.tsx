@@ -26,7 +26,8 @@ export default function Parameter({ record, onSetValue } : ParameterProps) {
 	};
 
 	const handlePointerMove = (event: React.PointerEvent) => {
-		sendValueForEvent(event);
+		if (pref.current.hasPointerCapture(event.pointerId))
+			sendValueForEvent(event);
 	};
 
 	return (

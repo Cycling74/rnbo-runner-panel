@@ -22,7 +22,7 @@ export default function Device() {
 		<>
 			<h1>This is a device</h1>
 			<Overlay status={connectionString}/>
-			{parameters}
+			{parameters.valueSeq()}
 		</>
 	)
 }

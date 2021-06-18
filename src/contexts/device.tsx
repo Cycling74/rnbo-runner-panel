@@ -14,14 +14,19 @@ export const DeviceContext = createContext<AppContext>(null);
 
 const ActionTypes = {
 	setConnectionState: "setConnectionState",
+	setParameterValue: "setParameterValue",
 	updateDevice: "updateDevice"
 };
 
-const reducer = (state, action) => {
+const reducer = (state: Map<string, any>, action) => {
 
 	switch (action.type) {
 		case ActionTypes.setConnectionState:
 			return state.set("connectionState", action.payload.connectionState);
+
+		case ActionTypes.setParameterValue:
+			const parameterProperty = action.payload.normalized ? "normalizedValue" : "value";
+			return state.setIn(["device", "parameters", action.payload.parameter, parameterProperty], action.payload.value);
 
 		case ActionTypes.updateDevice:
 			let newDevice = DeviceRecord.fromDeviceDescription(action.payload);
@@ -48,7 +53,7 @@ export const DeviceProvider = ({children}) => {
 
 	const [state, dispatch] = useReducer(reducer, null, initState);
 	const connectionState = state.get("connectionState");
-	const device = state.get("device");
+	const device: DeviceRecord = state.get("device");
 
 	const setParameterValueNormalized = async (name: string, value: number) => {
 		const address = `/rnbo/inst/0/params/${name}/normalized`;
@@ -65,10 +70,31 @@ export const DeviceProvider = ({children}) => {
 	};
 
 	const handleOSCMessage = (packet) => {
-		// You can't store parameters in a list if you're going to want to update one now, can you?
+		const paramMatcher = /\/rnbo\/inst\/0\/params\/(\S+)/;
+		const address: string = packet.address;
+
+		let matches: string[];
+		if ((matches = address.match(paramMatcher))) {
+			const paramValue = packet.args[0];
+			const paramPath = matches[1];
+			let normalized = false;
+			let paramName  = paramPath;
+			if (paramPath.endsWith("/normalized")) {
+				paramName = paramPath.slice(0, -("/normalized").length);
+				normalized = true;
+			}
+			dispatch({
+				type: ActionTypes.setParameterValue,
+				payload: {
+					normalized,
+					parameter: paramName,
+					value: paramValue
+				}
+			});
+		}
 	};
 
-	const handleMessage = (m) => {
+	const handleMessage = async (m) => {
 		try {
 			if (typeof m.data === "string") {
 				const data = JSON.parse(m.data);
@@ -77,11 +103,12 @@ export const DeviceProvider = ({children}) => {
 					payload: data
 				});
 			} else {
-				const message = readPacket(m.data);
+				const buf = await m.data.arrayBuffer();
+				const message = readPacket(buf, {});
 				handleOSCMessage(message);
 			}
 		} catch (e) {
-			// console.error(e);
+			console.error(e);
 		}
 	};
 
