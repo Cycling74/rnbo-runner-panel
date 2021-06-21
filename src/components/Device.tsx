@@ -6,10 +6,11 @@ import { ParameterRecord } from "../models/parameter";
 import { OrderedMap } from "immutable";
 import styles from "../../styles/Device.module.css"
 import Midi from "./Midi";
+import Ports from "./Ports";
 
 export default function Device() {
 
-	const {connectionState, device, setParameterValueNormalized, triggerMidiNoteEvent} = useContext(DeviceContext);
+	const {connectionState, device, setParameterValueNormalized, triggerMidiNoteEvent, sendListToInport } = useContext(DeviceContext);
 
 	const connectionString = connectionState !== WebSocket.OPEN ? "Not connected" : "Connected";
 
@@ -20,6 +21,11 @@ export default function Device() {
 		return <Parameter key={parameter.name} record={parameter} onSetValue={onSetValue} />
 	});
 
+	const onSend = (name: string, textValue: string) => {
+		const values = textValue.split(/\s+/).map(s => parseFloat(s));
+		sendListToInport(name, values);
+	};
+
 	return (
 		<>
 			<Overlay status={connectionString}/>
@@ -28,6 +34,7 @@ export default function Device() {
 					{parameters.valueSeq()}
 				</div>
 			</div>
+			<Ports onSend={onSend}/>
 			<Midi onNoteOn={p => triggerMidiNoteEvent(p, true)} onNoteOff={p => triggerMidiNoteEvent(p, false)}/>
 		</>
 	)

@@ -9,7 +9,8 @@ export type AppContext = {
 	connectionState: WebSocket["CLOSED"] | WebSocket["CLOSING"] | WebSocket["OPEN"] | WebSocket["CONNECTING"],
 	device?: DeviceRecord,
 	setParameterValueNormalized: (name: string, value: number) => void,
-	triggerMidiNoteEvent: (pitch: number, isNoteOn: boolean) => void
+	triggerMidiNoteEvent: (pitch: number, isNoteOn: boolean) => void,
+	sendListToInport: (name: string, values: number[]) => void
 };
 
 export const DeviceContext = createContext<AppContext>(null);
@@ -113,6 +114,18 @@ export const DeviceProvider = ({children}) => {
 		}
 	};
 
+	const sendListToInport = (name: string, values: number[]) => {
+		const address = `/rnbo/inst/0/messages/in/${name}`;
+		const message = {
+			address,
+			args: values.map(value => ({ type: "f", value }))
+		};
+		const binary = writePacket(message);
+		if (ws.readyState === WebSocket.OPEN) {
+			ws.send(Buffer.from(binary));
+		}
+	};
+
 	useEffect(() => {
 
 		const handleMessage = async (m) => {
@@ -160,7 +173,13 @@ export const DeviceProvider = ({children}) => {
 	}, []);
 
 
-	return <DeviceContext.Provider value={{ connectionState, device, setParameterValueNormalized, triggerMidiNoteEvent }}>
+	return <DeviceContext.Provider value={{
+		connectionState,
+		device,
+		setParameterValueNormalized,
+		triggerMidiNoteEvent,
+		sendListToInport
+	}}>
 		{ children }
 	</DeviceContext.Provider>
 }
