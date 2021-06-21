@@ -3,11 +3,13 @@ import { parse as parseQuery } from "querystring";
 import { Map, Record as ImmuRecord } from "immutable";
 import { DeviceRecord } from "../models/device";
 import { writePacket, readPacket } from "osc";
+import { MIDIEvent } from "@rnbo/js";
 
 export type AppContext = {
 	connectionState: WebSocket["CLOSED"] | WebSocket["CLOSING"] | WebSocket["OPEN"] | WebSocket["CONNECTING"],
 	device?: DeviceRecord,
-	setParameterValueNormalized: (name: string, value: number) => void
+	setParameterValueNormalized: (name: string, value: number) => void,
+	triggerMidiNoteEvent: (pitch: number, isNoteOn: boolean) => void
 };
 
 export const DeviceContext = createContext<AppContext>(null);
@@ -94,25 +96,43 @@ export const DeviceProvider = ({children}) => {
 		}
 	};
 
-	const handleMessage = async (m) => {
-		try {
-			if (typeof m.data === "string") {
-				const data = JSON.parse(m.data);
-				dispatch({
-					type: ActionTypes.updateDevice,
-					payload: data
-				});
-			} else {
-				const buf = await m.data.arrayBuffer();
-				const message = readPacket(buf, {});
-				handleOSCMessage(message);
-			}
-		} catch (e) {
-			console.error(e);
+	const triggerMidiNoteEvent = (pitch: number, isNoteOn: boolean) => {
+		let midiChannel = 0;
+		let routeByte = (isNoteOn ? 144 : 128) + midiChannel;
+		let velocityByte = (isNoteOn ? 100 : 0);
+		let midiMessage = [ routeByte, pitch, velocityByte ];
+
+		const address = `/rnbo/inst/0/midi/in`;
+		const message = {
+			address,
+			args: midiMessage.map(byte => ({ type: "i", value: byte }))
+		};
+		const binary = writePacket(message);
+		if (ws.readyState === WebSocket.OPEN) {
+			ws.send(Buffer.from(binary));
 		}
 	};
 
 	useEffect(() => {
+
+		const handleMessage = async (m) => {
+			try {
+				if (typeof m.data === "string") {
+					const data = JSON.parse(m.data);
+					dispatch({
+						type: ActionTypes.updateDevice,
+						payload: data
+					});
+				} else {
+					const buf = await m.data.arrayBuffer();
+					const message = readPacket(buf, {});
+					handleOSCMessage(message);
+				}
+			} catch (e) {
+				console.error(e);
+			}
+		};
+
 		ws.addEventListener("open", () => {
 			dispatch({
 				type: ActionTypes.setConnectionState,
@@ -140,7 +160,7 @@ export const DeviceProvider = ({children}) => {
 	}, []);
 
 
-	return <DeviceContext.Provider value={{ connectionState, device, setParameterValueNormalized }}>
+	return <DeviceContext.Provider value={{ connectionState, device, setParameterValueNormalized, triggerMidiNoteEvent }}>
 		{ children }
 	</DeviceContext.Provider>
 }
