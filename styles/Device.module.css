@@ -6,35 +6,41 @@
 
 .container {
 	min-height: 100vh;
-	max-width: 1200px;
+	max-width: 1000px;
 	padding: 0 0.5rem;
 	display: flex;
 	flex-direction: row;
 	justify-content: center;
 	align-items: center;
 	height: 100vh;
+	padding-top: 50px;
 }
 
 .leftContainer {
 	flex-grow: 1.5;
 	flex-shrink: 1.5;
-	flex-basis: 60%;
+	flex-basis: 50%;
 	height: 100%;
 	display: flex;
 	align-items: center;
-	justify-content: center;
 	flex-direction: column;
 }
 
 .rightContainer {
 	flex-grow: 1;
 	flex-shrink: 1;
-	flex-basis: 40%;
+	flex-basis: 50%;
 	height: 100%;
 }
 
+.paramContainer {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-direction: column;
+}
+
 .keyboardContainer {
-	height: 260px;
 	display: flex;
 	flex-direction: column;
 	align-items: center;
@@ -115,5 +121,5 @@
 	justify-content: center;
 	flex-wrap: wrap;
 	height: 100%;
-	margin-top: 3rem;
+	overflow-y: scroll;
 }

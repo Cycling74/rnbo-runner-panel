@@ -1,5 +1,5 @@
 import { useContext } from "react";
-import Overlay from "./Overlay";
+import Status from "./Status";
 import Parameter from "./Parameter";
 import { DeviceContext } from "../contexts/device";
 import { ParameterRecord } from "../models/parameter";
@@ -11,8 +11,6 @@ import Ports from "./Ports";
 export default function Device() {
 
 	const {connectionState, device, setParameterValueNormalized, triggerMidiNoteEvent, sendListToInport } = useContext(DeviceContext);
-
-	const connectionString = connectionState !== WebSocket.OPEN ? "Not connected" : "Connected";
 
 	const parameters = !device ? OrderedMap<string, ParameterRecord>() : device.parameters.map(parameter => {
 		const onSetValue = (value: number) => {
@@ -28,14 +26,16 @@ export default function Device() {
 
 	return (
 		<>
-			<Overlay status={connectionString}/>
 
 			<div className={styles.wrapper}>
 				<div className={styles.container}>
 					<div className={styles.leftContainer}>
-						<h2>Parameters</h2>
-						<div className={styles.grid}>
-							{parameters.valueSeq()}
+						<Status connectionState={connectionState}/>
+						<div className={styles.paramContainer}>
+							<h2>Parameters</h2>
+							<div className={styles.grid}>
+								{parameters.valueSeq()}
+							</div>
 						</div>
 					</div>
 					<div className={styles.rightContainer}>
