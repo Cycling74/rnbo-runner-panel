@@ -1,0 +1,8 @@
+.keyboardContainer {
+	height: 80px;
+	width: 80%;
+}
+
+.keyboardContainer > div {
+	height: 100%;
+}

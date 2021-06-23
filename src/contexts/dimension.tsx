@@ -24,7 +24,7 @@ export function DimensionsProvider({ children }) {
 		}
 	}, [container])
 
-	return <div ref={container} style={{height: "80px"}}>
+	return <div ref={container}>
 			<DimensionsContext.Provider value={{ width: dim.width, height: dim.height }}>
 				{ children }
 			</DimensionsContext.Provider>

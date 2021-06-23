@@ -1,11 +1,51 @@
+.wrapper {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
 .container {
 	min-height: 100vh;
+	max-width: 1200px;
 	padding: 0 0.5rem;
 	display: flex;
-	flex-direction: column;
+	flex-direction: row;
 	justify-content: center;
 	align-items: center;
 	height: 100vh;
+}
+
+.leftContainer {
+	flex-grow: 1.5;
+	flex-shrink: 1.5;
+	flex-basis: 60%;
+	height: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-direction: column;
+}
+
+.rightContainer {
+	flex-grow: 1;
+	flex-shrink: 1;
+	flex-basis: 40%;
+	height: 100%;
+}
+
+.keyboardContainer {
+	height: 260px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+}
+
+.portContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: start;
 }
 
 .main {
@@ -74,6 +114,6 @@
 	align-items: center;
 	justify-content: center;
 	flex-wrap: wrap;
-	max-width: 800px;
+	height: 100%;
 	margin-top: 3rem;
 }

@@ -5,7 +5,7 @@ import { DeviceContext } from "../contexts/device";
 import { ParameterRecord } from "../models/parameter";
 import { OrderedMap } from "immutable";
 import styles from "../../styles/Device.module.css"
-import Midi from "./Midi";
+import PianoKeyboard from "./PianoKeyboard";
 import Ports from "./Ports";
 
 export default function Device() {
@@ -29,13 +29,30 @@ export default function Device() {
 	return (
 		<>
 			<Overlay status={connectionString}/>
-			<div className={styles.container}>
-				<div className={styles.grid}>
-					{parameters.valueSeq()}
+
+			<div className={styles.wrapper}>
+				<div className={styles.container}>
+					<div className={styles.leftContainer}>
+						<h2>Parameters</h2>
+						<div className={styles.grid}>
+							{parameters.valueSeq()}
+						</div>
+					</div>
+					<div className={styles.rightContainer}>
+						<div className={styles.keyboardContainer}>
+							<h2>MIDI Input</h2>
+							<PianoKeyboard
+								onNoteOn={p => triggerMidiNoteEvent(p, true)}
+								onNoteOff={p => triggerMidiNoteEvent(p, false)}
+							/>
+						</div>
+						<div className={styles.portContainer}>
+							<h2>Inports</h2>
+							<Ports onSend={onSend}/>
+						</div>
+					</div>
 				</div>
 			</div>
-			<Ports onSend={onSend}/>
-			<Midi onNoteOn={p => triggerMidiNoteEvent(p, true)} onNoteOff={p => triggerMidiNoteEvent(p, false)}/>
 		</>
 	)
 }
