@@ -52,25 +52,54 @@ const wsurl = `ws://${location.hostname}:${wsport}`;
 
 const ws = new WebSocket(wsurl);
 
+const setParameterValueNormalized = async (name: string, value: number) => {
+	const address = `/rnbo/inst/0/params/${name}/normalized`;
+	const message = {
+		address,
+		args: [
+			{ type: "f", value }
+		]
+	};
+	const binary = writePacket(message);
+	if (ws.readyState === WebSocket.OPEN) {
+		ws.send(Buffer.from(binary));
+	}
+};
+
+const triggerMidiNoteEvent = (pitch: number, isNoteOn: boolean) => {
+	let midiChannel = 0;
+	let routeByte = (isNoteOn ? 144 : 128) + midiChannel;
+	let velocityByte = (isNoteOn ? 100 : 0);
+	let midiMessage = [ routeByte, pitch, velocityByte ];
+
+	const address = `/rnbo/inst/0/midi/in`;
+	const message = {
+		address,
+		args: midiMessage.map(byte => ({ type: "i", value: byte }))
+	};
+	const binary = writePacket(message);
+	if (ws.readyState === WebSocket.OPEN) {
+		ws.send(Buffer.from(binary));
+	}
+};
+
+const sendListToInport = (name: string, values: number[]) => {
+	const address = `/rnbo/inst/0/messages/in/${name}`;
+	const message = {
+		address,
+		args: values.map(value => ({ type: "f", value }))
+	};
+	const binary = writePacket(message);
+	if (ws.readyState === WebSocket.OPEN) {
+		ws.send(Buffer.from(binary));
+	}
+};
+
 export const DeviceProvider = ({children}) => {
 
 	const [state, dispatch] = useReducer(reducer, null, initState);
 	const connectionState = state.get("connectionState");
 	const device: DeviceRecord = state.get("device");
-
-	const setParameterValueNormalized = async (name: string, value: number) => {
-		const address = `/rnbo/inst/0/params/${name}/normalized`;
-		const message = {
-			address,
-			args: [
-				{ type: "f", value }
-			]
-		};
-		const binary = writePacket(message);
-		if (ws.readyState === WebSocket.OPEN) {
-			ws.send(Buffer.from(binary));
-		}
-	};
 
 	const handleOSCMessage = (packet) => {
 		const paramMatcher = /\/rnbo\/inst\/0\/params\/(\S+)/;
@@ -94,35 +123,6 @@ export const DeviceProvider = ({children}) => {
 					value: paramValue
 				}
 			});
-		}
-	};
-
-	const triggerMidiNoteEvent = (pitch: number, isNoteOn: boolean) => {
-		let midiChannel = 0;
-		let routeByte = (isNoteOn ? 144 : 128) + midiChannel;
-		let velocityByte = (isNoteOn ? 100 : 0);
-		let midiMessage = [ routeByte, pitch, velocityByte ];
-
-		const address = `/rnbo/inst/0/midi/in`;
-		const message = {
-			address,
-			args: midiMessage.map(byte => ({ type: "i", value: byte }))
-		};
-		const binary = writePacket(message);
-		if (ws.readyState === WebSocket.OPEN) {
-			ws.send(Buffer.from(binary));
-		}
-	};
-
-	const sendListToInport = (name: string, values: number[]) => {
-		const address = `/rnbo/inst/0/messages/in/${name}`;
-		const message = {
-			address,
-			args: values.map(value => ({ type: "f", value }))
-		};
-		const binary = writePacket(message);
-		if (ws.readyState === WebSocket.OPEN) {
-			ws.send(Buffer.from(binary));
 		}
 	};
 

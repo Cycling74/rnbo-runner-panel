@@ -1,9 +1,15 @@
-import { useContext } from "react";
+import { useContext, memo } from "react";
 import { DimensionsContext } from "../contexts/dimension";
 import { Piano } from "react-piano";
 import 'react-piano/dist/styles.css';
 
-export default function ResponsivePiano({ noteRange, onNoteOn, onNoteOff }) {
+type ResponsivePianoParams = {
+	noteRange: { first: number, last: number};
+	onNoteOn: (p: number) => void;
+	onNoteOff: (p: number) => void;
+}
+
+const ResponsivePiano = memo(function WrappedResponsivePiano({ noteRange, onNoteOn, onNoteOff }: ResponsivePianoParams) {
 	const dimensions = useContext(DimensionsContext);
 
 	if (!dimensions) return null;
@@ -17,4 +23,6 @@ export default function ResponsivePiano({ noteRange, onNoteOn, onNoteOff }) {
 			disabled={false}
 		/>
 	);
-}
+});
+
+export default ResponsivePiano;

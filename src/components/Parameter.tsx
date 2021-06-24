@@ -1,12 +1,12 @@
-import React, { useRef } from "react";
+import React, { useRef, memo } from "react";
 import { ParameterRecord } from "../models/parameter"
 
-export type ParameterProps = {
+type ParameterProps = {
 	record: ParameterRecord,
-	onSetValue: (value: number) => void
+	onSetValue: (name:string, value: number) => void
 };
 
-export default function Parameter({ record, onSetValue } : ParameterProps) {
+ const Parameter = memo(function WrappedParameter({ record, onSetValue } : ParameterProps) {
 
 	const pref = useRef<HTMLDivElement>(null);
 
@@ -15,7 +15,7 @@ export default function Parameter({ record, onSetValue } : ParameterProps) {
 		const marginLeft = width * 0.05;
 		const normX = (event.clientX - pref.current.offsetLeft - marginLeft) / (pref.current.offsetWidth * 0.9);
 		const clipNormX = Math.max(0, Math.min(1, normX));
-		onSetValue(clipNormX);
+		onSetValue(record.name, clipNormX);
 	};
 
 	const handlePointerDown = (event: React.PointerEvent) => {
@@ -56,4 +56,6 @@ export default function Parameter({ record, onSetValue } : ParameterProps) {
 		</div>
 
 	)
-}
+});
+
+export default Parameter;

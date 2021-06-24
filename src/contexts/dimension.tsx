@@ -25,7 +25,7 @@ export function DimensionsProvider({ children }) {
 	}, [container])
 
 	return <div ref={container}>
-			<DimensionsContext.Provider value={{ width: dim.width, height: dim.height }}>
+			<DimensionsContext.Provider value={dim}>
 				{ children }
 			</DimensionsContext.Provider>
 	</div>
