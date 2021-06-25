@@ -4,9 +4,12 @@ import ParameterList from "./ParameterList";
 import { DeviceContext } from "../contexts/device";
 import { ParameterRecord } from "../models/parameter";
 import { OrderedMap } from "immutable";
-import styles from "../../styles/Device.module.css"
+import styles from "../../styles/Device.module.css";
 import PianoKeyboard from "./PianoKeyboard";
 import Ports from "./Ports";
+import TwoColumns from "../containers/TwoColumns";
+import TabbedContainer from "../containers/TabbedContainer";
+import { useMediaQuery } from "react-responsive";
 
 export default function Device() {
 
@@ -19,28 +22,36 @@ export default function Device() {
 		sendListToInport(name, values);
 	};
 
+	const isTabletOrMobile = useMediaQuery({ query: '(max-width: 1224px)' });
+
+	const paramContents = (
+		<>
+			<Status connectionState={connectionState}/>
+			<div className={styles.paramContainer}>
+				<ParameterList parameters={parameters} onSetValue={setParameterValueNormalized}></ParameterList>
+			</div>
+		</>
+	);
+	const inputContents = (
+		<>
+			<div className={styles.keyboardContainer}>
+				<h2>MIDI Input</h2>
+				<PianoKeyboard triggerMidiNoteEvent={triggerMidiNoteEvent} />
+			</div>
+			<div className={styles.portContainer}>
+				<h2>Inports</h2>
+				<Ports onSend={onSend}/>
+			</div>
+		</>
+	);
+
 	return (
 		<>
-
 			<div className={styles.wrapper}>
-				<div className={styles.container}>
-					<div className={styles.leftContainer}>
-						<Status connectionState={connectionState}/>
-						<div className={styles.paramContainer}>
-							<ParameterList parameters={parameters} onSetValue={setParameterValueNormalized}></ParameterList>
-						</div>
-					</div>
-					<div className={styles.rightContainer}>
-						<div className={styles.keyboardContainer}>
-							<h2>MIDI Input</h2>
-							<PianoKeyboard triggerMidiNoteEvent={triggerMidiNoteEvent} />
-						</div>
-						<div className={styles.portContainer}>
-							<h2>Inports</h2>
-							<Ports onSend={onSend}/>
-						</div>
-					</div>
-				</div>
+				{isTabletOrMobile ?
+					<TabbedContainer firstTabContents={paramContents} secondTabContents={inputContents}></TabbedContainer> :
+					<TwoColumns leftContents={paramContents} rightContents={inputContents}></TwoColumns>
+				}
 			</div>
 		</>
 	)

@@ -4,35 +4,6 @@
 	justify-content: center;
 }
 
-.container {
-	min-height: 100vh;
-	max-width: 1000px;
-	padding: 0 0.5rem;
-	display: flex;
-	flex-direction: row;
-	justify-content: center;
-	align-items: center;
-	height: 100vh;
-	padding-top: 50px;
-}
-
-.leftContainer {
-	flex-grow: 1.5;
-	flex-shrink: 1.5;
-	flex-basis: 50%;
-	height: 100%;
-	display: flex;
-	align-items: center;
-	flex-direction: column;
-}
-
-.rightContainer {
-	flex-grow: 1;
-	flex-shrink: 1;
-	flex-basis: 50%;
-	height: 100%;
-}
-
 .paramContainer {
 	display: flex;
 	align-items: center;
