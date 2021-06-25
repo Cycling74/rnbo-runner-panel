@@ -1,9 +1,9 @@
-import { createContext, useContext, useEffect, useReducer } from "react";
+import { createContext, useEffect, useReducer } from "react";
 import { parse as parseQuery } from "querystring";
-import { Map, Record as ImmuRecord } from "immutable";
+import { Map } from "immutable";
 import { DeviceRecord } from "../models/device";
 import { writePacket, readPacket } from "osc";
-import { MIDIEvent } from "@rnbo/js";
+import throttle from "lodash.throttle";
 
 export type AppContext = {
 	connectionState: WebSocket["CLOSED"] | WebSocket["CLOSING"] | WebSocket["OPEN"] | WebSocket["CONNECTING"],
@@ -52,7 +52,7 @@ const wsurl = `ws://${location.hostname}:${wsport}`;
 
 const ws = new WebSocket(wsurl);
 
-const setParameterValueNormalized = async (name: string, value: number) => {
+const setParameterValueNormalized = throttle((name: string, value: number) => {
 	const address = `/rnbo/inst/0/params/${name}/normalized`;
 	const message = {
 		address,
@@ -64,7 +64,7 @@ const setParameterValueNormalized = async (name: string, value: number) => {
 	if (ws.readyState === WebSocket.OPEN) {
 		ws.send(Buffer.from(binary));
 	}
-};
+}, 100);
 
 const triggerMidiNoteEvent = (pitch: number, isNoteOn: boolean) => {
 	let midiChannel = 0;
