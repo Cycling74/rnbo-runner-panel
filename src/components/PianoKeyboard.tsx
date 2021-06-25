@@ -1,5 +1,4 @@
-import { useContext, memo } from "react";
-import { DeviceContext } from "../contexts/device";
+import { memo } from "react";
 import { MidiNumbers } from "react-piano";
 import { DimensionsProvider } from "../contexts/dimension";
 import ResponsivePiano from "./ResponsivePiano";
@@ -15,8 +14,6 @@ type PianoKeyboardProps = {
 };
 
 const PianoKeyboard = memo(function WrappedPianoKeyboard({ triggerMidiNoteEvent }: PianoKeyboardProps) {
-
-	const {device} = useContext(DeviceContext);
 
 	const onNoteOn = (p) => triggerMidiNoteEvent(p, true);
 	const onNoteOff = (p) => triggerMidiNoteEvent(p, false);

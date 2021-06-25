@@ -13,9 +13,7 @@ import { useMediaQuery } from "react-responsive";
 
 export default function Device() {
 
-	const {connectionState, device, setParameterValueNormalized, triggerMidiNoteEvent, sendListToInport } = useContext(DeviceContext);
-
-	const parameters = !device ? OrderedMap<string, ParameterRecord>() : device.parameters;
+	const {connectionState, parameters, setParameterValueNormalized, triggerMidiNoteEvent, sendListToInport } = useContext(DeviceContext);
 
 	const onSend = (name: string, textValue: string) => {
 		const values = textValue.split(/\s+/).map(s => parseFloat(s));

@@ -1,13 +1,15 @@
 import { createContext, useEffect, useReducer } from "react";
 import { parse as parseQuery } from "querystring";
-import { Map } from "immutable";
-import { DeviceRecord } from "../models/device";
+import { List, Map, OrderedMap } from "immutable";
 import { writePacket, readPacket } from "osc";
 import throttle from "lodash.throttle";
+import { ParameterRecord } from "../models/parameter";
+import { InportRecord } from "../models/inport";
 
 export type AppContext = {
 	connectionState: WebSocket["CLOSED"] | WebSocket["CLOSING"] | WebSocket["OPEN"] | WebSocket["CONNECTING"],
-	device?: DeviceRecord,
+	parameters: OrderedMap<string, ParameterRecord>,
+	inports: List<InportRecord>,
 	setParameterValueNormalized: (name: string, value: number) => void,
 	triggerMidiNoteEvent: (pitch: number, isNoteOn: boolean) => void,
 	sendListToInport: (name: string, values: number[]) => void
@@ -23,17 +25,26 @@ const ActionTypes = {
 
 const reducer = (state: Map<string, any>, action) => {
 
+	let parameterDescriptions = {};
+	let inportDescriptions = {};
+
 	switch (action.type) {
 		case ActionTypes.setConnectionState:
 			return state.set("connectionState", action.payload.connectionState);
 
 		case ActionTypes.setParameterValue:
 			const parameterProperty = action.payload.normalized ? "normalizedValue" : "value";
-			return state.setIn(["device", "parameters", action.payload.parameter, parameterProperty], action.payload.value);
+			return state.setIn(["parameters", action.payload.parameter, parameterProperty], action.payload.value);
 
 		case ActionTypes.updateDevice:
-			let newDevice = DeviceRecord.fromDeviceDescription(action.payload);
-			return state.set("device", newDevice);
+			let desc = action.payload;
+			try {
+				parameterDescriptions = (desc as any).CONTENTS.params;
+				inportDescriptions = (desc as any).CONTENTS.messages.CONTENTS.in;
+			} catch (e) {}
+			return state
+				.set("parameters", ParameterRecord.mapFromParamDescription(parameterDescriptions))
+				.set("inports", InportRecord.listFromPortDescription(inportDescriptions));
 
 		default:
 			return state;
@@ -42,7 +53,9 @@ const reducer = (state: Map<string, any>, action) => {
 
 const initState = () => {
 	return Map<string, any>(new Array(
-		["connectionState", WebSocket.CLOSED]
+		["connectionState", WebSocket.CLOSED],
+		["parameters", OrderedMap<string, ParameterRecord>()],
+		["inports", List<InportRecord>()]
 	));
 };
 
@@ -99,7 +112,8 @@ export const DeviceProvider = ({children}) => {
 
 	const [state, dispatch] = useReducer(reducer, null, initState);
 	const connectionState = state.get("connectionState");
-	const device: DeviceRecord = state.get("device");
+	const parameters = state.get("parameters");
+	const inports = state.get("inports");
 
 	const handleOSCMessage = (packet) => {
 		const paramMatcher = /\/rnbo\/inst\/0\/params\/(\S+)/;
@@ -175,7 +189,8 @@ export const DeviceProvider = ({children}) => {
 
 	return <DeviceContext.Provider value={{
 		connectionState,
-		device,
+		parameters,
+		inports,
 		setParameterValueNormalized,
 		triggerMidiNoteEvent,
 		sendListToInport

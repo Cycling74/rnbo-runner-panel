@@ -29,15 +29,15 @@ function InportEntry({ name, onSend }) {
 
 export default function Ports({ onSend }) {
 
-	const { device } = useContext(DeviceContext);
+	const { inports } = useContext(DeviceContext);
 
-	const inports = !device ? [] : device.get("inports", []).map(inport => {
+	const inportEntryElements = inports.map(inport => {
 		return <InportEntry name={inport.name} key={inport.name} onSend={e => onSend(inport.name, e)} />
 	})
 
 	return (
 		<div className="ports">
-			{inports}
+			{inportEntryElements}
 		</div>
 	)
 }
