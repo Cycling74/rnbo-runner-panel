@@ -18,9 +18,13 @@ export type AppContext = {
 export const DeviceContext = createContext<AppContext>(null);
 
 const ActionTypes = {
+	removeInport: "removeInport",
+	removeParameter: "removeParameter",
 	setConnectionState: "setConnectionState",
 	setParameterValue: "setParameterValue",
-	updateDevice: "updateDevice"
+	updateDevice: "updateDevice",
+	updateInport: "updateInport",
+	updateParameter: "updateParameter"
 };
 
 const reducer = (state: Map<string, any>, action) => {
@@ -29,12 +33,23 @@ const reducer = (state: Map<string, any>, action) => {
 	let inportDescriptions = {};
 
 	switch (action.type) {
+
+		case ActionTypes.removeInport:
+			return state.set("inports", state.get("inports").filter((inportRecord => inportRecord.name !== action.payload.inport)));
+
+		case ActionTypes.removeParameter:
+			if (state.hasIn(["parameters", action.payload.parameter]))
+				return state.deleteIn(["parameters", action.payload.parameter]);
+			break;
+
 		case ActionTypes.setConnectionState:
 			return state.set("connectionState", action.payload.connectionState);
 
 		case ActionTypes.setParameterValue:
 			const parameterProperty = action.payload.normalized ? "normalizedValue" : "value";
-			return state.setIn(["parameters", action.payload.parameter, parameterProperty], action.payload.value);
+			if (state.hasIn(["parameters", action.payload.parameter]))
+				return state.setIn(["parameters", action.payload.parameter, parameterProperty], action.payload.value);
+			break;
 
 		case ActionTypes.updateDevice:
 			let desc = action.payload;
@@ -46,9 +61,25 @@ const reducer = (state: Map<string, any>, action) => {
 				.set("parameters", ParameterRecord.mapFromParamDescription(parameterDescriptions))
 				.set("inports", InportRecord.listFromPortDescription(inportDescriptions));
 
+		case ActionTypes.updateInport:
+			return state.set("inports", state.get("inports").push(
+				new InportRecord({ name: action.payload.inport })
+			));
+
+		case ActionTypes.updateParameter:
+			return state.mergeIn(
+				["parameters"],
+				ParameterRecord.mapFromParamDescription(
+					action.payload.description,
+					action.payload.name
+				)
+			);
+
 		default:
 			return state;
 	}
+
+	return state;
 };
 
 const initState = () => {
@@ -140,16 +171,126 @@ export const DeviceProvider = ({children}) => {
 		}
 	};
 
+	const handlePathAdded = (path: string) => {
+		const matcher = /\/rnbo\/inst\/0\/(params|messages\/in)\/(\S+)/;
+		let matches: string[];
+
+		console.log(path);
+
+		if ((matches = path.match(matcher))) {
+
+			// Fetch new parameters
+			if (matches[1] === "params" && !matches[2].endsWith("/normalized")) {
+				ws.send(path);
+			}
+
+			// Inports can be declared with just a name
+			else if (matches[1] === "messages/in") {
+				dispatch({
+					type: ActionTypes.updateInport,
+					payload: {
+						inport: matches[2]
+					}
+				});
+			}
+		}
+	}
+
+	const handlePathRemoved = (path: string) => {
+		const matcher = /\/rnbo\/inst\/0\/(params|messages\/in)\/(\S+)/;
+		let matches: string[];
+		if ((matches = path.match(matcher))) {
+			if (matches[1] === "params") {
+				const paramPath = matches[2];
+				if (!paramPath.endsWith("/normalized")) {
+					dispatch({
+						type: ActionTypes.removeParameter,
+						payload: {
+							parameter: paramPath
+						}
+					});
+				}
+			} else if (matches[1] === "messages/in") {
+				const inPath = matches[2];
+				dispatch({
+					type: ActionTypes.removeInport,
+					payload: {
+						inport: inPath
+					}
+				});
+			}
+		}
+	};
+
 	useEffect(() => {
 
 		const handleMessage = async (m) => {
 			try {
 				if (typeof m.data === "string") {
 					const data = JSON.parse(m.data);
-					dispatch({
-						type: ActionTypes.updateDevice,
-						payload: data
-					});
+
+					// brand new device
+					if (typeof data.FULL_PATH === "string" &&
+						data.FULL_PATH === "/rnbo/inst/0" &&
+						(typeof data.CONTENTS !== "undefined"))
+					{
+						dispatch({
+							type: ActionTypes.updateDevice,
+							payload: data
+						});
+					}
+
+					// individual parameter
+					else if (typeof data.FULL_PATH === "string" &&
+						data.FULL_PATH.startsWith("/rnbo/inst/0/params"))
+					{
+						const paramMatcher = /\/rnbo\/inst\/0\/params\/(\S+)/;
+						let matches: string[];
+
+						// If it's a new parameter, fetch its data
+						if ((matches = data.FULL_PATH.match(paramMatcher))) {
+							const paramPath = matches[1];
+							dispatch({
+								type: ActionTypes.updateParameter,
+								payload: {
+									name: paramPath,
+									description: data
+								}
+							});
+						}
+					}
+
+					// individual inport
+					else if (typeof data.FULL_PATH === "string" &&
+						data.FULL_PATH.startsWith("/rnbo/inst/0/in"))
+					{
+						const paramMatcher = /\/rnbo\/inst\/0\/params\/(\S+)/;
+						let matches: string[];
+
+						// If it's a new parameter, fetch its data
+						if ((matches = data.FULL_PATH.match(paramMatcher))) {
+							const paramPath = matches[1];
+							dispatch({
+								type: ActionTypes.updateParameter,
+								payload: {
+									name: paramPath,
+									description: data
+								}
+							});
+						}
+					}
+
+					else if (typeof data.COMMAND === "string" && data.COMMAND === "PATH_ADDED") {
+						handlePathAdded(data.DATA);
+					} else if (typeof data.COMMAND === "string" && data.COMMAND === "PATH_REMOVED") {
+						handlePathRemoved(data.DATA);
+					} else {
+						// unhandled message
+						// console.log("unhandled");
+						// console.log(data);
+					}
+
+
 				} else {
 					const buf = await m.data.arrayBuffer();
 					const message = readPacket(buf, {});
