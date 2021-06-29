@@ -90,9 +90,10 @@ const initState = () => {
 	));
 };
 
-let { wsport } = parseQuery(location.search?.slice(1));
-if (!wsport || process.env.NODE_ENV === "development") wsport = "5678";
-const wsurl = `ws://${location.hostname}:${wsport}`;
+let { h, p } = parseQuery(location.search?.slice(1));
+if (!p || process.env.NODE_ENV === "development") p = "5678";
+if (!h) h = location.hostname;
+const wsurl = `ws://${h}:${p}`;
 
 const ws = new WebSocket(wsurl);
 
