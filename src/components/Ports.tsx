@@ -1,5 +1,7 @@
-import { useContext, useState } from "react";
-import { DeviceContext } from "../contexts/device";
+import { useState } from "react";
+import { useSelector } from "react-redux";
+import { RootStateType } from "../reducers";
+import { EntityType } from "../reducers/entities";
 
 function InportEntry({ name, onSend }) {
 
@@ -29,11 +31,11 @@ function InportEntry({ name, onSend }) {
 
 export default function Ports({ onSend }) {
 
-	const { inports } = useContext(DeviceContext);
+	const inports = useSelector((state: RootStateType) => state.entities[EntityType.InportRecord]);
 
 	const inportEntryElements = inports.map(inport => {
 		return <InportEntry name={inport.name} key={inport.name} onSend={e => onSend(inport.name, e)} />
-	})
+	}).valueSeq();
 
 	return (
 		<div className="ports">

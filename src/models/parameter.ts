@@ -12,7 +12,7 @@ export class ParameterRecord extends ImmuRecord({
 
 }) {
 
-	static mapFromParamDescription(desc: JsonMap, prefix?: string): OrderedMap<string, ParameterRecord> {
+	static arrayFromDescription(desc: JsonMap, prefix?: string): ParameterRecord[] {
 
 		if (typeof desc.VALUE !== "undefined") {
 
@@ -25,19 +25,23 @@ export class ParameterRecord extends ImmuRecord({
 				normalizedValue: (((desc.CONTENTS as JsonMap).normalized as JsonMap).VALUE as number),
 			});
 
-			return OrderedMap<string, ParameterRecord>([[prefix, parameterRecord]] as ([string, ParameterRecord][]));
+			return [parameterRecord];
 		}
 
 		const nextDesc = desc.CONTENTS;
 		const subparamNames = Object.getOwnPropertyNames(nextDesc);
-		const subparamMaps = subparamNames.map(subparamName => {
+		const subparamLists = subparamNames.map(subparamName => {
 			const nextPrefix = prefix ? `${prefix}/${subparamName}` : subparamName;
-			return this.mapFromParamDescription(nextDesc[subparamName] as JsonMap, nextPrefix);
+			return this.arrayFromDescription(nextDesc[subparamName] as JsonMap, nextPrefix);
 		});
-		return subparamMaps.reduce((acc, l) => acc.concat(l), OrderedMap<string, ParameterRecord>());
+		return subparamLists.reduce((acc, l) => acc.concat(l), []);
 	}
 
 	setValue(v: number) {
 		return this.set("value", v);
+	}
+
+	get id(): string {
+		return this.name;
 	}
 }

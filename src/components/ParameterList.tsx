@@ -1,11 +1,11 @@
 import { ParameterRecord } from "../models/parameter";
 import { memo } from "react";
 import Parameter from "./Parameter";
-import { OrderedMap } from "immutable";
+import { Map } from "immutable";
 import styles from "../../styles/Device.module.css"
 
 type ParameterListProps = {
-	parameters: OrderedMap<string, ParameterRecord>;
+	parameters: Map<string, ParameterRecord>;
 	onSetValue: (name: string, value: number) => void;
 }
 
