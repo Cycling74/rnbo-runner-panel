@@ -1,8 +1,6 @@
-import { Dispatch } from "react";
 import { AnyJson } from "../lib/types";
 import { InportRecord } from "../models/inport";
 import { ParameterRecord } from "../models/parameter";
-import { RootStateType } from "../reducers";
 import { EntityType } from "../reducers/entities";
 import { setEntities, setEntity } from "./entities";
 import { AppThunkResult } from "./types";
