@@ -1,5 +1,5 @@
-import { List, OrderedMap, Record as ImmuRecord } from "immutable";
-import { AnyJson, JsonMap } from "../lib/types";
+import { Record as ImmuRecord } from "immutable";
+import { JsonMap } from "../lib/types";
 
 export class ParameterRecord extends ImmuRecord({
 

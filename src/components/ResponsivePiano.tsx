@@ -1,7 +1,7 @@
-import { useContext, memo } from "react";
-import { DimensionsContext } from "../contexts/dimension";
+import { memo } from "react";
 import { Piano } from "react-piano";
-import 'react-piano/dist/styles.css';
+import "react-piano/dist/styles.css";
+import { useDimensions } from "../hooks/useDimensions";
 
 type ResponsivePianoParams = {
 	noteRange: { first: number, last: number};
@@ -10,9 +10,8 @@ type ResponsivePianoParams = {
 }
 
 const ResponsivePiano = memo(function WrappedResponsivePiano({ noteRange, onNoteOn, onNoteOff }: ResponsivePianoParams) {
-	const dimensions = useContext(DimensionsContext);
 
-	if (!dimensions) return null;
+	const dimensions = useDimensions();
 
 	return (
 		<Piano

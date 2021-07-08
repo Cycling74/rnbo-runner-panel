@@ -1,4 +1,4 @@
-import { ActionBase } from './types';
+import { ActionBase } from "../lib/store";
 
 export type ConnectionStatus = WebSocket["CLOSED"] | WebSocket["CLOSING"] | WebSocket["CONNECTING"] | WebSocket["OPEN"];
 

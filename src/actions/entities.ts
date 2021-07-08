@@ -1,4 +1,4 @@
-import { ActionBase } from "./types";
+import { ActionBase } from "../lib/store";
 import { EntityType, Entity } from "../reducers/entities";
 
 export enum EnitityActionType {
