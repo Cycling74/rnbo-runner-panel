@@ -1,4 +1,4 @@
-import { List, OrderedMap, Record as ImmuRecord } from "immutable";
+import { Record as ImmuRecord } from "immutable";
 import { JsonMap } from "../lib/types";
 
 export class InportRecord extends ImmuRecord({

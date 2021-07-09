@@ -12,7 +12,6 @@ module.exports = {
 				stream: false
 			}
 		}
-
-		return config
+		return config;
 	}
 }

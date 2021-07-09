@@ -10,8 +10,7 @@ export const DimensionsContext = createContext<Dimensions>(null);
 export function DimensionsProvider({ children }) {
 
 	const container = useRef<HTMLDivElement>(null);
-
-	const [dim, setDim] = useState<Dimensions>({width: 0, height: 0});
+	const [dim, setDim] = useState<Dimensions>({ width: 0, height: 0 });
 
 	useEffect(() => {
 		if (container.current) {

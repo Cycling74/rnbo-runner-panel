@@ -1,25 +1,29 @@
-import { InportRecord } from "../models/inport";
-import { ParameterRecord } from "../models/parameter";
-import { rootReducer, RootStateType } from "../reducers";
-import { EntityType } from "../reducers/entities";
-import { Map } from "immutable";
-import { applyMiddleware, compose, createStore } from "redux";
-import thunk from "redux-thunk";
+import { AnyAction, applyMiddleware, compose, createStore } from "redux";
+import thunk, { ThunkAction, ThunkDispatch } from "redux-thunk";
+import { rootReducer } from "../reducers";
+import { Dispatch } from "react";
 
 const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
 
-export const initState: (() => RootStateType) = () => {
-	return {
-		network: { connectionStatus: WebSocket.CLOSED, connectionError: undefined },
-		entities: {
-			[EntityType.ParameterRecord]: Map<string, ParameterRecord>(),
-			[EntityType.InportRecord]: Map<string, InportRecord>(),
-		}
-	};
+export interface ActionBase extends AnyAction {
+	type: string,
+	error?: Error,
+	payload: Record<string, any>
 };
+
+export type AppThunk<ReturnType = void> = ThunkAction<
+	ReturnType,
+  RootStateType,
+  undefined,
+  ActionBase
+>;
 
 export const store = createStore(
 	rootReducer,
-	initState(),
+	undefined, // reducers define their own initial state
 	applyMiddleware(thunk)
 );
+
+export type RootStateType = ReturnType<typeof store.getState>;
+export type AppDispatch = Dispatch<AnyAction> & ThunkDispatch<RootStateType, undefined, ActionBase>;
+

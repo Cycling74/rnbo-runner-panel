@@ -1,28 +1,19 @@
-import React from 'react';
-import Device from '../components/Device'
-import { DeviceProvider } from "../contexts/device";
+import React, { useEffect } from "react";
+import Device from "../components/Device";
 import { Provider } from "react-redux";
-import { createStore } from 'redux';
-import { rootReducer } from '../reducers';
-import { initState } from '../lib/store';
-import { setConnectionStatus } from '../actions/network';
-import { OSCQueryBridgeController } from '../controller/oscqueryBridgeController';
+import { oscQueryBridge, parseConnectionQueryString } from "../controller/oscqueryBridgeController";
 import { store } from "../lib/store";
 
-const oscqueryBridgeController = new OSCQueryBridgeController();
-const handleStatus = (err?: Error) => {
-	store.dispatch(setConnectionStatus(oscqueryBridgeController.readyState));
-}
-oscqueryBridgeController.on("open", handleStatus);
-oscqueryBridgeController.on("close", handleStatus);
-oscqueryBridgeController.on("error", handleStatus);
-
 export default function Root() {
+
+	useEffect(() => {
+		oscQueryBridge.connect(parseConnectionQueryString(location.search?.slice(1)));
+		return () => oscQueryBridge.close();
+	}, []);
+
 	return (
-		<Provider store={store}>
-			<DeviceProvider bridge={oscqueryBridgeController}>
-				<Device />
-			</DeviceProvider>
+		<Provider store={ store } >
+			<Device />
 		</Provider>
 	)
 }

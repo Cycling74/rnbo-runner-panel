@@ -9,7 +9,7 @@ type ParameterProps = {
  const Parameter = memo(function WrappedParameter({ record, onSetValue } : ParameterProps) {
 
 	const pref = useRef<HTMLDivElement>(null);
-	const [localValue, setLocalValue] = useState(0);
+	const [localValue, setLocalValue] = useState(record.normalizedValue);
 	const [useLocalValue, setUseLocalValue] = useState(false);
 
 	const sendValueForEvent = (event: React.PointerEvent) => {

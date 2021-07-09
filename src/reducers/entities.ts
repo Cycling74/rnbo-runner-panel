@@ -10,6 +10,7 @@ export enum EntityType {
 }
 
 export type Entity = ParameterRecord | InportRecord;
+export type EntityMap<T extends Entity> = Map<string, T>;
 
 export interface EntityState {
 	[EntityType.ParameterRecord]: Map<ParameterRecord["id"], ParameterRecord>,

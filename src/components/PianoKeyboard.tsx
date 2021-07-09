@@ -1,22 +1,29 @@
-import { memo } from "react";
+import { memo, useCallback } from "react";
 import { MidiNumbers } from "react-piano";
 import { DimensionsProvider } from "../contexts/dimension";
 import ResponsivePiano from "./ResponsivePiano";
 import styles from "../../styles/PianoKeyboard.module.css"
+import { triggerRemoteMidiNoteEvent } from "../actions/device";
+import { useAppDispatch } from "../hooks/useAppDispatch";
 
 const noteRange = {
 	first: MidiNumbers.fromNote('c3'),
 	last: MidiNumbers.fromNote('f4'),
 };
 
-type PianoKeyboardProps = {
-	triggerMidiNoteEvent: (p: number, isOn: boolean) => void;
-};
+type PianoKeyboardProps = {};
 
-const PianoKeyboard = memo(function WrappedPianoKeyboard({ triggerMidiNoteEvent }: PianoKeyboardProps) {
+const PianoKeyboard = memo(function WrappedPianoKeyboard({ } : PianoKeyboardProps) {
 
-	const onNoteOn = (p) => triggerMidiNoteEvent(p, true);
-	const onNoteOff = (p) => triggerMidiNoteEvent(p, false);
+	const dispatch = useAppDispatch();
+
+	const onNoteOn = useCallback((p: number) => {
+		dispatch(triggerRemoteMidiNoteEvent(p, true));
+	}, [dispatch]);
+
+	const onNoteOff = useCallback((p: number) => {
+		dispatch(triggerRemoteMidiNoteEvent(p, true));
+	}, [dispatch]);
 
 	return  (
 		<div className={styles.keyboardContainer}>

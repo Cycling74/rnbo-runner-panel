@@ -1,9 +1,15 @@
-import { useState } from "react";
-import { useSelector } from "react-redux";
-import { RootStateType } from "../reducers";
-import { EntityType } from "../reducers/entities";
+import { useCallback, useState } from "react";
+import { sendListToRemoteInport } from "../actions/device";
+import { useAppDispatch, useAppSelector } from "../hooks/useAppDispatch";
+import { getInports } from "../selectors/entities";
 
-function InportEntry({ name, onSend }) {
+
+type InportEntryProps = {
+	name: string;
+	onSend: (name: string, value: string) => any;
+};
+
+function InportEntry({ name, onSend }: InportEntryProps) {
 
 	const [text, setText] = useState("");
 
@@ -13,7 +19,7 @@ function InportEntry({ name, onSend }) {
 
 	const handleSubmit = (event) => {
 		event.preventDefault();
-		if (onSend) onSend(text);
+		if (onSend) onSend(name, text);
 	}
 
 	return (
@@ -29,17 +35,24 @@ function InportEntry({ name, onSend }) {
 	);
 }
 
-export default function Ports({ onSend }) {
 
-	const inports = useSelector((state: RootStateType) => state.entities[EntityType.InportRecord]);
+export type PortsProps = {};
 
-	const inportEntryElements = inports.map(inport => {
-		return <InportEntry name={inport.name} key={inport.name} onSend={e => onSend(inport.name, e)} />
-	}).valueSeq();
+export default function Ports({}: PortsProps) {
+
+	const dispatch = useAppDispatch();
+	const onSend = useCallback((name: string, textValue: string) => {
+		const values = textValue.split(/\s+/).map(s => parseFloat(s));
+		dispatch(sendListToRemoteInport(name, values));
+	}, [dispatch]);
+
+	const inports = useAppSelector(state => getInports(state));
 
 	return (
 		<div className="ports">
-			{inportEntryElements}
+			{
+				inports.valueSeq().map(inport => <InportEntry name={inport.name} key={inport.name} onSend={ onSend } />)
+			}
 		</div>
 	)
 }
