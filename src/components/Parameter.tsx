@@ -40,7 +40,7 @@ type ParameterProps = {
 	};
 
 	const drawnValue = useLocalValue ? localValue : record.normalizedValue;
-	const paramLabel = typeof record.value === "string" ? record.value : record.value.toFixed(2);
+	const paramLabel = typeof record.value === "number" ? record.value.toFixed(2) : record.value;
 	return (
 		<div className="parameter"
 			onPointerDown={handlePointerDown}
