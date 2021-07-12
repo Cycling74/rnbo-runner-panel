@@ -40,7 +40,7 @@ type ParameterProps = {
 	};
 
 	const drawnValue = useLocalValue ? localValue : record.normalizedValue;
-
+	const paramLabel = typeof record.value === "string" ? record.value : record.value.toFixed(2);
 	return (
 		<div className="parameter"
 			onPointerDown={handlePointerDown}
@@ -50,7 +50,7 @@ type ParameterProps = {
 		>
 			<div className="parameterLabel">
 				<label>{record.name}</label>
-				<label>{record.value.toFixed(2)}</label>
+				<label>{paramLabel}</label>
 			</div>
 			<div className="slider">
 				<div className="activeRange"
