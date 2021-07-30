@@ -4,6 +4,17 @@
 	justify-content: center;
 }
 
+.status {
+	background-color: #0070f3;
+	margin: 1% 30% 0% 30%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: white;
+	font-size: .75rem;
+	border-radius: 20px;
+}
+
 .paramContainer {
 	display: flex;
 	align-items: center;

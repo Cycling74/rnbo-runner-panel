@@ -13,7 +13,6 @@ export default function Device() {
 
 	const paramContents = (
 		<>
-			<Status />
 			<div className={styles.paramContainer}>
 				<ParameterList />
 			</div>
@@ -34,6 +33,7 @@ export default function Device() {
 
 	return (
 		<>
+			<Status />
 			<div className={styles.wrapper}>
 				{isTabletOrMobile ?
 					<TabbedContainer firstTabContents={paramContents} secondTabContents={inputContents}></TabbedContainer> :
