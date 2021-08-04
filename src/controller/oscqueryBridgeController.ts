@@ -7,6 +7,7 @@ import { AppDispatch, store } from "../lib/store";
 import { InportRecord } from "../models/inport";
 import { ParameterRecord } from "../models/parameter";
 import { EntityType } from "../reducers/entities";
+import { WebSocketState } from "../lib/constants";
 
 const dispatch = store.dispatch as AppDispatch;
 export class OSCQueryBridgeControllerPrivate {
@@ -174,7 +175,7 @@ export class OSCQueryBridgeControllerPrivate {
 	}
 
 	public sendPacket(packet: any): void {
-		if (this.readyState === WebSocket.OPEN) {
+		if (this.readyState === WebSocketState.OPEN) {
 			this._ws.send(Buffer.from(packet));
 		}
 	}
