@@ -3,7 +3,7 @@ import thunk, { ThunkAction, ThunkDispatch } from "redux-thunk";
 import { rootReducer } from "../reducers";
 import { Dispatch } from "react";
 
-const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
+const composeEnhancers = typeof window !== "undefined" ? window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose : compose;
 
 export interface ActionBase extends AnyAction {
 	type: string,
@@ -21,7 +21,7 @@ export type AppThunk<ReturnType = void> = ThunkAction<
 export const store = createStore(
 	rootReducer,
 	undefined, // reducers define their own initial state
-	applyMiddleware(thunk)
+	composeEnhancers(applyMiddleware(thunk))
 );
 
 export type RootStateType = ReturnType<typeof store.getState>;
