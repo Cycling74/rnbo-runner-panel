@@ -1,4 +1,3 @@
-import Status from "./Status";
 import ParameterList from "./ParameterList";
 import styles from "../../styles/Device.module.css";
 import PianoKeyboard from "./PianoKeyboard";
@@ -33,7 +32,6 @@ export default function Device() {
 
 	return (
 		<>
-			<Status />
 			<div className={styles.wrapper}>
 				{isTabletOrMobile ?
 					<TabbedContainer firstTabContents={paramContents} secondTabContents={inputContents}></TabbedContainer> :

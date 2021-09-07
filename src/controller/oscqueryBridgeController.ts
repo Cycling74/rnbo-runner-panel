@@ -6,6 +6,7 @@ import { setConnectionStatus } from "../actions/network";
 import { AppDispatch, store } from "../lib/store";
 import { InportRecord } from "../models/inport";
 import { ParameterRecord } from "../models/parameter";
+import { PresetRecord } from "../models/preset";
 import { EntityType } from "../reducers/entities";
 import { WebSocketState } from "../lib/constants";
 
@@ -29,9 +30,11 @@ export class OSCQueryBridgeControllerPrivate {
 			if (typeof evt.data === "string") {
 
 				const data = JSON.parse(evt.data);
+				// console.log(data);
 				if (typeof data.FULL_PATH === "string" && data.FULL_PATH === "/rnbo/inst/0" && (typeof data.CONTENTS !== "undefined")) {
 
 					// brand new device
+					// need to add presets in this func
 					dispatch(initializeDevice(data));
 
 				} else if (typeof data.FULL_PATH === "string" && data.FULL_PATH.startsWith("/rnbo/inst/0/params")) {
@@ -46,6 +49,7 @@ export class OSCQueryBridgeControllerPrivate {
 						const params = ParameterRecord.arrayFromDescription(data, paramPath);
 						if (params.length) dispatch(setEntity(EntityType.ParameterRecord, params[0]));
 					}
+				// need to add cond to check for preset and then set entity
 				} else if (typeof data.COMMAND === "string" && data.COMMAND === "PATH_ADDED") {
 					this._onPathAdded(data.DATA);
 				} else if (typeof data.COMMAND === "string" && data.COMMAND === "PATH_REMOVED") {
@@ -66,7 +70,7 @@ export class OSCQueryBridgeControllerPrivate {
 	}
 
 	private _onPathAdded(path: string): void {
-		const matcher = /\/rnbo\/inst\/0\/(params|messages\/in)\/(\S+)/;
+		const matcher = /\/rnbo\/inst\/0\/(params|messages\/in|presets)\/(\S+)/;
 		const matches = path.match(matcher);
 		if (!matches) return;
 
@@ -76,11 +80,17 @@ export class OSCQueryBridgeControllerPrivate {
 		} else if (matches[1] === "messages/in") {
 			// Inports can be declared with just a name
 			dispatch(setEntity(EntityType.InportRecord, new InportRecord({ name: matches[2] })));
+		} else if (matches[1] === "presets/entries") {
+			console.log(path);
+			// fetch new preset?
+			this._ws.send(path);
+			// dispatch(setEntity(EntityType.PresetRecord, new PresetRecord({ name: matches })));
+			// eventually need to set PresetRecord once I can figure out what to put in it!
 		}
 	}
 
 	private _onPathRemoved(path: string): void {
-		const matcher = /\/rnbo\/inst\/0\/(params|messages\/in)\/(\S+)/;
+		const matcher = /\/rnbo\/inst\/0\/(params|messages\/in|presets)\/(\S+)/;
 		const matches = path.match(matcher);
 		if (!matches) return;
 
@@ -92,25 +102,35 @@ export class OSCQueryBridgeControllerPrivate {
 		} else if (matches[1] === "messages/in") {
 			const inPath = matches[2];
 			dispatch(deleteEntity(EntityType.InportRecord, inPath));
+		} else if (matches[1] === "presets") {
+			const prePath = matches[2];
+			dispatch(deleteEntity(EntityType.PresetRecord, prePath));
+			// dispatch delete
+			// console.log(matches);
 		}
 	}
 
 	private _processOSCMessage(packet: any): void {
-			const paramMatcher = /\/rnbo\/inst\/0\/params\/(\S+)/;
+			const matcher = /\/rnbo\/inst\/0\/(params|presets\/entries)\/(\S+)/;
 			const address: string = packet.address;
 
-			const matches = address.match(paramMatcher);
+			const matches = address.match(matcher);
 			if (!matches) return;
 
-			const paramValue = packet.args[0];
-			const paramPath = matches[1];
-			let normalized = false;
-			let paramName  = paramPath;
-			if (paramPath.endsWith("/normalized")) {
-				paramName = paramPath.slice(0, -("/normalized").length);
-				normalized = true;
+			if (matches[1] === "params") {
+				const paramValue = packet.args[0];
+				const paramPath = matches[1];
+				let normalized = false;
+				let paramName  = paramPath;
+				if (paramPath.endsWith("/normalized")) {
+					paramName = paramPath.slice(0, -("/normalized").length);
+					normalized = true;
+				}
+				dispatch(setParameterValue(paramName, paramValue, normalized));
+			} else if (matches[1] === "presets/entries" && packet.args) {
+				// for each name in array
+				// dispatch(setPresetValue(name));
 			}
-			dispatch(setParameterValue(paramName, paramValue, normalized));
 	}
 
 	public get hostname(): string {

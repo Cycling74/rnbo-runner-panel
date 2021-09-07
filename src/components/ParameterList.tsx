@@ -20,8 +20,7 @@ const ParameterList = memo(function WrappedParameterList({}: ParameterListProps)
 
 	return (
 		<>
-			<h2>Parameters</h2>
-			<div className={styles.grid}>
+			<div>
 				{
 					params.valueSeq().map(p => <Parameter key={p.id} record={p} onSetValue={onSetValue} />)
 				}

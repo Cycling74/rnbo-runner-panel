@@ -2,6 +2,7 @@ import { writePacket } from "osc";
 import { AnyJson } from "../lib/types";
 import { InportRecord } from "../models/inport";
 import { ParameterRecord } from "../models/parameter";
+import { PresetRecord } from "../models/preset";
 import { EntityType } from "../reducers/entities";
 import { setEntities, setEntity } from "./entities";
 import { AppThunk } from "../lib/store";
@@ -55,8 +56,10 @@ export const sendListToRemoteInport = (name: string, values: number[]): AppThunk
 export const initializeDevice = (desc: AnyJson): AppThunk =>
 (dispatch) => {
 	try {
+		// need to add presets here as well
 		const parameterDescriptions = (desc as any).CONTENTS.params || {};
 		const inportDescriptions = (desc as any).CONTENTS.messages?.CONTENTS.in || {};
+		const presetDescriptions = (desc as any).CONTENTS.presets?.CONTENTS.entries.VALUE || {};
 
 		dispatch(setEntities(
 			EntityType.ParameterRecord,
@@ -65,6 +68,10 @@ export const initializeDevice = (desc: AnyJson): AppThunk =>
 		dispatch(setEntities(
 			EntityType.InportRecord,
 			InportRecord.arrayFromDescription(inportDescriptions)
+		));
+		dispatch(setEntities(
+			EntityType.PresetRecord,
+			PresetRecord.arrayFromDescription(presetDescriptions)
 		));
 
 	} catch (e) {

@@ -1,11 +1,13 @@
 import { InportRecord } from "../models/inport";
 import { ParameterRecord } from "../models/parameter";
+import { PresetRecord } from "../models/preset";
 import { RootStateType } from "../lib/store";
 import { Entity, EntityMap, EntityType } from "../reducers/entities";
 
 
 function getEntity (state: RootStateType, type: EntityType.InportRecord, id: string): InportRecord | undefined;
 function getEntity (state: RootStateType, type: EntityType.ParameterRecord, id: string): ParameterRecord | undefined;
+function getEntity (state: RootStateType, type: EntityType.PresetRecord, id: string): PresetRecord | undefined;
 function getEntity (state: RootStateType, type: EntityType, id: string): Entity | undefined {
 	return state.entities[type].get(id);
 };
@@ -24,4 +26,12 @@ export const getInport = (state: RootStateType, id: string): InportRecord | und
 
 export const getInports = (state: RootStateType): EntityMap<InportRecord> => {
 	return state.entities[EntityType.InportRecord];
+};
+
+export const getPreset = (state: RootStateType, id: string): PresetRecord | undefined => {
+	return getEntity(state, EntityType.PresetRecord, id);
+};
+
+export const getPresets = (state: RootStateType): EntityMap<PresetRecord> => {
+	return state.entities[EntityType.PresetRecord];
 };
