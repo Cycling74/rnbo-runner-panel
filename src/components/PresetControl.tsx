@@ -62,7 +62,6 @@ class PresetControl extends React.Component<Props, PresetState> {
 
 	render() {
 		const presets = this.props.presets;
-		console.log(presets);
 		return (
 			<>
 				<div>
@@ -78,7 +77,7 @@ class PresetControl extends React.Component<Props, PresetState> {
 						</div>
 						<div className="newPresetInput">
 							<input type="text" value={this.state.newPresetName} onChange={this.handleChange}></input>
-							<input type="submit" value="Send" />
+							<input type="submit" value="Save" />
 						</div>
 					</form>
 				</div>

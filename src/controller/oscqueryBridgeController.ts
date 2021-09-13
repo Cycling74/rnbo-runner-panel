@@ -30,11 +30,9 @@ export class OSCQueryBridgeControllerPrivate {
 			if (typeof evt.data === "string") {
 
 				const data = JSON.parse(evt.data);
-				// console.log(data);
 				if (typeof data.FULL_PATH === "string" && data.FULL_PATH === "/rnbo/inst/0" && (typeof data.CONTENTS !== "undefined")) {
 
 					// brand new device
-					// need to add presets in this func
 					dispatch(initializeDevice(data));
 
 				} else if (typeof data.FULL_PATH === "string" && data.FULL_PATH.startsWith("/rnbo/inst/0/params")) {
@@ -111,26 +109,21 @@ export class OSCQueryBridgeControllerPrivate {
 	}
 
 	private _processOSCMessage(packet: any): void {
-			const matcher = /\/rnbo\/inst\/0\/(params|presets\/entries)\/(\S+)/;
-			const address: string = packet.address;
+		const paramMatcher = /\/rnbo\/inst\/0\/params\/(\S+)/;
+		const address: string = packet.address;
 
-			const matches = address.match(matcher);
-			if (!matches) return;
+		const matches = address.match(paramMatcher);
+		if (!matches) return;
 
-			if (matches[1] === "params") {
-				const paramValue = packet.args[0];
-				const paramPath = matches[1];
-				let normalized = false;
-				let paramName  = paramPath;
-				if (paramPath.endsWith("/normalized")) {
-					paramName = paramPath.slice(0, -("/normalized").length);
-					normalized = true;
-				}
-				dispatch(setParameterValue(paramName, paramValue, normalized));
-			} else if (matches[1] === "presets/entries" && packet.args) {
-				// for each name in array
-				// dispatch(setPresetValue(name));
-			}
+		const paramValue = packet.args[0];
+		const paramPath = matches[1];
+		let normalized = false;
+		let paramName  = paramPath;
+		if (paramPath.endsWith("/normalized")) {
+			paramName = paramPath.slice(0, -("/normalized").length);
+			normalized = true;
+		}
+		dispatch(setParameterValue(paramName, paramValue, normalized));
 	}
 
 	public get hostname(): string {

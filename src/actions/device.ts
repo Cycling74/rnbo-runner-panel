@@ -62,7 +62,6 @@ export const sendPresetToRemote = (name: string): AppThunk =>
 			{ type: "s", value }
 		]
 	};
-	console.log(message);
 	oscQueryBridge.sendPacket(writePacket(message));
 };
 
@@ -75,7 +74,6 @@ export const savePresetToRemote = (name: string): AppThunk =>
 			{ type: "s", value }
 		]
 	};
-	console.log(message);
 	oscQueryBridge.sendPacket(writePacket(message));
 };
 
