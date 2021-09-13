@@ -53,13 +53,39 @@ export const sendListToRemoteInport = (name: string, values: number[]): AppThunk
 	oscQueryBridge.sendPacket(writePacket(message));
 };
 
+export const sendPresetToRemote = (name: string): AppThunk =>
+() => {
+	const value = name;
+	const message = {
+		address: "/rnbo/inst/0/presets/load",
+		args: [
+			{ type: "s", value }
+		]
+	};
+	console.log(message);
+	oscQueryBridge.sendPacket(writePacket(message));
+};
+
+export const savePresetToRemote = (name: string): AppThunk =>
+() => {
+	const value = name;
+	const message = {
+		address: "/rnbo/inst/0/presets/save",
+		args: [
+			{ type: "s", value }
+		]
+	};
+	console.log(message);
+	oscQueryBridge.sendPacket(writePacket(message));
+};
+
 export const initializeDevice = (desc: AnyJson): AppThunk =>
 (dispatch) => {
 	try {
 		// need to add presets here as well
 		const parameterDescriptions = (desc as any).CONTENTS.params || {};
 		const inportDescriptions = (desc as any).CONTENTS.messages?.CONTENTS.in || {};
-		const presetDescriptions = (desc as any).CONTENTS.presets?.CONTENTS.entries.VALUE || {};
+		const presetDescriptions = (desc as any).CONTENTS.presets?.CONTENTS || {};
 
 		dispatch(setEntities(
 			EntityType.ParameterRecord,
