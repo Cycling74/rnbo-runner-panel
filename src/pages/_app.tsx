@@ -8,6 +8,10 @@ import Nav from '../components/Nav/nav';
 import "../../styles/globals.css"
 import { ThemeProvider } from "styled-components";
 import { RNBOTheme } from "../lib/rnbo-theme";
+import { library } from '@fortawesome/fontawesome-svg-core'
+import { faAngleDown } from '@fortawesome/free-solid-svg-icons'
+
+library.add(faAngleDown);
 
 function App({ Component, pageProps }: AppProps) {
 

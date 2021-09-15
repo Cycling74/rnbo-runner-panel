@@ -17,11 +17,10 @@ const ParamWrapper = styled.div`
 export default function Parameters() {
 	return (
 		<ParamWrapper>
-			<PresetControl />
-
 			<div className="param-cols">
 				<h1>Parameters</h1>
-				</div>
+				<PresetControl />
+			</div>
 			<div className="param-content">
 				<ParameterList />
 			</div>
