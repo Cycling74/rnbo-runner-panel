@@ -29,7 +29,7 @@ function InportEntry({ name, onSend }: InportEntryProps) {
 			</div>
 			<div className="inportInput">
 				<input type="text" value={text} onChange={handleChange}></input>
-				<input type="submit" value="Send"/>
+				<input className="smallButton" type="submit" value="Send"/>
 			</div>
 		</form>
 	);

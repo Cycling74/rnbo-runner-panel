@@ -8,27 +8,34 @@ const NavigationWrapper = styled.div.attrs(({shown}) => ({
 
 }))`
 	height: 100%;
-	overflow: auto;
 	margin: 0;
-	overflow: hidden;
-	transition: width .3s;
-	background-color: #21496D;
+	transition: width .4s;
+	background-color: ${props => props.theme.colors.primary};
 	display: flex;
 	justify-content: center;
-	position: absolute;
+	position: fixed;
 	z-index: 100;
 
 	.navOpenWrapper {
 		display: flex;
 		flex-direction: column;
 		color: #F6F6F6;
+		font-weight: 700;
+		letter-spacing: 0.06rem;
+		margin-left: 0.5rem;
+		a {
+			padding: 0.5rem 0.1rem;
+		}
+		a:hover {
+			color: ${props => props.theme.colors.hilight};
+			text-decoration: underline;
+		}
+		.active {
+			color: ${props => props.theme.colors.secondary};
+		}
 	}
-	/* .navClosedWrapper {
-		width:
-	} */
-
 	#burger {
-		font-size: 2em;
+		font-size: 1.75rem;
 		color: #F6F6F6;
 	}
 

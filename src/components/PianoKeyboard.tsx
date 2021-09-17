@@ -2,9 +2,17 @@ import { memo, useCallback } from "react";
 import { MidiNumbers } from "react-piano";
 import { DimensionsProvider } from "../contexts/dimension";
 import ResponsivePiano from "./ResponsivePiano";
-import styles from "../../styles/PianoKeyboard.module.css"
 import { triggerRemoteMidiNoteEvent } from "../actions/device";
 import { useAppDispatch } from "../hooks/useAppDispatch";
+import styled from "styled-components"
+
+const MIDIWrapper = styled.div`
+	height: 10rem;
+	width: 80%;
+	div {
+		height: 100%;
+	}
+`;
 
 const noteRange = {
 	first: MidiNumbers.fromNote('c3'),
@@ -26,11 +34,11 @@ const PianoKeyboard = memo(function WrappedPianoKeyboard({ } : PianoKeyboardProp
 	}, [dispatch]);
 
 	return  (
-		<div className={styles.keyboardContainer}>
+		<MIDIWrapper>
 			<DimensionsProvider>
 				<ResponsivePiano noteRange={noteRange} onNoteOn={onNoteOn} onNoteOff={onNoteOff}/>
 			</DimensionsProvider>
-		</div>
+		</MIDIWrapper>
 	);
 });
 

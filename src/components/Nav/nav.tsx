@@ -1,46 +1,43 @@
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import NavigationWrapper from "./navStyle";
+import { useRouter } from 'next/router'
 
 
-type NavState = {
-	showNav?: boolean;
-};
 
-class Nav extends React.Component <NavState> {
-	state: NavState = {
-		showNav: false
-	};
+export type NavProps = {};
 
-	openNav = () => {
-		this.setState({
-			showNav: true
-		})
+
+export default function Nav ({}: NavProps) {
+	const [showNav, setShowNav] = useState(false);
+	const router = useRouter();
+	const currentPath = router.pathname;
+
+	const openNav = () => {
+		setShowNav(true);
 	}
 
-	closeNav = () => {
-		this.setState({
-			showNav: false
-		})
+	const closeNav = () => {
+		setShowNav(false);
 	}
 
-	render() {
-
-		return (
-			<NavigationWrapper shown={ this.state.showNav }>
-				<div className="navClosedWrapper">
-					<button id="burger" className={`button ${this.state.showNav ? "hideNav" : "showNav"}`} onClick={this.openNav}>&#9776;</button>
-				</div>
-				<div className={`navOpenWrapper ${this.state.showNav ? "showNav" : "hideNav"}`}>
-					<button id="close" className="button navClose" onClick={this.closeNav}>&times;</button>
-					<Link href="/parameters">Parameters</Link>
-					<Link href="/io">IO</Link>
-					<Link href="/midi">MIDI Input</Link>
-					<Link href="/buffers">Buffers</Link>
-					<Link href="/audio-settings">Audio Settings</Link>
-				</div>
-			</NavigationWrapper>
-		)
-	}
+	return (
+		<NavigationWrapper shown={ showNav }>
+			<div className="navClosedWrapper">
+				<button id="burger" className={`button ${showNav ? "hideNav" : "showNav"}`} onClick={openNav}>&#9776;</button>
+			</div>
+			<div className={`navOpenWrapper ${showNav ? "showNav" : "hideNav"}`}>
+				<button id="close" className="button navClose" onClick={closeNav}>&times;</button>
+				<Link href="/parameters">
+					<a className={currentPath == "/parameters" ? "active" : ""}>PARAMETERS</a>
+				</Link>
+				<Link href="/io">
+					<a className={currentPath == "/io" ? "active" : ""}>INPORTS / OUTPORTS</a>
+				</Link>
+				<Link href="/midi">
+					<a className={currentPath == "/midi" ? "active" : ""}>MIDI CONTROL</a>
+				</Link>
+			</div>
+		</NavigationWrapper>
+	)
 }
-export default Nav;

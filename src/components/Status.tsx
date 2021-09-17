@@ -2,15 +2,21 @@ import React from "react";
 import { useAppSelector } from "../hooks/useAppDispatch";
 import { WebSocketState } from "../lib/constants";
 import { getConnectionStatus } from "../selectors/network";
-import styles from "../../styles/Device.module.css";
 import styled from "styled-components";
 
 const StatusWrapper = styled.div`
-	font-size: 0.5rem;
-	color: yellow;
+	font-size: 0.8rem;
+	color: ${props => props.theme.colors.primary};
 	border-radius: 2rem;
-	padding: 0.25rem 0.75rem;
-	border: 2px solid yellow;
+	padding: 0.5rem;
+	text-align: center;
+	border: 2px solid ${props => props.theme.colors.primary};
+	height: 1rem;
+	width: 7rem;
+
+	h4 {
+		margin: 0;
+	}
 `;
 export default function Status({}) {
 
@@ -19,7 +25,7 @@ export default function Status({}) {
 
 	return (
 	<StatusWrapper>
-		<h2>You&apos;re {connectionString}</h2>
+		<h4> You&apos;re {connectionString} </h4>
 	</StatusWrapper>
 	)
 }

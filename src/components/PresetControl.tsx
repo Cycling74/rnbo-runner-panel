@@ -9,31 +9,39 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 const PresetWrapper = styled.div`
 	z-index: 100;
 	color: #F6F6F6;
+	display: flex;
+	flex-direction: column;
+	align-items: flex-end;
+	padding-right: 9rem;
+	position: absolute;
+
 	.presetPanel {
-		position: absolute;
-		display: ${props => props.shown ? "flex" : "none"};
-		flex-direction: column;
-		align-items: center;
-		justify-content: space-between;
-		background-color: #21496D;
+		visibility: ${props => props.shown ? "visible" : "hidden"};
+		background-color: ${props => props.theme.colors.primary};
 		border-radius: 8px;
 		border-style: none;
-		padding: .5rem 1rem;
+		padding: 1rem;
+		.savePresetGroup {
+			padding-top: 0.5rem;
+			.saveLabel {
+				font-size: 0.75rem;
+			}
+		}
 	}
 
 	.open {
-		background-color: #21496D;
+		background-color: ${props => props.theme.colors.primary};
 		color: #F6F6F6;
 		border-radius: 8px;
 		border-style: none;
-		padding: .5rem;
+		padding: .6rem;
   		text-align: center;
 		cursor: pointer;
 		#chev {
 			margin-left: 0.5rem;
 		}
 		&:hover {
-			background-color: #d1d86c;
+			background-color: ${props => props.theme.colors.hilight};
 		}
 	}
 
@@ -116,15 +124,15 @@ class PresetControl extends React.Component<Props, PresetState> {
 									presets.map(p => <option key={p.id} value={p.name}>{p.name}</option>)
 								}
 							</select>
-							<button id="load" onClick={this.loadPreset}> Load </button>
+							<button className="smallButton" id="load" onClick={this.loadPreset}> Load </button>
 						</div>
-						<form className="savePreset" onSubmit={this.handleSave}>
-							<div className="inportLabel">
+						<form className="savePresetGroup" onSubmit={this.handleSave}>
+							<div className="saveLabel">
 								<label> Name of new preset: </label>
 							</div>
 							<div className="newPresetInput">
 								<input type="text" value={this.state.newPresetName} onChange={this.handleChange}></input>
-								<input type="submit" value="Save" />
+								<input className="smallButton" type="submit" value="Save" />
 							</div>
 						</form>
 					</div>
