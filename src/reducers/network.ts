@@ -1,4 +1,5 @@
 import { NetworkAction, NetworkActionType, ConnectionStatus } from "../actions/network";
+import { WebSocketState } from "../lib/constants";
 
 
 export interface NetworkState {
@@ -8,7 +9,7 @@ export interface NetworkState {
 
 export const network = (state: NetworkState = {
 
-	connectionStatus: WebSocket.CLOSED | WebSocket.OPEN | WebSocket.CONNECTING | WebSocket.CLOSING,
+	connectionStatus: WebSocketState.CLOSED | WebSocketState.OPEN | WebSocketState.CONNECTING | WebSocketState.CLOSING,
 	connectionError: undefined
 
 }, action: NetworkAction) => {
