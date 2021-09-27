@@ -4,7 +4,7 @@ import { Provider } from "react-redux";
 import { oscQueryBridge, parseConnectionQueryString } from "../controller/oscqueryBridgeController";
 import { store } from "../lib/store";
 import Nav from '../components/Nav/nav';
-import Header from '../components/Header';
+import { Header } from '../components/Header';
 import { ThemeProvider, createGlobalStyle } from "styled-components";
 import { RNBOTheme } from "../lib/rnbo-theme";
 import Status from "../components/Status";
