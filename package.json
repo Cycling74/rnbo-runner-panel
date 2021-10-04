@@ -39,6 +39,7 @@
     "@types/react": "^17.0.11",
     "babel-plugin-styled-components": "^1.13.2",
     "eslint": "7.28.0",
+    "eslint-config-c74-ts": "^2.0.0",
     "eslint-config-next": "11.0.0",
     "typescript": "^4.3.2"
   },

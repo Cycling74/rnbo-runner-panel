@@ -1,6 +1,5 @@
 import { memo, useCallback } from "react";
 import Parameter from "./Parameter";
-import styles from "../../styles/Device.module.css"
 import { RootStateType } from "../lib/store";
 import { getParameters } from "../selectors/entities";
 import { setRemoteParameterValueNormalized } from "../actions/device";
