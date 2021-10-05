@@ -11,7 +11,7 @@ const PresetWrapper = styled.div`
 	display: flex;
 	flex-direction: column;
 	align-items: flex-end;
-	padding-right: 9rem;
+	padding-right: 10.5rem;
 	position: absolute;
 
 	.presetPanel {
