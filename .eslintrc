@@ -1,3 +1,7 @@
 {
-  "extends": ["next", "next/core-web-vitals", "c74-ts"]
+  "extends": ["next", "next/core-web-vitals", "c74-ts"],
+	"rules": {
+    // disable the rule for all files
+    "@typescript-eslint/explicit-function-return-type": "off"
+  }
 }

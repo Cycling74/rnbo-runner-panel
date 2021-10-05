@@ -7,48 +7,48 @@ export enum EnitityActionType {
 	DELETE_ENTITY = "DELETE_ENTITY",
 	DELETE_ENTITIES = "DELETE_ENTITIES",
 	CLEAR_ENTITIES = "CLEAR_ENTITIES"
-};
+}
 
-export interface ISetEntityAction extends ActionBase {
+export interface SetEntityAction extends ActionBase {
 	type: EnitityActionType.SET_ENTITY;
 	payload: {
 		type: EntityType;
 		entity: Entity;
 	};
-};
+}
 
-export interface ISetEntitiesAction extends ActionBase {
+export interface SetEntitiesAction extends ActionBase {
 	type: EnitityActionType.SET_ENTITIES;
 	payload: {
 		type: EntityType;
 		entities: Entity[];
 	};
-};
+}
 
-export interface IDeleteEntityAction extends ActionBase {
+export interface DeleteEntityAction extends ActionBase {
 	type: EnitityActionType.DELETE_ENTITY;
 	payload: {
 		type: EntityType;
 		id: string;
 	};
-};
+}
 
-export interface IDeleteEntitiesAction extends ActionBase {
+export interface DeleteEntitiesAction extends ActionBase {
 	type: EnitityActionType.DELETE_ENTITIES;
 	payload: {
 		type: EntityType;
 		ids: string[];
 	};
-};
+}
 
-export interface IClearEntitiesAction extends ActionBase {
+export interface ClearEntitiesAction extends ActionBase {
 	type: EnitityActionType.CLEAR_ENTITIES;
 	payload: {
 		type: EntityType;
 	};
-};
+}
 
-export type EntityAction = ISetEntityAction | ISetEntitiesAction | IDeleteEntityAction | IDeleteEntitiesAction | IClearEntitiesAction;
+export type EntityAction = SetEntityAction | SetEntitiesAction | DeleteEntityAction | DeleteEntitiesAction | ClearEntitiesAction;
 
 export const deleteEntity = (type: EntityType, id: string): EntityAction => {
 	return {

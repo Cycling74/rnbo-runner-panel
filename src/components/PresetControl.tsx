@@ -54,25 +54,24 @@ const PresetControl = memo(function WrappedPresetControl(): JSX.Element {
 	const presets = useAppSelector((state: RootStateType) => getPresets(state));
 	const dispatch = useAppDispatch();
 
-	const openPresets = () => {
+	const openPresets = (): void => {
 		setShowPresets(!showPresets);
 	};
 
-	const handleSelect = (e) => {
+	const handleSelect = (e): void => {
 		setSelectedPreset(e.target.value);
 	};
 
-	const loadPreset = () => {
-		console.log("here");
+	const loadPreset = (): void => {
 		// Send Value to remote
 		dispatch(sendPresetToRemote(selectedPreset));
 	};
 
-	const handleSave = () => {
+	const handleSave = (): void => {
 		dispatch(savePresetToRemote(newPresetName));
 	};
 
-	const handleChange = (e) => {
+	const handleChange = (e): void => {
 		setNewPresetName(e.target.value);
 	};
 

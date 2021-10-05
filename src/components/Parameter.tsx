@@ -1,12 +1,12 @@
 import React, { useRef, memo, useState } from "react";
-import { ParameterRecord } from "../models/parameter"
+import { ParameterRecord } from "../models/parameter";
 
-type ParameterProps = {
-	record: ParameterRecord,
-	onSetValue: (name:string, value: number) => void
-};
+interface ParameterProps {
+	record: ParameterRecord;
+	onSetValue: (name: string, value: number) => void;
+}
 
- const Parameter = memo(function WrappedParameter({ record, onSetValue } : ParameterProps) {
+const Parameter = memo(function WrappedParameter({ record, onSetValue }: ParameterProps) {
 
 	const pref = useRef<HTMLDivElement>(null);
 	const [localValue, setLocalValue] = useState(record.normalizedValue);
@@ -64,7 +64,7 @@ type ParameterProps = {
 			</div>
 		</div>
 
-	)
+	);
 });
 
 export default Parameter;
