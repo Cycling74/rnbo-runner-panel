@@ -13,5 +13,5 @@ const Hr = () => {
 }
 
 module.exports = {
-	Hr,
+	Hr
 }

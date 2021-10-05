@@ -12,7 +12,7 @@ const StatusWrapper = styled.div`
 	text-align: center;
 	border: 2px solid ${props => props.theme.colors.primary};
 	height: 1rem;
-	width: 7rem;
+	min-width: 7rem;
 
 	h4 {
 		margin: 0;

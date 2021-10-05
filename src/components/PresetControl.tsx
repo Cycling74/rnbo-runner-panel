@@ -1,18 +1,17 @@
-import React from "react";
-import { connect, ConnectedProps } from "react-redux";
+import React, { memo, useState } from "react";
+import { useAppDispatch, useAppSelector } from "../hooks/useAppDispatch";
 import { getPresets } from "../selectors/entities";
 import { sendPresetToRemote, savePresetToRemote } from "../actions/device";
-import { RootStateType } from "../lib/store"
+import { RootStateType } from "../lib/store";
 import styled from "styled-components";
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 const PresetWrapper = styled.div`
 	z-index: 100;
 	color: #F6F6F6;
 	display: flex;
 	flex-direction: column;
 	align-items: flex-end;
-	padding-right: 9rem;
+	padding-right: 10.5rem;
 	position: absolute;
 
 	.presetPanel {
@@ -47,99 +46,64 @@ const PresetWrapper = styled.div`
 
 `;
 
-type PresetState = {
-	selectedPreset: string,
-	newPresetName: string,
-	showPresets: boolean
-}
+const PresetControl = memo(function WrappedPresetControl(): JSX.Element {
 
-const mapStateToProps = (state: RootStateType) => ({
-	presets: getPresets(state)
+	const [selectedPreset, setSelectedPreset] = useState("");
+	const [newPresetName, setNewPresetName] = useState("");
+	const [showPresets, setShowPresets] = useState(false);
+	const presets = useAppSelector((state: RootStateType) => getPresets(state));
+	const dispatch = useAppDispatch();
+
+	const openPresets = () => {
+		setShowPresets(!showPresets);
+	};
+
+	const handleSelect = (e) => {
+		setSelectedPreset(e.target.value);
+	};
+
+	const loadPreset = () => {
+		console.log("here");
+		// Send Value to remote
+		dispatch(sendPresetToRemote(selectedPreset));
+	};
+
+	const handleSave = () => {
+		dispatch(savePresetToRemote(newPresetName));
+	};
+
+	const handleChange = (e) => {
+		setNewPresetName(e.target.value);
+	};
+
+	return (
+		<>
+			<PresetWrapper shown={showPresets} >
+				<button className="open" type="button" onClick={openPresets}>
+					Presets <FontAwesomeIcon id="chev" icon="angle-down" />
+				</button>
+				<div className="presetPanel">
+					<div>
+						<select name="presets" id="presets" value={selectedPreset} onChange={handleSelect}>
+							{
+								presets.map(p => <option key={p.id} value={p.name}>{p.name}</option>)
+							}
+						</select>
+						<button className="smallButton" id="load" onClick={loadPreset}> Load </button>
+					</div>
+					<form className="savePresetGroup" onSubmit={handleSave}>
+						<div className="saveLabel">
+							<label> Name of new preset: </label>
+						</div>
+						<div className="newPresetInput">
+							<input type="text" value={newPresetName} onChange={handleChange}></input>
+							<input className="smallButton" type="submit" value="Save" />
+						</div>
+					</form>
+				</div>
+			</PresetWrapper>
+		</>
+	);
 });
 
-const dispatchProps = {
-	sendPreset: name => sendPresetToRemote(name),
-	savePreset: name => savePresetToRemote(name)
-  };
-
-const connector = connect(mapStateToProps, dispatchProps)
-
-type PropsFromRedux = ConnectedProps<typeof connector>
-
-type Props = PropsFromRedux & {}
-
-
-class PresetControl extends React.Component<Props, PresetState> {
-	constructor(props: Props) {
-		super(props);
-		this.state = {
-			selectedPreset: "",
-			newPresetName: "",
-			showPresets: false
-		}
-	}
-
-	openPresets = () => {
-		let show = !(this.state.showPresets)
-		this.setState({
-			showPresets: show
-		})
-	}
-
-	handleSelect = (e) => {
-		this.setState({
-			selectedPreset: e.target.value
-		});
-	}
-
-	loadPreset = () => {
-		// Send Value to remote
-		let name = this.state.selectedPreset;
-		this.props.sendPreset(name);
-	}
-
-	handleSave = () => {
-		let newName = this.state.newPresetName;
-		this.props.savePreset(newName);
-	}
-
-	handleChange = (e) => {
-		this.setState({
-			newPresetName: e.target.value
-		});
-	}
-
-	render() {
-		const presets = this.props.presets;
-		return (
-			<>
-				<PresetWrapper shown={this.state.showPresets} >
-					<button className="open" type="button" onClick={this.openPresets}>
-						Presets <FontAwesomeIcon id="chev" icon="angle-down" />
-					</button>
-					<div className="presetPanel">
-						<div>
-							<select name="presets" id="presets" value={this.state.selectedPreset} onChange={this.handleSelect}>
-								{
-									presets.map(p => <option key={p.id} value={p.name}>{p.name}</option>)
-								}
-							</select>
-							<button className="smallButton" id="load" onClick={this.loadPreset}> Load </button>
-						</div>
-						<form className="savePresetGroup" onSubmit={this.handleSave}>
-							<div className="saveLabel">
-								<label> Name of new preset: </label>
-							</div>
-							<div className="newPresetInput">
-								<input type="text" value={this.state.newPresetName} onChange={this.handleChange}></input>
-								<input className="smallButton" type="submit" value="Save" />
-							</div>
-						</form>
-					</div>
-				</PresetWrapper>
-			</>
-		)
-	}
-};
-
-export default connector(PresetControl);
+export default PresetControl;
