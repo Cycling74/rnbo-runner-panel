@@ -3,7 +3,7 @@ import fs from "fs-extra";
 import { fileURLToPath } from 'url';
 import { execSync } from "child_process";
 
-const name = "rnbo.runner-panel";
+const name = "rnbo-runner-panel";
 
 const basedir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const debian = path.join(path.resolve(basedir, "debian"));

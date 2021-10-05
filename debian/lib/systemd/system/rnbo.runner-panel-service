@@ -6,7 +6,7 @@
 
 [Service]
   Type=idle
-  ExecStart=/usr/bin/python3 -m http.server --directory /usr/share/rnbo.runner-panel/www/ 3000
+  ExecStart=/usr/bin/python3 -m http.server --directory /usr/share/rnbo-runner-panel/www/ 3000
   KillSignal=SIGINT
   User=www-data
   Group=www-data
@@ -15,4 +15,4 @@
 
 [Install]
   WantedBy=multi-user.target
-  Alias=rnbo.runner-panel
+  Alias=rnbo-runner-panel
