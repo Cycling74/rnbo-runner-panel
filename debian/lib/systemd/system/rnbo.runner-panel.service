@@ -1,0 +1,18 @@
+[Unit]
+  Description=RNBO Runner Panel
+  After=multi-user.target
+  StartLimitIntervalSec=500
+  StartLimitBurst=5
+
+[Service]
+  Type=idle
+  ExecStart=/usr/bin/python3 -m http.server --directory /usr/share/rnbo.runner-panel/www/ 3000
+  KillSignal=SIGINT
+  User=www-data
+  Group=www-data
+  Restart=on-failure
+  RestartSec=5s
+
+[Install]
+  WantedBy=multi-user.target
+  Alias=rnbo.runner-panel
