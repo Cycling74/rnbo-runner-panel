@@ -32,8 +32,8 @@ jobs:
 
       - name: Build and Export Next Application
         run: |
-					yarn run build
-					yarn run export
+          yarn run build
+          yarn run export
 
   release:
     name: Create Release
