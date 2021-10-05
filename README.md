@@ -25,3 +25,17 @@ By default, the app tries to connect to port 5678 at the same address as the pag
 ## Export
 
 You can export the whole site as a static page by running `yarn run export`. This will create an "out" directory containing the entire static site. To run this site on a Raspberry Pi (for example), you simple need to start a static web server on the Pi that serves this directory. An easy way to do this is to start an nginx server on the Pi, and to copy the contents of "out" to /var/www/html.
+
+## Building deb
+
+**Requirements**
+
+* `dpkg-deb`
+  * `apt-get install dpkg` (likely already installed)
+  * `brew install dpkg`
+
+```shell
+yarn run build && yarn run export && yarn run package-debian
+```
+
+You should then see a `.deb` file in your working directory.

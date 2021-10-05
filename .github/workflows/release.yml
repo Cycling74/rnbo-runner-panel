@@ -35,13 +35,23 @@ jobs:
           yarn run build
           yarn run export
 
+  package_debian:
+    name: Create Debian Package
+    runs-on: ubuntu-latest
+    needs: [build_and_export]
+    steps:
+      - name: Create pacakge
+        run: |
+          yarn run package-debian
+
   release:
     name: Create Release
     runs-on: ubuntu-latest
-    needs: [getversion, build_and_export]
+    needs: [getversion, build_and_export, package_debian]
     steps:
       - uses: actions/checkout@v2
       - uses: ncipollo/release-action@v1
         with:
           tag: v${{ needs.getversion.outputs.version }}
           token: ${{ secrets.GITHUB_TOKEN }}
+          artifacts: "*.deb"
