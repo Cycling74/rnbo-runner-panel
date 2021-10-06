@@ -35,7 +35,7 @@ You can export the whole site as a static page by running `yarn run export`. Thi
   * `brew install dpkg`
 
 ```shell
-yarn run export && yarn run package-debian
+yarn run build && yarn run export && yarn run package-debian
 ```
 
 You should then see a `.deb` file in your working directory.
