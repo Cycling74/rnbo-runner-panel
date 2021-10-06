@@ -6,7 +6,6 @@ import { setConnectionStatus } from "../actions/network";
 import { AppDispatch, store } from "../lib/store";
 import { InportRecord } from "../models/inport";
 import { ParameterRecord } from "../models/parameter";
-import { PresetRecord } from "../models/preset";
 import { EntityType } from "../reducers/entities";
 import { WebSocketState } from "../lib/constants";
 
@@ -194,7 +193,7 @@ export class OSCQueryBridgeControllerPrivate {
 	}
 }
 
-export const parseConnectionQueryString = (qs: string): { hostname: string; port: string; } => {
+export const parseConnectionQueryString = (qs: string): { hostname: string; port: string } => {
 	const { h, p } = parseQuery(qs);
 	return {
 		hostname: !h ? location.hostname : Array.isArray(h) ? h[0] : h,
