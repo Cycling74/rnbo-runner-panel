@@ -26,8 +26,8 @@ const IOWrapper = styled.div`
 
 export default function IO() {
 	return (
-		<div>
+		<IOWrapper>
 			<Ports />
-		</div>
+		</IOWrapper>
 	);
 }

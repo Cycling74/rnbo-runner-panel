@@ -3,8 +3,13 @@ import { useAppDispatch, useAppSelector } from "../hooks/useAppDispatch";
 import { getPresets } from "../selectors/entities";
 import { sendPresetToRemote, savePresetToRemote } from "../actions/device";
 import { RootStateType } from "../lib/store";
-import styled from "styled-components";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import styled from "styled-components";
+
+interface StyledProps {
+	shown: boolean;
+}
+
 const PresetWrapper = styled.div`
 	z-index: 100;
 	color: #F6F6F6;
@@ -15,7 +20,7 @@ const PresetWrapper = styled.div`
 	position: absolute;
 
 	.presetPanel {
-		visibility: ${props => props.shown ? "visible" : "hidden"};
+		visibility: ${(props: StyledProps) => props.shown ? "visible" : "hidden"};
 		background-color: ${props => props.theme.colors.primary};
 		border-radius: 8px;
 		border-style: none;
@@ -58,7 +63,7 @@ const PresetControl = memo(function WrappedPresetControl(): JSX.Element {
 		setShowPresets(!showPresets);
 	};
 
-	const handleSelect = (e): void => {
+	const handleSelect = (e: React.ChangeEvent<HTMLInputElement>): void => {
 		setSelectedPreset(e.target.value);
 	};
 
@@ -71,7 +76,7 @@ const PresetControl = memo(function WrappedPresetControl(): JSX.Element {
 		dispatch(savePresetToRemote(newPresetName));
 	};
 
-	const handleChange = (e): void => {
+	const handleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
 		setNewPresetName(e.target.value);
 	};
 
@@ -83,7 +88,7 @@ const PresetControl = memo(function WrappedPresetControl(): JSX.Element {
 				</button>
 				<div className="presetPanel">
 					<div>
-						<select name="presets" id="presets" value={selectedPreset} onChange={handleSelect}>
+						<select name="presets" id="presets" value={selectedPreset} onChange={() => handleSelect}>
 							{
 								presets.map(p => <option key={p.id} value={p.name}>{p.name}</option>)
 							}

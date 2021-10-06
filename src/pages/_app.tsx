@@ -1,16 +1,14 @@
-import { AppProps } from 'next/app'
+import { AppProps } from "next/app";
 import React, { useEffect } from "react";
 import { Provider } from "react-redux";
 import { oscQueryBridge, parseConnectionQueryString } from "../controller/oscqueryBridgeController";
 import { store } from "../lib/store";
-import Nav from '../components/Nav/nav';
-import { Header } from '../components/Header';
+import Nav from "../components/Nav/nav";
+import { Header } from "../components/Header";
 import { ThemeProvider, createGlobalStyle } from "styled-components";
 import { RNBOTheme } from "../lib/rnbo-theme";
-import Status from "../components/Status";
-import PresetControl from '../components/PresetControl';
-import { library } from '@fortawesome/fontawesome-svg-core'
-import { faAngleDown } from '@fortawesome/free-solid-svg-icons'
+import { library } from "@fortawesome/fontawesome-svg-core";
+import { faAngleDown } from "@fortawesome/free-solid-svg-icons";
 library.add(faAngleDown);
 
 const GlobalWrapper = createGlobalStyle`
@@ -58,11 +56,11 @@ function App({ Component, pageProps }: AppProps) {
 		return () => oscQueryBridge.close();
 	}, []);
 
-  return (
-		<Provider store={ store } >
+	return (
+		<Provider store={store} >
 			<ThemeProvider theme={RNBOTheme}>
 				<GlobalWrapper />
-					<Nav />
+				<Nav />
 				<div className="headerPanel">
 					<Header />
 				</div>
@@ -71,7 +69,7 @@ function App({ Component, pageProps }: AppProps) {
 				</div>
 			</ThemeProvider>
 		</Provider>
-	)
+	);
 }
 
-export default App
+export default App;

@@ -10,8 +10,8 @@ const Hr = () => {
 	return (
 		<HrComponent />
 	);
-}
+};
 
 module.exports = {
 	Hr
-}
+};

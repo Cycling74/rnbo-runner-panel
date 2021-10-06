@@ -18,14 +18,14 @@ const StatusWrapper = styled.div`
 		margin: 0;
 	}
 `;
-export default function Status({}) {
+export default function Status() {
 
 	const connectionState = useAppSelector(state => getConnectionStatus(state));
 	const connectionString = connectionState !== WebSocketState.OPEN ? "not connected" : "connected";
 
 	return (
-	<StatusWrapper>
-		<h4> You&apos;re {connectionString} </h4>
-	</StatusWrapper>
-	)
+		<StatusWrapper>
+			<h4> You&apos;re {connectionString} </h4>
+		</StatusWrapper>
+	);
 }

@@ -6,16 +6,16 @@ import { Dispatch } from "react";
 const composeEnhancers = typeof window !== "undefined" && process.env.NODE_ENV !== "production" ? window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose : compose;
 
 export interface ActionBase extends AnyAction {
-	type: string,
-	error?: Error,
-	payload: Record<string, any>
-};
+	type: string;
+	error?: Error;
+	payload: Record<string, any>;
+}
 
 export type AppThunk<ReturnType = void> = ThunkAction<
-	ReturnType,
-  RootStateType,
-  undefined,
-  ActionBase
+ReturnType,
+RootStateType,
+undefined,
+ActionBase
 >;
 
 export const store = createStore(

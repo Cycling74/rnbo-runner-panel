@@ -41,9 +41,9 @@ const Header = () => {
 			</HeaderComponent>
 			<Hr />
 		</HeaderWrapper>
-	)
+	);
 };
 
 module.exports = {
-	Header,
-}
+	Header
+};

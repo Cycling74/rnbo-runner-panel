@@ -37,6 +37,8 @@
   "devDependencies": {
     "@types/node": "^15.12.2",
     "@types/react": "^17.0.11",
+    "@types/react-fontawesome": "^1.6.5",
+    "@types/styled-components": "^5.1.14",
     "babel-plugin-styled-components": "^1.13.2",
     "eslint": "7.28.0",
     "eslint-config-c74-ts": "^2.0.0",

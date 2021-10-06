@@ -5,9 +5,7 @@ import { getParameters } from "../selectors/entities";
 import { setRemoteParameterValueNormalized } from "../actions/device";
 import { useAppDispatch, useAppSelector } from "../hooks/useAppDispatch";
 
-type ParameterListProps = {};
-
-const ParameterList = memo(function WrappedParameterList({}: ParameterListProps) {
+const ParameterList = memo(function WrappedParameterList() {
 
 	const params = useAppSelector((state: RootStateType) => getParameters(state));
 	const dispatch = useAppDispatch();
@@ -25,7 +23,7 @@ const ParameterList = memo(function WrappedParameterList({}: ParameterListProps)
 				}
 			</div>
 		</>
-	)
+	);
 });
 
 export default ParameterList;

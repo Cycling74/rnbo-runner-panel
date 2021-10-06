@@ -1,11 +1,12 @@
 import styled from "styled-components";
 
-const NavigationWrapper = styled.div.attrs(({shown}) => ({
-
+interface StyledProps {
+	shown: boolean;
+}
+const NavigationWrapper = styled.div.attrs((props: StyledProps) => ({
 	style: {
-		width: shown? 150 : 40
+		width: props.shown ? 150 : 40
 	}
-
 }))`
 	height: 100%;
 	margin: 0;

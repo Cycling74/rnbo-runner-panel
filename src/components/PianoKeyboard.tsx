@@ -4,7 +4,7 @@ import { DimensionsProvider } from "../contexts/dimension";
 import ResponsivePiano from "./ResponsivePiano";
 import { triggerRemoteMidiNoteEvent } from "../actions/device";
 import { useAppDispatch } from "../hooks/useAppDispatch";
-import styled from "styled-components"
+import styled from "styled-components";
 
 const MIDIWrapper = styled.div`
 	height: 10rem;
@@ -15,13 +15,11 @@ const MIDIWrapper = styled.div`
 `;
 
 const noteRange = {
-	first: MidiNumbers.fromNote('c3'),
-	last: MidiNumbers.fromNote('f4'),
+	first: MidiNumbers.fromNote("c3"),
+	last: MidiNumbers.fromNote("f4")
 };
 
-type PianoKeyboardProps = {};
-
-const PianoKeyboard = memo(function WrappedPianoKeyboard({ } : PianoKeyboardProps) {
+const PianoKeyboard = memo(function WrappedPianoKeyboard() {
 
 	const dispatch = useAppDispatch();
 
