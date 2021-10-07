@@ -14,11 +14,9 @@ export class PresetRecord extends ImmuRecord({
 	 * @returns An Immutable List of PresetRecord record objects
 	 */
 	static arrayFromDescription(desc: JsonMap): PresetRecord[] {
-		const entries = (desc.entries.VALUE as any);
-		const current = (desc.load.VALUE as string);
-		console.log(current);
-		if (typeof entries === "object") {
-			console.log(entries);
+		const entries = ((desc.entries as JsonMap).VALUE as any);
+		const current = ((desc.entries as JsonMap).VALUE as string);
+		if (Array.isArray(entries)) {
 			return entries.map(name => {
 				let loaded = (name === current);
 				return new PresetRecord({name, loaded})
