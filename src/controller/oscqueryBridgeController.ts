@@ -57,8 +57,8 @@ export class OSCQueryBridgeControllerPrivate {
 					// console.log(data);
 				}
 			} else {
-				const buf = await evt.data.arrayBuffer();
-				const message = readPacket(buf, {});
+				const buf: Uint8Array = await evt.data.arrayBuffer();
+				const message = readPacket(buf);
 				this._processOSCMessage(message);
 			}
 		} catch (e) {
