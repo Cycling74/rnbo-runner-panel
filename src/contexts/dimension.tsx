@@ -1,4 +1,4 @@
-import React, { createContext, useEffect, useRef, useState } from 'react';
+import React, { createContext, useEffect, useRef, useState, FunctionComponent } from 'react';
 
 export type Dimensions = {
 	width: number;
@@ -7,7 +7,7 @@ export type Dimensions = {
 
 export const DimensionsContext = createContext<Dimensions>(null);
 
-export function DimensionsProvider({ children }) {
+export const DimensionsProvider: FunctionComponent<{}> = ({ children }) => {
 
 	const container = useRef<HTMLDivElement>(null);
 	const [dim, setDim] = useState<Dimensions>({ width: 0, height: 0 });

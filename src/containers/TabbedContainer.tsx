@@ -1,8 +1,14 @@
 import styles from "../../styles/TabbedContainer.module.css";
 
-import { useMemo, useState } from "react";
+import { FunctionComponent, ReactNode, useMemo, useState } from "react";
 
-export default function TabbedContainer({firstTabContents, secondTabContents}) {
+
+interface TabbedContainerProps {
+	firstTabContents: ReactNode;
+	secondTabContents: ReactNode;
+}
+
+const TabbedContainer: FunctionComponent<TabbedContainerProps> = ({ firstTabContents, secondTabContents }) => {
 	const [tabIndex, setTabIndex] = useState(0);
 
 	const container = useMemo(() => (tabIndex === 0 ? firstTabContents : secondTabContents), [tabIndex, firstTabContents, secondTabContents]);
@@ -17,3 +23,5 @@ export default function TabbedContainer({firstTabContents, secondTabContents}) {
 		</div>
 	</div>
 }
+
+export default TabbedContainer;

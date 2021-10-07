@@ -28,7 +28,7 @@ export class ParameterRecord extends ImmuRecord({
 			return [parameterRecord];
 		}
 
-		const nextDesc = desc.CONTENTS;
+		const nextDesc = desc.CONTENTS as JsonMap;
 		const subparamNames = Object.getOwnPropertyNames(nextDesc);
 		const subparamLists = subparamNames.map(subparamName => {
 			const nextPrefix = prefix ? `${prefix}/${subparamName}` : subparamName;

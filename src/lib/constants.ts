@@ -3,4 +3,4 @@ export enum WebSocketState {
 	OPEN = 1,
 	CLOSING = 2,
 	CLOSED = 3
-};
+}

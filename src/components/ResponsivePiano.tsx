@@ -3,8 +3,8 @@ import { Piano } from "react-piano";
 import "react-piano/dist/styles.css";
 import { useDimensions } from "../hooks/useDimensions";
 
-type ResponsivePianoParams = {
-	noteRange: { first: number, last: number};
+interface ResponsivePianoParams {
+	noteRange: { first: number; last: number};
 	onNoteOn: (p: number) => void;
 	onNoteOff: (p: number) => void;
 }

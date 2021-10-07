@@ -46,6 +46,7 @@ export class OSCQueryBridgeControllerPrivate {
 						const params = ParameterRecord.arrayFromDescription(data, paramPath);
 						if (params.length) dispatch(setEntity(EntityType.ParameterRecord, params[0]));
 					}
+				// need to add cond to check for preset and then set entity
 				} else if (typeof data.COMMAND === "string" && data.COMMAND === "PATH_ADDED") {
 					this._onPathAdded(data.DATA);
 				} else if (typeof data.COMMAND === "string" && data.COMMAND === "PATH_REMOVED") {
@@ -56,8 +57,8 @@ export class OSCQueryBridgeControllerPrivate {
 					// console.log(data);
 				}
 			} else {
-				const buf = await evt.data.arrayBuffer();
-				const message = readPacket(buf, {});
+				const buf: Uint8Array = await evt.data.arrayBuffer();
+				const message = readPacket(buf);
 				this._processOSCMessage(message);
 			}
 		} catch (e) {
@@ -66,7 +67,7 @@ export class OSCQueryBridgeControllerPrivate {
 	}
 
 	private _onPathAdded(path: string): void {
-		const matcher = /\/rnbo\/inst\/0\/(params|messages\/in)\/(\S+)/;
+		const matcher = /\/rnbo\/inst\/0\/(params|messages\/in|presets)\/(\S+)/;
 		const matches = path.match(matcher);
 		if (!matches) return;
 
@@ -76,11 +77,17 @@ export class OSCQueryBridgeControllerPrivate {
 		} else if (matches[1] === "messages/in") {
 			// Inports can be declared with just a name
 			dispatch(setEntity(EntityType.InportRecord, new InportRecord({ name: matches[2] })));
+		} else if (matches[1] === "presets/entries") {
+			console.log(path);
+			// fetch new preset?
+			this._ws.send(path);
+			// dispatch(setEntity(EntityType.PresetRecord, new PresetRecord({ name: matches })));
+			// eventually need to set PresetRecord once I can figure out what to put in it!
 		}
 	}
 
 	private _onPathRemoved(path: string): void {
-		const matcher = /\/rnbo\/inst\/0\/(params|messages\/in)\/(\S+)/;
+		const matcher = /\/rnbo\/inst\/0\/(params|messages\/in|presets)\/(\S+)/;
 		const matches = path.match(matcher);
 		if (!matches) return;
 
@@ -92,25 +99,30 @@ export class OSCQueryBridgeControllerPrivate {
 		} else if (matches[1] === "messages/in") {
 			const inPath = matches[2];
 			dispatch(deleteEntity(EntityType.InportRecord, inPath));
+		} else if (matches[1] === "presets") {
+			const prePath = matches[2];
+			dispatch(deleteEntity(EntityType.PresetRecord, prePath));
+			// dispatch delete
+			// console.log(matches);
 		}
 	}
 
 	private _processOSCMessage(packet: any): void {
-			const paramMatcher = /\/rnbo\/inst\/0\/params\/(\S+)/;
-			const address: string = packet.address;
+		const paramMatcher = /\/rnbo\/inst\/0\/params\/(\S+)/;
+		const address: string = packet.address;
 
-			const matches = address.match(paramMatcher);
-			if (!matches) return;
+		const matches = address.match(paramMatcher);
+		if (!matches) return;
 
-			const paramValue = packet.args[0];
-			const paramPath = matches[1];
-			let normalized = false;
-			let paramName  = paramPath;
-			if (paramPath.endsWith("/normalized")) {
-				paramName = paramPath.slice(0, -("/normalized").length);
-				normalized = true;
-			}
-			dispatch(setParameterValue(paramName, paramValue, normalized));
+		const paramValue = packet.args[0];
+		const paramPath = matches[1];
+		let normalized = false;
+		let paramName  = paramPath;
+		if (paramPath.endsWith("/normalized")) {
+			paramName = paramPath.slice(0, -("/normalized").length);
+			normalized = true;
+		}
+		dispatch(setParameterValue(paramName, paramValue, normalized));
 	}
 
 	public get hostname(): string {
@@ -181,7 +193,7 @@ export class OSCQueryBridgeControllerPrivate {
 	}
 }
 
-export const parseConnectionQueryString = (qs: string): { hostname: string; port: string; } => {
+export const parseConnectionQueryString = (qs: string): { hostname: string; port: string } => {
 	const { h, p } = parseQuery(qs);
 	return {
 		hostname: !h ? location.hostname : Array.isArray(h) ? h[0] : h,

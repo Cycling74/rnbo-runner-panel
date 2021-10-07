@@ -1,10 +1,15 @@
-import Device from "../components/Device";
+import { useRouter } from "next/router";
+import { FunctionComponent, useEffect } from "react";
 
-export default function Home() {
-	return (
-		<div>
-			<h1>Home</h1>
-			<Device />
-		</div>
-	);
-}
+const IndexRedirect: FunctionComponent<{}> = () => {
+
+	const { replace } = useRouter();
+
+	useEffect(() => {
+		replace("/parameters");
+	}, []);
+
+	return <div></div>;
+};
+
+export default IndexRedirect;

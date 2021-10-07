@@ -1,12 +1,11 @@
-import { compose } from "redux";
 
 // See https://github.com/Microsoft/TypeScript/issues/1897
-export type AnyJson =  boolean | number | string | null | JsonArray | JsonMap;
-export interface JsonMap {  [key: string]: AnyJson; }
-export interface JsonArray extends Array<AnyJson> {}
+export type AnyJson =
+ | string
+ | number
+ | boolean
+ | null
+ | AnyJson[]
+ | {[key: string]: AnyJson}
 
-declare global {
-	interface Window {
-		__REDUX_DEVTOOLS_EXTENSION_COMPOSE__?: typeof compose;
-	}
-}
+export interface JsonMap {  [key: string]: AnyJson }
