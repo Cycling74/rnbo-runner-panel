@@ -29,7 +29,7 @@ const HeaderComponent = styled.header`
 	align-items: center;
 `;
 
-const Header = () => {
+export const Header = () => {
 	return (
 		<HeaderWrapper>
 			<HeaderComponent>
@@ -42,8 +42,4 @@ const Header = () => {
 			<Hr />
 		</HeaderWrapper>
 	);
-};
-
-module.exports = {
-	Header
 };
