@@ -3,11 +3,12 @@ import styled from "styled-components";
 interface StyledProps {
 	shown: boolean;
 }
-const NavigationWrapper = styled.div.attrs((props: StyledProps) => ({
+
+const NavigationWrapper = styled.div.attrs<StyledProps>((props: StyledProps) => ({
 	style: {
 		width: props.shown ? 150 : 40
 	}
-}))`
+}))<StyledProps>`
 	height: 100%;
 	margin: 0;
 	transition: width .4s;
