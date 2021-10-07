@@ -90,7 +90,7 @@ const PresetControl = memo(function WrappedPresetControl(): JSX.Element {
 					<div>
 						<select name="presets" id="presets" value={selectedPreset} onChange={() => handleSelect}>
 							{
-								presets.map(p => <option key={p.id} value={p.name}>{p.name}</option>)
+								presets.valueSeq().map(p => <option key={p.id} value={p.name}>{p.name}</option>)
 							}
 						</select>
 						<button className="smallButton" id="load" onClick={loadPreset}> Load </button>
