@@ -39,7 +39,7 @@ jobs:
       - name: Build Debian Package
         run: yarn run package-debian
         env:
-          PKG_NAME: ${{ secrects.RNBO_DEB_PKG_NAME }}
+          PKG_NAME: ${{ secrets.RNBO_DEB_PKG_NAME }}
           PKG_VERSION: ${{ needs.getversion.outputs.version }}
 
       - name: Create Release
