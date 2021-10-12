@@ -1,7 +1,9 @@
 import { dirname, join, resolve } from "path";
-import { readFileSync, writeFileSync, rmSync, copySync } from "fs-extra";
+import fs from "fs-extra";
 import { fileURLToPath } from "url";
 import { execSync } from "child_process";
+
+const { readFileSync, writeFileSync, rmSync, copySync } = fs;
 
 const basedir = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const debian = join(resolve(basedir, "debian"));
