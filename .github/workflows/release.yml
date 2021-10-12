@@ -22,7 +22,7 @@ jobs:
 
   build_and_export:
     runs-on: ubuntu-latest
-    name: Build & Export
+    name: Build, Export, Release
     needs: getversion
     steps:
       - name: Checkout repository
