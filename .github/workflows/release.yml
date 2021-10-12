@@ -22,7 +22,7 @@ jobs:
 
   build_and_export:
     runs-on: ubuntu-latest
-    name: Build & Export Static Version
+    name: Build & Export
     needs: getversion
     steps:
       - uses: actions/checkout@v2
@@ -34,20 +34,12 @@ jobs:
         run: |
           yarn run build
           yarn run export
-
-  package_debian:
-    name: Create Debian Package
-    runs-on: ubuntu-latest
-    needs: [build_and_export]
-    steps:
-      - name: Create pacakge
-        run: |
           yarn run package-debian
 
   release:
     name: Create Release
     runs-on: ubuntu-latest
-    needs: [getversion, build_and_export, package_debian]
+    needs: [getversion, build_and_export]
     steps:
       - uses: actions/checkout@v2
       - uses: ncipollo/release-action@v1
