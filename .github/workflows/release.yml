@@ -22,10 +22,11 @@ jobs:
 
   build_and_export:
     runs-on: ubuntu-latest
-    name: Build & Export
+    name: Build, Export, Release
     needs: getversion
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout repository
+        uses: actions/checkout@v2
 
       - name: Install dependencies
         run: yarn install --pure-lockfile
@@ -34,15 +35,15 @@ jobs:
         run: |
           yarn run build
           yarn run export
-          yarn run package-debian
 
-  release:
-    name: Create Release
-    runs-on: ubuntu-latest
-    needs: [getversion, build_and_export]
-    steps:
-      - uses: actions/checkout@v2
-      - uses: ncipollo/release-action@v1
+      - name: Build Debian Package
+        run: yarn run package-debian
+        env:
+          PKG_NAME: ${{ secrects.RNBO_DEB_PKG_NAME }}
+          PKG_VERSION: ${{ needs.getversion.outputs.version }}
+
+      - name: Create Release
+        uses: ncipollo/release-action@v1
         with:
           tag: v${{ needs.getversion.outputs.version }}
           token: ${{ secrets.GITHUB_TOKEN }}
