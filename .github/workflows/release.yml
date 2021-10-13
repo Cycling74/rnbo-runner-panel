@@ -53,7 +53,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: deb
-          path: *.deb
+          path: "*.deb"
 
   publsh_apt:
     runs-on: [self-hosted, macOS, x64, rnbo]
