@@ -20,7 +20,7 @@ You can start editing the page by modifying `pages/index.js`. The page auto-upda
 
 ## Hostname and Port
 
-By default, the app tries to connect to port 5678 at the same address as the page itself. So if you load the site at "http://localhost:3000", the page will attempt to form a websocket connection to port 5678 on localhost. You can override this default behavior with the query parameters `h` and `p` for hostname and port, respectively. Connecting to "http://localhost:3000?h=c74rpi.local" will make the page try to make a websocket connection to port 5678 and hostname c74rpi.local.
+By default, the app is exposed on port 3000 and tries to connect to port 5678 at the same address as the page itself. So if you load the site at "http://localhost:3000", the page will attempt to form a websocket connection to port 5678 on localhost. You can override this default behavior with the query parameters `h` and `p` for hostname and port, respectively. Connecting to "http://localhost:3000?h=c74rpi.local" will make the page try to make a websocket connection to port 5678 and hostname c74rpi.local.
 
 ## Export
 
@@ -39,3 +39,23 @@ yarn run build && yarn run export && yarn run package-debian
 ```
 
 You should then see a `.deb` file in your working directory.
+
+## Installing or upgrading on a Raspberry PI
+
+If you haven't already setup the rnbooscquery runner, [follow the instructions](https://app.assembla.com/spaces/max/git-7/source/master/examples/RNBOOSCQueryRunner/README-rpi.md)
+to do that.
+
+Then, assuming you're sshed into your pi, update your apt lists and install/upgrade:
+
+```shell
+sudo apt-get update
+sudo apt-get install rnbo-runner-panel
+```
+
+## Connecting to the panel running on a Raspberry PI
+
+Once you've installed, you should then be able to load the panel in a web browser via the `IP` or `hostname` of your Raspberry PI.
+For instance, if your pi is at `10.0.0.210`, is named `c74rpi` and you have a computer on the same network as the pi,
+you should be able to view the panel with either of the following URLs:
+`http://10.0.0.210:3000` or `http://c74rpi.local:3000`
+
