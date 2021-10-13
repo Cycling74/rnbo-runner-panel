@@ -12,9 +12,9 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: '12'
-      - name: bootstrap
-        run: npm ci
-      - name: Run build
-        run: npm run build
-      - name: run linting
-        run: npm run lint
+      - name: install dependencies
+        run: yarn install --pure-lockfile
+      - name: Run lint
+        run: yarn run lint
+      - name: build
+        run: yarn run build
