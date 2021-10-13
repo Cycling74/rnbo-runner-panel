@@ -4,42 +4,38 @@ import PresetControl from "./PresetControl";
 import styled from "styled-components";
 import { Hr } from "./Hr";
 
-const HeaderWrapper = styled.div`
+const HeaderComponent = styled.header`
 	margin: 0% 5%;
 	padding: 1rem;
-
-	#controls {
-		width: 50%;
-		display: flex;
-		justify-content: flex-end;
-	}
-
-	p {
-		align-self: flex-end;
-		font-weight: 700;
-		letter-spacing: 0.06rem;
-		color: ${props => props.theme.colors.primary};
-		margin: 0;
-	}
-`;
-
-const HeaderComponent = styled.header`
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
 `;
 
+const HeaderControls = styled.div`
+	width: 50%;
+	display: flex;
+	justify-content: flex-end;
+`;
+
+const HeaderTitle = styled.p`
+	align-self: flex-end;
+	font-weight: 700;
+	letter-spacing: 0.06rem;
+	color: ${props => props.theme.colors.primary};
+	margin: 0;
+`;
 export const Header = () => {
 	return (
-		<HeaderWrapper>
+		<div>
 			<HeaderComponent>
-				<p> TITLE </p>
-				<div id="controls">
+				<HeaderTitle> TITLE </HeaderTitle>
+				<HeaderControls>
 					<PresetControl />
 					<Status />
-				</div>
+				</HeaderControls>
 			</HeaderComponent>
 			<Hr />
-		</HeaderWrapper>
+		</div>
 	);
 };

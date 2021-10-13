@@ -3,8 +3,19 @@ import styled from "styled-components";
 interface StyledProps {
 	shown: boolean;
 }
+interface ActiveProps {
+	active: boolean;
+}
+export const NavLink = styled.a`
+	padding: 0.5rem 0.1rem;
+	color: ${(p: ActiveProps & props) => p.active ? p.theme.colors.secondary : p.theme.colors.lightText };
+	&:hover {
+		color: ${props => props.theme.colors.hilight};
+		text-decoration: underline;
+	}
+`;
 
-const NavigationWrapper = styled.div.attrs<StyledProps>((props: StyledProps) => ({
+export const NavigationWrapper = styled.div.attrs<StyledProps>((props: StyledProps) => ({
 	style: {
 		width: props.shown ? 150 : 40
 	}
@@ -25,16 +36,6 @@ const NavigationWrapper = styled.div.attrs<StyledProps>((props: StyledProps) => 
 		font-weight: 700;
 		letter-spacing: 0.06rem;
 		margin-left: 0.5rem;
-		a {
-			padding: 0.5rem 0.1rem;
-		}
-		a:hover {
-			color: ${props => props.theme.colors.hilight};
-			text-decoration: underline;
-		}
-		.active {
-			color: ${props => props.theme.colors.secondary};
-		}
 	}
 	#burger {
 		font-size: 1.75rem;
@@ -64,5 +65,3 @@ const NavigationWrapper = styled.div.attrs<StyledProps>((props: StyledProps) => 
 		width: 10%;
 	}
 `;
-
-export default NavigationWrapper;
