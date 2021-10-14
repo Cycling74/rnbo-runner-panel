@@ -48,3 +48,24 @@ jobs:
           tag: v${{ needs.getversion.outputs.version }}
           token: ${{ secrets.GITHUB_TOKEN }}
           artifacts: "*.deb"
+
+      - name: Upload deb file
+        uses: actions/upload-artifact@v2
+        with:
+          name: deb
+          path: "*.deb"
+
+  publsh_apt:
+    runs-on: [self-hosted, macOS, x64, rnbo]
+    needs: build_and_export
+    steps:
+      - name: Download deb file
+        uses: actions/download-artifact@v2
+        with:
+          name: deb
+      - name: Add to aptly and publish
+        shell: bash
+        run: |
+          aptly repo add buster-rpi *.deb
+          aptly publish update -batch -passphrase=${{ secrets.APTLY_GPG_PASSWORD }} buster s3:c74:
+
