@@ -16,21 +16,18 @@ def dir_path(p):
 		raise argparse.ArgumentTypeError(f"readable_dir:{expandedPath} is not a valid path")
 
 parser = argparse.ArgumentParser(description='Start the RNBO Runner Panel HTTP Server')
-parser.add_argument('--port', type=int, default=3000, nargs=1,
+parser.add_argument('--port', type=int, default=3000,
 										help='The port to listen on')
-parser.add_argument('--directory', type=dir_path, required=True, nargs=1,
+parser.add_argument('--directory', type=dir_path, required=True,
 										help='The directory to serve the web content from')
 
 args = parser.parse_args()
 
-port = args.port
-directory = args.directory[0]
-
-print(f'RNBO Runner Panel Serving from {directory}')
-print(f'RNBO Runner Panel Serving on port {port}')
+print(f'RNBO Runner Panel Serving from {args.directory}')
+print(f'RNBO Runner Panel Serving on port {args.port}')
 
 # Change to provided directory
-chdir(directory)
+chdir(args.directory)
 
 class MyRequestHandler(SimpleHTTPRequestHandler):
 	def do_GET(self):
@@ -38,7 +35,7 @@ class MyRequestHandler(SimpleHTTPRequestHandler):
 		fext = path.splitext(self.path)[1]
 		normPath = path.normpath(self.path).split('/')
 		normPath.remove('')
-		fpath = path.join(directory, '{os.sep}'.join(normPath))
+		fpath = path.join(args.directory, '{os.sep}'.join(normPath))
 
 		if not path.isfile(fpath) and not fext and path.isfile(fpath + '.html'):
 			self.path = self.path + '.html'
