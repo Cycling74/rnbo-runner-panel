@@ -24,6 +24,7 @@ writeFileSync(join(debian, "DEBIAN", "control"), control);
 // cleanup if we have an existing export
 rmSync(join(debian, "usr"), { recursive: true, force: true });
 copySync(join(basedir, "out"), join(debian, "usr", "share", name, "www"), { overwrite: true } );
+copySync(join(basedir, "server.py"), join(debian, "usr", "bin", name), { overwrite: true } );
 
 const deb = `${name}_${version}.deb`;
 
