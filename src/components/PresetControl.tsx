@@ -63,7 +63,7 @@ const PresetControl = memo(function WrappedPresetControl(): JSX.Element {
 		setShowPresets(!showPresets);
 	};
 
-	const handleSelect = (e: React.ChangeEvent<HTMLInputElement>): void => {
+	const handleSelect = (e: React.ChangeEvent<HTMLSelectElement>): void => {
 		setSelectedPreset(e.target.value);
 	};
 
@@ -88,7 +88,7 @@ const PresetControl = memo(function WrappedPresetControl(): JSX.Element {
 				</button>
 				<div className="presetPanel">
 					<div>
-						<select name="presets" id="presets" value={selectedPreset} onChange={() => handleSelect}>
+						<select name="presets" id="presets" value={selectedPreset} onChange={handleSelect}>
 							{
 								presets.valueSeq().map(p => <option key={p.id} value={p.name}>{p.name}</option>)
 							}
