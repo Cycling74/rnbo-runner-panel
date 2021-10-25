@@ -1,6 +1,6 @@
 import { parse as parseQuery } from "querystring";
 import { readPacket } from "osc";
-import { initializeDevice, setParameterValue } from "../actions/device";
+import { initializeDevice, setParameterValue, setParameterValueNormalized } from "../actions/device";
 import { deleteEntity, setEntity } from "../actions/entities";
 import { setConnectionStatus } from "../actions/network";
 import { AppDispatch, store } from "../lib/store";
@@ -115,13 +115,14 @@ export class OSCQueryBridgeControllerPrivate {
 
 		const paramValue = packet.args[0];
 		const paramPath = matches[1];
-		let normalized = false;
-		let paramName  = paramPath;
+
 		if (paramPath.endsWith("/normalized")) {
-			paramName = paramPath.slice(0, -("/normalized").length);
-			normalized = true;
+			const paramName = paramPath.slice(0, -("/normalized").length);
+			dispatch(setParameterValueNormalized(paramName, paramValue));
+		} else {
+			dispatch(setParameterValue(paramPath, paramValue));
 		}
-		dispatch(setParameterValue(paramName, paramValue, normalized));
+
 	}
 
 	public get hostname(): string {

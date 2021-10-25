@@ -12,14 +12,6 @@ export class ParameterRecord extends ImmuRecord({
 
 }) {
 
-	public static convertToNormalizedValue(v: number, min: number, max: number): number {
-		return (v - min) / (max - min);
-	}
-
-	public static convertFromNormalizedValue(nv: number, min: number, max: number): number {
-		return (max - min) * nv + min;
-	}
-
 	public static arrayFromDescription(desc: JsonMap, prefix?: string): ParameterRecord[] {
 
 		if (typeof desc.VALUE !== "undefined") {
@@ -50,18 +42,10 @@ export class ParameterRecord extends ImmuRecord({
 	}
 
 	public setValue(v: number): ParameterRecord {
-		if (v === this.value) return this;
-
-		return this
-			.set("value", v)
-			.set("normalizedValue", ParameterRecord.convertToNormalizedValue(v, this.min, this.max));
+		return this.set("value", v);
 	}
 
 	public setNormalizedValue(nv: number): ParameterRecord {
-		if (nv === this.normalizedValue) return this;
-
-		return this
-			.set("normalizedValue", nv)
-			.set("value", ParameterRecord.convertFromNormalizedValue(nv, this.min, this.max));
+		return this.set("normalizedValue", nv);
 	}
 }

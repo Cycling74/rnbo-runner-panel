@@ -43,13 +43,6 @@ export const entities = (state: EntityState = {
 	switch (action.type) {
 		case EnitityActionType.SET_ENTITY: {
 			const { entity, type } = action.payload;
-
-			// No irrelevant updates without changes
-			const prev = getEntities(state, type).get(entity.id);
-			if (entity === prev) {
-				return state;
-			}
-
 			return {
 				...state,
 				[type]: getEntities(state, type).set(entity.id, entity)
