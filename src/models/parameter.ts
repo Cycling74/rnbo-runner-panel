@@ -45,11 +45,23 @@ export class ParameterRecord extends ImmuRecord({
 		return subparamLists.reduce((acc, l) => acc.concat(l), []);
 	}
 
-	setValue(v: number) {
-		return this.set("value", v);
+	public get id(): string {
+		return this.name;
 	}
 
-	get id(): string {
-		return this.name;
+	public setValue(v: number): ParameterRecord {
+		if (v === this.value) return this;
+
+		return this
+			.set("value", v)
+			.set("normalizedValue", ParameterRecord.convertToNormalizedValue(v, this.min, this.max));
+	}
+
+	public setNormalizedValue(nv: number): ParameterRecord {
+		if (nv === this.normalizedValue) return this;
+
+		return this
+			.set("normalizedValue", nv)
+			.set("value", ParameterRecord.convertFromNormalizedValue(nv, this.min, this.max));
 	}
 }
