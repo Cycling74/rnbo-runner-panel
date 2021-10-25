@@ -7,7 +7,7 @@ const IndexRedirect: FunctionComponent<{}> = () => {
 
 	useEffect(() => {
 		replace("/parameters");
-	}, []);
+	});
 
 	return <div></div>;
 };
