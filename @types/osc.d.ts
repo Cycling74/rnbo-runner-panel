@@ -31,5 +31,5 @@ declare module "osc" {
 	};
 
 	export function readPacket(packet: Uint8Array, options: PacketOptions, offsetState?: OffsetState): OSCMessage | OSCBundle;
-	export function writePacket(msg: OSCMessage | OSCBundle): Uint8Array;
+	export function writePacket(msg: OSCMessage | OSCBundle, options?: PacketOptions): Uint8Array;
 }
