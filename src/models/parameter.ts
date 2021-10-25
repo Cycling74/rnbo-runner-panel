@@ -12,7 +12,15 @@ export class ParameterRecord extends ImmuRecord({
 
 }) {
 
-	static arrayFromDescription(desc: JsonMap, prefix?: string): ParameterRecord[] {
+	public static convertToNormalizedValue(v: number, min: number, max: number): number {
+		return (v - min) / (max - min);
+	}
+
+	public static convertFromNormalizedValue(nv: number, min: number, max: number): number {
+		return (max - min) * nv + min;
+	}
+
+	public static arrayFromDescription(desc: JsonMap, prefix?: string): ParameterRecord[] {
 
 		if (typeof desc.VALUE !== "undefined") {
 

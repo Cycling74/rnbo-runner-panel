@@ -8,13 +8,14 @@ import { setEntities, setEntity } from "./entities";
 import { AppThunk } from "../lib/store";
 import throttle from "lodash.throttle";
 import { oscQueryBridge } from "../controller/oscqueryBridgeController";
+import { getParameter } from "../selectors/entities";
 
 export const setParameterValue = (name: ParameterRecord["name"], value: number, normalized: boolean): AppThunk =>
 	(dispatch, getState) => {
-		let parameter = getState().entities.parameter.get(name);
+		const parameter = getParameter(getState(), name);
 		if (parameter) {
-			parameter = normalized ? parameter.set("normalizedValue", value) : parameter.set("value", value);
-			dispatch(setEntity(EntityType.ParameterRecord, parameter));
+			const updatedParam = normalized ? parameter.setNormalizedValue(value) : parameter.setValue(value);
+			dispatch(setEntity(EntityType.ParameterRecord, updatedParam));
 		}
 	};
 

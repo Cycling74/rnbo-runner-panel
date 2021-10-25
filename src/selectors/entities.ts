@@ -5,12 +5,12 @@ import { RootStateType } from "../lib/store";
 import { Entity, EntityMap, EntityType } from "../reducers/entities";
 
 
-function getEntity (state: RootStateType, type: EntityType.InportRecord, id: string): InportRecord | undefined;
-function getEntity (state: RootStateType, type: EntityType.ParameterRecord, id: string): ParameterRecord | undefined;
-function getEntity (state: RootStateType, type: EntityType.PresetRecord, id: string): PresetRecord | undefined;
-function getEntity (state: RootStateType, type: EntityType, id: string): Entity | undefined {
+function getEntity(state: RootStateType, type: EntityType.InportRecord, id: string): InportRecord | undefined;
+function getEntity(state: RootStateType, type: EntityType.ParameterRecord, id: string): ParameterRecord | undefined;
+function getEntity(state: RootStateType, type: EntityType.PresetRecord, id: string): PresetRecord | undefined;
+function getEntity(state: RootStateType, type: EntityType, id: string): Entity | undefined {
 	return state.entities[type].get(id);
-};
+}
 
 export const getParameter = (state: RootStateType, id: string): ParameterRecord | undefined => {
 	return getEntity(state, EntityType.ParameterRecord, id);
