@@ -17,13 +17,13 @@ function InportEntry({ name, onSend }: InportEntryProps) {
 		setText(event.target.value);
 	};
 
-	const handleSubmit = (event: React.ChangeEvent<HTMLInputElement>) => {
+	const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
 		if (onSend) onSend(name, text);
 	};
 
 	return (
-		<form className="inport" onSubmit={() => handleSubmit}>
+		<form className="inport" onSubmit={handleSubmit}>
 			<div className="inportLabel">
 				<label>{name}</label>
 			</div>

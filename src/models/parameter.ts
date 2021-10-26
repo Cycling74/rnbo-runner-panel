@@ -12,7 +12,7 @@ export class ParameterRecord extends ImmuRecord({
 
 }) {
 
-	static arrayFromDescription(desc: JsonMap, prefix?: string): ParameterRecord[] {
+	public static arrayFromDescription(desc: JsonMap, prefix?: string): ParameterRecord[] {
 
 		if (typeof desc.VALUE !== "undefined") {
 
@@ -37,11 +37,15 @@ export class ParameterRecord extends ImmuRecord({
 		return subparamLists.reduce((acc, l) => acc.concat(l), []);
 	}
 
-	setValue(v: number) {
+	public get id(): string {
+		return this.name;
+	}
+
+	public setValue(v: number): ParameterRecord {
 		return this.set("value", v);
 	}
 
-	get id(): string {
-		return this.name;
+	public setNormalizedValue(nv: number): ParameterRecord {
+		return this.set("normalizedValue", nv);
 	}
 }

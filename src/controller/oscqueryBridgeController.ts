@@ -1,6 +1,6 @@
-import { parse as parseQuery } from "querystring";
+import { parse as parseQuery } from "querystring";
 import { readPacket } from "osc";
-import { initializeDevice, setParameterValue } from "../actions/device";
+import { initializeDevice, setParameterValue, setParameterValueNormalized } from "../actions/device";
 import { deleteEntity, setEntity } from "../actions/entities";
 import { setConnectionStatus } from "../actions/network";
 import { AppDispatch, store } from "../lib/store";
@@ -27,7 +27,6 @@ export class OSCQueryBridgeControllerPrivate {
 	private _onMessage = async (evt: MessageEvent): Promise<void> => {
 		try {
 			if (typeof evt.data === "string") {
-
 				const data = JSON.parse(evt.data);
 				if (typeof data.FULL_PATH === "string" && data.FULL_PATH === "/rnbo/inst/0" && (typeof data.CONTENTS !== "undefined")) {
 
@@ -58,7 +57,7 @@ export class OSCQueryBridgeControllerPrivate {
 				}
 			} else {
 				const buf: Uint8Array = await evt.data.arrayBuffer();
-				const message = readPacket(buf);
+				const message = readPacket(buf, {});
 				this._processOSCMessage(message);
 			}
 		} catch (e) {
@@ -116,32 +115,33 @@ export class OSCQueryBridgeControllerPrivate {
 
 		const paramValue = packet.args[0];
 		const paramPath = matches[1];
-		let normalized = false;
-		let paramName  = paramPath;
+
 		if (paramPath.endsWith("/normalized")) {
-			paramName = paramPath.slice(0, -("/normalized").length);
-			normalized = true;
+			const paramName = paramPath.slice(0, -("/normalized").length);
+			dispatch(setParameterValueNormalized(paramName, paramValue));
+		} else {
+			dispatch(setParameterValue(paramPath, paramValue));
 		}
-		dispatch(setParameterValue(paramName, paramValue, normalized));
+
 	}
 
 	public get hostname(): string {
 		return this._hostname;
-	};
+	}
 
 	public get port(): string {
 		return this._port;
-	};
+	}
 
 	public get readyState(): WebSocket["readyState"] {
 		return this._ws?.readyState || WebSocket.CONNECTING;
-	};
+	}
 
 	public get ws(): WebSocket | undefined {
 		return this._ws;
-	};
+	}
 
-	public async connect({ hostname, port }: { hostname: string; port: string; }): Promise<void> {
+	public async connect({ hostname, port }: { hostname: string; port: string }): Promise<void> {
 		return new Promise((resolve, reject) => {
 			this._hostname = hostname;
 			this._port = port;
@@ -197,7 +197,7 @@ export const parseConnectionQueryString = (qs: string): { hostname: string; port
 	const { h, p } = parseQuery(qs);
 	return {
 		hostname: !h ? location.hostname : Array.isArray(h) ? h[0] : h,
-		port: !p || process.env.NODE_ENV === "development" ? "5678" : Array.isArray(p) ? p[0] : p
+		port: !p || process.env.NODE_ENV === "development" ? "5678" : Array.isArray(p) ? p[0] : p
 	};
 };
 
