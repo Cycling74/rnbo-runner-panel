@@ -53,10 +53,10 @@ const PresetWrapper = styled.div`
 
 const PresetControl = memo(function WrappedPresetControl(): JSX.Element {
 
-	const [selectedPreset, setSelectedPreset] = useState("");
+	const presets = useAppSelector((state: RootStateType) => getPresets(state));
+	const [selectedPreset, setSelectedPreset] = useState(presets.first() ? presets.first().name : "" );
 	const [newPresetName, setNewPresetName] = useState("");
 	const [showPresets, setShowPresets] = useState(false);
-	const presets = useAppSelector((state: RootStateType) => getPresets(state));
 	const dispatch = useAppDispatch();
 
 	const openPresets = (): void => {
