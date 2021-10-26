@@ -5,6 +5,7 @@ import { sendPresetToRemote, savePresetToRemote } from "../actions/device";
 import { RootStateType } from "../lib/store";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import styled from "styled-components";
+import { PresetRecord } from "../models/preset";
 
 interface StyledProps {
 	shown: boolean;
@@ -54,7 +55,7 @@ const PresetWrapper = styled.div`
 const PresetControl = memo(function WrappedPresetControl(): JSX.Element {
 
 	const presets = useAppSelector((state: RootStateType) => getPresets(state));
-	const [selectedPreset, setSelectedPreset] = useState(presets.first() ? presets.first().name : "" );
+	const [selectedPreset, setSelectedPreset] = useState(presets.size > 0 ? (presets.first() as PresetRecord).name : "");
 	const [newPresetName, setNewPresetName] = useState("");
 	const [showPresets, setShowPresets] = useState(false);
 	const dispatch = useAppDispatch();
