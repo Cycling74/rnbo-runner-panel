@@ -70,11 +70,11 @@ export const entities = (state: EntityState = {
 		}
 
 		case EnitityActionType.DELETE_ENTITIES: {
-			const { ids, type } = action.payload;
+			const { ids, type } = action.payload;
 			return {
 				...state,
 				[type]: getEntities(state, type).filter(entity => !ids.includes(entity.id))
-			}
+			};
 		}
 
 		case EnitityActionType.CLEAR_ENTITIES: {

@@ -35,5 +35,5 @@ yarn-error.log*
 
 # packaging
 /debian/debian/control
-/debian/usr/share/*
+/debian/usr/*
 *.deb

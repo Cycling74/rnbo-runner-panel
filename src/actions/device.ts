@@ -8,25 +8,41 @@ import { setEntities, setEntity } from "./entities";
 import { AppThunk } from "../lib/store";
 import throttle from "lodash.throttle";
 import { oscQueryBridge } from "../controller/oscqueryBridgeController";
+import { getParameter } from "../selectors/entities";
 
-export const setParameterValue = (name: ParameterRecord["name"], value: number, normalized: boolean): AppThunk =>
+export const setParameterValueNormalized = (name: ParameterRecord["name"], value: number): AppThunk =>
 	(dispatch, getState) => {
-		let parameter = getState().entities.parameter.get(name);
-		if (parameter) {
-			parameter = normalized ? parameter.set("normalizedValue", value) : parameter.set("value", value);
-			dispatch(setEntity(EntityType.ParameterRecord, parameter));
-		}
+		const parameter = getParameter(getState(), name);
+		if (!parameter) return;
+		if (parameter.normalizedValue === value) return;
+		dispatch(setEntity(EntityType.ParameterRecord, parameter.setNormalizedValue(value) ));
+	};
+
+export const setParameterValue = (name: ParameterRecord["name"], value: number): AppThunk =>
+	(dispatch, getState) => {
+		const parameter = getParameter(getState(), name);
+		if (!parameter) return;
+		if (parameter.value === value) return;
+		dispatch(setEntity(EntityType.ParameterRecord, parameter.setValue(value) ));
 	};
 
 export const setRemoteParameterValueNormalized = throttle((name: string, value: number): AppThunk =>
-	() => {
+	(dispatch, getState) => {
+
 		const message = {
 			address: `/rnbo/inst/0/params/${name}/normalized`,
 			args: [
 				{ type: "f", value }
 			]
 		};
+
 		oscQueryBridge.sendPacket(writePacket(message));
+
+		// optimistic local state update
+		const parameter = getParameter(getState(), name);
+		if (!parameter) return;
+		dispatch(setEntity(EntityType.ParameterRecord, parameter.setNormalizedValue(value) ));
+
 	}, 100);
 
 export const triggerRemoteMidiNoteEvent = (pitch: number, isNoteOn: boolean): AppThunk =>

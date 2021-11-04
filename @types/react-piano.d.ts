@@ -1,7 +1,6 @@
 declare module "react-piano" {
 	import { Component, ReactNode } from "react";
-
-	export type KeyboardShortcut = {
+	export interface KeyboardShortcut {
 		key: string;
 		midiNumber: number;
 	}
@@ -19,7 +18,7 @@ declare module "react-piano" {
 		keyboardShortcuts?: KeyboardShortcut[];
 		onPlayNoteInput?: (midi: number, { prevActiveNotes }:  { prevActiveNotes: number[] }) => any;
 		onStopNoteInput?: (midi: number, { prevActiveNotes }:  { prevActiveNotes: number[] }) => any;
-	}>{};
+	}> {}
 
 	interface MidiNumbersHelpers {
 		fromNote: (note: string) => number;

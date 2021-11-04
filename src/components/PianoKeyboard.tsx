@@ -28,7 +28,7 @@ const PianoKeyboard = memo(function WrappedPianoKeyboard() {
 	}, [dispatch]);
 
 	const onNoteOff = useCallback((p: number) => {
-		dispatch(triggerRemoteMidiNoteEvent(p, true));
+		dispatch(triggerRemoteMidiNoteEvent(p, false));
 	}, [dispatch]);
 
 	return  (

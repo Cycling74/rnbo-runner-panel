@@ -20,6 +20,16 @@ declare module "osc" {
 		packets: Array<OSCMessage | OSCBundle>;
 	};
 
-	export function readPacket(packet: Uint8Array): OSCMessage | OSCBundle;
-	export function writePacket(msg: OSCMessage | OSCBundle): Uint8Array;
+	export type PacketOptions = {
+		metadata?: boolean;
+		unpackSingleArgs?: boolean;
+	};
+
+	export type OffsetState = {
+		idx: number;
+		length: number;
+	};
+
+	export function readPacket(packet: Uint8Array, options: PacketOptions, offsetState?: OffsetState): OSCMessage | OSCBundle;
+	export function writePacket(msg: OSCMessage | OSCBundle, options?: PacketOptions): Uint8Array;
 }
