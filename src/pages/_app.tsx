@@ -5,10 +5,11 @@ import { oscQueryBridge, parseConnectionQueryString } from "../controller/oscque
 import { store } from "../lib/store";
 import Nav from "../components/Nav/nav";
 import { Header } from "../components/Header";
-import { ThemeProvider, createGlobalStyle } from "styled-components";
+import styled, { ThemeProvider, createGlobalStyle } from "styled-components";
 import { RNBOTheme } from "../lib/rnbo-theme";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faAngleDown, faBars, faTimes } from "@fortawesome/free-solid-svg-icons";
+import MobileNav from "../components/Nav/mobileNav";
 library.add(faAngleDown, faBars, faTimes);
 
 const GlobalWrapper = createGlobalStyle`
@@ -25,28 +26,23 @@ div#__next {
     Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
 }
 
-.compWrapper {
-	margin: 0% 7%;
-}
-
 a {
   color: inherit;
   text-decoration: none;
 }
+`;
 
-.smallButton {
-	color: ${props => props.theme.colors.darkText};
-	background-color: ${props => props.theme.colors.secondary};
-	border-radius: 3px;
-	border-style: none;
-	margin-left: .4rem;
-	padding: 0.15rem;
-	text-align: center;
-	cursor: pointer;
-	&:hover{
-		background-color: ${props => props.theme.colors.hilight};
+const ContentWrapper = styled.div`
+	margin: 0% 7%;
+	@media screen and (max-width: 35.5em) {
+		margin-top: 3%;
 	}
-}
+`;
+
+const Desktop = styled.div`
+	@media screen and (max-width: 35.5em) {
+      display: none;
+    }
 `;
 
 function App({ Component, pageProps }: AppProps) {
@@ -60,13 +56,14 @@ function App({ Component, pageProps }: AppProps) {
 		<Provider store={store} >
 			<ThemeProvider theme={RNBOTheme}>
 				<GlobalWrapper />
-				<Nav />
-				<div className="headerPanel">
+				<Desktop>
+					<Nav />
 					<Header />
-				</div>
-				<div className="compWrapper">
+				</Desktop>
+				<MobileNav />
+				<ContentWrapper>
 					<Component {...pageProps} />
-				</div>
+				</ContentWrapper>
 			</ThemeProvider>
 		</Provider>
 	);

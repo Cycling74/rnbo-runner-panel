@@ -11,7 +11,7 @@ interface StyledProps {
 }
 
 const PresetWrapper = styled.div`
-	z-index: 100;
+	z-index: 10;
 	color: #F6F6F6;
 	display: flex;
 	flex-direction: column;
@@ -20,7 +20,8 @@ const PresetWrapper = styled.div`
 	position: absolute;
 
 	.presetPanel {
-		visibility: ${(props: StyledProps) => props.shown ? "visible" : "hidden"};
+		display: ${(props: StyledProps) => props.shown ? "flex" : "none"};
+		flex-direction: column;
 		background-color: ${props => props.theme.colors.primary};
 		border-radius: 8px;
 		border-style: none;
@@ -48,6 +49,15 @@ const PresetWrapper = styled.div`
 			background-color: ${props => props.theme.colors.hilight};
 		}
 	}
+
+	@media screen and (max-width: 35.5em) {
+		.presetPanel{
+			background-color: ${props => props.theme.colors.secondary};
+		}
+		.open {
+			background-color: ${props => props.theme.colors.secondary};
+		}
+    }
 
 `;
 

@@ -17,6 +17,10 @@ const StatusWrapper = styled.div`
 	h4 {
 		margin: 0;
 	}
+	@media screen and (max-width: 35.5em) {
+		color: ${props => props.theme.colors.secondary};
+		border: 2px solid ${props => props.theme.colors.secondary};
+    }
 `;
 export default function Status() {
 

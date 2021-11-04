@@ -20,6 +20,13 @@ export const NavButton = styled.button<NavWrapperProps>`
 	#close {
 		display: ${({ shown }) => shown ? "flex" : "none"};
 	}
+	@media screen and (max-width: 35.5em) {
+		z-index: 50;
+		#close {
+			padding-bottom: 0.5rem;
+		}
+	}
+
 `;
 
 export const NavLink = styled.a<NavLinkProps>`
@@ -38,7 +45,9 @@ export const NavOpen = styled.div<NavWrapperProps>`
 	font-weight: 700;
 	letter-spacing: 0.06rem;
 	margin-right: 0.5rem;
-
+	@media screen and (max-width: 35.5em) {
+		padding: 0.5rem;
+	}
 `;
 
 export const NavigationWrapper = styled.div<NavWrapperProps>`
@@ -52,3 +61,34 @@ export const NavigationWrapper = styled.div<NavWrapperProps>`
 	position: fixed;
 	z-index: 100;
 `;
+
+export const MobileNavWrapper = styled.div<NavWrapperProps>`
+	display: none;
+	@media screen and (max-width: 35.5em) {
+    	display: flex;
+	  	justify-content: flex-start;
+	  	height: ${({ shown }) => shown ? "10rem" : "3.5rem"};
+	  	transition: height 0.5s;
+	 	width: 100%;
+		margin: 0;
+		background-color: ${({ theme }) => theme.colors.primary};
+		.mobile-header {
+			color: white;
+			width: 100%;
+			display: flex;
+			flex-direction: row;
+			justify-content: space-between;
+			align-items: center;
+			position: fixed;
+			.header-group {
+				display: flex;
+				flex-direction: row;
+				justify-content: flex-end;
+				align-items: center;
+				padding: 0.5rem 0.5rem 0rem 0rem;
+			}
+		}
+    }
+`;
+
+
