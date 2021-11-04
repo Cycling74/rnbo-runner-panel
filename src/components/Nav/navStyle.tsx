@@ -68,10 +68,12 @@ export const MobileNavWrapper = styled.div<NavWrapperProps>`
     	display: flex;
 	  	justify-content: flex-start;
 	  	height: ${({ shown }) => shown ? "10rem" : "3.5rem"};
-	  	transition: height 0.5s;
+	  	transition: height 0.4s;
 	 	width: 100%;
 		margin: 0;
 		background-color: ${({ theme }) => theme.colors.primary};
+		position: relative;
+		z-index: 300;
 		.mobile-header {
 			color: white;
 			width: 100%;
@@ -84,7 +86,6 @@ export const MobileNavWrapper = styled.div<NavWrapperProps>`
 				display: flex;
 				flex-direction: row;
 				justify-content: flex-end;
-				align-items: center;
 				padding: 0.5rem 0.5rem 0rem 0rem;
 			}
 		}

@@ -27,6 +27,7 @@ const PresetWrapper = styled.div`
 		border-radius: 8px;
 		border-style: none;
 		padding: 1rem;
+		z-index: 222;
 		.savePresetGroup {
 			padding-top: 0.5rem;
 			.saveLabel {
@@ -52,6 +53,7 @@ const PresetWrapper = styled.div`
 	}
 
 	@media screen and (max-width: 35.5em) {
+		display: flex;
 		.presetPanel{
 			background-color: ${props => props.theme.colors.secondary};
 		}
