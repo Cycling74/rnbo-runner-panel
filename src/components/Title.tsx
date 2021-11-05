@@ -16,7 +16,6 @@ export default function Title({mobile}: TitleProps) {
 	} else if(currentPath === "/midi") {
 		title = mobile ? "MIDI" : "MIDI CONTROL";
 	}
-	console.log(title);
 	return (
 		<p> {title} </p>
 	);
