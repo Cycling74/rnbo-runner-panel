@@ -7,11 +7,26 @@ import { useAppDispatch } from "../hooks/useAppDispatch";
 import styled from "styled-components";
 
 const MIDIWrapper = styled.div`
-	height: 10rem;
-	width: 80%;
-	div {
+	// i know this is kind of redundant
+	// but react-piano was glitchy and this way seems to make it work
+	display: flex;
+	justify-content: center;
+	.keyboardContainer {
+		height: 15rem;
+		width: 80%;
+	}
+
+	.keyboardContainer > div {
 		height: 100%;
 	}
+	@media screen and (max-width: 35.5em) {
+		padding-top: 5rem;
+		.keyboardContainer {
+			height: 10rem;
+			width: 100%;
+		}
+	}
+
 `;
 
 const noteRange = {
@@ -33,9 +48,11 @@ const PianoKeyboard = memo(function WrappedPianoKeyboard() {
 
 	return  (
 		<MIDIWrapper>
-			<DimensionsProvider>
-				<ResponsivePiano noteRange={noteRange} onNoteOn={onNoteOn} onNoteOff={onNoteOff}/>
-			</DimensionsProvider>
+			<div className="keyboardContainer" >
+				<DimensionsProvider>
+					<ResponsivePiano noteRange={noteRange} onNoteOn={onNoteOn} onNoteOff={onNoteOff}/>
+				</DimensionsProvider>
+			</div>
 		</MIDIWrapper>
 	);
 });
