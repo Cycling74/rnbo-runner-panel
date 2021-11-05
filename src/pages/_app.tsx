@@ -35,7 +35,7 @@ a {
 const ContentWrapper = styled.div`
 	margin: 0% 7%;
 	@media screen and (max-width: 35.5em) {
-		margin-top: 3%;
+		padding-top: 5rem;
 	}
 `;
 

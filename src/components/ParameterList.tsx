@@ -49,6 +49,7 @@ const ParamWrapper = styled.div`
 		border-radius: 0.6rem;
 		background-color: #21496D;
 		position: absolute;
+		touch-action: pan-x;
 	}
 `;
 
