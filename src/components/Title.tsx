@@ -1,15 +1,23 @@
 import React from "react";
-import styled from "styled-components";
 import { useRouter } from "next/router";
-const TitleWrapper = styled.div`
 
-`;
-export default function Title() {
+interface TitleProps {
+	mobile: boolean;
+}
+export default function Title({mobile}: TitleProps) {
 	const router = useRouter();
 	const currentPath = router.pathname;
+
+	let title = "";
+	if(currentPath === "/parameters") {
+		title = "PARAMETERS";
+	} else if(currentPath === "/io") {
+		title = mobile ? "IO" : "INPORTS AND OUTPORTS";
+	} else if(currentPath === "/midi") {
+		title = mobile ? "MIDI" : "MIDI CONTROL";
+	}
+	console.log(title);
 	return (
-		<TitleWrapper>
-			<h4> {currentPath} </h4>
-		</TitleWrapper>
+		<p> {title} </p>
 	);
 }

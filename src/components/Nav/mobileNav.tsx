@@ -5,7 +5,6 @@ import { useRouter } from "next/router";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Status from "../Status";
 import PresetControl from "../PresetControl";
-import Title from "../Title";
 export default function MobileNav() {
 	const [showNav, setShowNav] = useState(false);
 	const router = useRouter();

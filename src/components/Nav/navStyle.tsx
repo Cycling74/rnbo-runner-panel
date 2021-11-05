@@ -72,7 +72,9 @@ export const MobileNavWrapper = styled.div<NavWrapperProps>`
 	 	width: 100%;
 		margin: 0;
 		background-color: ${({ theme }) => theme.colors.primary};
-		position: relative;
+		position: fixed;
+		top: 0;
+  		left: 0;
 		z-index: 300;
 		.mobile-header {
 			color: white;

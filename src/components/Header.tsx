@@ -3,6 +3,7 @@ import Status from "./Status";
 import PresetControl from "./PresetControl";
 import styled from "styled-components";
 import { Hr } from "./Hr";
+import Title from "./Title";
 
 const HeaderComponent = styled.header`
 	margin: 0% 5%;
@@ -29,7 +30,9 @@ export const Header = () => {
 	return (
 		<div>
 			<HeaderComponent>
-				<HeaderTitle> TITLE </HeaderTitle>
+				<HeaderTitle>
+					<Title mobile={false} />
+				</HeaderTitle>
 				<HeaderControls>
 					<PresetControl />
 					<Status />
