@@ -64,18 +64,20 @@ export const NavigationWrapper = styled.div<NavWrapperProps>`
 
 export const MobileNavWrapper = styled.div<NavWrapperProps>`
 	display: none;
+
 	@media screen and (max-width: 35.5em) {
-    	display: flex;
-	  	justify-content: flex-start;
-	  	height: ${({ shown }) => shown ? "10rem" : "3.5rem"};
-	  	transition: height 0.4s;
-	 	width: 100%;
+		display: flex;
+		justify-content: flex-start;
+		height: ${({ shown }) => shown ? "10rem" : "3.5rem"};
+		transition: height 0.4s;
+		width: 100%;
 		margin: 0;
 		background-color: ${({ theme }) => theme.colors.primary};
 		position: fixed;
 		top: 0;
-  		left: 0;
+		left: 0;
 		z-index: 300;
+
 		.mobile-header {
 			color: white;
 			width: 100%;
@@ -84,6 +86,7 @@ export const MobileNavWrapper = styled.div<NavWrapperProps>`
 			justify-content: space-between;
 			align-items: center;
 			position: fixed;
+
 			.header-group {
 				display: flex;
 				flex-direction: row;
@@ -91,7 +94,7 @@ export const MobileNavWrapper = styled.div<NavWrapperProps>`
 				padding: 0.5rem 0.5rem 0rem 0rem;
 			}
 		}
-    }
+	}
 `;
 
 

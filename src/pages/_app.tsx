@@ -19,16 +19,16 @@ html,
 body,
 body > div:first-child,
 div#__next {
-  height: 100%;
-  padding: 0;
-  margin: 0;
-  font-family: Lato, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
-    Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
+	height: 100%;
+	padding: 0;
+	margin: 0;
+	font-family: Lato, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
+		Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
 }
 
 a {
-  color: inherit;
-  text-decoration: none;
+	color: inherit;
+	text-decoration: none;
 }
 `;
 
@@ -41,8 +41,8 @@ const ContentWrapper = styled.div`
 
 const Desktop = styled.div`
 	@media screen and (max-width: 35.5em) {
-      display: none;
-    }
+		display: none;
+	}
 `;
 
 function App({ Component, pageProps }: AppProps) {

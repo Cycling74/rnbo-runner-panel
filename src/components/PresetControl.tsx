@@ -42,7 +42,7 @@ const PresetWrapper = styled.div`
 		border-radius: 8px;
 		border-style: none;
 		padding: .6rem;
-  		text-align: center;
+		text-align: center;
 		cursor: pointer;
 		#chev {
 			margin-left: 0.5rem;
@@ -60,8 +60,7 @@ const PresetWrapper = styled.div`
 		.open {
 			background-color: ${props => props.theme.colors.secondary};
 		}
-    }
-
+	}
 `;
 
 const PresetControl = memo(function WrappedPresetControl(): JSX.Element {

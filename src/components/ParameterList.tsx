@@ -10,13 +10,13 @@ const ParamWrapper = styled.div`
 	margin-top: 2rem;
 
 	.parameter {
-	width: 100%;
-	height: 4rem;
-	margin: 5px;
-	padding: 2px;
-	position: relative;
-	color: #082036;
-	z-index: 0;
+		width: 100%;
+		height: 4rem;
+		margin: 5px;
+		padding: 2px;
+		position: relative;
+		color: #082036;
+		z-index: 0;
 	}
 
 	.parameterLabel {
