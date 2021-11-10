@@ -7,16 +7,21 @@ interface TitleProps {
 export default function Title({mobile}: TitleProps) {
 	const router = useRouter();
 	const currentPath = router.pathname;
-
 	let title = "";
-	if(currentPath === "/parameters") {
-		title = "PARAMETERS";
-	} else if(currentPath === "/io") {
-		title = mobile ? "IO" : "INPORTS AND OUTPORTS";
-	} else if(currentPath === "/midi") {
-		title = mobile ? "MIDI" : "MIDI CONTROL";
+	switch (currentPath) {
+		case "/parameters":
+			title = "PARAMETERS";
+			break;
+		case "/io":
+			title = mobile ? "IO" : "INPORTS AND OUTPORTS";
+			break;
+		case "/midi":
+			title = mobile ? "MIDI" : "MIDI CONTROL";
+			break;
+		default:
+			title = "";
 	}
 	return (
-		<p> {title} </p>
+		<h1> {title} </h1>
 	);
 }

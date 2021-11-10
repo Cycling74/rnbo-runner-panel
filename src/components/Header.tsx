@@ -19,12 +19,13 @@ const HeaderControls = styled.div`
 	justify-content: flex-end;
 `;
 
-const HeaderTitle = styled.p`
+const HeaderTitle = styled.div`
 	align-self: flex-end;
 	font-weight: 700;
 	letter-spacing: 0.06rem;
 	color: ${props => props.theme.colors.primary};
 	margin: 0;
+	font-size: 0.65rem;
 `;
 export const Header = () => {
 	return (
