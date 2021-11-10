@@ -15,7 +15,7 @@ const ParamWrapper = styled.div`
 		margin: 5px;
 		padding: 2px;
 		position: relative;
-		color: #082036;
+		color: ${({ theme }) => theme.colors.primary};
 		z-index: 0;
 	}
 
@@ -38,7 +38,7 @@ const ParamWrapper = styled.div`
 	.activeRange {
 		height: 100%;
 		border-radius: 0.4rem;
-		background-color: #21496D;
+		background-color: ${({ theme }) => theme.colors.primary};
 	}
 
 	.sliderKnob {
@@ -47,7 +47,7 @@ const ParamWrapper = styled.div`
 		margin-left: -0.5rem;
 		top: -0.4rem;
 		border-radius: 0.6rem;
-		background-color: #21496D;
+		background-color: ${({ theme }) => theme.colors.primary};
 		position: absolute;
 		touch-action: pan-x;
 	}

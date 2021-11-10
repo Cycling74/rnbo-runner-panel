@@ -16,7 +16,6 @@ export default function Nav() {
 	const closeNav = () => {
 		setShowNav(false);
 	};
-	console.log(showNav);
 	return (
 		<div>
 			<NavigationWrapper shown={ showNav }>

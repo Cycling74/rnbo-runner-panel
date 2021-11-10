@@ -79,7 +79,7 @@ export const MobileNavWrapper = styled.div<NavWrapperProps>`
 		z-index: 300;
 
 		.mobile-header {
-			color: white;
+			color: ${({ theme }) => theme.colors.lightNeutral};
 			width: 100%;
 			display: flex;
 			flex-direction: row;

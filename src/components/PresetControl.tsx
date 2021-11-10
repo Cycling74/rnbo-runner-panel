@@ -13,7 +13,7 @@ interface StyledProps {
 
 const PresetWrapper = styled.div`
 	z-index: 10;
-	color: #F6F6F6;
+	color: ${({ theme }) => theme.colors.lightNeutral};
 	display: flex;
 	flex-direction: column;
 	align-items: flex-end;
@@ -38,7 +38,7 @@ const PresetWrapper = styled.div`
 
 	.open {
 		background-color: ${props => props.theme.colors.primary};
-		color: #F6F6F6;
+		color: ${({ theme }) => theme.colors.lightNeutral};
 		border-radius: 8px;
 		border-style: none;
 		padding: .6rem;
