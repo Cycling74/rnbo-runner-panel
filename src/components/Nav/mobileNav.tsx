@@ -1,14 +1,11 @@
 import React, { useState } from "react";
-import Link from "next/link";
-import { NavLink, NavButton, NavOpen, MobileNavWrapper } from "./navStyle";
-import { useRouter } from "next/router";
+import { NavLink } from "./navLink";
+import { NavButton, NavOpen, MobileNavWrapper } from "./navStyle";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Status from "../Status";
 import PresetControl from "../PresetControl";
 export default function MobileNav() {
 	const [showNav, setShowNav] = useState(false);
-	const router = useRouter();
-	const currentPath = router.pathname;
 
 	const openNav = () => {
 		setShowNav(true);
@@ -34,15 +31,9 @@ export default function MobileNav() {
 				<NavButton shown={showNav} onClick={closeNav}>
 					<FontAwesomeIcon id="close" icon="times" />
 				</NavButton>
-				<Link href="/parameters" passHref>
-					<NavLink active={currentPath === "/parameters"}>PARAMETERS</NavLink>
-				</Link>
-				<Link href="/io" passHref>
-					<NavLink active={currentPath === "/io"}>INPORTS / OUTPORTS</NavLink>
-				</Link>
-				<Link href="/midi" passHref>
-					<NavLink active={currentPath === "/midi"}>MIDI CONTROL</NavLink>
-				</Link>
+				<NavLink href="/parameters" label="PARAMETERS"/>
+				<NavLink href="/io" label="INPORTS / OUTPORTS"/>
+				<NavLink href="/midi" label="MIDI CONTROL"/>
 			</NavOpen>
 		</MobileNavWrapper>
 	);

@@ -29,15 +29,6 @@ export const NavButton = styled.button<NavWrapperProps>`
 
 `;
 
-export const NavLink = styled.a<NavLinkProps>`
-	padding: 0.5rem 0.1rem;
-	color: ${({ active, theme}) => active ? theme.colors.secondary : theme.colors.lightText };
-	&:hover {
-		color: ${props => props.theme.colors.hilight};
-		text-decoration: underline;
-	}
-`;
-
 export const NavOpen = styled.div<NavWrapperProps>`
 	display: ${({ shown }) => shown ? "flex" : "none"};
 	flex-direction: column;

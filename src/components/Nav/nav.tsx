@@ -1,13 +1,24 @@
 import React, { useState } from "react";
-import Link from "next/link";
-import { NavigationWrapper, NavLink, NavButton, NavOpen } from "./navStyle";
-import { useRouter } from "next/router";
+import { NavLink } from "./navLink";
+import { NavigationWrapper, NavButton, NavOpen } from "./navStyle";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-
+import { useRouter } from "next/router";
+import { useEffect } from "react";
 export default function Nav() {
 	const [showNav, setShowNav] = useState(false);
 	const router = useRouter();
-	const currentPath = router.pathname;
+
+	useEffect(() => {
+		const handleNavUpdate = () => {
+			setShowNav(false);
+		};
+
+		router.events.on("routeChangeComplete", handleNavUpdate);
+
+		return () => {
+			router.events.off("routeChangeComplete", handleNavUpdate);
+		};
+	}, [router]);
 
 	const openNav = () => {
 		setShowNav(true);
@@ -28,15 +39,9 @@ export default function Nav() {
 					<NavButton shown={ showNav } onClick={closeNav}>
 						<FontAwesomeIcon id="close" icon="times" />
 					</NavButton>
-					<Link href="/parameters" passHref>
-						<NavLink active={currentPath === "/parameters" ? true : false}>PARAMETERS</NavLink>
-					</Link>
-					<Link href="/io" passHref>
-						<NavLink active={currentPath === "/io" ? true : false}>INPORTS / OUTPORTS</NavLink>
-					</Link>
-					<Link href="/midi" passHref>
-						<NavLink active={currentPath === "/midi" ? true : false}>MIDI CONTROL</NavLink>
-					</Link>
+					<NavLink href="/parameters" label="PARAMETERS" />
+					<NavLink href="/io" label="INPORTS / OUTPORTS" />
+					<NavLink href="/midi" label="MIDI CONTROL" />
 				</NavOpen>
 			</NavigationWrapper>
 		</div>
