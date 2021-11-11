@@ -1,5 +1,4 @@
 import { AppProps } from "next/app";
-import Head from "next/head";
 import React, { useEffect } from "react";
 import { Provider } from "react-redux";
 import { oscQueryBridge, parseConnectionQueryString } from "../controller/oscqueryBridgeController";
@@ -15,7 +14,7 @@ import { faAngleDown, faBars, faTimes } from "@fortawesome/free-solid-svg-icons"
 library.add(faAngleDown, faBars, faTimes);
 
 // https://github.com/vercel/next.js/issues/20682
-//required when using next/head
+// required when using next/head
 import "@fortawesome/fontawesome-svg-core/styles.css";
 
 const GlobalWrapper = createGlobalStyle`
@@ -58,9 +57,6 @@ function App({ Component, pageProps }: AppProps) {
 
 	return (
 		<Provider store={store}>
-			<Head>
-				<link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap" rel="stylesheet" />
-			</Head>
 			<ThemeProvider theme={RNBOTheme}>
 				<GlobalWrapper />
 				<Desktop>
