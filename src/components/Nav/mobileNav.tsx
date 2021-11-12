@@ -4,8 +4,24 @@ import { NavButton, NavOpen, MobileNavWrapper } from "./navStyle";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Status from "../Status";
 import PresetControl from "../PresetControl";
+import { useRouter } from "next/router";
+import { useEffect } from "react";
+
 export default function MobileNav() {
 	const [showNav, setShowNav] = useState(false);
+	const router = useRouter();
+
+	useEffect(() => {
+		const handleNavUpdate = () => {
+			setShowNav(false);
+		};
+
+		router.events.on("routeChangeComplete", handleNavUpdate);
+
+		return () => {
+			router.events.off("routeChangeComplete", handleNavUpdate);
+		};
+	}, [router]);
 
 	const openNav = () => {
 		setShowNav(true);
