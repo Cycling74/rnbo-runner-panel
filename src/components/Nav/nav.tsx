@@ -1,12 +1,24 @@
 import React, { useState } from "react";
-import Link from "next/link";
-import NavigationWrapper from "./navStyle";
+import { NavLink } from "./navLink";
+import { NavigationWrapper, NavButton, NavOpen } from "./navStyle";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useRouter } from "next/router";
-
+import { useEffect } from "react";
 export default function Nav() {
 	const [showNav, setShowNav] = useState(false);
 	const router = useRouter();
-	const currentPath = router.pathname;
+
+	useEffect(() => {
+		const handleNavUpdate = () => {
+			setShowNav(false);
+		};
+
+		router.events.on("routeChangeComplete", handleNavUpdate);
+
+		return () => {
+			router.events.off("routeChangeComplete", handleNavUpdate);
+		};
+	}, [router]);
 
 	const openNav = () => {
 		setShowNav(true);
@@ -15,24 +27,23 @@ export default function Nav() {
 	const closeNav = () => {
 		setShowNav(false);
 	};
-
 	return (
-		<NavigationWrapper shown={ showNav }>
-			<div className="navClosedWrapper">
-				<button id="burger" className={`button ${showNav ? "hideNav" : "showNav"}`} onClick={openNav}>&#9776;</button>
-			</div>
-			<div className={`navOpenWrapper ${showNav ? "showNav" : "hideNav"}`}>
-				<button id="close" className="button navClose" onClick={closeNav}>&times;</button>
-				<Link href="/parameters">
-					<a className={currentPath === "/parameters" ? "active" : ""}>PARAMETERS</a>
-				</Link>
-				<Link href="/io">
-					<a className={currentPath === "/io" ? "active" : ""}>INPORTS / OUTPORTS</a>
-				</Link>
-				<Link href="/midi">
-					<a className={currentPath === "/midi" ? "active" : ""}>MIDI CONTROL</a>
-				</Link>
-			</div>
-		</NavigationWrapper>
+		<div>
+			<NavigationWrapper shown={ showNav }>
+				<div>
+					<NavButton shown={ showNav } onClick={openNav}>
+						<FontAwesomeIcon id="menu" icon="bars" />
+					</NavButton>
+				</div>
+				<NavOpen shown={ showNav }>
+					<NavButton shown={ showNav } onClick={closeNav}>
+						<FontAwesomeIcon id="close" icon="times" />
+					</NavButton>
+					<NavLink href="/parameters" label="PARAMETERS" />
+					<NavLink href="/io" label="INPORTS / OUTPORTS" />
+					<NavLink href="/midi" label="MIDI CONTROL" />
+				</NavOpen>
+			</NavigationWrapper>
+		</div>
 	);
 }

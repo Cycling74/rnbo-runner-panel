@@ -1,5 +1,5 @@
 module.exports = {
-  reactStrictMode: true,
+	reactStrictMode: true,
 	webpack: (config, { isServer }) => {
 		// Fixes npm packages that depend on `child_process` module
 		if (!isServer) {
@@ -10,8 +10,9 @@ module.exports = {
 				net: false,
 				path: false,
 				stream: false
-			}
+			};
 		}
+
 		return config;
 	}
-}
+};

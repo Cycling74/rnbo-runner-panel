@@ -12,8 +12,8 @@ interface StyledProps {
 }
 
 const PresetWrapper = styled.div`
-	z-index: 100;
-	color: #F6F6F6;
+	z-index: 10;
+	color: ${({ theme }) => theme.colors.lightNeutral};
 	display: flex;
 	flex-direction: column;
 	align-items: flex-end;
@@ -21,11 +21,13 @@ const PresetWrapper = styled.div`
 	position: absolute;
 
 	.presetPanel {
-		visibility: ${(props: StyledProps) => props.shown ? "visible" : "hidden"};
+		display: ${(props: StyledProps) => props.shown ? "flex" : "none"};
+		flex-direction: column;
 		background-color: ${props => props.theme.colors.primary};
 		border-radius: 8px;
 		border-style: none;
 		padding: 1rem;
+		z-index: 222;
 		.savePresetGroup {
 			padding-top: 0.5rem;
 			.saveLabel {
@@ -36,11 +38,11 @@ const PresetWrapper = styled.div`
 
 	.open {
 		background-color: ${props => props.theme.colors.primary};
-		color: #F6F6F6;
+		color: ${({ theme }) => theme.colors.lightNeutral};
 		border-radius: 8px;
 		border-style: none;
 		padding: .6rem;
-  		text-align: center;
+		text-align: center;
 		cursor: pointer;
 		#chev {
 			margin-left: 0.5rem;
@@ -50,6 +52,15 @@ const PresetWrapper = styled.div`
 		}
 	}
 
+	@media screen and (max-width: 35.5em) {
+		display: flex;
+		.presetPanel{
+			background-color: ${props => props.theme.colors.secondary};
+		}
+		.open {
+			background-color: ${props => props.theme.colors.secondary};
+		}
+	}
 `;
 
 const PresetControl = memo(function WrappedPresetControl(): JSX.Element {
