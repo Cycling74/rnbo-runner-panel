@@ -10,6 +10,7 @@ const ParamWrapper = styled.div`
 	margin-top: 2rem;
 
 	.parameter {
+		box-sizing: border-box;
 		width: 100%;
 		height: 4rem;
 		margin: 5px;
@@ -17,6 +18,11 @@ const ParamWrapper = styled.div`
 		position: relative;
 		color: ${({ theme }) => theme.colors.primary};
 		z-index: 0;
+
+		@media screen and (max-width: 35.5em) {
+			height: 4.4rem;
+			margin: 5px 0;
+		}
 	}
 
 	.parameterLabel {
@@ -33,6 +39,11 @@ const ParamWrapper = styled.div`
 		background-color:lightgray;
 		position: absolute;
 		top: 50%;
+
+		@media screen and (max-width: 35.5em) {
+			width: calc(100% - 5px);
+			margin-left: 0;
+		}
 	}
 
 	.activeRange {

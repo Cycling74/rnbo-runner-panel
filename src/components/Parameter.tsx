@@ -1,4 +1,5 @@
 import React, { useRef, memo, useState } from "react";
+import styled from 'styled-components';
 import { ParameterRecord } from "../models/parameter";
 
 interface ParameterProps {
