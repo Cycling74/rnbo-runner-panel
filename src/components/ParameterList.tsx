@@ -22,7 +22,7 @@ const ParamWrapper = styled.div`
 		touch-event: none;
 
 		@media screen and (max-width: 35.5em) {
-			height: 4.4rem;
+			height: 5rem;
 			margin: 5px 0;
 		}
 	}
@@ -44,6 +44,8 @@ const ParamWrapper = styled.div`
 
 		@media screen and (max-width: 35.5em) {
 			width: calc(100% - 5px);
+			height: 0.8rem;
+			margin-top: 0.2rem;
 			margin-left: 0;
 		}
 	}
@@ -63,6 +65,13 @@ const ParamWrapper = styled.div`
 		background-color: ${({ theme }) => theme.colors.primary};
 		position: absolute;
 		touch-action: pan-x;
+
+		@media screen and (max-width: 35.5em) {
+			width: 1.6rem;
+			height: 1.6rem;
+			margin-left: -0.7rem;
+			border-radius: 0.8rem;
+		}
 	}
 `;
 

@@ -42,6 +42,7 @@ const Parameter = memo(function WrappedParameter({ record, onSetValue }: Paramet
 
 	const drawnValue = useLocalValue ? localValue : record.normalizedValue;
 	const paramLabel = typeof record.value === "number" ? record.value.toFixed(2) : record.value;
+
 	return (
 		<div className="parameter"
 			onPointerDown={handlePointerDown}
