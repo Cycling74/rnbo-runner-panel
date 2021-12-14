@@ -1,4 +1,5 @@
 import { AppProps } from "next/app";
+import Head from "next/head";
 import React, { useEffect } from "react";
 import { Provider } from "react-redux";
 import { oscQueryBridge, parseConnectionQueryString } from "../controller/oscqueryBridgeController";
@@ -59,6 +60,9 @@ function App({ Component, pageProps }: AppProps) {
 	return (
 		<Provider store={store}>
 			<ThemeProvider theme={RNBOTheme}>
+				<Head>
+					<title>RNBO</title>
+				</Head>
 				<GlobalWrapper />
 				<Desktop>
 					<Nav />
