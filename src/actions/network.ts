@@ -1,22 +1,21 @@
+import { WebSocketState } from "../lib/constants";
 import { ActionBase } from "../lib/store";
-
-export type ConnectionStatus = WebSocket["CLOSED"] | WebSocket["CLOSING"] | WebSocket["CONNECTING"] | WebSocket["OPEN"];
 
 export enum NetworkActionType {
 	SET_CONNECTION_STATUS = "SET_CONNECTION_STATUS",
-};
+}
 
 export interface ISetConnectionStatus extends ActionBase {
 	type: NetworkActionType.SET_CONNECTION_STATUS;
 	payload: {
 		error?: Error | undefined;
-		status: ConnectionStatus;
+		status: WebSocketState;
 	};
 };
 
 export type NetworkAction = ISetConnectionStatus;
 
-export const setConnectionStatus = (status: ConnectionStatus, error?: Error): NetworkAction => {
+export const setConnectionStatus = (status: WebSocketState, error?: Error): NetworkAction => {
 	return {
 		type: NetworkActionType.SET_CONNECTION_STATUS,
 		payload: {

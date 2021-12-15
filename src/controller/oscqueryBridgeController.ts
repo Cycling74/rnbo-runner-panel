@@ -7,14 +7,17 @@ import { AppDispatch, store } from "../lib/store";
 import { InportRecord } from "../models/inport";
 import { ParameterRecord } from "../models/parameter";
 import { EntityType } from "../reducers/entities";
+import { ReconnectingWebsocket } from "../lib/reconnectingWs";
 import { WebSocketState } from "../lib/constants";
 
 const dispatch = store.dispatch as AppDispatch;
 export class OSCQueryBridgeControllerPrivate {
 
-	private _hostname = "localhost";
-	private _port = "5678";
-	private _ws: WebSocket | undefined;
+	private _ws: ReconnectingWebsocket | null = null;
+
+	private get readyState(): WebSocketState {
+		return this._ws?.readyState || WebSocketState.CLOSED;
+	}
 
 	private _onClose = (evt: ErrorEvent) => {
 		dispatch(setConnectionStatus(this.readyState));
@@ -23,6 +26,14 @@ export class OSCQueryBridgeControllerPrivate {
 	private _onError = (evt: ErrorEvent) => {
 		dispatch(setConnectionStatus(this.readyState));
 	};
+
+	private _onReconnecting = () => {
+		dispatch(setConnectionStatus(this.readyState));
+	}
+
+	private _onReconnected = () => {
+		dispatch(setConnectionStatus(this.readyState));
+	}
 
 	private _onMessage = async (evt: MessageEvent): Promise<void> => {
 		try {
@@ -126,70 +137,53 @@ export class OSCQueryBridgeControllerPrivate {
 	}
 
 	public get hostname(): string {
-		return this._hostname;
+		return this._ws.hostname;
 	}
 
 	public get port(): string {
-		return this._port;
-	}
-
-	public get readyState(): WebSocket["readyState"] {
-		return this._ws?.readyState || WebSocket.CONNECTING;
-	}
-
-	public get ws(): WebSocket | undefined {
-		return this._ws;
+		return this._ws.port;
 	}
 
 	public async connect({ hostname, port }: { hostname: string; port: string }): Promise<void> {
-		return new Promise((resolve, reject) => {
-			this._hostname = hostname;
-			this._port = port;
 
-			this._ws = new WebSocket(`ws://${this.hostname}:${this.port}`);
+		this._ws = new ReconnectingWebsocket({ hostname, port });
 
-			let onError: (evt: ErrorEvent) => void = undefined;
+		try {
+			await this._ws.connect();
 
-			const onOpen = (evt: Event): void => {
+			this._ws.on("close", this._onClose);
+			this._ws.on("error", this._onError);
+			this._ws.on("reconnecting", this._onReconnecting);
+			this._ws.on("reconnect", this._onReconnected);
+			this._ws.on("reconnect_failed", this._onClose);
+			this._ws.on("message", this._onMessage);
 
-				// Remove connection establishing handlers
-				this._ws.removeEventListener("open", onOpen);
-				this._ws.removeEventListener("error", onError);
+			// Update Connection Status
+			dispatch(setConnectionStatus(this.readyState));
 
-				// Add Event handlers
-				this._ws.addEventListener("close", this._onClose);
-				this._ws.addEventListener("error", this._onError);
-				this._ws.addEventListener("message", this._onMessage);
+			// Fetch the instrument description
+			this._ws.send("/rnbo/inst/0");
+		} catch (err) {
+			// Update Connection Status
+			dispatch(setConnectionStatus(this.readyState));
 
-				// Update Connection Status
-				dispatch(setConnectionStatus(this.readyState));
-
-				// Fetch the instrument description
-				this._ws.send("/rnbo/inst/0");
-
-				resolve();
-			};
-
-			onError = (evt: ErrorEvent): void => {
-				this._ws.removeEventListener("open", onOpen);
-				this._ws.removeEventListener("error", onError);
-
-				dispatch(setConnectionStatus(this.readyState));
-			};
-
-			this._ws.addEventListener("open", onOpen);
-			this._ws.addEventListener("error", onError);
-		});
+			// Rethrow error
+			throw err;
+		}
 	}
 
 	public close(): void {
 		this._ws?.close();
+		this._ws?.removeAllListeners();
+		this._ws = null;
+	}
+
+	public send(msg: string): void {
+		this._ws?.send(msg);
 	}
 
 	public sendPacket(packet: any): void {
-		if (this.readyState === WebSocketState.OPEN) {
-			this._ws.send(Buffer.from(packet));
-		}
+		this._ws?.sendPacket(Buffer.from(packet));
 	}
 }
 

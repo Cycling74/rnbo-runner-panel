@@ -22,6 +22,7 @@ export interface SetEntitiesAction extends ActionBase {
 	payload: {
 		type: EntityType;
 		entities: Entity[];
+		clear: boolean;
 	};
 }
 
@@ -80,12 +81,13 @@ export const setEntity = (type: EntityType, entity: Entity): EntityAction => {
 	};
 };
 
-export const setEntities = (type: EntityType, entities: Entity[]): EntityAction => {
+export const setEntities = (type: EntityType, entities: Entity[], clear: boolean = false): EntityAction => {
 	return {
 		type: EnitityActionType.SET_ENTITIES,
 		payload: {
 			type,
-			entities
+			entities,
+			clear
 		}
 	};
 };

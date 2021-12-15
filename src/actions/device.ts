@@ -102,15 +102,18 @@ export const initializeDevice = (desc: AnyJson): AppThunk =>
 
 			dispatch(setEntities(
 				EntityType.ParameterRecord,
-				ParameterRecord.arrayFromDescription(parameterDescriptions)
+				ParameterRecord.arrayFromDescription(parameterDescriptions),
+				true
 			));
 			dispatch(setEntities(
 				EntityType.InportRecord,
-				InportRecord.arrayFromDescription(inportDescriptions)
+				InportRecord.arrayFromDescription(inportDescriptions),
+				true
 			));
 			dispatch(setEntities(
 				EntityType.PresetRecord,
-				PresetRecord.arrayFromDescription(presetDescriptions)
+				PresetRecord.arrayFromDescription(presetDescriptions),
+				true
 			));
 
 		} catch (e) {
