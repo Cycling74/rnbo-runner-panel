@@ -25,11 +25,29 @@ const StatusWrapper = styled.div`
 export default function Status() {
 
 	const connectionState = useAppSelector(state => getConnectionStatus(state));
-	const connectionString = connectionState !== WebSocketState.OPEN ? "Disconnected" : "Connected";
+	let connectionString: string;
+	switch (connectionState) {
+		case WebSocketState.CONNECTING:
+			connectionString = "Connecting";
+			break;
+		case WebSocketState.OPEN:
+			connectionString = "Connected";
+			break;
+		case WebSocketState.CLOSING:
+			connectionString = "Disconnecting";
+			break;
+		case WebSocketState.CLOSED:
+			connectionString = "Disconnected";
+			break;
+		default: {
+			// eslint-disable-next-line @typescript-eslint/no-unused-vars
+			const c: never = connectionState;
+		}
+	}
 
 	return (
 		<StatusWrapper>
-			<h4>{connectionString}</h4>
+			<h4>{ connectionString } </h4>
 		</StatusWrapper>
 	);
 }

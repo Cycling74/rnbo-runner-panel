@@ -53,7 +53,9 @@ const Desktop = styled.div`
 function App({ Component, pageProps }: AppProps) {
 
 	useEffect(() => {
-		oscQueryBridge.connect(parseConnectionQueryString(location.search?.slice(1)));
+		oscQueryBridge.connect(parseConnectionQueryString(location.search?.slice(1)))
+			.catch(err => null); // handled internally
+
 		return () => oscQueryBridge.close();
 	}, []);
 

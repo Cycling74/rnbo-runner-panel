@@ -1,4 +1,4 @@
-import { Map } from "immutable";
+import { Map as ImmuMap } from "immutable";
 import { ParameterRecord } from "../models/parameter";
 import { InportRecord } from "../models/inport";
 import { PresetRecord } from "../models/preset";
@@ -12,16 +12,16 @@ export enum EntityType {
 }
 
 export type Entity = ParameterRecord | InportRecord | PresetRecord;
-export type EntityMap<T extends Entity> = Map<string, T>;
+export type EntityMap<T extends Entity> = ImmuMap<string, T>;
 
 export interface EntityState {
-	[EntityType.ParameterRecord]: Map<ParameterRecord["id"], ParameterRecord>,
-	[EntityType.InportRecord]: Map<InportRecord["id"], InportRecord>,
-	[EntityType.PresetRecord]: Map<PresetRecord["id"], PresetRecord>;
+	[EntityType.ParameterRecord]: ImmuMap<ParameterRecord["id"], ParameterRecord>,
+	[EntityType.InportRecord]: ImmuMap<InportRecord["id"], InportRecord>,
+	[EntityType.PresetRecord]: ImmuMap<PresetRecord["id"], PresetRecord>;
 
 }
 
-export const getEntities = (state: EntityState, type: EntityType): Map<string, Entity> => {
+export const getEntities = (state: EntityState, type: EntityType): ImmuMap<string, Entity> => {
 	switch (type) {
 		case EntityType.ParameterRecord:
 			return state.parameter;
@@ -34,9 +34,9 @@ export const getEntities = (state: EntityState, type: EntityType): Map<string, E
 
 export const entities = (state: EntityState = {
 
-	[EntityType.ParameterRecord]: Map<ParameterRecord["id"], ParameterRecord>(),
-	[EntityType.InportRecord]: Map<InportRecord["id"], InportRecord>(),
-	[EntityType.PresetRecord]: Map<PresetRecord["id"], PresetRecord>()
+	[EntityType.ParameterRecord]: ImmuMap<ParameterRecord["id"], ParameterRecord>(),
+	[EntityType.InportRecord]: ImmuMap<InportRecord["id"], InportRecord>(),
+	[EntityType.PresetRecord]: ImmuMap<PresetRecord["id"], PresetRecord>()
 
 
 }, action: EntityAction) => {
@@ -50,10 +50,10 @@ export const entities = (state: EntityState = {
 		}
 
 		case EnitityActionType.SET_ENTITIES: {
-			const { entities, type } = action.payload;
+			const { entities, type, clear } = action.payload;
 			const newEnts = entities.reduce((map, entity) => {
 				return map.set(entity.id, entity);
-			}, getEntities(state, type));
+			}, clear ? ImmuMap() : getEntities(state, type));
 
 			return {
 				...state,
@@ -82,7 +82,7 @@ export const entities = (state: EntityState = {
 
 			return {
 				...state,
-				[type]: Map()
+				[type]: ImmuMap()
 			};
 		}
 
