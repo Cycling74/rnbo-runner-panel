@@ -70,6 +70,7 @@ export const MobileNavWrapper = styled.div<NavWrapperProps>`
 		z-index: 300;
 
 		.mobile-header {
+			box-sizing: border-box;
 			color: ${({ theme }) => theme.colors.lightNeutral};
 			width: 100%;
 			display: flex;
@@ -77,6 +78,7 @@ export const MobileNavWrapper = styled.div<NavWrapperProps>`
 			justify-content: space-between;
 			align-items: center;
 			position: fixed;
+			padding: 0 0.4rem;
 
 			.header-group {
 				display: flex;

@@ -8,11 +8,10 @@ const StatusWrapper = styled.div`
 	font-size: 0.8rem;
 	color: ${props => props.theme.colors.primary};
 	border-radius: 2rem;
-	padding: 0.5rem;
+	padding: 0.5rem 1rem;
 	text-align: center;
 	border: 2px solid ${props => props.theme.colors.primary};
 	height: 1rem;
-	min-width: 7rem;
 
 	h4 {
 		margin: 0;
@@ -22,6 +21,7 @@ const StatusWrapper = styled.div`
 		border: 2px solid ${props => props.theme.colors.secondary};
 	}
 `;
+
 export default function Status() {
 
 	const connectionState = useAppSelector(state => getConnectionStatus(state));
