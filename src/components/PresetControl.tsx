@@ -1,4 +1,4 @@
-import React, { memo, useState } from "react";
+import React, { FormEvent, memo, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../hooks/useAppDispatch";
 import { getPresets } from "../selectors/entities";
 import { sendPresetToRemote, savePresetToRemote } from "../actions/device";
@@ -84,8 +84,9 @@ const PresetControl = memo(function WrappedPresetControl(): JSX.Element {
 		dispatch(sendPresetToRemote(selectedPreset));
 	};
 
-	const handleSave = (): void => {
+	const handleSave = (e: FormEvent): void => {
 		dispatch(savePresetToRemote(newPresetName));
+		e.preventDefault();
 	};
 
 	const handleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
@@ -107,7 +108,7 @@ const PresetControl = memo(function WrappedPresetControl(): JSX.Element {
 						</select>
 						<button className="smallButton" id="load" onClick={loadPreset}> Load </button>
 					</div>
-					<form className="savePresetGroup" onSubmit={handleSave}>
+					<form className="savePresetGroup" onSubmit={ handleSave } >
 						<div className="saveLabel">
 							<label> Name of new preset: </label>
 						</div>
