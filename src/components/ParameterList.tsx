@@ -19,7 +19,7 @@ const ParamWrapper = styled.div`
 		color: ${({ theme }) => theme.colors.primary};
 		z-index: 0;
 		// Disables page scrolling while interacting with it
-		touch-event: none;
+		touch-action: none;
 
 		@media screen and (max-width: 35.5em) {
 			height: 5rem;
