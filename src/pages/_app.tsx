@@ -10,8 +10,8 @@ import styled, { ThemeProvider, createGlobalStyle } from "styled-components";
 import { RNBOTheme } from "../lib/rnbo-theme";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faAngleDown, faBars, faTimes } from "@fortawesome/free-solid-svg-icons";
-library.add(faAngleDown, faBars, faTimes);
+import { faAngleDown, faAngleUp, faBars, faTimes } from "@fortawesome/free-solid-svg-icons";
+library.add(faAngleDown, faAngleUp, faBars, faTimes);
 
 // https://github.com/vercel/next.js/issues/20682
 // required when using next/head
