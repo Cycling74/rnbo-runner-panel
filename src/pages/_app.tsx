@@ -8,7 +8,6 @@ import Nav from "../components/Nav/nav";
 import { Header } from "../components/Header";
 import styled, { ThemeProvider, createGlobalStyle } from "styled-components";
 import { RNBOTheme } from "../lib/rnbo-theme";
-import MobileNav from "../components/Nav/mobileNav";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faAngleDown, faBars, faTimes } from "@fortawesome/free-solid-svg-icons";
