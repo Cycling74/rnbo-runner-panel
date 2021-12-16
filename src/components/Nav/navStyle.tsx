@@ -1,14 +1,6 @@
 import styled from "styled-components";
 
-interface NavWrapperProps {
-	shown: boolean;
-}
-interface NavLinkProps {
-	active: boolean;
-}
-
 interface NavProps {
-	visible: boolean;
 	darkOnMobile?: boolean;
 }
 
