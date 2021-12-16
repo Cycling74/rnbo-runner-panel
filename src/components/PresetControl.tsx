@@ -12,7 +12,6 @@ interface StyledProps {
 }
 
 const PresetWrapper = styled.div`
-	z-index: 10;
 	color: ${({ theme }) => theme.colors.lightNeutral};
 	display: flex;
 	flex-direction: column;
@@ -33,9 +32,11 @@ const PresetWrapper = styled.div`
 		border-radius: 8px;
 		border-style: none;
 		padding: 1rem;
-		z-index: 222;
+		z-index: 8;
+
 		.savePresetGroup {
 			padding-top: 0.5rem;
+
 			.saveLabel {
 				font-size: 0.75rem;
 			}
