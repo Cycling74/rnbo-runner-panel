@@ -3,10 +3,13 @@ import { FunctionComponent, useEffect } from "react";
 
 const IndexRedirect: FunctionComponent<{}> = () => {
 
-	const { replace } = useRouter();
+	const { replace, query } = useRouter();
 
 	useEffect(() => {
-		replace("/parameters");
+		replace({
+			pathname: "/parameters",
+			query
+		});
 	});
 
 	return <div></div>;
