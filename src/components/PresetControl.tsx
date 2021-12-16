@@ -4,11 +4,15 @@ import { getPresets } from "../selectors/entities";
 import { RootStateType } from "../lib/store";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import styled from "styled-components";
-import { PresetRecord } from "../models/preset";
 import { sendPresetToRemote, savePresetToRemote } from "../actions/device";
 
 interface StyledProps {
 	open: boolean;
+}
+
+interface Preset {
+	id: string;
+	name: string;
 }
 
 const PresetWrapper = styled.div`
@@ -113,7 +117,8 @@ const PresetControl = memo(function WrappedPresetControl(): JSX.Element {
 							Select a preset:
 						</option>
 						{
-							presetList && presetList.valueSeq().map(p => <option key={p.id} value={p.name}>{p.name}</option>)
+							presetList &&
+								presetList.valueSeq().map((p: Preset) => <option key={p.id} value={p.name}>{p.name}</option>)
 						}
 					</select>
 					<button onClick={loadPreset}>
