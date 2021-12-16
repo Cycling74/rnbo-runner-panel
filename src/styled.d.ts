@@ -10,6 +10,7 @@ declare module "styled-components" {
 			darkNeutral: string;
 			lightNeutral: string;
 			alert: string;
+			success: string;
 		};
 	}
 }

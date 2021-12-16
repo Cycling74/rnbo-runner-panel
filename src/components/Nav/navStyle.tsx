@@ -1,7 +1,11 @@
 import styled from "styled-components";
 
-interface NavProps {
-	darkOnMobile?: boolean;
+interface NavControlProps {
+	darkOnMobile: boolean;
+}
+
+interface NavContainerProps {
+	visible: boolean;
 }
 
 export const NavSidebar = styled.div`
@@ -19,7 +23,7 @@ export const NavSidebar = styled.div`
 	}
 `;
 
-export const NavControl = styled.div<NavProps>`
+export const NavControl = styled.div<NavControlProps>`
 	display: inline-block;
 	font-size: 1.75rem;
 	color: ${({ theme }) => theme.colors.lightNeutral};
@@ -32,7 +36,7 @@ export const NavControl = styled.div<NavProps>`
 	}
 `;
 
-export const NavContainer = styled.div<NavProps>`
+export const NavContainer = styled.div<NavContainerProps>`
 	display: flex;
 	flex-direction: column;
 	justify-content: flex-start;

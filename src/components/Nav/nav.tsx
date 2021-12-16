@@ -27,7 +27,7 @@ const Nav = () => {
 			</NavSidebar>
 
 			<NavContainer visible={showNav}>
-				<NavControl onClick={() => setShowNav(false)}>
+				<NavControl onClick={() => setShowNav(false)} darkOnMobile={false}>
 					<FontAwesomeIcon icon="times" />
 				</NavControl>
 				<NavLink href="/parameters" label="PARAMETERS" />
