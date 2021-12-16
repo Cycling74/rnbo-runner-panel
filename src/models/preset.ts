@@ -14,12 +14,13 @@ export class PresetRecord extends ImmuRecord({
 	 * @returns An Immutable List of PresetRecord record objects
 	 */
 	static arrayFromDescription(desc: JsonMap): PresetRecord[] {
+
 		const entries = ((desc.entries as JsonMap).VALUE as any);
 		const current = ((desc.entries as JsonMap).VALUE as string);
+
 		if (Array.isArray(entries)) {
 			return entries.map(name => {
-				let loaded = (name === current);
-				return new PresetRecord({name, loaded})
+				return new PresetRecord({name, loaded: name === current });
 			});
 		}
 		return [];

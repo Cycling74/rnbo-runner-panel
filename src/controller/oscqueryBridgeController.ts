@@ -1,7 +1,7 @@
 import { parse as parseQuery } from "querystring";
 import { readPacket } from "osc";
 import { initializeDevice, setParameterValue, setParameterValueNormalized } from "../actions/device";
-import { deleteEntity, setEntity } from "../actions/entities";
+import { clearEntities, deleteEntity, setEntity } from "../actions/entities";
 import { setConnectionStatus } from "../actions/network";
 import { AppDispatch, store } from "../lib/store";
 import { InportRecord } from "../models/inport";
@@ -88,11 +88,7 @@ export class OSCQueryBridgeControllerPrivate {
 			// Inports can be declared with just a name
 			dispatch(setEntity(EntityType.InportRecord, new InportRecord({ name: matches[2] })));
 		} else if (matches[1] === "presets/entries") {
-			console.log(path);
-			// fetch new preset?
-			this._ws.send(path);
-			// dispatch(setEntity(EntityType.PresetRecord, new PresetRecord({ name: matches })));
-			// eventually need to set PresetRecord once I can figure out what to put in it!
+			// @TODO
 		}
 	}
 
@@ -109,11 +105,9 @@ export class OSCQueryBridgeControllerPrivate {
 		} else if (matches[1] === "messages/in") {
 			const inPath = matches[2];
 			dispatch(deleteEntity(EntityType.InportRecord, inPath));
-		} else if (matches[1] === "presets") {
-			const prePath = matches[2];
-			dispatch(deleteEntity(EntityType.PresetRecord, prePath));
-			// dispatch delete
-			// console.log(matches);
+		} else if (matches[1] === "presets" && matches[2] === "entries") {
+			// clear all presets
+			dispatch(clearEntities(EntityType.PresetRecord));
 		}
 	}
 
