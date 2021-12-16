@@ -1,72 +1,85 @@
-import React, { FormEvent, memo, useState } from "react";
+import React, { FormEvent, memo, useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../hooks/useAppDispatch";
 import { getPresets } from "../selectors/entities";
-import { sendPresetToRemote, savePresetToRemote } from "../actions/device";
 import { RootStateType } from "../lib/store";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import styled from "styled-components";
-import { PresetRecord } from "../models/preset";
+import { sendPresetToRemote, savePresetToRemote } from "../actions/device";
 
 interface StyledProps {
-	shown: boolean;
+	open: boolean;
+}
+
+interface Preset {
+	id: string;
+	name: string;
 }
 
 const PresetWrapper = styled.div`
-	color: ${({ theme }) => theme.colors.lightNeutral};
 	display: flex;
 	flex-direction: column;
 	align-items: flex-end;
-	padding-right: 2rem;
 	position: relative;
+	padding-right: 2rem;
+	color: ${({ theme }) => theme.colors.lightNeutral};
 
 	@media (max-width: 769px) {
 		padding-right: 0;
 	}
+`;
 
-	.presetPanel {
-		position: absolute;
-		top: 100%;
-		display: ${(props: StyledProps) => props.shown ? "flex" : "none"};
-		flex-direction: column;
-		background-color: ${({ theme }) => theme.colors.primary};
-		border-radius: 8px;
-		border-style: none;
-		padding: 1rem;
-		z-index: 8;
+const OpenButton = styled.button`
+	padding: 0.6rem;
+	border-radius: 8px;
+	border-style: none;
 
-		.savePresetGroup {
-			padding-top: 0.5rem;
+	background-color: ${({ theme }) => theme.colors.primary};
+	color: ${({ theme }) => theme.colors.lightNeutral};
+	text-align: center;
+	cursor: pointer;
 
-			.saveLabel {
-				font-size: 0.75rem;
-			}
-		}
+	svg {
+		margin-left: 0.5rem;
 	}
 
-	.open {
-		background-color: ${({ theme }) => theme.colors.primary};
-		color: ${({ theme }) => theme.colors.lightNeutral};
-		border-radius: 8px;
-		border-style: none;
-		padding: .6rem;
-		text-align: center;
-		cursor: pointer;
-		#chev {
-			margin-left: 0.5rem;
-		}
-		&:hover {
-			background-color: ${({ theme }) => theme.colors.secondary};
-		}
+	&:hover {
+		background-color: ${({ theme }) => theme.colors.secondary};
+	}
+`;
+
+const PresetPanel = styled.div<StyledProps>`
+	position: absolute;
+	top: 100%;
+	display: ${({ open }) => open ? "flex" : "none"};
+	flex-direction: column;
+	background-color: ${({ theme }) => theme.colors.primary};
+	border-radius: 8px;
+	border-style: none;
+	padding: 1rem;
+	z-index: 8;
+`;
+
+const PresetSelection = styled.div`
+	padding-bottom: 0.5rem;
+`;
+
+const SavePresetForm = styled.form`
+	label {
+		font-size: 0.75rem;
 	}
 `;
 
 const PresetControl = memo(function WrappedPresetControl(): JSX.Element {
-
 	const presets = useAppSelector((state: RootStateType) => getPresets(state));
-	const [selectedPreset, setSelectedPreset] = useState(presets.size > 0 ? (presets.first() as PresetRecord).name : "");
+	const [presetList, setPresetList] = useState(null);
+	const [selectedPreset, setSelectedPreset] = useState("");
 	const [newPresetName, setNewPresetName] = useState("");
 	const [showPresets, setShowPresets] = useState(false);
 	const dispatch = useAppDispatch();
+
+	useEffect(() => {
+		setPresetList(presets);
+	}, [presets]);
 
 	const openPresets = (): void => {
 		setShowPresets(!showPresets);
@@ -76,13 +89,14 @@ const PresetControl = memo(function WrappedPresetControl(): JSX.Element {
 		setSelectedPreset(e.target.value);
 	};
 
-	const loadPreset = (): void => {
-		// Send Value to remote
-		dispatch(sendPresetToRemote(selectedPreset));
-	};
+	const loadPreset = (): void => { dispatch(sendPresetToRemote(selectedPreset)); };
 
 	const handleSave = (e: FormEvent): void => {
 		dispatch(savePresetToRemote(newPresetName));
+
+		// Refresh presets list
+		// Set selectedPreset to that preset
+
 		e.preventDefault();
 	};
 
@@ -91,29 +105,32 @@ const PresetControl = memo(function WrappedPresetControl(): JSX.Element {
 	};
 
 	return (
-		<PresetWrapper shown={showPresets} >
-			<button className="open" type="button" onClick={openPresets}>
-				Presets <FontAwesomeIcon id="chev" icon="angle-down" />
-			</button>
-			<div className="presetPanel">
-				<div>
-					<select name="presets" id="presets" value={selectedPreset} onChange={handleSelect}>
+		<PresetWrapper>
+			<OpenButton onClick={openPresets}>
+				Presets
+				{showPresets ? <FontAwesomeIcon icon="angle-up" /> : <FontAwesomeIcon icon="angle-down" />}
+			</OpenButton>
+			<PresetPanel open={showPresets}>
+				<PresetSelection>
+					<select name="presets" id="presets" defaultValue="" onChange={handleSelect}>
+						<option disabled value="" hidden={selectedPreset ? true : false}>
+							Select a preset:
+						</option>
 						{
-							presets.valueSeq().map(p => <option key={p.id} value={p.name}>{p.name}</option>)
+							presetList &&
+								presetList.valueSeq().map((p: Preset) => <option key={p.id} value={p.name}>{p.name}</option>)
 						}
 					</select>
-					<button className="smallButton" id="load" onClick={loadPreset}> Load </button>
-				</div>
-				<form className="savePresetGroup" onSubmit={ handleSave } >
-					<div className="saveLabel">
-						<label> Name of new preset: </label>
-					</div>
-					<div className="newPresetInput">
-						<input type="text" value={newPresetName} onChange={handleChange}></input>
-						<input className="smallButton" type="submit" value="Save" />
-					</div>
-				</form>
-			</div>
+					<button onClick={loadPreset}>
+						Load
+					</button>
+				</PresetSelection>
+				<SavePresetForm onSubmit={handleSave}>
+					<label>Name of new preset:</label>
+					<input type="text" value={newPresetName} onChange={handleChange}></input>
+					<input type="submit" value="Save" />
+				</SavePresetForm>
+			</PresetPanel>
 		</PresetWrapper>
 	);
 });
