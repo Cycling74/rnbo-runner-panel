@@ -31,6 +31,10 @@ div#__next {
 	overscroll-behavior-x: none;
 }
 
+* {
+	-webkit-font-smoothing: antialiased;
+}
+
 a {
 	color: inherit;
 	text-decoration: none;
@@ -38,15 +42,20 @@ a {
 `;
 
 const ContentWrapper = styled.div`
-	margin: 0% 7%;
-	@media screen and (max-width: 35.5em) {
-		padding-top: 5rem;
+	box-sizing: border-box;
+	padding: 0 64px 0 96px;
+	width: 100%;
+
+	@media (max-width: 769px) {
+		padding: 0 16px;
 	}
 `;
 
-const Desktop = styled.div`
-	@media screen and (max-width: 35.5em) {
-		display: none;
+const Container = styled.div`
+	display: flex;
+
+	@media (max-width: 769px) {
+		flex-direction: column;
 	}
 `;
 
@@ -66,14 +75,13 @@ function App({ Component, pageProps }: AppProps) {
 					<title>RNBO</title>
 				</Head>
 				<GlobalWrapper />
-				<Desktop>
+				<Container>
 					<Nav />
-					<Header />
-				</Desktop>
-				<MobileNav />
-				<ContentWrapper>
-					<Component {...pageProps} />
-				</ContentWrapper>
+					<ContentWrapper>
+						<Header />
+						<Component {...pageProps} />
+					</ContentWrapper>
+				</Container>
 			</ThemeProvider>
 		</Provider>
 	);

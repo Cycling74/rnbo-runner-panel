@@ -13,6 +13,7 @@ interface NavLinkElementProps {
 
 const NavLinkEl = styled.a<NavLinkElementProps>`
 	padding: 0.5rem 0.1rem;
+	font-weight: bold;
 	color: ${({ active, theme }) => active ? theme.colors.secondary : theme.colors.lightText};
 	&:hover {
 		color: ${props => props.theme.colors.hilight};

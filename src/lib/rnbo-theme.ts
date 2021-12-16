@@ -9,7 +9,8 @@ const RNBOTheme: DefaultTheme = {
 		hilight: "#D1D86C",
 		darkNeutral: "#C4C4C4",
 		lightNeutral: "#F6F6F6",
-		alert: "#E8ADA0"
+		alert: "#E8ADA0",
+		success: "#4BB543",
 	}
 };
 

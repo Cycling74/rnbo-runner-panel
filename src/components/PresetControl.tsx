@@ -17,13 +17,19 @@ const PresetWrapper = styled.div`
 	display: flex;
 	flex-direction: column;
 	align-items: flex-end;
-	padding-right: 10.5rem;
-	position: absolute;
+	padding-right: 2rem;
+	position: relative;
+
+	@media (max-width: 769px) {
+		padding-right: 0;
+	}
 
 	.presetPanel {
+		position: absolute;
+		top: 100%;
 		display: ${(props: StyledProps) => props.shown ? "flex" : "none"};
 		flex-direction: column;
-		background-color: ${props => props.theme.colors.primary};
+		background-color: ${({ theme }) => theme.colors.primary};
 		border-radius: 8px;
 		border-style: none;
 		padding: 1rem;
@@ -37,7 +43,7 @@ const PresetWrapper = styled.div`
 	}
 
 	.open {
-		background-color: ${props => props.theme.colors.primary};
+		background-color: ${({ theme }) => theme.colors.primary};
 		color: ${({ theme }) => theme.colors.lightNeutral};
 		border-radius: 8px;
 		border-style: none;
@@ -48,17 +54,7 @@ const PresetWrapper = styled.div`
 			margin-left: 0.5rem;
 		}
 		&:hover {
-			background-color: ${props => props.theme.colors.hilight};
-		}
-	}
-
-	@media screen and (max-width: 35.5em) {
-		display: flex;
-		.presetPanel{
-			background-color: ${props => props.theme.colors.secondary};
-		}
-		.open {
-			background-color: ${props => props.theme.colors.secondary};
+			background-color: ${({ theme }) => theme.colors.secondary};
 		}
 	}
 `;
@@ -94,32 +90,30 @@ const PresetControl = memo(function WrappedPresetControl(): JSX.Element {
 	};
 
 	return (
-		<>
-			<PresetWrapper shown={showPresets} >
-				<button className="open" type="button" onClick={openPresets}>
-					Presets <FontAwesomeIcon id="chev" icon="angle-down" />
-				</button>
-				<div className="presetPanel">
-					<div>
-						<select name="presets" id="presets" value={selectedPreset} onChange={handleSelect}>
-							{
-								presets.valueSeq().map(p => <option key={p.id} value={p.name}>{p.name}</option>)
-							}
-						</select>
-						<button className="smallButton" id="load" onClick={loadPreset}> Load </button>
-					</div>
-					<form className="savePresetGroup" onSubmit={ handleSave } >
-						<div className="saveLabel">
-							<label> Name of new preset: </label>
-						</div>
-						<div className="newPresetInput">
-							<input type="text" value={newPresetName} onChange={handleChange}></input>
-							<input className="smallButton" type="submit" value="Save" />
-						</div>
-					</form>
+		<PresetWrapper shown={showPresets} >
+			<button className="open" type="button" onClick={openPresets}>
+				Presets <FontAwesomeIcon id="chev" icon="angle-down" />
+			</button>
+			<div className="presetPanel">
+				<div>
+					<select name="presets" id="presets" value={selectedPreset} onChange={handleSelect}>
+						{
+							presets.valueSeq().map(p => <option key={p.id} value={p.name}>{p.name}</option>)
+						}
+					</select>
+					<button className="smallButton" id="load" onClick={loadPreset}> Load </button>
 				</div>
-			</PresetWrapper>
-		</>
+				<form className="savePresetGroup" onSubmit={ handleSave } >
+					<div className="saveLabel">
+						<label> Name of new preset: </label>
+					</div>
+					<div className="newPresetInput">
+						<input type="text" value={newPresetName} onChange={handleChange}></input>
+						<input className="smallButton" type="submit" value="Save" />
+					</div>
+				</form>
+			</div>
+		</PresetWrapper>
 	);
 });
 
