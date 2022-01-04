@@ -11,9 +11,9 @@ const ParamWrapper = styled.div`
 
 	.parameter {
 		box-sizing: border-box;
-		width: 100%;
+		width: 90%;
 		height: 4rem;
-		margin: 5px;
+		margin: 5px auto;
 		padding: 2px;
 		position: relative;
 		color: ${({ theme }) => theme.colors.primary};
@@ -25,6 +25,11 @@ const ParamWrapper = styled.div`
 			height: 5rem;
 			margin: 5px 0;
 		}
+
+		-webkit-user-select: none;
+		-moz-user-select: none;
+		-ms-user-select: none;
+		user-select: none;
 	}
 
 	.parameterLabel {
