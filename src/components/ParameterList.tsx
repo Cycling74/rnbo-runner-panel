@@ -46,6 +46,7 @@ const ParamWrapper = styled.div`
 		background-color:lightgray;
 		position: absolute;
 		top: 50%;
+		pointer-events: none;
 
 		@media screen and (max-width: 35.5em) {
 			width: calc(100% - 5px);
