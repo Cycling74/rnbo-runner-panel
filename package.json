@@ -1,6 +1,6 @@
 {
   "name": "rnbo-runner-panel",
-  "version": "1.0.3-dev.12",
+  "version": "1.0.3-alpha.1",
   "private": true,
   "scripts": {
     "dev": "next dev",
