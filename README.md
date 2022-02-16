@@ -1,17 +1,23 @@
-# RNBO Runner Panel
+# RNBO Runner Debug Interface
 
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+This is a small web app made with [Next.js](https://nextjs.org/) that lets you control a RNBO patch exported to the RNBO Runner. You can use this interface to debug RNBO patches sent to your Raspberry Pi (or anywhere the RNBO Runner is active). It will let you set parameters, send MIDI events, send messages to inports and receive them from outports.
 
-This app provides a web interface for running instances of the RNBO OSCQuery Runner. It lets the user set parameters, send MIDI events, and send messages to inports.
+## Usage with RNBO
 
-## Getting Started
+The primary purpose of this page is to help debug a RNBO export once it's running on a Raspberry Pi. It provides a simple interface to most of the endpoints exposed by the RNBO Runner. The interface should automatically include any parameters, inports, and outports in your RNBO patch. Note that this interface is not really intended to be used in a performance, and is mostly a thin wrapper around a handful of API calls to the RNBO Runner.
+
+The RNBO image for the Raspberry Pi includes this debug interface, and runs an HTTP server that serves the page on port 3000. So if your `pi` had the hostname `c74rpi` and the IP address `192.168.88.111`, then from any device on your local network you could visit `http://c74rpi:3000` or `http://192.168.88.1111:3000` to see this page.
+
+## How it Works
+
+The RNBO Runner implements [OSCQuery](https://github.com/Vidvox/OSCQueryProposal), and responds to HTTP requests on port 1234 and WebSocket connections on port 5678. The debug interface opens a WebSocket connection to the RNBO Runner on port 5678 (the default port) and sends OSC messages to it. Using OSCQuery over this connection, the debug interface can get a full list of all inports, outports, and RNBO parameters, including range and enumerated values. The interface uses this list to add sliders and other inputs to the page, with change handlers that will send the appropriate OSC messages to the RNBO Runner.
+
+## Getting Started (Development)
 
 First, run the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
@@ -59,3 +65,6 @@ For instance, if your pi is at `10.0.0.210`, is named `c74rpi` and you have a co
 you should be able to view the panel with either of the following URLs:
 `http://10.0.0.210:3000` or `http://c74rpi.local:3000`
 
+## Background
+
+This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
