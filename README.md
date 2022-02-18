@@ -10,7 +10,7 @@ The RNBO image for the Raspberry Pi includes this debug interface, and runs an H
 
 ## How it Works
 
-The RNBO Runner implements [OSCQuery](https://github.com/Vidvox/OSCQueryProposal), and responds to HTTP requests on port 1234 and WebSocket connections on port 5678. The debug interface opens a WebSocket connection to the RNBO Runner on port 5678 (the default port) and sends OSC messages to it. Using OSCQuery over this connection, the debug interface can get a full list of all inports, outports, and RNBO parameters, including range and enumerated values. The interface uses this list to add sliders and other inputs to the page, with change handlers that will send the appropriate OSC messages to the RNBO Runner.
+The RNBO Runner implements [OSCQuery](https://github.com/Vidvox/OSCQueryProposal), and responds to HTTP requests and WebSocket connections on port 5678. The debug interface opens a WebSocket connection to the RNBO Runner on port 5678 (the default port) and sends OSC messages to it. Using OSCQuery over this connection, the debug interface can get a full list of all inports, outports, and RNBO parameters, including range and enumerated values. The interface uses this list to add sliders and other inputs to the page, with change handlers that will send the appropriate OSC messages to the RNBO Runner.
 
 ## Getting Started (Development)
 
