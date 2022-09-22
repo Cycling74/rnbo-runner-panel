@@ -17,6 +17,7 @@ The RNBO Runner implements [OSCQuery](https://github.com/Vidvox/OSCQueryProposal
 First, run the development server:
 
 ```bash
+yarn install
 npm run dev
 ```
 
