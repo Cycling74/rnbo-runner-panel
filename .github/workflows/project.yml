@@ -13,7 +13,7 @@ jobs:
     name: Add issue to RNBO Project
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/add-to-project@0.3.0
+      - uses: actions/add-to-project@v0.3.0
         with:
           project-url: https://github.com/orgs/Cycling74/projects/${{ secrets.RNBO_PROJECT_NUMBER }}
           github-token: ${{ secrets.RNBO_PROJECT_PAT }}
