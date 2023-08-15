@@ -56,7 +56,7 @@ const PatcherControl = memo(function WrappedPatcherControl(): JSX.Element {
 
 	const handleSelect = (e: React.ChangeEvent<HTMLSelectElement>): void => {
 		setSelectedPatcher(e.target.value);
-		dispatch(loadPatcher(e.target.value))
+		dispatch(loadPatcher(e.target.value));
 	};
 
 	return (
