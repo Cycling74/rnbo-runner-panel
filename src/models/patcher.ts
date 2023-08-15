@@ -12,7 +12,7 @@ export class PatcherRecord extends ImmuRecord({
 
 	/**
 	 *
-	 * @param desc - JSON device description returned from OscQuery, rooted at /rnbo/inst/0/messages/CONTENTS/in
+	 * @param desc - JSON device description returned from OscQuery, rooted at /rnbo/patchers
 	 * @returns An Immutable List of PatcherRecord record objects
 	 */
 	static arrayFromDescription(desc: JsonMap, loadedName?: string): PatcherRecord[] {
