@@ -5,8 +5,6 @@ import { RootStateType } from "../lib/store";
 import styled from "styled-components";
 import { loadPatcher } from "../actions/device";
 
-interface StyledProps { }
-
 interface Patcher {
 	id: string;
 	name: string;
@@ -26,7 +24,7 @@ const PatcherWrapper = styled.div`
 	}
 `;
 
-const PatcherPanel = styled.div<StyledProps>`
+const PatcherPanel = styled.div`
 	display: "flex";
 	flex-direction: column;
 	background-color: ${({ theme }) => theme.colors.primary};
