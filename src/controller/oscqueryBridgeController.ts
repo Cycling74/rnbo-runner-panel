@@ -79,7 +79,7 @@ export class OSCQueryBridgeControllerPrivate {
 
 	private _onPathAdded(path: string): void {
 		if (path.startsWith("/rnbo/patchers")) {
-			console.log("pathadded", { path });
+			this._ws.send("/rnbo/patchers");
 			return;
 		}
 		const matcher = /\/rnbo\/inst\/0\/(params|messages\/in|presets)\/(\S+)/;
