@@ -3,7 +3,7 @@ import { AnyJson } from "../lib/types";
 import { InportRecord } from "../models/inport";
 import { ParameterRecord } from "../models/parameter";
 import { PresetRecord } from "../models/preset";
-import { PatcherRecord } from "../models/patcher";
+import { PatcherRecord, UNLOAD_PATCHER_NAME } from "../models/patcher";
 import { EntityType } from "../reducers/entities";
 import { setEntities, setEntity } from "./entities";
 import { AppThunk } from "../lib/store";
@@ -96,15 +96,23 @@ export const savePresetToRemote = (name: string): AppThunk =>
 
 export const loadPatcher = (name: string, inst: number = 0): AppThunk =>
 	() => {
-		const message = {
-			address: "/rnbo/inst/control/load",
-			args: [
-				{ type: "i", value: inst },
-				{ type: "s", value: name }
-			]
+			let message = {
+				address: "/rnbo/inst/control/load",
+				args: [
+					{ type: "i", value: inst },
+					{ type: "s", value: name }
+				]
+			};
+			if (name === UNLOAD_PATCHER_NAME) {
+				message = {
+					address: "/rnbo/inst/control/unload",
+					args: [
+						{ type: "i", value: inst }
+					]
+				};
+			}
+			oscQueryBridge.sendPacket(writePacket(message));
 		};
-		oscQueryBridge.sendPacket(writePacket(message));
-	};
 
 export const unloadPatcher = (inst: number = 0): AppThunk =>
 	() => {

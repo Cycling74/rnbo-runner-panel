@@ -9,6 +9,7 @@ import { ParameterRecord } from "../models/parameter";
 import { EntityType } from "../reducers/entities";
 import { ReconnectingWebsocket } from "../lib/reconnectingWs";
 import { WebSocketState } from "../lib/constants";
+import { UNLOAD_PATCHER_NAME } from "../models/patcher";
 
 const dispatch = store.dispatch as AppDispatch;
 export class OSCQueryBridgeControllerPrivate {
@@ -105,6 +106,11 @@ export class OSCQueryBridgeControllerPrivate {
 	}
 
 	private _onPathRemoved(path: string): void {
+		//if we remove the instance, patcher is gone
+		if (path === "/rnbo/inst/0") {
+			dispatch(setSelectedPatcher(UNLOAD_PATCHER_NAME));
+			return;
+		}
 		const matcher = /\/rnbo\/inst\/0\/(params|messages\/in|presets)\/(\S+)/;
 		const matches = path.match(matcher);
 		if (!matches) return;

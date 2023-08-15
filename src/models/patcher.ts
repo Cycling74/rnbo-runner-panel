@@ -1,6 +1,8 @@
 import { Record as ImmuRecord } from "immutable";
 import { JsonMap } from "../lib/types";
 
+export const UNLOAD_PATCHER_NAME = "<none>";
+
 export class PatcherRecord extends ImmuRecord({
 
 	name: "",
@@ -17,12 +19,14 @@ export class PatcherRecord extends ImmuRecord({
 
 		const entries = Object.keys(desc);
 
+		let records: PatcherRecord[] = [new PatcherRecord({ name: UNLOAD_PATCHER_NAME, loaded: true })];
+
 		if (Array.isArray(entries)) {
-			return entries.map(name => {
+			records = records.concat(entries.map(name => {
 				return new PatcherRecord({name, loaded: loadedName === name });
-			});
+			}));
 		}
-		return [];
+		return records;
 	}
 
 	get id(): string {

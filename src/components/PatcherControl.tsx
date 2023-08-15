@@ -3,7 +3,7 @@ import { useAppDispatch, useAppSelector } from "../hooks/useAppDispatch";
 import { getPatchers, getLoadedPatcher } from "../selectors/entities";
 import { RootStateType } from "../lib/store";
 import styled from "styled-components";
-import { loadPatcher, unloadPatcher } from "../actions/device";
+import { loadPatcher } from "../actions/device";
 
 interface StyledProps {
 	open: boolean;
