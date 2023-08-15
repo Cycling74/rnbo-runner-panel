@@ -1,6 +1,6 @@
 import { parse as parseQuery } from "querystring";
 import { readPacket } from "osc";
-import { initializeDevice, initializePatchers, setParameterValue, setParameterValueNormalized } from "../actions/device";
+import { initializeDevice, initializePatchers, setSelectedPatcher, setParameterValue, setParameterValueNormalized } from "../actions/device";
 import { clearEntities, deleteEntity, setEntity } from "../actions/entities";
 import { setConnectionStatus } from "../actions/network";
 import { AppDispatch, store } from "../lib/store";
@@ -39,13 +39,15 @@ export class OSCQueryBridgeControllerPrivate {
 		try {
 			if (typeof evt.data === "string") {
 				const data = JSON.parse(evt.data);
-				if (typeof data.FULL_PATH === "string" && data.FULL_PATH === "/rnbo/inst/0" && (typeof data.CONTENTS !== "undefined")) {
+				const pathisstring = typeof data.FULL_PATH === "string";
+				if (pathisstring && data.FULL_PATH === "/rnbo/inst/0" && (typeof data.CONTENTS !== "undefined")) {
 					// brand new device
 					dispatch(initializeDevice(data));
-				} else if (typeof data.FULL_PATH === "string" && data.FULL_PATH === "/rnbo/patchers" && (typeof data.CONTENTS !== "undefined")) {
+				} else if (pathisstring && data.FULL_PATH === "/rnbo/patchers" && (typeof data.CONTENTS !== "undefined")) {
 					dispatch(initializePatchers(data));
-
-				} else if (typeof data.FULL_PATH === "string" && data.FULL_PATH.startsWith("/rnbo/inst/0/params")) {
+				} else if (pathisstring && data.FULL_PATH === "/rnbo/inst/0/name") {
+					dispatch(setSelectedPatcher(data.VALUE));
+				} else if (pathisstring && data.FULL_PATH.startsWith("/rnbo/inst/0/params")) {
 
 					// individual parameter
 					const paramMatcher = /\/rnbo\/inst\/0\/params\/(\S+)/;
@@ -78,10 +80,15 @@ export class OSCQueryBridgeControllerPrivate {
 	}
 
 	private _onPathAdded(path: string): void {
+		//request data from new paths
 		if (path.startsWith("/rnbo/patchers")) {
 			this._ws.send("/rnbo/patchers");
 			return;
+		} else if (path === "/rnbo/inst/0/name") {
+			this._ws.send(path);
+			return;
 		}
+
 		const matcher = /\/rnbo\/inst\/0\/(params|messages\/in|presets)\/(\S+)/;
 		const matches = path.match(matcher);
 		if (!matches) return;

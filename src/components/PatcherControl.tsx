@@ -1,6 +1,6 @@
 import React, { memo, useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../hooks/useAppDispatch";
-import { getPatchers } from "../selectors/entities";
+import { getPatchers, getLoadedPatcher } from "../selectors/entities";
 import { RootStateType } from "../lib/store";
 import styled from "styled-components";
 import { loadPatcher, unloadPatcher } from "../actions/device";
@@ -12,6 +12,7 @@ interface StyledProps {
 interface Patcher {
 	id: string;
 	name: string;
+	loaded: boolean;
 }
 
 const PatcherWrapper = styled.div`
@@ -42,14 +43,16 @@ const PatcherSelection = styled.div`
 `;
 
 const PatcherControl = memo(function WrappedPatcherControl(): JSX.Element {
-	const patchers = useAppSelector((state: RootStateType) => getPatchers(state));
+	const [patchers, loaded] = useAppSelector((state: RootStateType) => [getPatchers(state), getLoadedPatcher(state)]);
+
 	const [patcherList, setPatcherList] = useState(null);
 	const [selectedPatcher, setSelectedPatcher] = useState("");
 	const dispatch = useAppDispatch();
 
 	useEffect(() => {
+		setSelectedPatcher(loaded?.name);
 		setPatcherList(patchers);
-	}, [patchers]);
+	}, [patchers, loaded]);
 
 	const handleSelect = (e: React.ChangeEvent<HTMLSelectElement>): void => {
 		setSelectedPatcher(e.target.value);
@@ -60,7 +63,7 @@ const PatcherControl = memo(function WrappedPatcherControl(): JSX.Element {
 		<PatcherWrapper>
 			<PatcherPanel>
 				<PatcherSelection>
-					<select name="patchers" id="patchers" defaultValue="" onChange={handleSelect}>
+					<select name="patchers" id="patchers" onChange={handleSelect} value={selectedPatcher}>
 						<option disabled value="">
 							Select a patcher:
 						</option>

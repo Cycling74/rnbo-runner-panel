@@ -9,7 +9,7 @@ import { setEntities, setEntity } from "./entities";
 import { AppThunk } from "../lib/store";
 import throttle from "lodash.throttle";
 import { oscQueryBridge } from "../controller/oscqueryBridgeController";
-import { getParameter } from "../selectors/entities";
+import { getParameter, getPatchers } from "../selectors/entities";
 
 export const setParameterValueNormalized = (name: ParameterRecord["name"], value: number): AppThunk =>
 	(dispatch, getState) => {
@@ -123,6 +123,7 @@ export const initializeDevice = (desc: AnyJson): AppThunk =>
 			const parameterDescriptions = (desc as any).CONTENTS.params || {};
 			const inportDescriptions = (desc as any).CONTENTS.messages?.CONTENTS.in || {};
 			const presetDescriptions = (desc as any).CONTENTS.presets?.CONTENTS || {};
+			const patcherName = (desc as any).CONTENTS.name?.VALUE || "";
 
 			dispatch(setEntities(
 				EntityType.ParameterRecord,
@@ -139,22 +140,42 @@ export const initializeDevice = (desc: AnyJson): AppThunk =>
 				PresetRecord.arrayFromDescription(presetDescriptions),
 				true
 			));
-
 		} catch (e) {
 			console.log(e);
 		}
 	};
 
 export const initializePatchers = (desc: AnyJson): AppThunk =>
-	(dispatch) => {
+	(dispatch, getState) => {
 		try {
 			const patcherDescriptions = (desc as any).CONTENTS || {};
+			let loadedName: string | undefined;
+
+			getPatchers(getState()).map((p) => {
+				if (p.loaded) {
+					loadedName = p.name;
+				}
+			});
 
 			dispatch(setEntities( EntityType.PatcherRecord,
-				PatcherRecord.arrayFromDescription(patcherDescriptions),
+				PatcherRecord.arrayFromDescription(patcherDescriptions, loadedName),
 				true
 			));
 
+		} catch (e) {
+			console.log(e);
+		}
+	};
+
+export const setSelectedPatcher = (name: string): AppThunk =>
+	(dispatch, getState) => {
+		const state = getState();
+		try {
+			const updated: PatcherRecord[] = [];
+			getPatchers(state).map((p) => {
+				updated.push(new PatcherRecord ({name: p.name, loaded: p.name === name}));
+			});
+			dispatch(setEntities(EntityType.PatcherRecord, updated, true));
 		} catch (e) {
 			console.log(e);
 		}

@@ -13,13 +13,13 @@ export class PatcherRecord extends ImmuRecord({
 	 * @param desc - JSON device description returned from OscQuery, rooted at /rnbo/inst/0/messages/CONTENTS/in
 	 * @returns An Immutable List of PatcherRecord record objects
 	 */
-	static arrayFromDescription(desc: JsonMap): PatcherRecord[] {
+	static arrayFromDescription(desc: JsonMap, loadedName?: string): PatcherRecord[] {
 
 		const entries = Object.keys(desc);
 
 		if (Array.isArray(entries)) {
 			return entries.map(name => {
-				return new PatcherRecord({name, loaded: false /*todo*/ });
+				return new PatcherRecord({name, loaded: loadedName === name });
 			});
 		}
 		return [];

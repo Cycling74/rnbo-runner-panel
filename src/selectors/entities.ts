@@ -9,6 +9,7 @@ import { Entity, EntityMap, EntityType } from "../reducers/entities";
 function getEntity(state: RootStateType, type: EntityType.InportRecord, id: string): InportRecord | undefined;
 function getEntity(state: RootStateType, type: EntityType.ParameterRecord, id: string): ParameterRecord | undefined;
 function getEntity(state: RootStateType, type: EntityType.PresetRecord, id: string): PresetRecord | undefined;
+function getEntity(state: RootStateType, type: EntityType.PatcherRecord, id: string): PatcherRecord | undefined;
 function getEntity(state: RootStateType, type: EntityType, id: string): Entity | undefined {
 	return state.entities[type].get(id);
 }
@@ -39,4 +40,19 @@ export const getPresets = (state: RootStateType): EntityMap<PresetRecord> => {
 
 export const getPatchers = (state: RootStateType): EntityMap<PatcherRecord> => {
 	return state.entities[EntityType.PatcherRecord];
+};
+
+export const getPatcher = (state: RootStateType, name: string): PatcherRecord | undefined => {
+	return getEntity(state, EntityType.PatcherRecord, name);
+};
+
+export const getLoadedPatcher = (state: RootStateType): PatcherRecord | undefined => {
+	//there has to be a better way
+	let record: PatcherRecord | undefined;
+	getPatchers(state).map((p) => {
+		if (!record && p.loaded) {
+			record = p;
+		}
+	});
+	return record;
 };
