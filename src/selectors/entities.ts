@@ -1,6 +1,7 @@
 import { InportRecord } from "../models/inport";
 import { ParameterRecord } from "../models/parameter";
 import { PresetRecord } from "../models/preset";
+import { PatcherRecord } from "../models/patcher";
 import { RootStateType } from "../lib/store";
 import { Entity, EntityMap, EntityType } from "../reducers/entities";
 
@@ -34,4 +35,8 @@ export const getPreset = (state: RootStateType, id: string): PresetRecord | unde
 
 export const getPresets = (state: RootStateType): EntityMap<PresetRecord> => {
 	return state.entities[EntityType.PresetRecord];
+};
+
+export const getPatchers = (state: RootStateType): EntityMap<PatcherRecord> => {
+	return state.entities[EntityType.PatcherRecord];
 };

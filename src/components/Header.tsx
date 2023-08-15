@@ -1,6 +1,7 @@
 import React from "react";
 import Status from "./Status";
 import PresetControl from "./PresetControl";
+import PatcherControl from "./PatcherControl";
 import styled from "styled-components";
 import { Hr } from "./Hr";
 import Title from "./Title";
@@ -33,6 +34,7 @@ export const Header = () => {
 					<Title mobile={false} />
 				</HeaderTitle>
 				<HeaderControls>
+					<PatcherControl />
 					<PresetControl />
 					<Status />
 				</HeaderControls>

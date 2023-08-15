@@ -1,6 +1,6 @@
 import { parse as parseQuery } from "querystring";
 import { readPacket } from "osc";
-import { initializeDevice, setParameterValue, setParameterValueNormalized } from "../actions/device";
+import { initializeDevice, initializePatchers, setParameterValue, setParameterValueNormalized } from "../actions/device";
 import { clearEntities, deleteEntity, setEntity } from "../actions/entities";
 import { setConnectionStatus } from "../actions/network";
 import { AppDispatch, store } from "../lib/store";
@@ -40,9 +40,10 @@ export class OSCQueryBridgeControllerPrivate {
 			if (typeof evt.data === "string") {
 				const data = JSON.parse(evt.data);
 				if (typeof data.FULL_PATH === "string" && data.FULL_PATH === "/rnbo/inst/0" && (typeof data.CONTENTS !== "undefined")) {
-
 					// brand new device
 					dispatch(initializeDevice(data));
+				} else if (typeof data.FULL_PATH === "string" && data.FULL_PATH === "/rnbo/patchers" && (typeof data.CONTENTS !== "undefined")) {
+					dispatch(initializePatchers(data));
 
 				} else if (typeof data.FULL_PATH === "string" && data.FULL_PATH.startsWith("/rnbo/inst/0/params")) {
 
@@ -63,8 +64,8 @@ export class OSCQueryBridgeControllerPrivate {
 					this._onPathRemoved(data.DATA);
 				} else {
 					// unhandled message
-					// console.log("unhandled");
-					// console.log(data);
+					//console.log("unhandled");
+					//console.log(data);
 				}
 			} else {
 				const buf: Uint8Array = await evt.data.arrayBuffer();
@@ -77,6 +78,10 @@ export class OSCQueryBridgeControllerPrivate {
 	}
 
 	private _onPathAdded(path: string): void {
+		if (path.startsWith("/rnbo/patchers")) {
+			console.log("pathadded", { path });
+			return;
+		}
 		const matcher = /\/rnbo\/inst\/0\/(params|messages\/in|presets)\/(\S+)/;
 		const matches = path.match(matcher);
 		if (!matches) return;
@@ -155,8 +160,9 @@ export class OSCQueryBridgeControllerPrivate {
 			// Update Connection Status
 			dispatch(setConnectionStatus(this.readyState));
 
-			// Fetch the instrument description
+			// Fetch the instrument description and patchers list
 			this._ws.send("/rnbo/inst/0");
+			this._ws.send("/rnbo/patchers");
 		} catch (err) {
 			// Update Connection Status
 			dispatch(setConnectionStatus(this.readyState));

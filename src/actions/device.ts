@@ -3,6 +3,7 @@ import { AnyJson } from "../lib/types";
 import { InportRecord } from "../models/inport";
 import { ParameterRecord } from "../models/parameter";
 import { PresetRecord } from "../models/preset";
+import { PatcherRecord } from "../models/patcher";
 import { EntityType } from "../reducers/entities";
 import { setEntities, setEntity } from "./entities";
 import { AppThunk } from "../lib/store";
@@ -93,6 +94,29 @@ export const savePresetToRemote = (name: string): AppThunk =>
 		oscQueryBridge.sendPacket(writePacket(message));
 	};
 
+export const loadPatcher = (name: string, inst: number = 0): AppThunk =>
+	() => {
+		const message = {
+			address: "/rnbo/inst/control/load",
+			args: [
+				{ type: "i", value: inst },
+				{ type: "s", value: name }
+			]
+		};
+		oscQueryBridge.sendPacket(writePacket(message));
+	};
+
+export const unloadPatcher = (inst: number = 0): AppThunk =>
+	() => {
+		const message = {
+			address: "/rnbo/inst/control/unload",
+			args: [
+				{ type: "i", value: inst }
+			]
+		};
+		oscQueryBridge.sendPacket(writePacket(message));
+	};
+
 export const initializeDevice = (desc: AnyJson): AppThunk =>
 	(dispatch) => {
 		try {
@@ -113,6 +137,21 @@ export const initializeDevice = (desc: AnyJson): AppThunk =>
 			dispatch(setEntities(
 				EntityType.PresetRecord,
 				PresetRecord.arrayFromDescription(presetDescriptions),
+				true
+			));
+
+		} catch (e) {
+			console.log(e);
+		}
+	};
+
+export const initializePatchers = (desc: AnyJson): AppThunk =>
+	(dispatch) => {
+		try {
+			const patcherDescriptions = (desc as any).CONTENTS || {};
+
+			dispatch(setEntities( EntityType.PatcherRecord,
+				PatcherRecord.arrayFromDescription(patcherDescriptions),
 				true
 			));
 
