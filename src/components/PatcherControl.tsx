@@ -5,9 +5,7 @@ import { RootStateType } from "../lib/store";
 import styled from "styled-components";
 import { loadPatcher } from "../actions/device";
 
-interface StyledProps {
-	open: boolean;
-}
+interface StyledProps { }
 
 interface Patcher {
 	id: string;
