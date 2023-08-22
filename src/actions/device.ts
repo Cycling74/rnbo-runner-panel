@@ -114,24 +114,12 @@ export const loadPatcher = (name: string, inst: number = 0): AppThunk =>
 			oscQueryBridge.sendPacket(writePacket(message));
 		};
 
-export const unloadPatcher = (inst: number = 0): AppThunk =>
-	() => {
-		const message = {
-			address: "/rnbo/inst/control/unload",
-			args: [
-				{ type: "i", value: inst }
-			]
-		};
-		oscQueryBridge.sendPacket(writePacket(message));
-	};
-
 export const initializeDevice = (desc: AnyJson): AppThunk =>
 	(dispatch) => {
 		try {
 			const parameterDescriptions = (desc as any).CONTENTS.params || {};
 			const inportDescriptions = (desc as any).CONTENTS.messages?.CONTENTS.in || {};
 			const presetDescriptions = (desc as any).CONTENTS.presets?.CONTENTS || {};
-			const patcherName = (desc as any).CONTENTS.name?.VALUE || "";
 
 			dispatch(setEntities(
 				EntityType.ParameterRecord,
