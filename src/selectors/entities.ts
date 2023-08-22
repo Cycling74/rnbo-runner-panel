@@ -47,12 +47,7 @@ export const getPatcher = (state: RootStateType, name: string): PatcherRecord | 
 };
 
 export const getLoadedPatcher = (state: RootStateType): PatcherRecord | undefined => {
-	//there has to be a better way
-	let record: PatcherRecord | undefined;
-	getPatchers(state).map((p) => {
-		if (!record && p.loaded) {
-			record = p;
-		}
-	});
-	return record;
+	return getPatchers(state).reduce((c, p) => {
+		return p.loaded ? p : c;
+	}, undefined);
 };

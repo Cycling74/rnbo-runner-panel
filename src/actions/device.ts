@@ -145,13 +145,9 @@ export const initializePatchers = (desc: AnyJson): AppThunk =>
 	(dispatch, getState) => {
 		try {
 			const patcherDescriptions = (desc as any).CONTENTS || {};
-			let loadedName: string | undefined;
-
-			getPatchers(getState()).map((p) => {
-				if (p.loaded) {
-					loadedName = p.name;
-				}
-			});
+			let loadedName: string | undefined = getPatchers(getState()).reduce((c, p) => {
+				return p.loaded ? p.name : c;
+			}, undefined);
 
 			dispatch(setEntities( EntityType.PatcherRecord,
 				PatcherRecord.arrayFromDescription(patcherDescriptions, loadedName),
@@ -167,10 +163,9 @@ export const setSelectedPatcher = (name: string): AppThunk =>
 	(dispatch, getState) => {
 		const state = getState();
 		try {
-			const updated: PatcherRecord[] = [];
-			getPatchers(state).map((p) => {
-				updated.push(new PatcherRecord ({name: p.name, loaded: p.name === name}));
-			});
+			const updated: PatcherRecord[] = getPatchers(state).reduce((c, p) => {
+				return c.concat(new PatcherRecord ({name: p.name, loaded: p.name === name}));
+			}, []);
 			dispatch(setEntities(EntityType.PatcherRecord, updated, true));
 		} catch (e) {
 			console.log(e);
