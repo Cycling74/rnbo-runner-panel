@@ -120,6 +120,7 @@ export const initializeDevice = (desc: AnyJson): AppThunk =>
 			const parameterDescriptions = (desc as any).CONTENTS.params || {};
 			const inportDescriptions = (desc as any).CONTENTS.messages?.CONTENTS.in || {};
 			const presetDescriptions = (desc as any).CONTENTS.presets?.CONTENTS || {};
+			const patcherName: string | undefined = (desc as any).CONTENTS.name?.VALUE;
 
 			dispatch(setEntities(
 				EntityType.ParameterRecord,
@@ -136,6 +137,8 @@ export const initializeDevice = (desc: AnyJson): AppThunk =>
 				PresetRecord.arrayFromDescription(presetDescriptions),
 				true
 			));
+
+			dispatch(setSelectedPatcher(patcherName));
 		} catch (e) {
 			console.log(e);
 		}
