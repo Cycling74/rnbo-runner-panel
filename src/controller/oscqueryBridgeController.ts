@@ -174,8 +174,8 @@ export class OSCQueryBridgeControllerPrivate {
 			dispatch(setConnectionStatus(this.readyState));
 
 			// Fetch the instrument description and patchers list
-			this._ws.send("/rnbo/inst/0");
 			this._ws.send("/rnbo/patchers");
+			this._ws.send("/rnbo/inst/0");
 		} catch (err) {
 			// Update Connection Status
 			dispatch(setConnectionStatus(this.readyState));
