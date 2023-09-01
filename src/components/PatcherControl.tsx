@@ -4,6 +4,7 @@ import { getPatchers, getLoadedPatcher } from "../selectors/entities";
 import { RootStateType } from "../lib/store";
 import styled from "styled-components";
 import { loadPatcher } from "../actions/device";
+import { RevealPanel } from "./RevealPanel";
 
 interface Patcher {
 	id: string;
@@ -56,9 +57,8 @@ const PatcherControl = memo(function WrappedPatcherControl(): JSX.Element {
 	};
 
 	return (
-		<PatcherWrapper>
-			<PatcherPanel>
-				<PatcherSelection>
+		<RevealPanel title="Patchers">
+			<PatcherSelection>
 					<select name="patchers" id="patchers" onChange={handleSelect} value={selectedPatcher}>
 						<option disabled value="">
 							Select a patcher:
@@ -69,8 +69,7 @@ const PatcherControl = memo(function WrappedPatcherControl(): JSX.Element {
 						}
 					</select>
 				</PatcherSelection>
-			</PatcherPanel>
-		</PatcherWrapper>
+		</RevealPanel>
 	);
 });
 
