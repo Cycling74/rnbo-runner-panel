@@ -5,7 +5,6 @@ import { RootStateType } from "../lib/store";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import styled from "styled-components";
 import { sendPresetToRemote, savePresetToRemote } from "../actions/device";
-import { RevealPanel } from "./RevealPanel";
 
 interface Preset {
 	id: string;
@@ -53,7 +52,7 @@ const PresetControl = memo(function WrappedPresetControl(): JSX.Element {
 	};
 
 	return (
-		<RevealPanel title="Presets">
+		<>
 			<PresetSelection>
 				<select name="presets" id="presets" defaultValue="" onChange={handleSelect}>
 					<option disabled value="" hidden={selectedPreset ? true : false}>
@@ -73,7 +72,7 @@ const PresetControl = memo(function WrappedPresetControl(): JSX.Element {
 				<input type="text" value={newPresetName} onChange={handleChange}></input>
 				<input type="submit" value="Save" />
 			</SavePresetForm>
-		</RevealPanel>
+		</>
 	);
 });
 

@@ -3,8 +3,8 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import styled from "styled-components";
 
 export type IRevealProps = {
-	title: string;
-	children: React.ReactNode;
+	titles: string[];
+	children: React.ReactNode[];
 }
 
 interface StyledProps {
@@ -55,22 +55,34 @@ const RevealSubcontainer = styled.div<StyledProps>`
 	z-index: 8;
 `;
 
-export const RevealPanel: React.FC<IRevealProps> = ({ title, children }) => {
-	const [showContents, setShowContents] = useState(false);
+export const TabbedController: React.FC<IRevealProps> = ({ titles, children }) => {
+	const [shownIndex, setShownIndex] = useState(-1);
 
-	const toggleShow = (): void => {
-		setShowContents(!showContents);
+	const toggleShownIndex = (i: number): void => {
+		if (i === shownIndex) {
+			setShownIndex(-1);
+		} else {
+			setShownIndex(i);
+		}
 	};
 
+	const elements = children.map((child, index) => {
+		return (
+			<RevealWrapper key={index}>
+				<OpenButton onClick={() => toggleShownIndex(index) }>
+					{ titles[index] }
+					{(shownIndex === index) ? <FontAwesomeIcon icon="angle-up" /> : <FontAwesomeIcon icon="angle-down" />}
+				</OpenButton>
+				<RevealSubcontainer open={(shownIndex === index)}>
+					{ child }
+				</RevealSubcontainer>
+			</RevealWrapper>
+		);
+	})
+
 	return (
-		<RevealWrapper>
-			<OpenButton onClick={toggleShow}>
-				{ title }
-				{showContents ? <FontAwesomeIcon icon="angle-up" /> : <FontAwesomeIcon icon="angle-down" />}
-			</OpenButton>
-			<RevealSubcontainer open={showContents}>
-				{ children }
-			</RevealSubcontainer>
-		</RevealWrapper>
+		<>
+			{ elements }
+		</>
 	);
 }

@@ -4,7 +4,6 @@ import { getPatchers, getLoadedPatcher } from "../selectors/entities";
 import { RootStateType } from "../lib/store";
 import styled from "styled-components";
 import { loadPatcher } from "../actions/device";
-import { RevealPanel } from "./RevealPanel";
 
 interface Patcher {
 	id: string;
@@ -57,19 +56,17 @@ const PatcherControl = memo(function WrappedPatcherControl(): JSX.Element {
 	};
 
 	return (
-		<RevealPanel title="Patchers">
-			<PatcherSelection>
-					<select name="patchers" id="patchers" onChange={handleSelect} value={selectedPatcher}>
-						<option disabled value="">
-							Select a patcher:
-						</option>
-						{
-							patcherList &&
-								patcherList.valueSeq().map((p: Patcher) => <option key={p.id} value={p.name}>{p.name}</option>)
-						}
-					</select>
-				</PatcherSelection>
-		</RevealPanel>
+		<PatcherSelection>
+			<select name="patchers" id="patchers" onChange={handleSelect} value={selectedPatcher}>
+				<option disabled value="">
+					Select a patcher:
+				</option>
+				{
+					patcherList &&
+						patcherList.valueSeq().map((p: Patcher) => <option key={p.id} value={p.name}>{p.name}</option>)
+				}
+			</select>
+		</PatcherSelection>
 	);
 });
 
