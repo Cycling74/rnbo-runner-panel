@@ -10,17 +10,13 @@ export class PresetRecord extends ImmuRecord({
 
 	/**
 	 *
-	 * @param desc - JSON device description returned from OscQuery, rooted at /rnbo/inst/0/messages/CONTENTS/in
+	 * @param desc - JSON device description returned from OscQuery, rooted at /rnbo/inst/0/presets
 	 * @returns An Immutable List of PresetRecord record objects
 	 */
-	static arrayFromDescription(desc: JsonMap): PresetRecord[] {
-
-		const entries = ((desc.entries as JsonMap).VALUE as any);
-		const current = ((desc.entries as JsonMap).VALUE as string);
-
+	static arrayFromDescription(entries?: any): PresetRecord[] {
 		if (Array.isArray(entries)) {
 			return entries.map(name => {
-				return new PresetRecord({name, loaded: name === current });
+				return new PresetRecord({name, loaded: false });
 			});
 		}
 		return [];

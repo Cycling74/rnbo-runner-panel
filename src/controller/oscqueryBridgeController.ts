@@ -1,6 +1,10 @@
 import { parse as parseQuery } from "querystring";
 import { readPacket } from "osc";
-import { initializeDevice, initializePatchers, setSelectedPatcher, setParameterValue, setParameterValueNormalized } from "../actions/device";
+import {
+	initializeDevice, initializePatchers,
+	setSelectedPatcher, setParameterValue, setParameterValueNormalized,
+	updatePresets
+} from "../actions/device";
 import { clearEntities, deleteEntity, setEntity } from "../actions/entities";
 import { setConnectionStatus } from "../actions/network";
 import { AppDispatch, store } from "../lib/store";
@@ -38,8 +42,10 @@ export class OSCQueryBridgeControllerPrivate {
 
 	private _onMessage = async (evt: MessageEvent): Promise<void> => {
 		try {
+
 			if (typeof evt.data === "string") {
 				const data = JSON.parse(evt.data);
+
 				const pathisstring = typeof data.FULL_PATH === "string";
 				if (pathisstring && data.FULL_PATH === "/rnbo/inst/0" && (typeof data.CONTENTS !== "undefined")) {
 					// brand new device
@@ -61,14 +67,15 @@ export class OSCQueryBridgeControllerPrivate {
 						if (params.length) dispatch(setEntity(EntityType.ParameterRecord, params[0]));
 					}
 				// need to add cond to check for preset and then set entity
+				} else if (pathisstring && data.FULL_PATH === "/rnbo/inst/0/presets/entries") {
+					dispatch(updatePresets(data.VALUE));
 				} else if (typeof data.COMMAND === "string" && data.COMMAND === "PATH_ADDED") {
 					this._onPathAdded(data.DATA);
 				} else if (typeof data.COMMAND === "string" && data.COMMAND === "PATH_REMOVED") {
 					this._onPathRemoved(data.DATA);
 				} else {
 					// unhandled message
-					//console.log("unhandled");
-					//console.log(data);
+					// console.log("unhandled", { data });
 				}
 			} else {
 				const buf: Uint8Array = await evt.data.arrayBuffer();
@@ -81,6 +88,7 @@ export class OSCQueryBridgeControllerPrivate {
 	}
 
 	private _onPathAdded(path: string): void {
+		//console.log("path added", { path });
 		//request data from new paths
 		if (path.startsWith("/rnbo/patchers")) {
 			this._ws.send("/rnbo/patchers");
@@ -100,8 +108,9 @@ export class OSCQueryBridgeControllerPrivate {
 		} else if (matches[1] === "messages/in") {
 			// Inports can be declared with just a name
 			dispatch(setEntity(EntityType.InportRecord, new InportRecord({ name: matches[2] })));
-		} else if (matches[1] === "presets/entries") {
-			// @TODO
+		} else if (matches[1] === "presets" && matches[2] === "entries") {
+			//request them
+			this._ws.send(path);
 		}
 	}
 
@@ -133,17 +142,21 @@ export class OSCQueryBridgeControllerPrivate {
 		const paramMatcher = /\/rnbo\/inst\/0\/params\/(\S+)/;
 		const address: string = packet.address;
 
-		const matches = address.match(paramMatcher);
+		const matcher = /\/rnbo\/inst\/0\/(params|presets)\/(\S+)/;
+		const matches = address.match(matcher);
 		if (!matches) return;
 
-		const paramValue = packet.args[0];
-		const paramPath = matches[1];
-
-		if (paramPath.endsWith("/normalized")) {
-			const paramName = paramPath.slice(0, -("/normalized").length);
-			dispatch(setParameterValueNormalized(paramName, paramValue));
-		} else {
-			dispatch(setParameterValue(paramPath, paramValue));
+		if (matches[1] === "params") {
+			const paramPath = matches[2];
+			const paramValue = packet.args[0];
+			if (paramPath.endsWith("/normalized")) {
+				const paramName = paramPath.slice(0, -("/normalized").length);
+				dispatch(setParameterValueNormalized(paramName, paramValue));
+			} else {
+				dispatch(setParameterValue(paramPath, paramValue));
+			}
+		} else if (matches[1] === "presets" && matches[2] === "entries") {
+			dispatch(updatePresets(packet.args));
 		}
 
 	}

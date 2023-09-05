@@ -114,6 +114,20 @@ export const loadPatcher = (name: string, inst: number = 0): AppThunk =>
 			oscQueryBridge.sendPacket(writePacket(message));
 		};
 
+export const updatePresets = (entries?: any): AppThunk =>
+	(dispatch) => {
+		try {
+			dispatch(setEntities(
+				EntityType.PresetRecord,
+				PresetRecord.arrayFromDescription(entries),
+				true
+			));
+		} catch (e) {
+			console.log(e);
+		}
+	};
+
+
 export const initializeDevice = (desc: AnyJson): AppThunk =>
 	(dispatch) => {
 		try {
@@ -134,7 +148,7 @@ export const initializeDevice = (desc: AnyJson): AppThunk =>
 			));
 			dispatch(setEntities(
 				EntityType.PresetRecord,
-				PresetRecord.arrayFromDescription(presetDescriptions),
+				PresetRecord.arrayFromDescription(presetDescriptions?.entries?.VALUE as any),
 				true
 			));
 
