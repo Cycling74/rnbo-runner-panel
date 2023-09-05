@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import styled from "styled-components";
 
-export type IRevealProps = {
+export interface RevealProps {
 	titles: string[];
 	children: React.ReactNode[];
 }
@@ -55,7 +55,7 @@ const RevealSubcontainer = styled.div<StyledProps>`
 	z-index: 8;
 `;
 
-export const TabbedController: React.FC<IRevealProps> = ({ titles, children }) => {
+export const TabbedController: React.FC<RevealProps> = ({ titles, children }) => {
 	const [shownIndex, setShownIndex] = useState(-1);
 
 	const toggleShownIndex = (i: number): void => {
@@ -78,11 +78,11 @@ export const TabbedController: React.FC<IRevealProps> = ({ titles, children }) =
 				</RevealSubcontainer>
 			</RevealWrapper>
 		);
-	})
+	});
 
 	return (
 		<>
 			{ elements }
 		</>
 	);
-}
+};

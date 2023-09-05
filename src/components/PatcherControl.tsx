@@ -11,29 +11,6 @@ interface Patcher {
 	loaded: boolean;
 }
 
-const PatcherWrapper = styled.div`
-	display: flex;
-	flex-direction: column;
-	align-items: flex-end;
-	position: relative;
-	padding-right: 2rem;
-	color: ${({ theme }) => theme.colors.lightNeutral};
-
-	@media (max-width: 769px) {
-		padding-right: 0;
-	}
-`;
-
-const PatcherPanel = styled.div`
-	display: "flex";
-	flex-direction: column;
-	background-color: ${({ theme }) => theme.colors.primary};
-	border-radius: 8px;
-	border-style: none;
-	padding: 1rem;
-	z-index: 8;
-`;
-
 const PatcherSelection = styled.div`
 	padding-bottom: 0.5rem;
 `;
