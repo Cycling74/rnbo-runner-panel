@@ -2,23 +2,25 @@ import { Map as ImmuMap } from "immutable";
 import { ParameterRecord } from "../models/parameter";
 import { InportRecord } from "../models/inport";
 import { PresetRecord } from "../models/preset";
+import { PatcherRecord } from "../models/patcher";
 import { EntityAction, EnitityActionType } from "../actions/entities";
 
 
 export enum EntityType {
 	ParameterRecord = "parameter",
 	InportRecord = "inport",
-	PresetRecord = "preset"
+	PresetRecord = "preset",
+	PatcherRecord = "patcher",
 }
 
-export type Entity = ParameterRecord | InportRecord | PresetRecord;
+export type Entity = ParameterRecord | InportRecord | PresetRecord | PatcherRecord;
 export type EntityMap<T extends Entity> = ImmuMap<string, T>;
 
 export interface EntityState {
 	[EntityType.ParameterRecord]: ImmuMap<ParameterRecord["id"], ParameterRecord>,
 	[EntityType.InportRecord]: ImmuMap<InportRecord["id"], InportRecord>,
 	[EntityType.PresetRecord]: ImmuMap<PresetRecord["id"], PresetRecord>;
-
+	[EntityType.PatcherRecord]: ImmuMap<PatcherRecord["id"], PatcherRecord>;
 }
 
 export const getEntities = (state: EntityState, type: EntityType): ImmuMap<string, Entity> => {
@@ -29,6 +31,8 @@ export const getEntities = (state: EntityState, type: EntityType): ImmuMap<strin
 			return state.inport;
 		case EntityType.PresetRecord:
 			return state.preset;
+		case EntityType.PatcherRecord:
+			return state.patcher;
 	}
 };
 
@@ -36,7 +40,8 @@ export const entities = (state: EntityState = {
 
 	[EntityType.ParameterRecord]: ImmuMap<ParameterRecord["id"], ParameterRecord>(),
 	[EntityType.InportRecord]: ImmuMap<InportRecord["id"], InportRecord>(),
-	[EntityType.PresetRecord]: ImmuMap<PresetRecord["id"], PresetRecord>()
+	[EntityType.PresetRecord]: ImmuMap<PresetRecord["id"], PresetRecord>(),
+	[EntityType.PatcherRecord]: ImmuMap<PatcherRecord["id"], PatcherRecord>()
 
 
 }, action: EntityAction) => {
