@@ -177,7 +177,7 @@ const Octave: FunctionComponent<{
 
 Octave.displayName = "OctaveName";
 
-export const PianoKeyboard: FunctionComponent<{}> = memo(() => {
+export const PianoKeyboard: FunctionComponent<Record<string, never>> = memo(() => {
 
 	const dispatch = useAppDispatch();
 	const containerRef = useRef<HTMLDivElement>();

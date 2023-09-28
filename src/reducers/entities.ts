@@ -32,6 +32,7 @@ export const getEntities = (state: EntityState, type: EntityType): ImmuMap<strin
 		case EntityType.PresetRecord:
 			return state.preset;
 		case EntityType.PatcherRecord:
+		default:
 			return state.patcher;
 	}
 };
@@ -55,8 +56,8 @@ export const entities = (state: EntityState = {
 		}
 
 		case EnitityActionType.SET_ENTITIES: {
-			const { entities, type, clear } = action.payload;
-			const newEnts = entities.reduce((map, entity) => {
+			const { entities: setEntities, type, clear } = action.payload;
+			const newEnts = setEntities.reduce((map, entity) => {
 				return map.set(entity.id, entity);
 			}, clear ? ImmuMap() : getEntities(state, type));
 

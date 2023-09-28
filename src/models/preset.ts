@@ -1,5 +1,4 @@
 import { Record as ImmuRecord } from "immutable";
-import { JsonMap } from "../lib/types";
 
 export class PresetRecord extends ImmuRecord({
 

@@ -8,5 +8,5 @@ const HrComponent = styled.hr`
 	border-top: 3px solid ${props => props.theme.colors.darkNeutral};
 `;
 
-export const Hr: FunctionComponent<{}> = () => <HrComponent />;
+export const Hr: FunctionComponent<Record<string, never>> = () => <HrComponent />;
 

@@ -1,7 +1,7 @@
 import { useRouter } from "next/router";
 import { FunctionComponent, useEffect } from "react";
 
-const IndexRedirect: FunctionComponent<{}> = () => {
+const IndexRedirect: FunctionComponent<Record<string, never>> = () => {
 
 	const { replace, query } = useRouter();
 

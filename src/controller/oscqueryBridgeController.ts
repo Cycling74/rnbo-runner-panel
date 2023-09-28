@@ -34,11 +34,11 @@ export class OSCQueryBridgeControllerPrivate {
 
 	private _onReconnecting = () => {
 		dispatch(setConnectionStatus(this.readyState));
-	}
+	};
 
 	private _onReconnected = () => {
 		dispatch(setConnectionStatus(this.readyState));
-	}
+	};
 
 	private _onMessage = async (evt: MessageEvent): Promise<void> => {
 		try {
@@ -58,7 +58,7 @@ export class OSCQueryBridgeControllerPrivate {
 
 					// individual parameter
 					const paramMatcher = /\/rnbo\/inst\/0\/params\/(\S+)/;
-					let matches = data.FULL_PATH.match(paramMatcher);
+					const matches = data.FULL_PATH.match(paramMatcher);
 
 					// If it's a new parameter, fetch its data
 					if (matches) {
@@ -85,11 +85,11 @@ export class OSCQueryBridgeControllerPrivate {
 		} catch (e) {
 			console.error(e);
 		}
-	}
+	};
 
 	private _onPathAdded(path: string): void {
-		//console.log("path added", { path });
-		//request data from new paths
+		// console.log("path added", { path });
+		// request data from new paths
 		if (path.startsWith("/rnbo/patchers")) {
 			this._ws.send("/rnbo/patchers");
 			return;
@@ -109,13 +109,13 @@ export class OSCQueryBridgeControllerPrivate {
 			// Inports can be declared with just a name
 			dispatch(setEntity(EntityType.InportRecord, new InportRecord({ name: matches[2] })));
 		} else if (matches[1] === "presets" && matches[2] === "entries") {
-			//request them
+			// request them
 			this._ws.send(path);
 		}
 	}
 
 	private _onPathRemoved(path: string): void {
-		//if we remove the instance, patcher is gone
+		// if we remove the instance, patcher is gone
 		if (path === "/rnbo/inst/0") {
 			dispatch(setSelectedPatcher(UNLOAD_PATCHER_NAME));
 			return;
@@ -139,7 +139,6 @@ export class OSCQueryBridgeControllerPrivate {
 	}
 
 	private _processOSCMessage(packet: any): void {
-		const paramMatcher = /\/rnbo\/inst\/0\/params\/(\S+)/;
 		const address: string = packet.address;
 
 		const matcher = /\/rnbo\/inst\/0\/(params|presets)\/(\S+)/;

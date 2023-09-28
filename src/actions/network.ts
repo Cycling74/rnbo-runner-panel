@@ -11,7 +11,7 @@ export interface ISetConnectionStatus extends ActionBase {
 		error?: Error | undefined;
 		status: WebSocketState;
 	};
-};
+}
 
 export type NetworkAction = ISetConnectionStatus;
 

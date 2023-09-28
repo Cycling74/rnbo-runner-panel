@@ -22,7 +22,7 @@ export class ParameterRecord extends ImmuRecord({
 				min: ((desc.RANGE as JsonMap[])[0].MIN as number),
 				max: ((desc.RANGE as JsonMap[])[0].MAX as number),
 				type: (desc.TYPE as string),
-				normalizedValue: (((desc.CONTENTS as JsonMap).normalized as JsonMap).VALUE as number),
+				normalizedValue: (((desc.CONTENTS as JsonMap).normalized as JsonMap).VALUE as number)
 			});
 
 			return [parameterRecord];

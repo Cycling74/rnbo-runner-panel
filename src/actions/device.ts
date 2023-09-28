@@ -96,23 +96,23 @@ export const savePresetToRemote = (name: string): AppThunk =>
 
 export const loadPatcher = (name: string, inst: number = 0): AppThunk =>
 	() => {
-			let message = {
-				address: "/rnbo/inst/control/load",
+		let message = {
+			address: "/rnbo/inst/control/load",
+			args: [
+				{ type: "i", value: inst },
+				{ type: "s", value: name }
+			]
+		};
+		if (name === UNLOAD_PATCHER_NAME) {
+			message = {
+				address: "/rnbo/inst/control/unload",
 				args: [
-					{ type: "i", value: inst },
-					{ type: "s", value: name }
+					{ type: "i", value: inst }
 				]
 			};
-			if (name === UNLOAD_PATCHER_NAME) {
-				message = {
-					address: "/rnbo/inst/control/unload",
-					args: [
-						{ type: "i", value: inst }
-					]
-				};
-			}
-			oscQueryBridge.sendPacket(writePacket(message));
-		};
+		}
+		oscQueryBridge.sendPacket(writePacket(message));
+	};
 
 export const updatePresets = (entries?: any): AppThunk =>
 	(dispatch) => {
@@ -127,6 +127,18 @@ export const updatePresets = (entries?: any): AppThunk =>
 		}
 	};
 
+export const setSelectedPatcher = (name: string): AppThunk =>
+	(dispatch, getState) => {
+		const state = getState();
+		try {
+			const updated: PatcherRecord[] = getPatchers(state).reduce((c, p) => {
+				return c.concat(new PatcherRecord ({name: p.name, loaded: p.name === name}));
+			}, []);
+			dispatch(setEntities(EntityType.PatcherRecord, updated, true));
+		} catch (e) {
+			console.log(e);
+		}
+	};
 
 export const initializeDevice = (desc: AnyJson): AppThunk =>
 	(dispatch) => {
@@ -162,7 +174,7 @@ export const initializePatchers = (desc: AnyJson): AppThunk =>
 	(dispatch, getState) => {
 		try {
 			const patcherDescriptions = (desc as any).CONTENTS || {};
-			let loadedName: string | undefined = getPatchers(getState()).reduce((c, p) => {
+			const loadedName: string | undefined = getPatchers(getState()).reduce((c, p) => {
 				return p.loaded ? p.name : c;
 			}, undefined);
 
@@ -171,19 +183,6 @@ export const initializePatchers = (desc: AnyJson): AppThunk =>
 				true
 			));
 
-		} catch (e) {
-			console.log(e);
-		}
-	};
-
-export const setSelectedPatcher = (name: string): AppThunk =>
-	(dispatch, getState) => {
-		const state = getState();
-		try {
-			const updated: PatcherRecord[] = getPatchers(state).reduce((c, p) => {
-				return c.concat(new PatcherRecord ({name: p.name, loaded: p.name === name}));
-			}, []);
-			dispatch(setEntities(EntityType.PatcherRecord, updated, true));
 		} catch (e) {
 			console.log(e);
 		}
