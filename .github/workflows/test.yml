@@ -11,10 +11,10 @@ jobs:
       - name: Use Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: '16'
+          node-version: '20'
       - name: install dependencies
-        run: yarn install --pure-lockfile
+        run: npm ci
       - name: Run lint
-        run: yarn run lint
+        run: npm run lint
       - name: build
-        run: yarn run build
+        run: npm run build

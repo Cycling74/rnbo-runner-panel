@@ -17,7 +17,7 @@ The RNBO Runner implements [OSCQuery](https://github.com/Vidvox/OSCQueryProposal
 First, run the development server:
 
 ```bash
-yarn install
+npm ci
 npm run dev
 ```
 
@@ -31,7 +31,7 @@ By default, the app is exposed on port 3000 and tries to connect to port 5678 at
 
 ## Export
 
-You can export the whole site as a static page by running `yarn run export`. This will create an "out" directory containing the entire static site. To run this site on a Raspberry Pi (for example), you simple need to start a static web server on the Pi that serves this directory. An easy way to do this is to start an nginx server on the Pi, and to copy the contents of "out" to /var/www/html.
+You can export the whole site as a static page by running `npm run export`. This will create an "out" directory containing the entire static site. To run this site on a Raspberry Pi (for example), you simple need to start a static web server on the Pi that serves this directory. An easy way to do this is to start an nginx server on the Pi, and to copy the contents of "out" to /var/www/html.
 
 ## Building deb
 
@@ -42,7 +42,7 @@ You can export the whole site as a static page by running `yarn run export`. Thi
   * `brew install dpkg`
 
 ```shell
-yarn run build && yarn run export && yarn run package-debian
+npm run build && npm run export && npm run package-debian
 ```
 
 You should then see a `.deb` file in your working directory.
