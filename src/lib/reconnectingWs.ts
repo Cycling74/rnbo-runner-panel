@@ -62,7 +62,7 @@ export class ReconnectingWebsocket extends EventEmitter {
 
 	private _onMessage = (evt: MessageEvent) => {
 		this.emit("message", evt);
-	}
+	};
 
 	private async attemptConnect(): Promise<void> {
 		this.connecting = true;

@@ -14,7 +14,7 @@ function getEntity(state: RootStateType, type: EntityType, id: string): Entity |
 	return state.entities[type].get(id);
 }
 
-export const getParameter = (state: RootStateType, id: string): ParameterRecord | undefined => {
+export const getParameter = (state: RootStateType, id: string): ParameterRecord | undefined => {
 	return getEntity(state, EntityType.ParameterRecord, id);
 };
 
@@ -22,7 +22,7 @@ export const getParameters = (state: RootStateType): EntityMap<ParameterRecord> 
 	return state.entities[EntityType.ParameterRecord];
 };
 
-export const getInport = (state: RootStateType, id: string): InportRecord | undefined => {
+export const getInport = (state: RootStateType, id: string): InportRecord | undefined => {
 	return getEntity(state, EntityType.InportRecord, id);
 };
 

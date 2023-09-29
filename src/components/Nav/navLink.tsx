@@ -11,7 +11,7 @@ interface NavLinkElementProps {
 	active: boolean;
 }
 
-const NavLinkEl = styled.a<NavLinkElementProps>`
+const NavLinkEl = styled(Link)<NavLinkElementProps>`
 	padding: 0.5rem 0.1rem;
 	font-weight: bold;
 	color: ${({ active, theme }) => active ? theme.colors.secondary : theme.colors.lightText};
@@ -23,10 +23,8 @@ const NavLinkEl = styled.a<NavLinkElementProps>`
 export const NavLink: FunctionComponent<NavLinkProps> = ({ href, label }) => {
 	const router = useRouter();
 	return (
-		<Link href={href} passHref>
-			<NavLinkEl active={router.pathname === href} >
-				{label}
-			</NavLinkEl>
-		</Link>
+		<NavLinkEl active={router.pathname === href}  href={href} passHref>
+			{label}
+		</NavLinkEl>
 	);
 };

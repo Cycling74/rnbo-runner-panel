@@ -18,13 +18,6 @@ export interface ActionBase extends AnyAction {
 	payload: Record<string, any>;
 }
 
-export type AppThunk<ReturnType = void> = ThunkAction<
-ReturnType,
-RootStateType,
-undefined,
-ActionBase
->;
-
 export const store = createStore(
 	rootReducer,
 	undefined, // reducers define their own initial state
@@ -34,3 +27,9 @@ export const store = createStore(
 export type RootStateType = ReturnType<typeof store.getState>;
 export type AppDispatch = Dispatch<AnyAction> & ThunkDispatch<RootStateType, undefined, ActionBase>;
 
+export type AppThunk<ReturnType = void> = ThunkAction<
+ReturnType,
+RootStateType,
+undefined,
+ActionBase
+>;

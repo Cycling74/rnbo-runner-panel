@@ -7,6 +7,8 @@
     // disable the rule for all files
     "@typescript-eslint/explicit-function-return-type": "off",
 		"@typescript-eslint/no-explicit-any": "off",
+		"no-shadow": "off",
+    "@typescript-eslint/no-shadow": "off",
 		"new-cap": [
       "error", {
         "capIsNewExceptionPattern": "^Immu*"
