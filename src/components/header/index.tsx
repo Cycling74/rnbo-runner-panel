@@ -3,7 +3,7 @@ import Status from "./status";
 import PresetControl from "./presetControl";
 import PatcherControl from "./patcherControl";
 import styled from "styled-components";
-import { TabbedController } from "../TabbedController";
+import { TabbedController } from "./tabbedController";
 import useTitle from "../../hooks/useTitle";
 
 const HeaderComponent = styled.header`
