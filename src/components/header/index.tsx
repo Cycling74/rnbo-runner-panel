@@ -1,11 +1,10 @@
 import React from "react";
-import Status from "./Nav/Status";
-import PresetControl from "./PresetControl";
-import PatcherControl from "./PatcherControl";
+import Status from "./status";
+import PresetControl from "./presetControl";
+import PatcherControl from "./patcherControl";
 import styled from "styled-components";
-import { Hr } from "./Hr";
-import Title from "./Title";
-import { TabbedController } from "./TabbedController";
+import { TabbedController } from "../TabbedController";
+import useTitle from "../../hooks/useTitle";
 
 const HeaderComponent = styled.header`
 	padding: 1rem 0;
@@ -28,11 +27,12 @@ const HeaderTitle = styled.div`
 `;
 
 export const Header = () => {
+	const title = useTitle({ mobile: false });
 	return (
 		<>
 			<HeaderComponent>
 				<HeaderTitle>
-					<Title mobile={false} />
+					<h1>{ title }</h1>
 				</HeaderTitle>
 				<HeaderControls>
 					<TabbedController titles={[ "Patches", "Presets" ]}>
@@ -42,7 +42,7 @@ export const Header = () => {
 					<Status />
 				</HeaderControls>
 			</HeaderComponent>
-			<Hr />
+			<hr/>
 		</>
 	);
 };
