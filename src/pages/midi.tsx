@@ -1,9 +1,9 @@
-import PianoKeyboard from "../components/PianoKeyboard";
+import KeyRoll from "../components/keyroll";
 
 export default function MIDI() {
 	return (
 		<div>
-			<PianoKeyboard />
+			<KeyRoll />
 		</div>
 	);
 }
