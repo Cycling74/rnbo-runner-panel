@@ -1,9 +1,9 @@
 import { memo, useCallback } from "react";
-import Parameter from "./Parameter";
-import { RootStateType } from "../lib/store";
-import { getParameters } from "../selectors/entities";
-import { setRemoteParameterValueNormalized } from "../actions/device";
-import { useAppDispatch, useAppSelector } from "../hooks/useAppDispatch";
+import ParameterItem from "./item";
+import { RootStateType } from "../../lib/store";
+import { getParameters } from "../../selectors/entities";
+import { setRemoteParameterValueNormalized } from "../../actions/device";
+import { useAppDispatch, useAppSelector } from "../../hooks/useAppDispatch";
 import styled from "styled-components";
 
 const ParamWrapper = styled.div`
@@ -88,14 +88,15 @@ const ParameterList = memo(function WrappedParameterList() {
 
 	const onSetValue = useCallback((name: string, value: number) => {
 		// Send Value to remote
-		dispatch(setRemoteParameterValueNormalized(name, value));
+		const ev = setRemoteParameterValueNormalized(name, value);
+		ev && dispatch(ev);
 	}, [dispatch] );
 
 	return (
 		<>
 			<ParamWrapper>
 				{
-					params.valueSeq().map(p => <Parameter key={p.id} record={p} onSetValue={onSetValue} />)
+					params.valueSeq().map(p => <ParameterItem key={p.id} record={p} onSetValue={onSetValue} />)
 				}
 			</ParamWrapper>
 		</>

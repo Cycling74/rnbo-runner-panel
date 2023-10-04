@@ -1,5 +1,5 @@
 import React, { useRef, memo, useState } from "react";
-import { ParameterRecord } from "../models/parameter";
+import { ParameterRecord } from "../../models/parameter";
 
 interface ParameterProps {
 	record: ParameterRecord;

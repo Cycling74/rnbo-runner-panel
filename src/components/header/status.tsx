@@ -1,7 +1,7 @@
 import React from "react";
-import { useAppSelector } from "../hooks/useAppDispatch";
-import { WebSocketState } from "../lib/constants";
-import { getConnectionStatus } from "../selectors/network";
+import { useAppSelector } from "../../hooks/useAppDispatch";
+import { WebSocketState } from "../../lib/constants";
+import { getConnectionStatus } from "../../selectors/network";
 import styled from "styled-components";
 
 interface StatusProps {

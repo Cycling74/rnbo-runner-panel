@@ -1,9 +1,9 @@
 import React, { memo, useEffect, useState } from "react";
-import { useAppDispatch, useAppSelector } from "../hooks/useAppDispatch";
-import { getPatchers, getLoadedPatcher } from "../selectors/entities";
-import { RootStateType } from "../lib/store";
+import { useAppDispatch, useAppSelector } from "../../hooks/useAppDispatch";
+import { getPatchers, getLoadedPatcher } from "../../selectors/entities";
+import { RootStateType } from "../../lib/store";
 import styled from "styled-components";
-import { loadPatcher } from "../actions/device";
+import { loadPatcher } from "../../actions/device";
 
 interface Patcher {
 	id: string;

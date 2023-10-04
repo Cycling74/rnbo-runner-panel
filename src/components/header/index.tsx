@@ -1,5 +1,5 @@
 import React from "react";
-import Status from "./Status";
+import Status from "./Nav/Status";
 import PresetControl from "./PresetControl";
 import PatcherControl from "./PatcherControl";
 import styled from "styled-components";

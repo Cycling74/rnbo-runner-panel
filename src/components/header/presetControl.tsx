@@ -1,9 +1,9 @@
 import React, { FormEvent, memo, useEffect, useState } from "react";
-import { useAppDispatch, useAppSelector } from "../hooks/useAppDispatch";
-import { getPresets } from "../selectors/entities";
-import { RootStateType } from "../lib/store";
+import { useAppDispatch, useAppSelector } from "../../hooks/useAppDispatch";
+import { getPresets } from "../../selectors/entities";
+import { RootStateType } from "../../lib/store";
 import styled from "styled-components";
-import { sendPresetToRemote, savePresetToRemote } from "../actions/device";
+import { sendPresetToRemote, savePresetToRemote } from "../../actions/device";
 
 interface Preset {
 	id: string;
