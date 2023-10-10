@@ -12,14 +12,14 @@ interface NavLinkProps {
 }
 
 export const NavLink: FunctionComponent<NavLinkProps> = ({ href, icon, label }) => {
-	const router = useRouter();
+	const { pathname, query } = useRouter();
 
 	return (
 		<Tooltip label={ label } position="right" transitionProps={{ duration: 0 }}>
 			<UnstyledButton
 				component={ Link }
-				data-active={ router.pathname === href }
-				href={ href }
+				data-active={ pathname === href }
+				href={ { pathname: href, query } }
 				className={ classes.navLink }
 			>
 				<FontAwesomeIcon icon={ icon } />
