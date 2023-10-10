@@ -2,16 +2,9 @@ import { FunctionComponent, memo, useCallback, useEffect, useRef, useState } fro
 import { Set as ImmuSet } from "immutable";
 import { useAppDispatch } from "../../hooks/useAppDispatch";
 import { triggerRemoteMidiNoteEvent } from "../../actions/device";
-import styled from "styled-components";
 import { clamp } from "../../lib/util";
 import Octave, { octaveWidth } from "./octave";
-
-const MIDIWrapper = styled.div`
-	display: flex;
-	justify-content: center;
-	user-select: none;
-	touch-action: none;
-`;
+import classes from "./keyroll.module.css";
 
 const baseOctave = 4;
 
@@ -58,9 +51,9 @@ export const KeyRoll: FunctionComponent<Record<string, never>> = memo(() => {
 	}
 
 	return (
-		<MIDIWrapper ref={ containerRef } >
+		<div ref={ containerRef } className={ classes.keyroll } >
 			{ octs }
-		</MIDIWrapper>
+		</div>
 	);
 });
 

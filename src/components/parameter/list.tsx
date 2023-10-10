@@ -1,90 +1,20 @@
 import { memo, useCallback } from "react";
-import ParameterItem from "./item";
+import ParameterItem, { parameterBoxHeight } from "./item";
 import { RootStateType } from "../../lib/store";
 import { getParameters } from "../../selectors/entities";
 import { setRemoteParameterValueNormalized } from "../../actions/device";
 import { useAppDispatch, useAppSelector } from "../../hooks/useAppDispatch";
-import styled from "styled-components";
-
-const ParamWrapper = styled.div`
-	margin-top: 2rem;
-
-	.parameter {
-		box-sizing: border-box;
-		width: 90%;
-		height: 4rem;
-		margin: 5px auto;
-		padding: 2px;
-		position: relative;
-		color: ${({ theme }) => theme.colors.primary};
-		z-index: 0;
-		// Disables page scrolling while interacting with it
-		touch-action: none;
-
-		@media screen and (max-width: 35.5em) {
-			height: 5rem;
-			margin: 5px 0;
-		}
-
-		-webkit-user-select: none;
-		-moz-user-select: none;
-		-ms-user-select: none;
-		user-select: none;
-	}
-
-	.parameterLabel {
-		display: flex;
-		justify-content: space-between;
-		user-select: none;
-	}
-
-	.slider {
-		width: 90%;
-		margin-left: 5%;
-		height: 0.5rem;
-		border-radius: 0.4rem;
-		background-color:lightgray;
-		position: absolute;
-		top: 50%;
-		pointer-events: none;
-
-		@media screen and (max-width: 35.5em) {
-			width: calc(100% - 5px);
-			height: 0.8rem;
-			margin-top: 0.2rem;
-			margin-left: 0;
-		}
-	}
-
-	.activeRange {
-		height: 100%;
-		border-radius: 0.4rem;
-		background-color: ${({ theme }) => theme.colors.primary};
-	}
-
-	.sliderKnob {
-		width: 1.2rem;
-		height: 1.2rem;
-		margin-left: -0.5rem;
-		top: -0.4rem;
-		border-radius: 0.6rem;
-		background-color: ${({ theme }) => theme.colors.primary};
-		position: absolute;
-		touch-action: pan-x;
-
-		@media screen and (max-width: 35.5em) {
-			width: 1.6rem;
-			height: 1.6rem;
-			margin-left: -0.7rem;
-			border-radius: 0.8rem;
-		}
-	}
-`;
+import classes from "./parameters.module.css";
+import { useElementSize, useViewportSize } from "@mantine/hooks";
+import { Breakpoints } from "../../lib/constants";
+import { clamp } from "../../lib/util";
 
 const ParameterList = memo(function WrappedParameterList() {
 
 	const params = useAppSelector((state: RootStateType) => getParameters(state));
 	const dispatch = useAppDispatch();
+	const { ref, height: elHeight } = useElementSize();
+	const { width } = useViewportSize();
 
 	const onSetValue = useCallback((name: string, value: number) => {
 		// Send Value to remote
@@ -92,14 +22,22 @@ const ParameterList = memo(function WrappedParameterList() {
 		ev && dispatch(ev);
 	}, [dispatch] );
 
+	const paramOverflow = elHeight === 0 || isNaN(elHeight) ? 1 : Math.ceil((params.size * parameterBoxHeight) / elHeight);
+	let columnCount = 1;
+	if (width >= Breakpoints.md) {
+		columnCount = clamp(paramOverflow, 1, 2);
+	} else if (width >= Breakpoints.lg) {
+		columnCount = clamp(paramOverflow, 1, 3);
+	} else if (width >= Breakpoints.xl) {
+		columnCount = clamp(paramOverflow, 1, 4);
+	}
+
 	return (
-		<>
-			<ParamWrapper>
-				{
-					params.valueSeq().map(p => <ParameterItem key={p.id} record={p} onSetValue={onSetValue} />)
-				}
-			</ParamWrapper>
-		</>
+		<div ref={ ref } className={ classes.parameterList } style={{ columnCount }} >
+			{
+				params.valueSeq().map(p => <ParameterItem key={p.id} record={p} onSetValue={onSetValue} />)
+			}
+		</div>
 	);
 });
 

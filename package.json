@@ -14,9 +14,12 @@
     "package-debian": "node scripts/package-debian.mjs"
   },
   "dependencies": {
-    "@fortawesome/fontawesome-svg-core": "^1.2.36",
-    "@fortawesome/free-solid-svg-icons": "^5.15.4",
-    "@fortawesome/react-fontawesome": "^0.1.15",
+    "@fortawesome/fontawesome-svg-core": "^6.4.2",
+    "@fortawesome/free-brands-svg-icons": "^6.4.2",
+    "@fortawesome/free-solid-svg-icons": "^6.4.2",
+    "@fortawesome/react-fontawesome": "^0.2.0",
+    "@mantine/core": "^7.1.0",
+    "@mantine/hooks": "^7.1.0",
     "@types/websocket": "^1.0.2",
     "immutable": "^4.0.0-rc.12",
     "lodash.throttle": "^4.1.1",
@@ -27,7 +30,7 @@
     "react-redux": "^7.2.4",
     "redux": "^4.1.0",
     "redux-thunk": "^2.3.0",
-    "styled-components": "^5.3.0"
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
     "@types/lodash.throttle": "^4.1.6",
@@ -35,16 +38,17 @@
     "@types/react": "^18.2.0",
     "@types/react-fontawesome": "^1.6.5",
     "@types/styled-components": "^5.1.14",
+    "@types/uuid": "^9.0.5",
     "eslint": "^8.50.0",
     "eslint-config-c74-ts": "^3.0.0",
     "eslint-config-next": "^13.5.3",
     "fs-extra": "^10.0.0",
+    "postcss": "^8.4.31",
+    "postcss-preset-mantine": "^1.7.0",
+    "postcss-simple-vars": "^7.0.1",
     "typescript": "^5.2.2"
   },
   "browser": {
     "child_process": false
-  },
-  "resolutions": {
-    "styled-components": "^5"
   }
 }

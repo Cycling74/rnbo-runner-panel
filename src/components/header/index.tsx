@@ -1,48 +1,29 @@
 import React from "react";
-import Status from "./status";
-import PresetControl from "./presetControl";
+import { AppShell, Burger, Group } from "@mantine/core";
 import PatcherControl from "./patcherControl";
-import styled from "styled-components";
-import { TabbedController } from "./tabbedController";
-import useTitle from "../../hooks/useTitle";
+import Status from "./status";
+import classes from "./header.module.css";
+import { useThemeColorScheme } from "../../hooks/useTheme";
 
-const HeaderComponent = styled.header`
-	padding: 1rem 0;
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-`;
+export type HeaderProps = {
+	navOpen: boolean;
+	onToggleNav: () => any;
+}
 
-const HeaderControls = styled.div`
-	display: flex;
-	justify-content: flex-end;
-`;
-
-const HeaderTitle = styled.div`
-	font-weight: 700;
-	letter-spacing: 0.06rem;
-	color: ${props => props.theme.colors.primary};
-	margin: 0;
-	font-size: 0.65rem;
-`;
-
-export const Header = () => {
-	const title = useTitle({ mobile: false });
+export const Header = ({ navOpen, onToggleNav }: HeaderProps) => {
+	const scheme = useThemeColorScheme();
 	return (
-		<>
-			<HeaderComponent>
-				<HeaderTitle>
-					<h1>{ title }</h1>
-				</HeaderTitle>
-				<HeaderControls>
-					<TabbedController titles={[ "Patches", "Presets" ]}>
-						<PatcherControl />
-						<PresetControl />
-					</TabbedController>
+		<AppShell.Header>
+			<Group className={ classes.headerWrapper } >
+				<Group>
+					<Burger opened={ navOpen } onClick={ onToggleNav } hiddenFrom="md" size="sm" />
+					<img src={ scheme === "light" ? "/c74-dark.svg" : "/c74-light.svg" } />
+				</Group>
+				<Group justify="end" align="center">
 					<Status />
-				</HeaderControls>
-			</HeaderComponent>
-			<hr/>
-		</>
+					<PatcherControl />
+				</Group>
+			</Group>
+		</AppShell.Header>
 	);
 };

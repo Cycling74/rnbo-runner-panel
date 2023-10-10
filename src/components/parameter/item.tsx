@@ -1,5 +1,9 @@
-import React, { useRef, memo, useState } from "react";
+import React, { memo, useState, useCallback } from "react";
 import { ParameterRecord } from "../../models/parameter";
+import classes from "./parameters.module.css";
+import { Group, Slider } from "@mantine/core";
+
+export const parameterBoxHeight = 58;
 
 interface ParameterProps {
 	record: ParameterRecord;
@@ -8,62 +12,40 @@ interface ParameterProps {
 
 const Parameter = memo(function WrappedParameter({ record, onSetValue }: ParameterProps) {
 
-	const pref = useRef<HTMLDivElement>(null);
 	const [localValue, setLocalValue] = useState(record.normalizedValue);
 	const [useLocalValue, setUseLocalValue] = useState(false);
 
-	const sendValueForEvent = (event: React.PointerEvent) => {
-		const width = pref.current.offsetWidth;
-		const marginLeft = width * 0.05;
-		const normX = (event.clientX - pref.current.offsetLeft - marginLeft) / (pref.current.offsetWidth * 0.9);
-		const clipNormX = Math.max(0, Math.min(1, normX));
-		setLocalValue(clipNormX);
-		onSetValue(record.name, clipNormX);
-	};
+	const onChange = useCallback((nVal: number) => {
+		if (!useLocalValue) setUseLocalValue(true);
+		setLocalValue(nVal);
+		onSetValue(record.name, nVal);
+	}, [useLocalValue, setUseLocalValue, setLocalValue, onSetValue, record]);
 
-	const handlePointerDown = (event: React.PointerEvent) => {
-		pref.current.setPointerCapture(event.pointerId);
-		setUseLocalValue(true);
-		sendValueForEvent(event);
-	};
-
-	const handlePointerUp = (event: React.PointerEvent) => {
+	const onChangeEnd = useCallback((nVal: number) => {
 		setUseLocalValue(false);
-		pref.current.releasePointerCapture(event.pointerId);
-	};
+		onSetValue(record.name, nVal);
+	}, [setUseLocalValue, onSetValue, record]);
 
-	const handlePointerMove = (event: React.PointerEvent) => {
-		if (pref.current.hasPointerCapture(event.pointerId)) {
-			sendValueForEvent(event);
-			event.preventDefault();
-		}
-	};
+	const currentValue = useLocalValue ? localValue : record.normalizedValue;
+	const displayValue = typeof record.value === "number" ? record.value.toFixed(2) : record.value;
 
-	const drawnValue = useLocalValue ? localValue : record.normalizedValue;
-	const paramLabel = typeof record.value === "number" ? record.value.toFixed(2) : record.value;
 	return (
-		<div className="parameter"
-			onPointerDown={handlePointerDown}
-			onPointerUp={handlePointerUp}
-			onPointerMove={handlePointerMove}
-			ref={pref}
-		>
-			<div className="parameterLabel">
-				<label>{record.name}</label>
-				<label>{paramLabel}</label>
-			</div>
-			<div className="slider">
-				<div className="activeRange"
-					style={ { width: `${~~(drawnValue * 100)}%` } }
-				>
-				</div>
-				<div
-					className="sliderKnob"
-					style={ { left: `${~~(drawnValue * 100)}%` } }
-				></div>
-			</div>
+		<div className={ classes.parameterItem } >
+			<Group justify="space-between">
+				<label htmlFor={ record.name } className={ classes.parameterItemLabel } >{ record.name }</label>
+			</Group>
+			<Slider
+				label={ displayValue }
+				max={ 1 }
+				min={ 0 }
+				name={ record.name }
+				onChange={ onChange }
+				onChangeEnd={ onChangeEnd }
+				precision={ 2 }
+				step={ 0.001 }
+				value={ currentValue }
+			/>
 		</div>
-
 	);
 });
 

@@ -1,28 +1,9 @@
 import { FunctionComponent, memo } from "react";
 import { Set as ImmuSet } from "immutable";
-import styled from "styled-components";
 import Note, { keyWidth } from "./note";
+import classes from "./keyroll.module.css";
 
 export const octaveWidth = keyWidth * 7;
-
-const OctaveElement = styled.div`
-	height: 150px;
-	position: relative;
-	user-select: none;
-	width: ${octaveWidth}px;
-
-	&:not(:last-child) {
-		border-right: none;
-	}
-
-	> div {
-		height: 100%;
-		left: 0;
-		position: absolute;
-		top: 0;
-		width: 100%;
-	}
-`;
 
 const Octave: FunctionComponent<{
 	octave: number;
@@ -72,12 +53,12 @@ const Octave: FunctionComponent<{
 	}
 
 	return (
-		<OctaveElement>
+		<div className={ classes.octave } style={{ width: octaveWidth }}>
 			<div>
 				{ blackNotes }
 				{ whiteNotes }
 			</div>
-		</OctaveElement>
+		</div>
 	);
 });
 

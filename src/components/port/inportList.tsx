@@ -3,8 +3,10 @@ import { sendListToRemoteInport } from "../../actions/device";
 import { useAppDispatch, useAppSelector } from "../../hooks/useAppDispatch";
 import { getInports } from "../../selectors/entities";
 import InportEntry from "./inport";
+import classes from "./ports.module.css";
+import { Stack } from "@mantine/core";
 
-export default function Ports() {
+export default function InportList() {
 
 	const dispatch = useAppDispatch();
 	const onSend = useCallback((name: string, textValue: string) => {
@@ -15,10 +17,10 @@ export default function Ports() {
 	const inports = useAppSelector(state => getInports(state));
 
 	return (
-		<div className="ports">
+		<Stack className={ classes.portList } gap="md">
 			{
 				inports.valueSeq().map(inport => <InportEntry name={inport.name} key={inport.name} onSend={ onSend } />)
 			}
-		</div>
+		</Stack>
 	);
 }

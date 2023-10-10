@@ -1,49 +1,55 @@
-import React, { memo, useEffect, useState } from "react";
+import React, { memo } from "react";
 import { useAppDispatch, useAppSelector } from "../../hooks/useAppDispatch";
 import { getPatchers, getLoadedPatcher } from "../../selectors/entities";
 import { RootStateType } from "../../lib/store";
-import styled from "styled-components";
 import { loadPatcher } from "../../actions/device";
-
-interface Patcher {
-	id: string;
-	name: string;
-	loaded: boolean;
-}
-
-const PatcherSelection = styled.div`
-	padding-bottom: 0.5rem;
-`;
+import { Button, NativeSelect, Popover } from "@mantine/core";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faObjectGroup } from "@fortawesome/free-solid-svg-icons";
+import { PatcherRecord, UNLOAD_PATCHER_NAME } from "../../models/patcher";
+import { useDisclosure } from "@mantine/hooks";
 
 const PatcherControl = memo(function WrappedPatcherControl(): JSX.Element {
+
+	const [opened, { close, toggle }] = useDisclosure();
 	const [patchers, loaded] = useAppSelector((state: RootStateType) => [getPatchers(state), getLoadedPatcher(state)]);
-
-	const [patcherList, setPatcherList] = useState(null);
-	const [selectedPatcher, setSelectedPatcher] = useState("");
 	const dispatch = useAppDispatch();
-
-	useEffect(() => {
-		setPatcherList(patchers);
-		setSelectedPatcher(loaded?.name);
-	}, [loaded, patchers]);
-
 	const handleSelect = (e: React.ChangeEvent<HTMLSelectElement>): void => {
-		setSelectedPatcher(e.target.value);
-		dispatch(loadPatcher(e.target.value));
+		const patcher = patchers.get(e.target.value);
+		if (!patcher) return;
+		dispatch(loadPatcher(patcher));
+		close();
 	};
 
 	return (
-		<PatcherSelection>
-			<select name="patchers" id="patchers" onChange={handleSelect} value={selectedPatcher}>
-				<option disabled value="">
-					Select a patcher:
-				</option>
-				{
-					patcherList &&
-						patcherList.valueSeq().map((p: Patcher) => <option key={p.id} value={p.name}>{p.name}</option>)
-				}
-			</select>
-		</PatcherSelection>
+		<Popover onClose={ close } opened={ opened } width={ 300 } trapFocus position="bottom-end" withArrow arrowPosition="side" shadow="sm">
+			<Popover.Target>
+				<Button
+					leftSection={ <FontAwesomeIcon icon={ faObjectGroup } /> }
+					onClick={ toggle }
+					variant={ opened ? "light" : "default" }
+					size="xs"
+				>
+					Patcher
+				</Button>
+			</Popover.Target>
+			<Popover.Dropdown>
+				<NativeSelect
+					name="active_patcher"
+					id="active_patcher"
+					label="Active Patcher"
+					description="Select the patcher to load"
+					onChange={ handleSelect }
+					value={ loaded?.name || "<none>" }
+					data-autofocus
+					data={
+						patchers?.size
+							? patchers?.valueSeq().map((p: PatcherRecord) => ({ label: p.name, value: p.id })).toArray()
+							: [ { value: UNLOAD_PATCHER_NAME, label: "None" }]
+					}
+				/>
+			</Popover.Dropdown>
+		</Popover>
 	);
 });
 

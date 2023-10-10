@@ -1,30 +1,30 @@
 import React, { FunctionComponent }  from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
-import styled from "styled-components";
+import { Text, Tooltip, UnstyledButton } from "@mantine/core";
+import classes from "./nav.module.css";
+import { FontAwesomeIcon, FontAwesomeIconProps } from "@fortawesome/react-fontawesome";
 
 interface NavLinkProps {
 	href: string;
 	label: string;
-}
-interface NavLinkElementProps {
-	active: boolean;
+	icon: FontAwesomeIconProps["icon"];
 }
 
-const NavLinkEl = styled(Link)<NavLinkElementProps>`
-	padding: 0.5rem 0.1rem;
-	font-weight: bold;
-	color: ${({ active, theme }) => active ? theme.colors.secondary : theme.colors.lightText};
-	&:hover {
-		color: ${props => props.theme.colors.hilight};
-		text-decoration: underline;
-}`;
-
-export const NavLink: FunctionComponent<NavLinkProps> = ({ href, label }) => {
+export const NavLink: FunctionComponent<NavLinkProps> = ({ href, icon, label }) => {
 	const router = useRouter();
+
 	return (
-		<NavLinkEl active={router.pathname === href}  href={href} passHref>
-			{label}
-		</NavLinkEl>
+		<Tooltip label={ label } position="right" transitionProps={{ duration: 0 }}>
+			<UnstyledButton
+				component={ Link }
+				data-active={ router.pathname === href }
+				href={ href }
+				className={ classes.navLink }
+			>
+				<FontAwesomeIcon icon={ icon } />
+				<Text ml="sm" hiddenFrom="md">{ label }</Text>
+			</UnstyledButton>
+		</Tooltip>
 	);
 };

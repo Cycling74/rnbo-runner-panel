@@ -1,4 +1,8 @@
 import { useState } from "react";
+import classes from "./ports.module.css";
+import { Button, Group, TextInput } from "@mantine/core";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faPaperPlane } from "@fortawesome/free-solid-svg-icons";
 
 interface InportEntryProps {
 	name: string;
@@ -19,14 +23,18 @@ export default function InportEntry({ name, onSend }: InportEntryProps) {
 	};
 
 	return (
-		<form className="inport" onSubmit={handleSubmit}>
-			<div className="inportLabel">
-				<label>{name}</label>
-			</div>
-			<div className="inportInput">
-				<input type="text" value={text} onChange={handleChange}></input>
-				<input className="smallButton" type="submit" value="Send"/>
-			</div>
+		<form className={ classes.inport } onSubmit={handleSubmit} >
+			<Group align="flex-end">
+				<TextInput
+					label={ name }
+					description={ `Send data to the inport with name "${name}"`}
+					onChange={ handleChange }
+					size="sm"
+					value={ text }
+					style={{ flex: 1 }}
+				/>
+				<Button variant="outline" size="sm" type="submit"><FontAwesomeIcon icon={ faPaperPlane } /></Button>
+			</Group>
 		</form>
 	);
 }

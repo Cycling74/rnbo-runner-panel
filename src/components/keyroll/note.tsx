@@ -1,44 +1,18 @@
 import { PointerEvent, FunctionComponent, memo } from "react";
-import styled from "styled-components";
+import classes from "./keyroll.module.css";
 
 export const keyWidth = 30;
 
-interface NoteElementProps {
-	index: number;
-	isActive: boolean;
-	isWhiteKey: boolean;
-}
-
-const NoteElement = styled.div.attrs<NoteElementProps>(({
-	index,
-	isWhiteKey
-}) => ({
-	style: {
-		height: isWhiteKey ? "100%" : "60%",
-		left: isWhiteKey ? index * keyWidth : index * keyWidth + 0.5 * keyWidth,
-		zIndex: isWhiteKey ? 2 : 3
-	}
-}))<NoteElementProps>`
-
-	background-color: ${({ isActive, isWhiteKey, theme }) => isActive ? theme.colors.primary : isWhiteKey ? "#fff" : "#333" };
-	border-bottom-left-radius: 2px;
-	border-bottom-right-radius: 2px;
-	border-color: gray;
-	border-style: solid;
-	border-width: 1px;
-	position: absolute;
-	top: 0;
-	width: ${keyWidth}px;
-`;
-
-const Note: FunctionComponent<{
+interface NoteProps {
 	index: number;
 	isActive: boolean;
 	isWhiteKey: boolean;
 	note: number;
 	onNoteOn: (n: number) => any;
 	onNoteOff: (n: number) => any;
-}> = memo(({
+}
+
+const Note: FunctionComponent<NoteProps> = memo(({
 	index,
 	isActive,
 	isWhiteKey,
@@ -69,11 +43,10 @@ const Note: FunctionComponent<{
 	};
 
 	return (
-		<NoteElement
-			className={ isActive ? "active" : "" }
-			index={ index }
-			isActive={ isActive }
-			isWhiteKey={ isWhiteKey }
+		<div
+			className={ [classes.key, isWhiteKey ? classes.whiteKey : classes.blackKey].join(" ") }
+			style={{ left: isWhiteKey ? index * keyWidth : index * keyWidth + 0.5 * keyWidth, width: keyWidth }}
+			data-active={ isActive }
 			onPointerEnter={ onPointerEnter }
 			onPointerDown={ onPointerDown}
 			onPointerLeave={ onPointerLeave }

@@ -1,0 +1,16 @@
+.title {
+	margin-top: 0;
+	margin-bottom: 0;
+}
+
+.sectionTitle {
+	margin: var(--mantine-spacing-md) 0;
+}
+
+.aboutText {
+	color: var(--mantine-color-dimmed);
+	font-size: var(--mantine-font-size-xs);
+	max-width: 100%;
+	width: 450px;
+
+}

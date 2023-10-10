@@ -1,41 +1,37 @@
-import React, { useState } from "react";
+import React from "react";
 import { NavLink } from "./navLink";
-import { NavSidebar, NavContainer, NavControl } from "./navStyle";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useRouter } from "next/router";
-import { useEffect } from "react";
+import { AppShell, Stack } from "@mantine/core";
+import { IconDefinition } from "@fortawesome/fontawesome-svg-core";
+import { faArrowRightArrowLeft, faGears, faMusic, faSliders } from "@fortawesome/free-solid-svg-icons";
+import classes from "./nav.module.css";
 
-const Nav = () => {
-	const [showNav, setShowNav] = useState(false);
-	const router = useRouter();
+const topLinks: Array<{ icon: IconDefinition; label: string; href: string; }> = [
+	{ icon: faSliders, label: "Parameters", href: "/parameters" },
+	{ icon: faArrowRightArrowLeft, label: "Inport & Outports", href: "/io" },
+	{ icon: faMusic, label: "MIDI Control", href: "/midi" }
+];
 
-	useEffect(() => {
-		const handleNavUpdate = () => { setShowNav(false); };
-		router.events.on("routeChangeComplete", handleNavUpdate);
+const bottomLinks: Array<{ icon: IconDefinition; label: string; href: string; }> = [
+	{ icon: faGears, label: "Settings", href: "/settings" }
+];
 
-		return () => {
-			router.events.off("routeChangeComplete", handleNavUpdate);
-		};
-	}, [router]);
-
+const Navbar = () => {
 	return (
-		<>
-			<NavSidebar>
-				<NavControl onClick={() => setShowNav(true)} darkOnMobile={true}>
-					<FontAwesomeIcon icon="bars" />
-				</NavControl>
-			</NavSidebar>
-
-			<NavContainer visible={showNav}>
-				<NavControl onClick={() => setShowNav(false)} darkOnMobile={false}>
-					<FontAwesomeIcon icon="times" />
-				</NavControl>
-				<NavLink href="/parameters" label="PARAMETERS" />
-				<NavLink href="/io" label="INPORTS / OUTPORTS" />
-				<NavLink href="/midi" label="MIDI CONTROL" />
-			</NavContainer>
-		</>
+		<AppShell.Navbar>
+			<Stack className={ classes.navWrapper } >
+				<Stack className={ classes.navMenu } >
+					{
+						topLinks.map((props) => <NavLink key={ props.href } { ...props } />)
+					}
+				</Stack>
+				<Stack className={ classes.navMenu } >
+					{
+						bottomLinks.map((props) => <NavLink key={ props.href } { ...props } />)
+					}
+				</Stack>
+			</Stack>
+		</AppShell.Navbar>
 	);
 };
 
-export default Nav;
+export default Navbar;
