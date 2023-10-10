@@ -3,7 +3,7 @@ import { AppShell } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { useTheme } from "../hooks/useTheme";
 import { Header } from "../components/header";
-import Navbar from "../components/nav";
+import Navbar from "../components/navBar";
 import { useRouter } from "next/router";
 import classes from "./app.module.css";
 
