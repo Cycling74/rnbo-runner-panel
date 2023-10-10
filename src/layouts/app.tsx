@@ -1,5 +1,5 @@
 import React, { PropsWithChildren, useEffect } from "react";
-import { AppShell, Flex } from "@mantine/core";
+import { AppShell } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { useTheme } from "../hooks/useTheme";
 import { Header } from "../components/header";
