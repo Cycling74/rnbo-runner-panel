@@ -1,0 +1,64 @@
+.key {
+
+	border-bottom-left-radius: var(--mantine-radius-xs);
+	border-bottom-right-radius: var(--mantine-radius-xs);
+	border-color: var(--mantine-color-default-border);
+	border-style: solid;
+	border-width: 1px;
+	position: absolute;
+	top: 0;
+
+}
+
+.whiteKey {
+	background-color: var(--mantine-color-white);
+	height: 100%;
+	z-index: 2;
+
+	@mixin dark {
+		background-color: var(--mantine-color-gray-6);
+	}
+
+	&[data-active="true"] {
+		background-color: var(--mantine-primary-color-filled);
+	}
+}
+
+.blackKey {
+	background-color: var(--mantine-color-dark-8);
+	height: 60%;
+	z-index: 3;
+
+	@mixin dark {
+		background-color: var(--mantine-color-dark-7);
+	}
+
+	&[data-active="true"] {
+		background-color: var(--mantine-primary-color-filled);
+	}
+}
+
+.octave {
+	height: 150px;
+	position: relative;
+	user-select: none;
+
+	&:not(:last-child) {
+		border-right: none;
+	}
+
+	> div {
+		height: 100%;
+		left: 0;
+		position: absolute;
+		top: 0;
+		width: 100%;
+	}
+}
+
+.keyroll {
+	display: flex;
+	justify-content: flex-start;
+	touch-action: none;
+	user-select: none;
+}

@@ -1,8 +1,9 @@
+const { readFileSync } = require("fs");
+const { join } = require("path");
+
+const pkgInfo = JSON.parse(readFileSync(join(__dirname, "package.json"), "utf8"));
+
 module.exports = {
-	compiler: {
-		// see https://styled-components.com/docs/tooling#babel-plugin for more info on the options.
-		styledComponents: true
-	},
 	reactStrictMode: true,
 	webpack: (config, { isServer }) => {
 		// Fixes npm packages that depend on `child_process` module
@@ -18,5 +19,8 @@ module.exports = {
 		}
 
 		return config;
+	},
+	env: {
+		appVersion: pkgInfo.version
 	}
 };

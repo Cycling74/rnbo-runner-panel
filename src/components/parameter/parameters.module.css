@@ -1,0 +1,17 @@
+.parameterList {
+	gap: var(--mantine-spacing-lg);
+	min-height: 100%;
+}
+
+.parameterItem {
+	break-inside: avoid-column;
+	page-break-inside:a void;
+	padding-bottom: var(--mantine-spacing-lg);
+}
+
+.parameterItemLabel {
+	font-size: var(--mantine-font-size-sm);
+	font-weight: 500;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}

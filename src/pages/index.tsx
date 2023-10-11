@@ -3,14 +3,16 @@ import { FunctionComponent, useEffect } from "react";
 
 const IndexRedirect: FunctionComponent<Record<string, never>> = () => {
 
-	const { replace, query } = useRouter();
+	const { replace, query, isReady } = useRouter();
 
 	useEffect(() => {
-		replace({
-			pathname: "/parameters",
-			query
-		});
-	});
+		if (isReady) {
+			replace({
+				pathname: "/parameters",
+				query
+			});
+		}
+	}, [isReady, query, replace]);
 
 	return <div></div>;
 };

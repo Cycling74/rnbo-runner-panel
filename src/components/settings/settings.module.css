@@ -1,0 +1,36 @@
+.intro {
+	color: var(--mantine-color-dimmed);
+	font-size: var(--mantine-font-size-sm);
+}
+
+.item {
+	border-bottom: 1px solid var(--mantine-color-default-border);
+	gap: var(--mantine-spacing-xs);
+	padding: var(--mantine-spacing-sm) 0;
+
+	&:first-child {
+		padding-top: 0;
+	}
+
+	&:last-child {
+		border-bottom: none;
+	}
+}
+
+.itemInputWrap {
+	width: 100px;
+}
+
+.itemTitleWrap {
+	flex: 1;
+}
+
+.itemTitle {
+	font-weight: 500;
+	font-size: var(--mantine-font-size-sm);
+}
+
+.itemDescription {
+	color: var(--mantine-color-dimmed);
+	font-size: var(--mantine-font-size-xs);
+}

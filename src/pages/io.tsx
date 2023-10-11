@@ -1,33 +1,12 @@
-import Ports from "../components/Ports";
-import styled from "styled-components";
-
-const IOWrapper = styled.div`
-	.ports {
-		display: flex;
-		max-width: 400px;
-	}
-
-	.inport {
-		display: flex;
-	}
-
-	.inportLabel {
-		padding-right: 8px
-	}
-
-	.inportInput > input[type="text"] {
-		width: 240px;
-	}
-
-	.inportInput > input[type="submit"] {
-		margin-left: 8px;
-	}
-`;
+import { Stack } from "@mantine/core";
+import InportList from "../components/port/inportList";
+import { PageTitle } from "../components/page/title";
 
 export default function IO() {
 	return (
-		<IOWrapper>
-			<Ports />
-		</IOWrapper>
+		<Stack gap="sm">
+			<PageTitle>Inports & Outports</PageTitle>
+			<InportList />
+		</Stack>
 	);
 }

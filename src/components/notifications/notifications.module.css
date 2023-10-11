@@ -1,0 +1,10 @@
+.notificationsList {
+	bottom: 0;
+	right: 0;
+	max-width: 100vw;
+	padding: var(--mantine-spacing-sm);
+	position: fixed;
+	touch-action: none;
+	width: calc(400px + var(--mantine-spacing-sm));
+	z-index: 3;
+}

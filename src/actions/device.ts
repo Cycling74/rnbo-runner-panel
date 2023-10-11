@@ -10,6 +10,8 @@ import { AppThunk } from "../lib/store";
 import throttle from "lodash.throttle";
 import { oscQueryBridge } from "../controller/oscqueryBridgeController";
 import { getParameter, getPatchers } from "../selectors/entities";
+import { showNotification } from "./notifications";
+import { NotificationLevel } from "../models/notification";
 
 export const setParameterValueNormalized = (name: ParameterRecord["name"], value: number): AppThunk =>
 	(dispatch, getState) => {
@@ -70,48 +72,75 @@ export const sendListToRemoteInport = (name: string, values: number[]): AppThunk
 		oscQueryBridge.sendPacket(writePacket(message));
 	};
 
-export const sendPresetToRemote = (name: string): AppThunk =>
-	() => {
-		const value = name;
-		const message = {
-			address: "/rnbo/inst/0/presets/load",
-			args: [
-				{ type: "s", value }
-			]
-		};
-		oscQueryBridge.sendPacket(writePacket(message));
+export const loadPresetOnRemote = (preset: PresetRecord): AppThunk =>
+	(dispatch) => {
+		try {
+			const message = {
+				address: "/rnbo/inst/0/presets/load",
+				args: [
+					{ type: "s", value: preset.name }
+				]
+			};
+			oscQueryBridge.sendPacket(writePacket(message));
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: `Error while trying to load preset ${preset.name}`,
+				message: "Please check the consolor for further details."
+			}));
+			console.log(err);
+		}
 	};
 
 export const savePresetToRemote = (name: string): AppThunk =>
-	() => {
-		const value = name;
-		const message = {
-			address: "/rnbo/inst/0/presets/save",
-			args: [
-				{ type: "s", value }
-			]
-		};
-		oscQueryBridge.sendPacket(writePacket(message));
-	};
-
-export const loadPatcher = (name: string, inst: number = 0): AppThunk =>
-	() => {
-		let message = {
-			address: "/rnbo/inst/control/load",
-			args: [
-				{ type: "i", value: inst },
-				{ type: "s", value: name }
-			]
-		};
-		if (name === UNLOAD_PATCHER_NAME) {
-			message = {
-				address: "/rnbo/inst/control/unload",
+	(dispatch) => {
+		try {
+			const message = {
+				address: "/rnbo/inst/0/presets/save",
 				args: [
-					{ type: "i", value: inst }
+					{ type: "s", value: name }
 				]
 			};
+			oscQueryBridge.sendPacket(writePacket(message));
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: `Error while trying to save preset ${name}`,
+				message: "Please check the consolor for further details."
+			}));
+			console.log(err);
 		}
-		oscQueryBridge.sendPacket(writePacket(message));
+	};
+
+export const loadPatcher = (patcher: PatcherRecord, inst: number = 0): AppThunk =>
+	(dispatch) => {
+		try {
+			let message;
+			if (patcher.name === UNLOAD_PATCHER_NAME) {
+				message = {
+					address: "/rnbo/inst/control/unload",
+					args: [
+						{ type: "i", value: inst }
+					]
+				};
+			} else {
+				message = {
+					address: "/rnbo/inst/control/load",
+					args: [
+						{ type: "i", value: inst },
+						{ type: "s", value: patcher.name }
+					]
+				};
+			}
+			oscQueryBridge.sendPacket(writePacket(message));
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: patcher.name === UNLOAD_PATCHER_NAME ? "Error while trying to unload patcher" : `Error while trying to load patcher ${patcher.name}`,
+				message: "Please check the consolor for further details."
+			}));
+			console.error(err);
+		}
 	};
 
 export const updatePresets = (entries?: any): AppThunk =>
