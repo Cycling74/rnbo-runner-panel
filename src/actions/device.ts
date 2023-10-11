@@ -82,11 +82,6 @@ export const loadPresetOnRemote = (preset: PresetRecord): AppThunk =>
 				]
 			};
 			oscQueryBridge.sendPacket(writePacket(message));
-			dispatch(showNotification({
-				level: NotificationLevel.success,
-				title: "Preset loaded",
-				message: `Preset "${preset.name} has been loaded.`
-			}));
 		} catch (err) {
 			dispatch(showNotification({
 				level: NotificationLevel.error,
@@ -107,11 +102,6 @@ export const savePresetToRemote = (name: string): AppThunk =>
 				]
 			};
 			oscQueryBridge.sendPacket(writePacket(message));
-			dispatch(showNotification({
-				level: NotificationLevel.success,
-				title: "Preset saved",
-				message: `Preset "${name} has been saved.`
-			}));
 		} catch (err) {
 			dispatch(showNotification({
 				level: NotificationLevel.error,
@@ -143,11 +133,6 @@ export const loadPatcher = (patcher: PatcherRecord, inst: number = 0): AppThunk 
 				};
 			}
 			oscQueryBridge.sendPacket(writePacket(message));
-			dispatch(showNotification({
-				level: NotificationLevel.success,
-				title: patcher.name === UNLOAD_PATCHER_NAME ?  "Unloaded patcher" : "Loaded patcher",
-				message: patcher.name === UNLOAD_PATCHER_NAME ? "" : `The patcher ${patcher.name} has been loaded`
-			}));
 		} catch (err) {
 			dispatch(showNotification({
 				level: NotificationLevel.error,
