@@ -1,0 +1,18 @@
+.inport {
+	width: 100%;
+}
+
+.outport {
+	width: 100%;
+}
+
+
+.portList {
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: var(--mantine-spacing-md);
+
+	@media (min-width: 62em) {
+		grid-template-columns: 1fr 1fr;
+  }
+}

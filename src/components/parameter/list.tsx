@@ -1,28 +1,32 @@
-import { memo, useCallback } from "react";
+import { FunctionComponent, memo } from "react";
 import ParameterItem, { parameterBoxHeight } from "./item";
-import { RootStateType } from "../../lib/store";
-import { getParameters } from "../../selectors/entities";
-import { setRemoteParameterValueNormalized } from "../../actions/device";
-import { useAppDispatch, useAppSelector } from "../../hooks/useAppDispatch";
 import classes from "./parameters.module.css";
 import { useElementSize, useViewportSize } from "@mantine/hooks";
 import { Breakpoints } from "../../lib/constants";
 import { clamp } from "../../lib/util";
+import { GraphPatcherNodeRecord } from "../../models/graph";
+import { ParameterRecord } from "../../models/parameter";
 
-const ParameterList = memo(function WrappedParameterList() {
+export type ParameterListProps = {
+	onSetNormalizedValue: (parameter: ParameterRecord, nValue: number) => any;
+	parameters: GraphPatcherNodeRecord["parameters"];
+}
 
-	const params = useAppSelector((state: RootStateType) => getParameters(state));
-	const dispatch = useAppDispatch();
+const ParameterList: FunctionComponent<ParameterListProps> = memo(function WrappedParameterList({
+	onSetNormalizedValue,
+	parameters
+}) {
 	const { ref, height: elHeight } = useElementSize();
 	const { width } = useViewportSize();
 
-	const onSetValue = useCallback((name: string, value: number) => {
-		// Send Value to remote
-		const ev = setRemoteParameterValueNormalized(name, value);
-		ev && dispatch(ev);
-	}, [dispatch] );
+	// const onSetNormalizedValue = useCallback((param: ParameterRecord, nValue: number) => {
+	// 	onSetNormalizedValue(param, nValue);
+	// 	// Send Value to remote
+	// 	// const ev = setRemoteParameterValueNormalized(name, value);
+	// 	// ev && dispatch(ev);
+	// }, [onSetNormalizedValue] );
 
-	const paramOverflow = elHeight === 0 || isNaN(elHeight) ? 1 : Math.ceil((params.size * parameterBoxHeight) / elHeight);
+	const paramOverflow = elHeight === 0 || isNaN(elHeight) ? 1 : Math.ceil((parameters.size * parameterBoxHeight) / elHeight);
 	let columnCount = 1;
 	if (width >= Breakpoints.md) {
 		columnCount = clamp(paramOverflow, 1, 2);
@@ -35,7 +39,7 @@ const ParameterList = memo(function WrappedParameterList() {
 	return (
 		<div ref={ ref } className={ classes.parameterList } style={{ columnCount }} >
 			{
-				params.valueSeq().map(p => <ParameterItem key={p.id} record={p} onSetValue={onSetValue} />)
+				ref.current === null ? null : parameters.valueSeq().map(p => <ParameterItem key={p.id} param={p} onSetNormalizedValue={onSetNormalizedValue} />)
 			}
 		</div>
 	);

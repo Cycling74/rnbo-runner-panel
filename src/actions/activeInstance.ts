@@ -1,5 +1,9 @@
-import { ActionBase } from "../lib/store";
-import { EntityType, Entity } from "../reducers/entities";
+import { ActionBase, AppThunk } from "../lib/store";
+import { OSCQueryRNBOInstance } from "../lib/types";
+import { InportRecord } from "../models/inport";
+import { ParameterRecord } from "../models/parameter";
+import { PresetRecord } from "../models/preset";
+import { EntityType, ActiveInstanceEntity } from "../reducers/activeInstance";
 
 export enum EnitityActionType {
 	SET_ENTITY = "SET_ENTITY",
@@ -13,7 +17,7 @@ export interface SetEntityAction extends ActionBase {
 	type: EnitityActionType.SET_ENTITY;
 	payload: {
 		type: EntityType;
-		entity: Entity;
+		entity: ActiveInstanceEntity;
 	};
 }
 
@@ -21,7 +25,7 @@ export interface SetEntitiesAction extends ActionBase {
 	type: EnitityActionType.SET_ENTITIES;
 	payload: {
 		type: EntityType;
-		entities: Entity[];
+		entities: ActiveInstanceEntity[];
 		clear: boolean;
 	};
 }
@@ -71,7 +75,7 @@ export const deleteEntities =  (type: EntityType, ids: string[]): EntityAction =
 	};
 };
 
-export const setEntity = (type: EntityType, entity: Entity): EntityAction => {
+export const setEntity = (type: EntityType, entity: ActiveInstanceEntity): EntityAction => {
 	return {
 		type: EnitityActionType.SET_ENTITY,
 		payload: {
@@ -81,7 +85,7 @@ export const setEntity = (type: EntityType, entity: Entity): EntityAction => {
 	};
 };
 
-export const setEntities = (type: EntityType, entities: Entity[], clear: boolean = false): EntityAction => {
+export const setEntities = (type: EntityType, entities: ActiveInstanceEntity[], clear: boolean = false): EntityAction => {
 	return {
 		type: EnitityActionType.SET_ENTITIES,
 		payload: {
@@ -100,3 +104,40 @@ export const clearEntities = (type: EntityType): EntityAction => {
 		}
 	};
 };
+
+
+export const initializeInstance = (desc: OSCQueryRNBOInstance): AppThunk =>
+	(dispatch) => {
+		try {
+			console.log(desc);
+
+			const parameterDescriptions = desc.CONTENTS.params || {};
+
+
+			// const patcherName: string | undefined = (desc as any).CONTENTS.name?.VALUE;
+
+			dispatch(setEntities(
+				EntityType.ParameterRecord,
+				ParameterRecord.arrayFromDescription(parameterDescriptions),
+				true
+			));
+
+			dispatch(setEntities(
+				EntityType.InportRecord,
+				Object.keys(desc.CONTENTS.messages?.CONTENTS.in || {}).map(name => new InportRecord({ name })),
+				true
+			));
+
+			dispatch(setEntities(
+				EntityType.PresetRecord,
+				(desc.CONTENTS.presets?.CONTENTS?.entries?.VALUE || []).map(name => new PresetRecord({ name })),
+				true
+			));
+
+			// dispatch(setSelectedPatcher(patcherName));
+		} catch (e) {
+			console.log(e);
+		}
+	};
+
+

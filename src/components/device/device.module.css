@@ -1,0 +1,45 @@
+.deviceInstanceWrap {
+	height: 100%;
+	gap: var(--mantine-spacing-md);
+}
+
+.deviceTabWrap {
+	display: flex;
+	flex: 1;
+	flex-direction: column;
+}
+
+.deviceTabContentWrap {
+	flex: 1;
+	padding-top: var(--mantine-spacing-lg);
+
+	> div {
+		height: 100%;
+	}
+}
+
+.emptySection {
+	color: var(--mantine-color-dimmed);
+	font-size: var(--mantine-font-size-sm);
+}
+
+.disabledMessageOutput {
+	color: var(--mantine-color-dimmed);
+	font-size: var(--mantine-font-size-sm);
+}
+
+
+.paramSectionWrap {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+}
+
+.presetWrap {
+	display: flex;
+	justify-content: flex-end;
+}
+
+.paramListWrap {
+	flex: 1;
+}

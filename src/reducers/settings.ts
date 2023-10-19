@@ -1,13 +1,15 @@
 import { SettingsAction, SettingsActionType } from "../actions/settings";
 
 export enum Setting {
-	colorScheme = "colorscheme"
+	colorScheme = "colorscheme",
+	debugMessageOutput = "message_out_debug"
 }
 
 export type SettingsValue = string | number | boolean;
 
 export type SettingsState = {
 	loaded: boolean;
+	show: boolean;
 	data: Record<Setting, SettingsValue>;
 }
 
@@ -16,8 +18,10 @@ const LS_VERSION = 1;
 
 const defaultState: SettingsState = {
 	loaded: false,
+	show: false,
 	data: {
-		[Setting.colorScheme]: "light"
+		[Setting.colorScheme]: "light",
+		[Setting.debugMessageOutput]: true
 	}
 };
 
@@ -58,6 +62,7 @@ export const settings = (state: SettingsState = defaultState, action: SettingsAc
 
 		case SettingsActionType.LOAD_SETTINGS: {
 			return {
+				...state,
 				loaded: true,
 				data: loadState()
 			};
@@ -78,6 +83,13 @@ export const settings = (state: SettingsState = defaultState, action: SettingsAc
 			return {
 				...state,
 				data: defaultState.data
+			};
+		}
+
+		case SettingsActionType.SET_SHOW_SETTINGS: {
+			return {
+				...state,
+				show: action.payload.show
 			};
 		}
 

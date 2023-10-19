@@ -1,14 +1,16 @@
 import { combineReducers } from "redux";
 
-import { entities } from "./entities";
+import { graph } from "./graph";
 import { network } from "./network";
 import { nofitications } from "./notifications";
+import { patchers } from "./patchers";
 import { settings } from "./settings";
 
 export const rootReducer = combineReducers({
-	entities,
+	graph,
 	network,
 	nofitications,
+	patchers,
 	settings
 });
 

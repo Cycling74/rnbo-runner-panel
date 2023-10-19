@@ -3,26 +3,25 @@ import { useDisclosure } from "@mantine/hooks";
 import { Button, NativeSelect, Popover, Stack, Tabs, TextInput } from "@mantine/core";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCamera, faPlus, faRotateRight } from "@fortawesome/free-solid-svg-icons";
-import { useAppDispatch, useAppSelector } from "../../hooks/useAppDispatch";
-import { getPresets } from "../../selectors/entities";
-import { RootStateType } from "../../lib/store";
-import { loadPresetOnRemote, savePresetToRemote } from "../../actions/device";
 import { PresetRecord } from "../../models/preset";
 import classes from "./presets.module.css";
-
+import { GraphPatcherNodeRecord } from "../../models/graph";
 
 enum ActiveView {
 	Load = "load",
 	Save = "save"
 }
 
-interface LoadPresetProps {
+export type LoadPresetProps = {
 	onLoad: (preset: PresetRecord) => any;
+	presets: GraphPatcherNodeRecord["presets"];
 }
 
+const LoadPreset: FunctionComponent<LoadPresetProps> = memo(function WrappedLoadPreset({
+	onLoad,
+	presets
+}) {
 
-const LoadPreset: FunctionComponent<LoadPresetProps> = memo(function WrappedLoadPreset({ onLoad }: LoadPresetProps) {
-	const presets = useAppSelector((state: RootStateType) => getPresets(state));
 	const [selectedPreset, setSelectedPreset] = useState<PresetRecord | undefined>();
 
 	const handleSelect = (e: React.ChangeEvent<HTMLSelectElement>): void => setSelectedPreset(presets.get(e.target.value) || undefined);
@@ -98,22 +97,31 @@ const SavePreset: FunctionComponent<SavePresetProps> = memo(function WrappedSave
 	);
 });
 
+export type PresetControlProps = {
+	onLoadPreset: (preset: PresetRecord) => any;
+	onSavePreset: (name: string) => any;
+	presets: GraphPatcherNodeRecord["presets"];
+};
 
-const PresetControl = memo(function WrappedPresetControl(): JSX.Element {
+
+const PresetControl: FunctionComponent<PresetControlProps> = memo(function WrappedPresetControl({
+	onLoadPreset,
+	onSavePreset,
+	presets
+}) {
 
 	const [activeView, setActiveView] = useState<ActiveView>(ActiveView.Load);
 	const [opened, { close, toggle }] = useDisclosure();
-	const dispatch = useAppDispatch();
 
 	const onTabChange = (tab: ActiveView) => setActiveView(tab);
 
-	const onLoadPreset = (preset: PresetRecord): void => {
-		dispatch(loadPresetOnRemote(preset));
+	const onTriggerLoadPreset = (preset: PresetRecord): void => {
+		onLoadPreset(preset);
 		close();
 	};
 
-	const onSavePreset = (name: string): void => {
-		dispatch(savePresetToRemote(name));
+	const onTriggerSavePreset = (name: string): void => {
+		onSavePreset(name);
 		close();
 	};
 
@@ -126,7 +134,7 @@ const PresetControl = memo(function WrappedPresetControl(): JSX.Element {
 			<Popover.Target>
 				<Button
 					onClick={ toggle }
-					size="sm"
+					size="xs"
 					variant={ opened ? "light" : "default" }
 					leftSection={ <FontAwesomeIcon icon={ faCamera } /> }
 				>
@@ -140,10 +148,10 @@ const PresetControl = memo(function WrappedPresetControl(): JSX.Element {
 						<Tabs.Tab leftSection={ <FontAwesomeIcon icon={ faPlus } /> } value={ ActiveView.Save }>Create</Tabs.Tab>
 					</Tabs.List>
 					<Tabs.Panel value={ ActiveView.Load } className={ classes.presetTabWrap } >
-						<LoadPreset onLoad={ onLoadPreset } />
+						<LoadPreset onLoad={ onTriggerLoadPreset } presets={ presets } />
 					</Tabs.Panel>
 					<Tabs.Panel value={ ActiveView.Save } className={ classes.presetTabWrap } >
-						<SavePreset onSave={ onSavePreset } />
+						<SavePreset onSave={ onTriggerSavePreset } />
 					</Tabs.Panel>
 				</Tabs>
 			</Popover.Dropdown>

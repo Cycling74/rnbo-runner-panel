@@ -3,49 +3,47 @@ import { ParameterRecord } from "../models/parameter";
 import { InportRecord } from "../models/inport";
 import { PresetRecord } from "../models/preset";
 import { PatcherRecord } from "../models/patcher";
-import { EntityAction, EnitityActionType } from "../actions/entities";
-
+import { EntityAction, EnitityActionType } from "../actions/activeInstance";
 
 export enum EntityType {
 	ParameterRecord = "parameter",
 	InportRecord = "inport",
-	PresetRecord = "preset",
-	PatcherRecord = "patcher",
+	// OutportRecord = "outport",
+	PresetRecord = "preset"
 }
 
-export type Entity = ParameterRecord | InportRecord | PresetRecord | PatcherRecord;
-export type EntityMap<T extends Entity> = ImmuMap<string, T>;
+export type ActiveInstanceEntity = ParameterRecord | InportRecord | PresetRecord | PatcherRecord;
+export type ActiveInstanceEntityMap<T extends ActiveInstanceEntity> = ImmuMap<string, T>;
 
-export interface EntityState {
+export interface ActiveInstanceState {
+	index: number;
 	[EntityType.ParameterRecord]: ImmuMap<ParameterRecord["id"], ParameterRecord>,
 	[EntityType.InportRecord]: ImmuMap<InportRecord["id"], InportRecord>,
+	// [EntityType.OutportRecord]: ImmuMap<OutportRecord["id"], OutportRecord>,
 	[EntityType.PresetRecord]: ImmuMap<PresetRecord["id"], PresetRecord>;
-	[EntityType.PatcherRecord]: ImmuMap<PatcherRecord["id"], PatcherRecord>;
 }
 
-export const getEntities = (state: EntityState, type: EntityType): ImmuMap<string, Entity> => {
+export const getEntities = (state: ActiveInstanceState, type: EntityType): ImmuMap<string, ActiveInstanceEntity> => {
 	switch (type) {
 		case EntityType.ParameterRecord:
 			return state.parameter;
 		case EntityType.InportRecord:
 			return state.inport;
 		case EntityType.PresetRecord:
-			return state.preset;
-		case EntityType.PatcherRecord:
 		default:
-			return state.patcher;
+			return state.preset;
 	}
 };
 
-export const entities = (state: EntityState = {
+export const activeInstance = (state: ActiveInstanceState = {
 
+	index: 0,
 	[EntityType.ParameterRecord]: ImmuMap<ParameterRecord["id"], ParameterRecord>(),
 	[EntityType.InportRecord]: ImmuMap<InportRecord["id"], InportRecord>(),
-	[EntityType.PresetRecord]: ImmuMap<PresetRecord["id"], PresetRecord>(),
-	[EntityType.PatcherRecord]: ImmuMap<PatcherRecord["id"], PatcherRecord>()
+	[EntityType.PresetRecord]: ImmuMap<PresetRecord["id"], PresetRecord>()
 
 
-}, action: EntityAction) => {
+}, action: EntityAction): ActiveInstanceState => {
 	switch (action.type) {
 		case EnitityActionType.SET_ENTITY: {
 			const { entity, type } = action.payload;

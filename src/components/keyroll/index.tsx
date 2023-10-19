@@ -1,42 +1,35 @@
-import { FunctionComponent, memo, useCallback, useEffect, useRef, useState } from "react";
+import { FunctionComponent, memo, useCallback, useState } from "react";
 import { Set as ImmuSet } from "immutable";
-import { useAppDispatch } from "../../hooks/useAppDispatch";
-import { triggerRemoteMidiNoteEvent } from "../../actions/device";
 import { clamp } from "../../lib/util";
 import Octave, { octaveWidth } from "./octave";
 import classes from "./keyroll.module.css";
+import { useElementSize } from "@mantine/hooks";
 
 const baseOctave = 4;
 
-export const KeyRoll: FunctionComponent<Record<string, never>> = memo(() => {
+export type KeyRollProps = {
+	onTriggerNoteOn: (note: number) => any;
+	onTriggerNoteOff: (note: number) => any;
+};
 
-	const dispatch = useAppDispatch();
-	const containerRef = useRef<HTMLDivElement>();
+export const KeyRoll: FunctionComponent<KeyRollProps> = memo(function WrappedKeyRoll({
+	onTriggerNoteOn,
+	onTriggerNoteOff
+}) {
 	const [activeNotes, setActiveNotes] = useState(ImmuSet<number>());
-	const [noOfOctaves, setNoOfOctaves] = useState(4);
+
+	const { ref, width } = useElementSize();
+	const noOfOctaves = width === 0 ? 0 : clamp(Math.floor(width / octaveWidth), 1, 6);
 
 	const onNoteOn = useCallback((p: number) => {
-		dispatch(triggerRemoteMidiNoteEvent(p, true));
+		onTriggerNoteOn(p);
 		setActiveNotes((notes: ImmuSet<number>) => notes.add(p));
-	}, [dispatch]);
+	}, [onTriggerNoteOn]);
 
 	const onNoteOff = useCallback((p: number) => {
-		dispatch(triggerRemoteMidiNoteEvent(p, false));
+		onTriggerNoteOff(p);
 		setActiveNotes((notes: ImmuSet<number>) => notes.delete(p));
-	}, [dispatch]);
-
-	useEffect(() => {
-		const onResize = (ev?: UIEvent) => {
-			if (!containerRef.current) return;
-			const { width } = containerRef.current.getBoundingClientRect();
-			setNoOfOctaves(clamp(Math.floor(width / octaveWidth), 1, 6));
-		};
-
-		window.addEventListener("resize", onResize);
-		onResize();
-
-		return () => window.removeEventListener("resize", onResize);
-	}, []);
+	}, [onTriggerNoteOff]);
 
 	const octs: JSX.Element[] = [];
 
@@ -51,7 +44,7 @@ export const KeyRoll: FunctionComponent<Record<string, never>> = memo(() => {
 	}
 
 	return (
-		<div ref={ containerRef } className={ classes.keyroll } >
+		<div ref={ ref } className={ classes.keyroll } >
 			{ octs }
 		</div>
 	);

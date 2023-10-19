@@ -12,7 +12,7 @@ export const network = (state: NetworkState = {
 	connectionStatus: WebSocketState.CONNECTING,
 	connectionError: undefined
 
-}, action: NetworkAction) => {
+}, action: NetworkAction): NetworkState => {
 
 	switch (action.type) {
 
@@ -21,7 +21,7 @@ export const network = (state: NetworkState = {
 			return {
 				...state,
 				connectionStatus: status,
-				error: error || undefined
+				connectionError: error || undefined
 			};
 		}
 

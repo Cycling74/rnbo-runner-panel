@@ -1,82 +1,26 @@
 import { writePacket } from "osc";
-import { AnyJson } from "../lib/types";
-import { InportRecord } from "../models/inport";
-import { ParameterRecord } from "../models/parameter";
+import { OSCQueryRNBOInstance, OSCQueryRNBOInstancePresetEntries, OSCValue } from "../lib/types";
 import { PresetRecord } from "../models/preset";
-import { PatcherRecord, UNLOAD_PATCHER_NAME } from "../models/patcher";
-import { EntityType } from "../reducers/entities";
-import { setEntities, setEntity } from "./entities";
+import { PatcherRecord } from "../models/patcher";
 import { AppThunk } from "../lib/store";
-import throttle from "lodash.throttle";
 import { oscQueryBridge } from "../controller/oscqueryBridgeController";
-import { getParameter, getPatchers } from "../selectors/entities";
 import { showNotification } from "./notifications";
 import { NotificationLevel } from "../models/notification";
+import { GraphConnectionRecord, GraphPatcherNodeRecord, NodeType } from "../models/graph";
+import { getNodeByIndex, getPatcherNodesByIndex } from "../selectors/graph";
+import { deleteNode, setConnections, setNode } from "./graph";
+import { MessageInportRecord, MessageOutputRecord } from "../models/messages";
+import throttle from "lodash.throttle";
+import { ParameterRecord } from "../models/parameter";
+import { getSetting } from "../selectors/settings";
+import { Setting } from "../reducers/settings";
+import Router from "next/router";
 
-export const setParameterValueNormalized = (name: ParameterRecord["name"], value: number): AppThunk =>
-	(dispatch, getState) => {
-		const parameter = getParameter(getState(), name);
-		if (!parameter) return;
-		if (parameter.normalizedValue === value) return;
-		dispatch(setEntity(EntityType.ParameterRecord, parameter.setNormalizedValue(value) ));
-	};
-
-export const setParameterValue = (name: ParameterRecord["name"], value: number): AppThunk =>
-	(dispatch, getState) => {
-		const parameter = getParameter(getState(), name);
-		if (!parameter) return;
-		if (parameter.value === value) return;
-		dispatch(setEntity(EntityType.ParameterRecord, parameter.setValue(value) ));
-	};
-
-export const setRemoteParameterValueNormalized = throttle((name: string, value: number): AppThunk =>
-	(dispatch, getState) => {
-
-		const message = {
-			address: `/rnbo/inst/0/params/${name}/normalized`,
-			args: [
-				{ type: "f", value }
-			]
-		};
-
-		oscQueryBridge.sendPacket(writePacket(message));
-
-		// optimistic local state update
-		const parameter = getParameter(getState(), name);
-		if (!parameter) return;
-		dispatch(setEntity(EntityType.ParameterRecord, parameter.setNormalizedValue(value) ));
-
-	}, 100);
-
-export const triggerRemoteMidiNoteEvent = (pitch: number, isNoteOn: boolean): AppThunk =>
-	() => {
-
-		const midiChannel = 0;
-		const routeByte = (isNoteOn ? 144 : 128) + midiChannel;
-		const velocityByte = (isNoteOn ? 100 : 0);
-
-		const message = {
-			address: "/rnbo/inst/0/midi/in",
-			args: [routeByte, pitch, velocityByte].map(byte => ({ type: "i", value: byte }))
-		};
-
-		oscQueryBridge.sendPacket(writePacket(message));
-	};
-
-export const sendListToRemoteInport = (name: string, values: number[]): AppThunk =>
-	() => {
-		const message = {
-			address: `/rnbo/inst/0/messages/in/${name}`,
-			args: values.map(value => ({ type: "f", value }))
-		};
-		oscQueryBridge.sendPacket(writePacket(message));
-	};
-
-export const loadPresetOnRemote = (preset: PresetRecord): AppThunk =>
+export const loadPresetOnRemoteInstance = (node: GraphPatcherNodeRecord, preset: PresetRecord): AppThunk =>
 	(dispatch) => {
 		try {
 			const message = {
-				address: "/rnbo/inst/0/presets/load",
+				address: `${node.path}/presets/load`,
 				args: [
 					{ type: "s", value: preset.name }
 				]
@@ -92,11 +36,11 @@ export const loadPresetOnRemote = (preset: PresetRecord): AppThunk =>
 		}
 	};
 
-export const savePresetToRemote = (name: string): AppThunk =>
+export const savePresetToRemoteInstance = (node: GraphPatcherNodeRecord, name: string): AppThunk =>
 	(dispatch) => {
 		try {
 			const message = {
-				address: "/rnbo/inst/0/presets/save",
+				address: `${node.path}/presets/save`,
 				args: [
 					{ type: "s", value: name }
 				]
@@ -112,106 +56,253 @@ export const savePresetToRemote = (name: string): AppThunk =>
 		}
 	};
 
-export const loadPatcher = (patcher: PatcherRecord, inst: number = 0): AppThunk =>
+export const loadPatcherToRemoteInstance = (instanceIndex: number, patcher: PatcherRecord): AppThunk =>
 	(dispatch) => {
 		try {
-			let message;
-			if (patcher.name === UNLOAD_PATCHER_NAME) {
-				message = {
-					address: "/rnbo/inst/control/unload",
-					args: [
-						{ type: "i", value: inst }
-					]
-				};
-			} else {
-				message = {
-					address: "/rnbo/inst/control/load",
-					args: [
-						{ type: "i", value: inst },
-						{ type: "s", value: patcher.name }
-					]
-				};
-			}
+			const message = {
+				address: "/rnbo/inst/control/load",
+				args: [
+					{ type: "i", value: instanceIndex },
+					{ type: "s", value: patcher.name }
+				]
+			};
 			oscQueryBridge.sendPacket(writePacket(message));
 		} catch (err) {
 			dispatch(showNotification({
 				level: NotificationLevel.error,
-				title: patcher.name === UNLOAD_PATCHER_NAME ? "Error while trying to unload patcher" : `Error while trying to load patcher ${patcher.name}`,
+				title: `Error while trying to load patcher ${patcher.name}`,
 				message: "Please check the consolor for further details."
 			}));
 			console.error(err);
 		}
 	};
 
-export const updatePresets = (entries?: any): AppThunk =>
+export const unloadPatcherFromRemoteInstance = (device: GraphPatcherNodeRecord): AppThunk =>
 	(dispatch) => {
 		try {
-			dispatch(setEntities(
-				EntityType.PresetRecord,
-				PresetRecord.arrayFromDescription(entries),
-				true
-			));
-		} catch (e) {
-			console.log(e);
+
+			const message = {
+				address: "/rnbo/inst/control/unload",
+				args: [
+					{ type: "i", value: device.index }
+				]
+			};
+			oscQueryBridge.sendPacket(writePacket(message));
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: "Error while trying to unload patcher",
+				message: "Please check the consolor for further details."
+			}));
+			console.error(err);
 		}
 	};
 
-export const setSelectedPatcher = (name: string): AppThunk =>
+export const addRemoteInstance = (patcher: PatcherRecord): AppThunk =>
 	(dispatch, getState) => {
-		const state = getState();
 		try {
-			const updated: PatcherRecord[] = getPatchers(state).reduce((c, p) => {
-				return c.concat(new PatcherRecord ({name: p.name, loaded: p.name === name}));
-			}, []);
-			dispatch(setEntities(EntityType.PatcherRecord, updated, true));
-		} catch (e) {
-			console.log(e);
+			const state = getState();
+			const patchersByIndex = getPatcherNodesByIndex(state);
+
+			let instanceIndex = 0;
+			for (;instanceIndex < patchersByIndex.size; instanceIndex++) {
+				const patcher = patchersByIndex.get(instanceIndex);
+				if (!patcher) break;
+			}
+
+			const message = {
+				address: "/rnbo/inst/control/load",
+				args: [
+					{ type: "i", value: instanceIndex },
+					{ type: "s", value: patcher.name }
+				]
+			};
+			oscQueryBridge.sendPacket(writePacket(message));
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: `Error while trying to load patcher ${patcher.name}`,
+				message: "Please check the consolor for further details."
+			}));
+			console.error(err);
 		}
 	};
 
-export const initializeDevice = (desc: AnyJson): AppThunk =>
+
+export const sendMessageToRemoteInstanceInport = (instance: GraphPatcherNodeRecord, msgInport: MessageInportRecord, value: string): AppThunk =>
+	() => {
+		const message = {
+			address: `/rnbo/inst/${instance.index}/messages/in/${msgInport.name}`,
+			args: [{ type: "s", value }] // values.map(value => ({ type: "f", value }))
+		};
+		oscQueryBridge.sendPacket(writePacket(message));
+	};
+
+export const triggerMidiNoteOnEventOnRemoteInstance = (device: GraphPatcherNodeRecord, note: number): AppThunk =>
+	() => {
+
+		const midiChannel = 0;
+		const routeByte = 144 + midiChannel;
+		const velocityByte = 100;
+
+		const message = {
+			address: `${device.path}/midi/in`,
+			args: [routeByte, note, velocityByte].map(byte => ({ type: "i", value: byte }))
+		};
+
+		oscQueryBridge.sendPacket(writePacket(message));
+	};
+
+export const triggerMidiNoteOffEventOnRemoteInstance = (device: GraphPatcherNodeRecord, note: number): AppThunk =>
+	() => {
+
+		const midiChannel = 0;
+		const routeByte = 128 + midiChannel;
+		const velocityByte = 0;
+
+		const message = {
+			address: `${device.path}/midi/in`,
+			args: [routeByte, note, velocityByte].map(byte => ({ type: "i", value: byte }))
+		};
+
+		oscQueryBridge.sendPacket(writePacket(message));
+	};
+
+export const setParameterValueNormalizedOnRemote = throttle((device: GraphPatcherNodeRecord, param: ParameterRecord, value: number): AppThunk =>
 	(dispatch) => {
+
+		const message = {
+			address: `${param.path}/normalized`,
+			args: [
+				{ type: "f", value }
+			]
+		};
+
+		oscQueryBridge.sendPacket(writePacket(message));
+
+		// optimistic local state update
+		dispatch(setNode(device.setParameterNormalizedValue(param.id, value)));
+	}, 100);
+
+
+export const addInstance = (desc: OSCQueryRNBOInstance): AppThunk =>
+	(dispatch) => {
+		// Create Node
+		const node = GraphPatcherNodeRecord.fromDescription(desc);
+		dispatch(setNode(node));
+
+		// Create Edges
+		const connections = GraphConnectionRecord.connectionsFromDescription(node.id, desc.CONTENTS.jack.CONTENTS.connections);
+		dispatch(setConnections(connections));
+	};
+
+export const removeInstance = (index: number): AppThunk =>
+	(dispatch, getState) => {
 		try {
-			const parameterDescriptions = (desc as any).CONTENTS.params || {};
-			const inportDescriptions = (desc as any).CONTENTS.messages?.CONTENTS.in || {};
-			const presetDescriptions = (desc as any).CONTENTS.presets?.CONTENTS || {};
-			const patcherName: string | undefined = (desc as any).CONTENTS.name?.VALUE;
+			const state = getState();
+			const node = getNodeByIndex(state, index);
+			if (node?.type !== NodeType.Patcher) return;
 
-			dispatch(setEntities(
-				EntityType.ParameterRecord,
-				ParameterRecord.arrayFromDescription(parameterDescriptions),
-				true
-			));
-			dispatch(setEntities(
-				EntityType.InportRecord,
-				InportRecord.arrayFromDescription(inportDescriptions),
-				true
-			));
-			dispatch(setEntities(
-				EntityType.PresetRecord,
-				PresetRecord.arrayFromDescription(presetDescriptions?.entries?.VALUE as any),
-				true
-			));
-
-			dispatch(setSelectedPatcher(patcherName));
+			dispatch(deleteNode(node));
 		} catch (e) {
 			console.log(e);
 		}
 	};
 
-export const initializePatchers = (desc: AnyJson): AppThunk =>
+export const updateInstancePresetEntries = (index: number, entries: OSCQueryRNBOInstancePresetEntries): AppThunk =>
 	(dispatch, getState) => {
 		try {
-			const patcherDescriptions = (desc as any).CONTENTS || {};
-			const loadedName: string | undefined = getPatchers(getState()).reduce((c, p) => {
-				return p.loaded ? p.name : c;
-			}, undefined);
+			const state = getState();
+			const node = getNodeByIndex(state, index);
+			if (node?.type !== NodeType.Patcher) return;
 
-			dispatch(setEntities( EntityType.PatcherRecord,
-				PatcherRecord.arrayFromDescription(patcherDescriptions, loadedName),
-				true
+			dispatch(setNode(
+				node.set("presets", GraphPatcherNodeRecord.presetsFromDescription(entries))
 			));
+		} catch (e) {
+			console.log(e);
+		}
+	};
 
+export const updateInstanceMessages = (index: number, desc: OSCQueryRNBOInstance["CONTENTS"]["messages"]): AppThunk =>
+	(dispatch, getState) => {
+		try {
+			if (!desc) return;
+
+			const state = getState();
+			const node = getNodeByIndex(state, index);
+			if (node?.type !== NodeType.Patcher) return;
+
+			dispatch(setNode(
+				node
+					.set("messageInputs", GraphPatcherNodeRecord.messageInputsFromDescription(desc))
+					.set("messageOutputs", GraphPatcherNodeRecord.messageOutputsFromDescription(desc))
+			));
+		} catch (e) {
+			console.log(e);
+		}
+	};
+
+export const updateInstanceMessageOutputValue = (index: number, id: MessageOutputRecord["id"], value: OSCValue | OSCValue[]): AppThunk =>
+	(dispatch, getState) => {
+		try {
+
+			const state = getState();
+
+			// Debug enabled?!
+			const enabled = getSetting(state, Setting.debugMessageOutput);
+			if (!enabled) return;
+
+			// Active Device view?!
+			if (Router.asPath !== `/devices/${index}`) return;
+
+			const node = getNodeByIndex(state, index);
+			if (node?.type !== NodeType.Patcher) return;
+
+			dispatch(setNode(node.setMessageOutportValue(id, value)));
+		} catch (e) {
+			console.log(e);
+		}
+	};
+
+export const updateInstanceParameters = (index: number, desc: OSCQueryRNBOInstance["CONTENTS"]["params"]): AppThunk =>
+	(dispatch, getState) => {
+		try {
+			if (!desc) return;
+
+			const state = getState();
+			const node = getNodeByIndex(state, index);
+			if (node?.type !== NodeType.Patcher) return;
+
+			dispatch(setNode(
+				node.set("parameters", GraphPatcherNodeRecord.parametersFromDescription(desc))
+			));
+		} catch (e) {
+			console.log(e);
+		}
+	};
+
+export const updateInstanceParameterValue = (index: number, id: ParameterRecord["id"], value: number): AppThunk =>
+	(dispatch, getState) => {
+		try {
+			const state = getState();
+			const node = getNodeByIndex(state, index);
+			if (node?.type !== NodeType.Patcher) return;
+
+			dispatch(setNode(node.setParameterValue(id, value)));
+		} catch (e) {
+			console.log(e);
+		}
+	};
+
+export const updateInstanceParameterValueNormalized = (index: number, id: ParameterRecord["id"], value: number): AppThunk =>
+	(dispatch, getState) => {
+		try {
+			const state = getState();
+			const node = getNodeByIndex(state, index);
+			if (node?.type !== NodeType.Patcher) return;
+
+			dispatch(setNode(node.setParameterNormalizedValue(id, value)));
 		} catch (e) {
 			console.log(e);
 		}

@@ -1,15 +1,16 @@
-import { useState } from "react";
+import { FunctionComponent, memo, useState } from "react";
 import classes from "./ports.module.css";
 import { Button, Group, TextInput } from "@mantine/core";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPaperPlane } from "@fortawesome/free-solid-svg-icons";
+import { MessageInportRecord } from "../../models/messages";
 
-interface InportEntryProps {
-	name: string;
-	onSend: (name: string, value: string) => any;
+interface MessageInportEntryProps {
+	port: MessageInportRecord;
+	onSend: (port: MessageInportRecord, value: string) => any;
 }
 
-export default function InportEntry({ name, onSend }: InportEntryProps) {
+const MessageInportEntry: FunctionComponent<MessageInportEntryProps> = memo(function WrappedMessageInportEntry({ port, onSend }) {
 
 	const [text, setText] = useState("");
 
@@ -19,15 +20,15 @@ export default function InportEntry({ name, onSend }: InportEntryProps) {
 
 	const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
-		if (onSend) onSend(name, text);
+		if (onSend) onSend(port, text);
 	};
 
 	return (
 		<form className={ classes.inport } onSubmit={handleSubmit} >
 			<Group align="flex-end">
 				<TextInput
-					label={ name }
-					description={ `Send data to the inport with name "${name}"`}
+					label={ port.name }
+					description={ `Send data to the inport with name "${port.name}"`}
 					onChange={ handleChange }
 					size="sm"
 					value={ text }
@@ -37,4 +38,6 @@ export default function InportEntry({ name, onSend }: InportEntryProps) {
 			</Group>
 		</form>
 	);
-}
+});
+
+export default MessageInportEntry;

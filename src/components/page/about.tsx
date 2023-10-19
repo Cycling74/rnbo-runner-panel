@@ -12,7 +12,7 @@ const AboutInfo: FunctionComponent = () => {
 		<section>
 			<SectionTitle>About</SectionTitle>
 			<p className={ classes.aboutText } >
-				This is a small, open-source web app made that lets you control a RNBO patch exported to the RNBO Runner which can be used to debug RNBO patches sent to your Raspberry Pi (or anywhere the RNBO Runner is active).
+				This is a small, open-source web app that lets you control a RNBO patch exported to the RNBO Runner which can be used to debug RNBO patches sent to your Raspberry Pi (or anywhere the RNBO Runner is active).
 				<br/>
 				<br/>
 				The code for this app is available on Github and <Link href="https://github.com/Cycling74/rnbo-runner-panel/blob/main/LICENSE.txt" target="_blank" rel="noreferrer noopener" >MIT licensed</Link>.

@@ -5,6 +5,12 @@ export enum WebSocketState {
 	CLOSED = 3
 }
 
+export enum DeviceTab {
+	MessagePorts = "msg",
+	MIDI = "midi",
+	Parameters = "params"
+}
+
 export const bodyFontSize = 16;
 
 export enum Breakpoints {

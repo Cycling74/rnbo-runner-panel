@@ -20,6 +20,7 @@ import { AppLayout } from "../layouts/app";
 import { PageSettings } from "../components/page/settings";
 import { PageTheme } from "../components/page/theme";
 import Notifications from "../components/notifications";
+import Settings from "../components/settings";
 
 function App({ Component, pageProps }: AppProps) {
 
@@ -39,6 +40,7 @@ function App({ Component, pageProps }: AppProps) {
 					</Head>
 					<Notifications />
 					<AppLayout>
+						<Settings />
 						<Component {...pageProps} />
 					</AppLayout>
 				</PageTheme>

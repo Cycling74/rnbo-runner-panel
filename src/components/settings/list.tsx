@@ -24,6 +24,13 @@ const SettingsList: FunctionComponent = memo(function SettingsWrapper() {
 				type={ SettingsType.Switch }
 				value={ settings[Setting.colorScheme] as string }
 			/>
+			<SettingsItem
+				name={ Setting.debugMessageOutput }
+				onChange={ onChangeSetting }
+				title="Debug Message Output"
+				type={ SettingsType.OnOff }
+				value={ settings[Setting.debugMessageOutput] as boolean }
+			/>
 		</Stack>
 	);
 });
