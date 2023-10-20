@@ -35,14 +35,13 @@ const GraphEditor: FunctionComponent<GraphEditorProps> = memo(function WrappedFl
 	// Validate Connection Directions and Types
 	const validateConnection = useCallback((conn: Connection) => {
 		try {
-			return isValidConnection(conn, graphNodes);
+			return !!isValidConnection(conn, graphNodes);
 		} catch (err) {
 			return false;
 		}
 	}, [graphNodes]);
 
 	const nodes: Node[] = [];
-	const edges: Edge[] = [];
 	for (const editorNode of editorNodes.valueSeq().toArray()) {
 		const graphNode = graphNodes.get(editorNode.id);
 		if (!graphNode) continue;
@@ -56,17 +55,18 @@ const GraphEditor: FunctionComponent<GraphEditorProps> = memo(function WrappedFl
 			type: graphNode?.type,
 			data: { node: graphNode }
 		});
+	}
 
-		if (!connections.get(editorNode.id)) continue;
-		for (const connection of (connections.get(editorNode.id)!).valueSeq().toArray()) {
-			edges.push({
-				id: connection.id,
-				source: connection.sourceNodeId,
-				sourceHandle: connection.sourcePortName,
-				target: connection.sinkNodeId,
-				targetHandle: connection.sinkPortName
-			});
-		}
+
+	const edges: Edge[] = [];
+	for (const connection of connections.valueSeq().toArray()) {
+		edges.push({
+			id: connection.id,
+			source: connection.sourceNodeId,
+			sourceHandle: connection.sourcePortId,
+			target: connection.sinkNodeId,
+			targetHandle: connection.sinkPortId
+		});
 	}
 
 	return (

@@ -1,6 +1,6 @@
 import React, { FunctionComponent, memo } from "react";
 import { EditorNodeProps, calcHandleOffset } from "./util";
-import { GraphPatcherNodeRecord, GraphPortRecord, NodeType, PortDirection } from "../../models/graph";
+import { GraphPatcherNodeRecord, GraphPortRecord, PortDirection } from "../../models/graph";
 import EditorPort from "./port";
 import classes from "./editor.module.css";
 import { Button, Paper } from "@mantine/core";
@@ -21,7 +21,7 @@ const EditorPatcherNode: FunctionComponent<EditorNodeProps> = memo(function Wrap
 	return (
 		<>
 			{
-				sinks.map((port, i) => <EditorPort key={ port.id} port={ port } offset={ calcHandleOffset(sinks.length, i)}/>)
+				sinks.map((port, i) => <EditorPort key={ port.id } port={ port } offset={ calcHandleOffset(sinks.length, i)}/>)
 			}
 			<Paper className={ classes.node } shadow="sm" withBorder >
 				<div>

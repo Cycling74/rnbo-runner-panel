@@ -13,6 +13,7 @@ const EditorSystemNode: FunctionComponent<EditorNodeProps> = memo(function Wrapp
 		result[port.direction === PortDirection.Sink ? "sinks" : "sources"].push(port);
 		return result;
 	}, { sinks: [], sources: [] } as { sinks: GraphPortRecord[]; sources: GraphPortRecord[]; });
+
 	return (
 		<>
 			{

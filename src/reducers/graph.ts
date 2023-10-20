@@ -4,7 +4,7 @@ import { GraphConnectionRecord, GraphNodeRecord, GraphPatcherNodeRecord, NodeTyp
 
 export interface GraphState {
 
-	connections: ImmuMap<GraphNodeRecord["id"], ImmuMap<GraphConnectionRecord["id"], GraphConnectionRecord>>;
+	connections: ImmuMap<GraphConnectionRecord["id"], GraphConnectionRecord>;
 	nodes: ImmuMap<GraphNodeRecord["id"], GraphNodeRecord>;
 	patcherNodeIdByIndex: ImmuMap<GraphPatcherNodeRecord["index"], GraphPatcherNodeRecord["id"]>;
 
@@ -12,7 +12,7 @@ export interface GraphState {
 
 export const graph = (state: GraphState = {
 
-	connections: ImmuMap<GraphNodeRecord["id"], ImmuMap<GraphConnectionRecord["id"], GraphConnectionRecord>>(),
+	connections: ImmuMap<GraphConnectionRecord["id"], GraphConnectionRecord>(),
 	nodes: ImmuMap<GraphNodeRecord["id"], GraphNodeRecord>(),
 	patcherNodeIdByIndex: ImmuMap<GraphPatcherNodeRecord["index"], GraphPatcherNodeRecord["id"]>()
 
@@ -25,13 +25,9 @@ export const graph = (state: GraphState = {
 
 			return {
 				...state,
-				connections: ImmuMap<GraphNodeRecord["id"], ImmuMap<GraphConnectionRecord["id"], GraphConnectionRecord>>().withMutations((map) => {
+				connections: ImmuMap<GraphConnectionRecord["id"], GraphConnectionRecord>().withMutations((map) => {
 					for (const connection of connections) {
-						const nodeConnections = map.get(connection.sourceNodeId) || ImmuMap<GraphConnectionRecord["id"], GraphConnectionRecord>();
-						map.set(
-							connection.sourceNodeId,
-							nodeConnections.set(connection.id, connection)
-						);
+						map.set(connection.id, connection);
 					}
 				}),
 				nodes: ImmuMap<GraphNodeRecord["id"], GraphNodeRecord>(nodes.map(n => [n.id, n])),
@@ -52,10 +48,7 @@ export const graph = (state: GraphState = {
 				nodes: state.nodes.delete(node.id),
 				patcherNodeIdByIndex: node.type === NodeType.Patcher ? state.patcherNodeIdByIndex.delete(node.index) : state.patcherNodeIdByIndex,
 				connections: state.connections
-					// Delete Source Node index
-					.delete(node.id)
-					// Delete Sink Node entries
-					.map(nodeConnMap => nodeConnMap.filter(connNode => connNode.sinkNodeId !== node.id))
+					.filter(connection => connection.sourceNodeId !== node.id && connection.sinkNodeId !== node.id )
 			};
 		}
 
@@ -70,10 +63,7 @@ export const graph = (state: GraphState = {
 						.map(n => n .index)
 				),
 				connections: state.connections
-					// Delete Source Node indices
-					.deleteAll(nodeIds)
-					// Delete Sink Node entries
-					.map(nodeConnMap => nodeConnMap.filter(connNode => !nodeIds.includes(connNode.sinkNodeId)))
+					.filter(connection => !nodeIds.includes(connection.sourceNodeId) && !nodeIds.includes(connection.sinkNodeId) )
 			};
 		}
 
@@ -113,41 +103,25 @@ export const graph = (state: GraphState = {
 
 			return {
 				...state,
-				connections: state.connections.set(
-					connection.sourceNodeId,
-					nodeConns.delete(connection.id)
-				)
+				connections: state.connections.delete(connection.id)
 			};
 		}
 
 		case GraphActionType.DELETE_CONNECTIONS: {
 			const { connections } = action.payload;
 
-			const newConns = state.connections.withMutations(map => {
-				for (const connection of connections) {
-					const nodeConns = map.get(connection.sourceNodeId);
-					if (!nodeConns) continue;
-					map.set(connection.sourceNodeId, nodeConns.delete(connection.id));
-				}
-			});
-
 			return {
 				...state,
-				connections: newConns
+				connections: state.connections.deleteAll(connections.map(conn => conn.id))
 			};
 		}
 
 		case GraphActionType.SET_CONNECTION: {
 			const { connection } = action.payload;
 
-			const nodeConns = state.connections.get(connection.sourceNodeId) || ImmuMap<GraphConnectionRecord["id"], GraphConnectionRecord>();
-
 			return {
 				...state,
-				connections: state.connections.set(
-					connection.sourceNodeId,
-					nodeConns.set(connection.id, connection)
-				)
+				connections: state.connections.set(connection.id, connection)
 			};
 		}
 
@@ -155,10 +129,9 @@ export const graph = (state: GraphState = {
 			const { connections } = action.payload;
 
 			const newConns = state.connections.withMutations(map => {
+
 				for (const connection of connections) {
-					const nodeConns = map.get(connection.sourceNodeId) || ImmuMap<GraphConnectionRecord["id"], GraphConnectionRecord>();
-					if (!nodeConns) continue;
-					map.set(connection.sourceNodeId, nodeConns.set(connection.id, connection));
+					map.set(connection.id, connection);
 				}
 			});
 

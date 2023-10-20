@@ -24,7 +24,7 @@ const EditorPort: FunctionComponent<PortProps> = memo(function WrappedPort({
 
 	return (
 		<Handle
-			id={ port.name }
+			id={ port.id }
 			position={ handlePositionByPortDirection[port.direction] }
 			data-c74-type={ port.type }
 			type={ handleTypeByPortDirection[port.direction] }

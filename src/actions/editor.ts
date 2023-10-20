@@ -16,16 +16,16 @@ export const makeEditorConnection = (connection: Connection): AppThunk =>
 			}
 
 			// Valid Connection?
-			isValidConnection(connection, state.graph.nodes);
+			const { sourceNode, sourcePort, sinkNode, sinkPort } = isValidConnection(connection, state.graph.nodes);
 
 			// Does it already exist?
 			const existingConnection = getConnectionByNodesAndPorts(
 				state,
 				{
-					sourceNodeId: connection.source,
-					sinkNodeId: connection.target,
-					sourcePortName: connection.sourceHandle,
-					sinkPortName: connection.targetHandle
+					sourceNodeId: sourceNode.id,
+					sinkNodeId: sinkNode.id,
+					sourcePortId: sourcePort.id,
+					sinkPortId: sinkPort.id
 				}
 			);
 

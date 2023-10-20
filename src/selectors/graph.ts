@@ -27,12 +27,11 @@ export const getSystemNodes = (state: RootStateType): ImmuMap<GraphSystemNodeRec
 	return state.graph.nodes.filter(node => node.type === NodeType.System) as ImmuMap<GraphSystemNodeRecord["id"], GraphSystemNodeRecord>;
 };
 
-export const getConnections = (state: RootStateType): ImmuMap<GraphNodeRecord["id"], ImmuMap<GraphConnectionRecord["id"], GraphConnectionRecord>> => state.graph.connections;
+export const getConnections = (state: RootStateType): ImmuMap<GraphConnectionRecord["id"], GraphConnectionRecord> => state.graph.connections;
 
 export const getConnectionByNodesAndPorts = (
 	state: RootStateType,
-	{ sourceNodeId, sourcePortName, sinkNodeId, sinkPortName }: {  sourceNodeId: string; sourcePortName: string; sinkNodeId: string; sinkPortName: string; }
+	{ sourceNodeId, sourcePortId, sinkNodeId, sinkPortId }: {  sourceNodeId: string; sourcePortId: string; sinkNodeId: string; sinkPortId: string; }
 ): GraphConnectionRecord | undefined => {
-	const nodeConns = state.graph.connections.get(sourceNodeId);
-	return nodeConns?.valueSeq().find(conn => conn.sourcePortName === sourcePortName && conn.sinkNodeId === sinkNodeId && conn.sinkPortName === sinkPortName);
+	return state.graph.connections.get(GraphConnectionRecord.idFromNodesAndPorts(sourceNodeId, sourcePortId, sinkNodeId, sinkPortId));
 };
