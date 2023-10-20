@@ -84,7 +84,7 @@ export type GraphAction = IInitGraph | ISetGraphNode | ISetGraphNodes | IDeleteG
 
 export const initGraph = (jackPortsInfo: OSCQueryRNBOJackPortInfo, instanceInfo: OSCQueryRNBOInstancesState): GraphAction => {
 
-	const systemNode = GraphSystemNodeRecord.fromDescription(jackPortsInfo);
+	const systemNodes: GraphSystemNodeRecord[] = GraphSystemNodeRecord.fromDescription(jackPortsInfo);
 
 	const patcherNodes: GraphPatcherNodeRecord[] = [];
 	const connections: GraphConnectionRecord[] = [];
@@ -101,7 +101,7 @@ export const initGraph = (jackPortsInfo: OSCQueryRNBOJackPortInfo, instanceInfo:
 		type: GraphActionType.INIT,
 		payload: {
 			connections,
-			nodes: [systemNode, ...patcherNodes]
+			nodes: [...systemNodes, ...patcherNodes]
 		}
 	};
 };
