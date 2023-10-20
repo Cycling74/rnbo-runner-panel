@@ -58,6 +58,7 @@ export type GraphPatcherNodeProps = CommonGraphNodeProps & {
 
 export interface GraphNode extends CommonGraphNodeProps {
 	id: string;
+	getPortByName: (name: GraphPortRecord["name"]) => GraphPortRecord | undefined;
 	type: NodeType;
 }
 
@@ -83,6 +84,11 @@ export class GraphPatcherNodeRecord extends ImmuRecord<GraphPatcherNodeProps>({
 	ports: ImmuMap<GraphPortRecord["id"], GraphPortRecord>()
 
 }) implements GraphPatcherNode {
+
+
+	public getPortByName(name: GraphPortRecord["name"]): GraphPortRecord | undefined {
+		return this.ports.get(`${this.name}:${name}`);
+	}
 
 	public get id(): string {
 		return this.name;
@@ -186,7 +192,6 @@ export class GraphPatcherNodeRecord extends ImmuRecord<GraphPatcherNodeProps>({
 					ports.set(pr.id, pr);
 				}
 			}
-
 			if (desc.CONTENTS.midi_ins.TYPE !== "" && desc.CONTENTS.midi_ins.VALUE.length) {
 				for (const portName of desc.CONTENTS.midi_ins.VALUE) {
 					const pr = new GraphPortRecord({
@@ -237,6 +242,10 @@ export class GraphSystemNodeRecord extends ImmuRecord<GraphSystemNodeProps>({
 	ports: ImmuMap<GraphPortRecord["id"], GraphPortRecord>()
 
 }) implements GraphSystemNode {
+
+	public getPortByName(name: GraphPortRecord["name"]): GraphPortRecord | undefined {
+		return this.ports.get(`${GraphSystemNodeRecord.systemName}:${name}`);
+	}
 
 	get id(): string {
 		return this.name;
