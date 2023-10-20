@@ -29,7 +29,7 @@
 
 		.react-flow__handle-right {
 			&:before {
-				content: attr(data-c74-type);
+				content: attr(data-c74-id);
 				padding-right: 16px;
 				right: 0;
 			}
@@ -37,7 +37,7 @@
 
 		.react-flow__handle-left {
 			&:after {
-				content: attr(data-c74-type);
+				content: attr(data-c74-id);
 				padding-left: 16px;
 				left: 0;
 			}
