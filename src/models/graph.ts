@@ -331,9 +331,9 @@ export type GraphConnectionProps = {
 	id: string;
 	path: string;
 	sourceNodeId: string;
-	sourcePortId: string;
+	sourcePortName: string;
 	sinkNodeId: string;
-	sinkPortId: string;
+	sinkPortName: string;
 	type: ConnectionType;
 }
 
@@ -343,52 +343,54 @@ export class GraphConnectionRecord extends ImmuRecord<GraphConnectionProps>({
 	path: "",
 
 	sourceNodeId: "",
-	sourcePortId: "",
+	sourcePortName: "",
 
 	sinkNodeId: "",
-	sinkPortId: "",
+	sinkPortName: "",
 
 	type: ConnectionType.Audio
 
 }) {
 
-	public static connectionsFromDescription(nodeId: GraphNodeRecord["id"], desc: OSCQueryRNBOInstanceConnections): GraphConnectionRecord[] {
+	public static connectionsFromDescription(sourceNodeId: GraphNodeRecord["id"], desc: OSCQueryRNBOInstanceConnections): GraphConnectionRecord[] {
 		const conns: GraphConnectionRecord[] = [];
+		const nodeId = sourceNodeId === GraphSystemNodeRecord.systemName ? GraphSystemNodeRecord.systemInputName : sourceNodeId;
 
 		for (const [portId, info] of Object.entries(desc.CONTENTS.audio?.CONTENTS?.sources?.CONTENTS || {})) {
-			const commonConnProps: Omit<GraphConnectionProps, "id" | "sinkNodeId" | "sinkPortId"> = {
+			const commonConnProps: Omit<GraphConnectionProps, "id" | "sinkNodeId" | "sinkPortName"> = {
 				sourceNodeId: nodeId,
-				sourcePortId: portId,
+				sourcePortName: portId,
 				path: info.FULL_PATH,
 				type: ConnectionType.Audio
 			};
+			console.log(commonConnProps);
 
 			conns.push(...(info.VALUE.map(target => {
-				const [sinkNodeId, sinkPortId] = target.split(":");
+				const [sinkNodeId, sinkPortName] = target.split(":");
 				return new GraphConnectionRecord({
 					...commonConnProps,
-					id: `${commonConnProps.sourceNodeId}:${commonConnProps.sourcePortId}=>${sinkNodeId}:${sinkPortId}`,
-					sinkNodeId,
-					sinkPortId
+					id: `${commonConnProps.sourceNodeId}:${commonConnProps.sourcePortName}=>${sinkNodeId}:${sinkPortName}`,
+					sinkNodeId: sinkNodeId === GraphSystemNodeRecord.systemName ? GraphSystemNodeRecord.systemOutputName : sinkNodeId,
+					sinkPortName
 				});
 			})));
 		}
 
 		for (const [portId, info] of Object.entries(desc.CONTENTS.midi?.CONTENTS?.sources?.CONTENTS || {})) {
-			const commonConnProps: Omit<GraphConnectionProps, "id" | "sinkNodeId" | "sinkPortId"> = {
+			const commonConnProps: Omit<GraphConnectionProps, "id" | "sinkNodeId" | "sinkPortName"> = {
 				sourceNodeId: nodeId,
-				sourcePortId: portId,
+				sourcePortName: portId,
 				path: info.FULL_PATH,
 				type: ConnectionType.MIDI
 			};
 
 			conns.push(...(info.VALUE.map(target => {
-				const [sinkNodeId, sinkPortId] = target.split(":");
+				const [sinkNodeId, sinkPortName] = target.split(":");
 				return new GraphConnectionRecord({
 					...commonConnProps,
-					id: `${commonConnProps.sourceNodeId}:${commonConnProps.sourcePortId}=>${sinkNodeId}:${sinkPortId}`,
-					sinkNodeId,
-					sinkPortId
+					id: `${commonConnProps.sourceNodeId}:${commonConnProps.sourcePortName}=>${sinkNodeId}:${sinkPortName}`,
+					sinkNodeId: sinkNodeId === GraphSystemNodeRecord.systemName ? GraphSystemNodeRecord.systemOutputName : sinkNodeId,
+					sinkPortName
 				});
 			})));
 		}
