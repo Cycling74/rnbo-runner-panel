@@ -401,7 +401,6 @@ export class GraphConnectionRecord extends ImmuRecord<GraphConnectionProps>({
 				path: info.FULL_PATH,
 				type: ConnectionType.Audio
 			};
-			console.log(commonConnProps);
 
 			conns.push(...(info.VALUE.map(target => {
 				const [sinkNodeId, sinkPortName] = target.split(":");

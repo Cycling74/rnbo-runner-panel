@@ -1,8 +1,9 @@
 import { Map as ImmuMap } from "immutable";
 import { RootStateType } from "../lib/store";
-import { GraphNodeRecord, GraphPatcherNodeRecord, GraphSystemNodeRecord, NodeType } from "../models/graph";
+import { GraphConnectionRecord, GraphNodeRecord, GraphPatcherNodeRecord, GraphSystemNodeRecord, NodeType } from "../models/graph";
 
 export const getNode = (state: RootStateType, id: GraphNodeRecord["id"]): GraphNodeRecord | undefined => state.graph.nodes.get(id);
+export const getNodes = (state: RootStateType): ImmuMap<GraphNodeRecord["id"], GraphNodeRecord> => state.graph.nodes;
 export const getNodeByIndex = (state: RootStateType, index: GraphPatcherNodeRecord["index"]): GraphPatcherNodeRecord | undefined => {
 	const id = state.graph.patcherNodeIdByIndex.get(index);
 	const node = id ? state.graph.nodes.get(id) : undefined;
@@ -27,3 +28,11 @@ export const getSystemNodes = (state: RootStateType): ImmuMap<GraphSystemNodeRec
 };
 
 export const getConnections = (state: RootStateType): ImmuMap<GraphNodeRecord["id"], ImmuMap<GraphConnectionRecord["id"], GraphConnectionRecord>> => state.graph.connections;
+
+export const getConnectionByNodesAndPorts = (
+	state: RootStateType,
+	{ sourceNodeId, sourcePortName, sinkNodeId, sinkPortName }: {  sourceNodeId: string; sourcePortName: string; sinkNodeId: string; sinkPortName: string; }
+): GraphConnectionRecord | undefined => {
+	const nodeConns = state.graph.connections.get(sourceNodeId);
+	return nodeConns?.valueSeq().find(conn => conn.sourcePortName === sourcePortName && conn.sinkNodeId === sinkNodeId && conn.sinkPortName === sinkPortName);
+};

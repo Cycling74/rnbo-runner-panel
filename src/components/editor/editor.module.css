@@ -1,0 +1,62 @@
+.node {
+	padding: var(--mantine-spacing-xl) calc(var(--mantine-spacing-xl) + 75px);
+}
+
+.editor {
+	flex: 1;
+
+	:global {
+
+		.react-flow__handle {
+			border-radius: 50%;
+			height: 16px;
+			width: 16px;
+		}
+
+		.react-flow__handle-right,
+		.react-flow__handle-left {
+			&:before,
+			&:after {
+				color: var(--mantine-color-dimmed);
+				font-size: var(--mantine-font-size-xs);
+				overflow: hidden;
+				position: absolute;
+				text-overflow: ellipsis;
+				transform: translateY(-25%);
+			}
+		}
+
+
+		.react-flow__handle-right {
+			&:before {
+				content: attr(data-c74-type);
+				padding-right: 16px;
+				right: 0;
+			}
+		}
+
+		.react-flow__handle-left {
+			&:after {
+				content: attr(data-c74-type);
+				padding-left: 16px;
+				left: 0;
+			}
+		}
+
+		.react-flow__handle[data-c74-type="audio"] {
+			border: 2px solid var(--mantine-color-green-outline);
+
+			&:hover {
+				background-color: var(--mantine-color-green-outline);
+			}
+		}
+
+		.react-flow__handle[data-c74-type="midi"] {
+			border: 2px solid var(--mantine-color-orange-outline);
+
+			&:hover {
+				background-color: var(--mantine-color-orange-outline);
+			}
+		}
+	}
+}
