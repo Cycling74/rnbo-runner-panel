@@ -6,8 +6,8 @@ import { MessageInportRecord, MessageOutputRecord } from "./messages";
 import { PresetRecord } from "./preset";
 
 export enum ConnectionType {
-	Audio,
-	MIDI
+	Audio = "audio",
+	MIDI = "midi"
 }
 
 export enum PortDirection {
@@ -16,8 +16,8 @@ export enum PortDirection {
 }
 
 export enum NodeType {
-	Patcher,
-	System
+	Patcher = "patcher",
+	System = "system"
 }
 
 export type GraphPortProps = {
