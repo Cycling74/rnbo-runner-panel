@@ -56,7 +56,6 @@ const GraphEditor: FunctionComponent<GraphEditorProps> = memo(function WrappedFl
 				y: editorNode.y
 			},
 			deletable: graphNode.type === NodeType.Patcher,
-			draggable: graphNode.type === NodeType.Patcher,
 			selectable: graphNode.type === NodeType.Patcher,
 			selected: editorNode.selected,
 			type: graphNode?.type,
