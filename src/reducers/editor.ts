@@ -1,27 +1,29 @@
 import { Map as ImmuMap } from "immutable";
 import { GraphAction, GraphActionType } from "../actions/graph";
-import { EditorNodeRecord, EditorNodeBaseHeight } from "../models/editor";
+import { EditorNodeRecord } from "../models/editor";
 import { GraphNodeRecord, GraphSystemNodeRecord, NodeType } from "../models/graph";
+import { EditorAction, EditorActionType } from "../actions/editor";
 
 export interface EditorState {
 	nodes: ImmuMap<EditorNodeRecord["id"], EditorNodeRecord>;
 }
 
-const getDefaultCoordinatesForNode = (node: GraphNodeRecord): { x: number, y: number } => {
+const defaultNodeSpacing = 100;
 
-	if (node.type === NodeType.Patcher) {
-		return { x: 0, y: node.index * EditorNodeBaseHeight };
-	}
+const getDefaultCoordinates = (graphNode: GraphNodeRecord, editorNode: EditorNodeRecord, nodes: EditorState["nodes"]): { x: number, y: number } => {
 
-	if (node.type === NodeType.System && node.id === GraphSystemNodeRecord.systemInputName) {
-		return {
-			x: -Math.round(window.innerWidth / 2),
-			y: 0
-		};
+	if (graphNode.type === NodeType.Patcher) {
+		const bottomNode: EditorNodeRecord | undefined = nodes.reduce((n, current) => {
+			if (current.type === NodeType.System) return n;
+			if (!n && current.type === NodeType.Patcher) return current;
+			return current.y > n.y ? current : n;
+		}, undefined as EditorNodeRecord | undefined);
+		const y = bottomNode ? bottomNode.y + bottomNode.height + defaultNodeSpacing : 0;
+		return { x: 0, y };
 	}
 
 	return {
-		x: Math.round(window.innerWidth / 2),
+		x: (graphNode.id === GraphSystemNodeRecord.systemInputName ? -1 : 1) * (editorNode.width + defaultNodeSpacing * 2),
 		y: 0
 	};
 };
@@ -30,46 +32,60 @@ export const editor = (state: EditorState = {
 
 	nodes: ImmuMap<EditorNodeRecord["id"], EditorNodeRecord>()
 
-}, action: GraphAction): EditorState => {
+}, action: GraphAction | EditorAction): EditorState => {
 
 	switch (action.type) {
 
+		// Client-Side Editor Actions
+		case EditorActionType.POSITION_NODE: {
+			const { id, x, y } = action.payload;
+			const node = state.nodes.get(id);
+			if (!node) return state;
+
+			return {
+				...state,
+				nodes: state.nodes.set(node.id, node.updatePosition(x, y))
+			};
+		}
+
+		case EditorActionType.SELECT_NODE: {
+			const { id } = action.payload;
+			const node = state.nodes.get(id);
+			if (!node) return state;
+
+			return {
+				...state,
+				nodes: state.nodes.set(node.id, node.select())
+			};
+		}
+
+		case EditorActionType.UNSELECT_NODE: {
+			const { id } = action.payload;
+			const node = state.nodes.get(id);
+			if (!node) return state;
+
+			return {
+				...state,
+				nodes: state.nodes.set(node.id, node.unselect())
+			};
+		}
+
+		// Device Graph Actions
 		case GraphActionType.INIT: {
 			const { nodes } = action.payload;
 
 			return {
 				...state,
 				nodes: ImmuMap<EditorNodeRecord["id"], EditorNodeRecord>().withMutations(map => {
-					for (let i = 0; i < nodes.length; i++) {
-						const node = nodes[i];
-						if (node.type === NodeType.System && node.id === GraphSystemNodeRecord.systemInputName) {
-							map.set(
-								node.id,
-								EditorNodeRecord.create({
-									id: node.id,
-									type: node.type,
-									...getDefaultCoordinatesForNode(node)
-								})
-							);
-						} else if (node.type === NodeType.System && node.id === GraphSystemNodeRecord.systemOutputName) {
-							map.set(
-								node.id,
-								EditorNodeRecord.create({
-									id: node.id,
-									type: node.type,
-									...getDefaultCoordinatesForNode(node)
-								})
-							);
-						} else if (node.type === NodeType.Patcher) {
-							map.set(
-								node.id,
-								EditorNodeRecord.create({
-									id: node.id,
-									type: node.type,
-									...getDefaultCoordinatesForNode(node)
-								})
-							);
-						}
+					for (const node of nodes) {
+						const edNode = EditorNodeRecord.create({
+							id: node.id,
+							type: node.type,
+							ports: node.ports
+						});
+
+						const { x, y } = getDefaultCoordinates(node, edNode, map);
+						map.set(edNode.id, edNode.updatePosition(x, y));
 					}
 				})
 			};
@@ -94,27 +110,35 @@ export const editor = (state: EditorState = {
 
 		case GraphActionType.SET_NODE: {
 			const { node } = action.payload;
+
+			const edNode = EditorNodeRecord.create({
+				id: node.id,
+				type: node.type,
+				ports: node.ports
+			});
+			const { x, y } = getDefaultCoordinates(node, edNode, state.nodes);
+
 			return {
 				...state,
-				nodes: state.nodes.set(node.id, EditorNodeRecord.create({
-					id: node.id,
-					type: node.type,
-					...getDefaultCoordinatesForNode(node)
-				}))
+				nodes: state.nodes.set(edNode.id, edNode.updatePosition(x, y) )
 			};
 		}
 
 		case GraphActionType.SET_NODES: {
 			const { nodes } = action.payload;
+
 			return {
 				...state,
 				nodes: state.nodes.withMutations(map => {
 					for (const node of nodes) {
-						map.set(node.id, EditorNodeRecord.create({
+						const edNode = EditorNodeRecord.create({
 							id: node.id,
 							type: node.type,
-							...getDefaultCoordinatesForNode(node)
-						}));
+							ports: node.ports
+						});
+
+						const { x, y } = getDefaultCoordinates(node, edNode, map);
+						map.set(edNode.id, edNode.updatePosition(x, y));
 					}
 				})
 			};

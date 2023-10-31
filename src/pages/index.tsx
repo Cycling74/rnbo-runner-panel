@@ -9,8 +9,8 @@ import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import { getConnections, getNodes } from "../selectors/graph";
 import { getEditorNodes } from "../selectors/editor";
 import GraphEditor from "../components/editor";
-import { Connection } from "reactflow";
-import { makeEditorConnection } from "../actions/editor";
+import { Connection, Edge, Node, NodeChange } from "reactflow";
+import { applyEditorNodeChanges, makeEditorConnection, removeEditorEdges, removeEditorNodes } from "../actions/editor";
 
 const Index: FunctionComponent<Record<string, never>> = () => {
 
@@ -41,6 +41,18 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 		dispatch(makeEditorConnection(connection));
 	}, [dispatch]);
 
+	const onNodesChange = useCallback((changes: NodeChange[]) => {
+		dispatch(applyEditorNodeChanges(changes));
+	}, [dispatch]);
+
+	const onNodesDelete = useCallback((nodes: Node[]) => {
+		dispatch(removeEditorNodes(nodes));
+	}, [dispatch]);
+
+	const onEdgesDelete = useCallback((edges: Edge[]) => {
+		dispatch(removeEditorEdges(edges));
+	}, [dispatch]);
+
 	return (
 		<Stack style={{ height: "100%" }} >
 			<Group justify="flex-end">
@@ -67,6 +79,9 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 				editorNodes={ editorNodes }
 				connections={ connections }
 				onConnect={ onConnectNodes }
+				onNodesChange={ onNodesChange }
+				onNodesDelete={ onNodesDelete }
+				onEdgesDelete={ onEdgesDelete }
 			/>
 		</Stack>
 	);

@@ -1,16 +1,20 @@
 import React, { FunctionComponent, memo } from "react";
-import { EditorNodeProps, calcHandleOffset } from "./util";
+import { EditorNodeProps, calcPortOffset } from "./util";
 import { GraphPatcherNodeRecord, GraphPortRecord, PortDirection } from "../../models/graph";
 import EditorPort from "./port";
 import classes from "./editor.module.css";
-import { Button, Paper } from "@mantine/core";
+import { ActionIcon, Paper } from "@mantine/core";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faGamepad } from "@fortawesome/free-solid-svg-icons";
 import Link from "next/link";
 import { useRouter } from "next/router";
 
 const EditorPatcherNode: FunctionComponent<EditorNodeProps> = memo(function WrappedGraphPatcherNode({
-	data: { node }
+	data: {
+		node,
+		contentHeight
+	},
+	selected
 }) {
 	const { query } = useRouter();
 	const { sinks, sources } = node.ports.reduce((result, port) => {
@@ -19,28 +23,31 @@ const EditorPatcherNode: FunctionComponent<EditorNodeProps> = memo(function Wrap
 	}, { sinks: [], sources: [] } as { sinks: GraphPortRecord[]; sources: GraphPortRecord[]; });
 
 	return (
-		<>
-			{
-				sinks.map((port, i) => <EditorPort key={ port.id } port={ port } offset={ calcHandleOffset(sinks.length, i)}/>)
-			}
-			<Paper className={ classes.node } shadow="sm" withBorder >
+		<Paper className={ classes.node } shadow="sm" withBorder data-selected={ selected } >
+			<div className={ classes.nodeHeader } >
 				<div>
-					{ (node as GraphPatcherNodeRecord).index }: { (node as GraphPatcherNodeRecord).patcher }
+					{ (node as GraphPatcherNodeRecord).patcher }
 				</div>
-				<Button
-					component={ Link }
-					href={{ pathname: "/devices/[index]", query: { ...query, index: (node as GraphPatcherNodeRecord).index } }}
-					size="xs"
-					variant="default"
-					leftSection={ <FontAwesomeIcon icon={ faGamepad} /> }
-				>
-					Control
-				</Button>
-			</Paper>
-			{
-				sources.map((port, i) => <EditorPort key={ port.id } port={ port } offset={ calcHandleOffset(sources.length, i) } />)
-			}
-		</>
+				<div>
+					<ActionIcon
+						component={ Link }
+						href={{ pathname: "/devices/[index]", query: { ...query, index: (node as GraphPatcherNodeRecord).index } }}
+						size="md"
+						variant="transparent"
+					>
+						<FontAwesomeIcon icon={ faGamepad} />
+					</ActionIcon>
+				</div>
+			</div>
+			<div className={ classes.nodeContent } style={{ height: `${contentHeight}px` }} >
+				{
+					sinks.map((port, i) => <EditorPort key={ port.id } port={ port } offset={ calcPortOffset(sinks.length, i)}/>)
+				}
+				{
+					sources.map((port, i) => <EditorPort key={ port.id } port={ port } offset={ calcPortOffset(sources.length, i) } />)
+				}
+			</div>
+		</Paper>
 	);
 });
 

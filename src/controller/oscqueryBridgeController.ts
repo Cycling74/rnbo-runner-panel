@@ -8,7 +8,9 @@ import {
 	updateInstanceParameterValue,
 	updateInstanceParameterValueNormalized,
 	updateInstanceParameters,
-	updateInstancePresetEntries
+	updateInstancePresetEntries,
+	updateInstanceSinkPortConnections,
+	updateInstanceSourcePortConnections
 } from "../actions/device";
 import { setConnectionStatus } from "../actions/network";
 import { AppDispatch, store } from "../lib/store";
@@ -30,7 +32,7 @@ enum OSCQueryCommand {
 const instPathMatcher = /^\/rnbo\/inst\/(?<index>\d+)$/;
 const patchersPathMatcher = /^\/rnbo\/patchers/;
 const instInfoPathMatcher = /^\/rnbo\/inst\/(?<index>\d+)\/(?<content>params|messages\/in|messages\/out|presets)\/(?<rest>\S+)/;
-const oscPacketAddressMatcher = /^\/rnbo\/inst\/(?<index>\d+)\/(?<content>params|presets|messages\/out)\/(?<rest>\S+)/;
+const oscPacketAddressMatcher = /^\/rnbo\/inst\/(?<index>\d+)\/(?<content>params|presets|messages\/out|jack\/connections)\/(?<rest>\S+)/;
 
 export class OSCQueryBridgeControllerPrivate {
 
@@ -307,6 +309,27 @@ export class OSCQueryBridgeControllerPrivate {
 			packetMatch.groups.rest?.length
 		) {
 			return void dispatch(updateInstanceMessageOutputValue(index, packetMatch.groups.rest, packet.args as any as OSCValue | OSCValue[]));
+		}
+
+		// Update Instance Connections
+		if (
+			packetMatch.groups.content === "jack/connections" &&
+			packetMatch.groups.rest?.length
+		) {
+			// eslint-disable-next-line @typescript-eslint/no-unused-vars
+			const [type, direction, portId] = packetMatch.groups.rest.split("/");
+
+			// Seems like we get [1] when no connections so filter to be a string-only array here
+			const args: string[] = [];
+			for (const arg of packet.args) {
+				if (arg && typeof arg === "string") args.push(arg);
+			}
+
+			if (direction === "sources") {
+				dispatch(updateInstanceSourcePortConnections(index, portId, args));
+			} else if (direction === "sinks") {
+				dispatch(updateInstanceSinkPortConnections(index, portId, args));
+			}
 		}
 
 	}

@@ -1,4 +1,4 @@
-import { Map as ImmuMap } from "immutable";
+import { Map as ImmuMap, Seq } from "immutable";
 import { RootStateType } from "../lib/store";
 import { GraphConnectionRecord, GraphNodeRecord, GraphPatcherNodeRecord, GraphSystemNodeRecord, NodeType } from "../models/graph";
 
@@ -27,6 +27,8 @@ export const getSystemNodes = (state: RootStateType): ImmuMap<GraphSystemNodeRec
 	return state.graph.nodes.filter(node => node.type === NodeType.System) as ImmuMap<GraphSystemNodeRecord["id"], GraphSystemNodeRecord>;
 };
 
+
+export const getConnection = (state: RootStateType, id: GraphConnectionRecord["id"]): GraphConnectionRecord | undefined => state.graph.connections.get(id);
 export const getConnections = (state: RootStateType): ImmuMap<GraphConnectionRecord["id"], GraphConnectionRecord> => state.graph.connections;
 
 export const getConnectionByNodesAndPorts = (
@@ -34,4 +36,19 @@ export const getConnectionByNodesAndPorts = (
 	{ sourceNodeId, sourcePortId, sinkNodeId, sinkPortId }: {  sourceNodeId: string; sourcePortId: string; sinkNodeId: string; sinkPortId: string; }
 ): GraphConnectionRecord | undefined => {
 	return state.graph.connections.get(GraphConnectionRecord.idFromNodesAndPorts(sourceNodeId, sourcePortId, sinkNodeId, sinkPortId));
+};
+
+export const getConnectionsForSourceNodeAndPort = (
+	state: RootStateType,
+	{ sourceNodeId, sourcePortId }: {  sourceNodeId: string; sourcePortId: string; }
+): Seq.Indexed<GraphConnectionRecord> => {
+	return state.graph.connections.filter(conn => conn.sourceNodeId === sourceNodeId && conn.sourcePortId === sourcePortId).valueSeq();
+};
+
+
+export const getConnectionsForSinkNodeAndPort = (
+	state: RootStateType,
+	{ sinkNodeId, sinkPortId }: {  sinkNodeId: string; sinkPortId: string; }
+): Seq.Indexed<GraphConnectionRecord> => {
+	return state.graph.connections.filter(conn => conn.sinkNodeId === sinkNodeId && conn.sinkPortId === sinkPortId).valueSeq();
 };

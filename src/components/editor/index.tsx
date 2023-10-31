@@ -1,5 +1,5 @@
 import React, { ComponentType, FunctionComponent, memo, useCallback } from "react";
-import ReactFlow, { Connection, Controls, Edge, Node } from "reactflow";
+import ReactFlow, { Connection, Controls, Edge, Node, NodeChange } from "reactflow";
 import { NodeType } from "../../models/graph";
 import EditorPatcherNode from "./patcherNode";
 import EditorSystemNode from "./systemNode";
@@ -15,6 +15,9 @@ export type GraphEditorProps = {
 	editorNodes: RootStateType["editor"]["nodes"];
 	graphNodes: RootStateType["graph"]["nodes"];
 	onConnect: (connection: Connection) => any;
+	onNodesDelete: (nodes: Node[]) => void;
+	onNodesChange: (changes: NodeChange[]) => void;
+	onEdgesDelete: (edges: Edge[]) => void;
 };
 
 const nodeTypes: Record<NodeType, ComponentType<EditorNodeProps>> = {
@@ -26,11 +29,11 @@ const GraphEditor: FunctionComponent<GraphEditorProps> = memo(function WrappedFl
 	connections,
 	editorNodes,
 	graphNodes,
-	onConnect
+	onConnect,
+	onNodesChange,
+	onNodesDelete,
+	onEdgesDelete
 }) {
-
-	const onNodesChange = useCallback(() => {}, []);
-	const onEdgesChange = useCallback(() => {}, []);
 
 	// Validate Connection Directions and Types
 	const validateConnection = useCallback((conn: Connection) => {
@@ -49,11 +52,18 @@ const GraphEditor: FunctionComponent<GraphEditorProps> = memo(function WrappedFl
 		nodes.push({
 			id: editorNode.id,
 			position: {
-				x: editorNode?.x || 0,
-				y: editorNode?.y || 0
+				x: editorNode.x,
+				y: editorNode.y
 			},
+			deletable: graphNode.type === NodeType.Patcher,
+			draggable: graphNode.type === NodeType.Patcher,
+			selectable: graphNode.type === NodeType.Patcher,
+			selected: editorNode.selected,
 			type: graphNode?.type,
-			data: { node: graphNode }
+			data: {
+				contentHeight: editorNode.contentHeight,
+				node: graphNode
+			}
 		});
 	}
 
@@ -75,10 +85,12 @@ const GraphEditor: FunctionComponent<GraphEditorProps> = memo(function WrappedFl
 				isValidConnection={ validateConnection }
 				edges={ edges }
 				nodes={ nodes }
+				onEdgesDelete={ onEdgesDelete }
+				onNodesDelete={ onNodesDelete }
 				onNodesChange={ onNodesChange }
-				onEdgesChange={ onEdgesChange }
 				onConnect={ onConnect }
 				nodeTypes={ nodeTypes }
+				edgesUpdatable={ false }
 				fitView
 			>
 				<Controls />

@@ -6,9 +6,9 @@ import { AppThunk } from "../lib/store";
 import { oscQueryBridge } from "../controller/oscqueryBridgeController";
 import { showNotification } from "./notifications";
 import { NotificationLevel } from "../models/notification";
-import { GraphConnectionRecord, GraphPatcherNodeRecord, NodeType } from "../models/graph";
-import { getNodeByIndex, getPatcherNodesByIndex } from "../selectors/graph";
-import { deleteNode, setConnections, setNode } from "./graph";
+import { ConnectionType, GraphConnectionRecord, GraphPatcherNodeRecord, GraphPortRecord, GraphSystemNodeRecord, NodeType } from "../models/graph";
+import { getConnectionsForSinkNodeAndPort, getConnectionsForSourceNodeAndPort, getNode, getNodeByIndex, getPatcherNodesByIndex } from "../selectors/graph";
+import { deleteConnections, deleteNode, setConnections, setNode } from "./graph";
 import { MessageInportRecord, MessageOutputRecord } from "../models/messages";
 import throttle from "lodash.throttle";
 import { ParameterRecord } from "../models/parameter";
@@ -122,6 +122,57 @@ export const addRemoteInstance = (patcher: PatcherRecord): AppThunk =>
 			dispatch(showNotification({
 				level: NotificationLevel.error,
 				title: `Error while trying to load patcher ${patcher.name}`,
+				message: "Please check the consolor for further details."
+			}));
+			console.error(err);
+		}
+	};
+
+export const setInstanceSourcePortConnections = (device: GraphPatcherNodeRecord, port: GraphPortRecord, connections: GraphConnectionRecord[]): AppThunk =>
+	(dispatch) => {
+		try {
+			const message = {
+				address: `${device.path}/jack/connections/${port.type === ConnectionType.Audio ? "audio" : "midi"}/sources/${port.id}`,
+				args: connections.length ? connections.map(conn => {
+					const id = conn.sinkNodeId === GraphSystemNodeRecord.systemOutputName ? GraphSystemNodeRecord.systemName : conn.sinkNodeId;
+					return {
+						type: "s",
+						value: `${id}:${conn.sinkPortId}`
+					};
+				}) : [ { type: "N", value: "" } ]
+			};
+
+			oscQueryBridge.sendPacket(writePacket(message));
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: "Error while trying to update connections",
+				message: "Please check the consolor for further details."
+			}));
+			console.error(err);
+		}
+	};
+
+export const setInstanceSinkPortConnections = (device: GraphPatcherNodeRecord, port: GraphPortRecord, connections: GraphConnectionRecord[]): AppThunk =>
+	(dispatch) => {
+
+		try {
+			const message = {
+				address: `${device.path}/jack/connections/${port.type === ConnectionType.Audio ? "audio" : "midi"}/sinks/${port.id}`,
+				args: connections.length ? connections.map(conn => {
+					const id = conn.sourceNodeId === GraphSystemNodeRecord.systemInputName ? GraphSystemNodeRecord.systemName : conn.sourceNodeId;
+					return {
+						type: "s",
+						value: `${id}:${conn.sourcePortId}`
+					};
+				}) : [ { type: "N", value: "" } ]
+			};
+
+			oscQueryBridge.sendPacket(writePacket(message));
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: "Error while trying to update connections",
 				message: "Please check the consolor for further details."
 			}));
 			console.error(err);
@@ -303,6 +354,82 @@ export const updateInstanceParameterValueNormalized = (index: number, id: Parame
 			if (node?.type !== NodeType.Patcher) return;
 
 			dispatch(setNode(node.setParameterNormalizedValue(id, value)));
+		} catch (e) {
+			console.log(e);
+		}
+	};
+
+export const updateInstanceSourcePortConnections = (index: number, portId: GraphPortRecord["id"], sinks: string[]): AppThunk =>
+	(dispatch, getState) => {
+		try {
+			const state = getState();
+			const sourceNode = getNodeByIndex(state, index);
+			if (sourceNode?.type !== NodeType.Patcher) return;
+
+			const sourcePort = sourceNode.getPort(portId);
+			if (!sourcePort) return;
+
+			const existingConnections = getConnectionsForSourceNodeAndPort(state, { sourceNodeId: sourceNode.id, sourcePortId: sourcePort.id });
+			dispatch(deleteConnections(existingConnections.valueSeq().toArray()));
+
+			const connections = [];
+			for (const sink of sinks) {
+				const [sinkNodeId, sinkPortId] = sink.split(":");
+
+				const sinkNode = getNode(state, sinkNodeId === GraphSystemNodeRecord.systemName ? GraphSystemNodeRecord.systemOutputName : sinkNodeId);
+				if (!sinkNode) continue;
+				const sinkPort = sinkNode.getPort(sinkPortId);
+				if (!sinkPort) continue;
+
+				connections.push(new GraphConnectionRecord({
+					sourceNodeId: sourceNode.id,
+					sourcePortId: sourcePort.id,
+					sinkNodeId: sinkNode.id,
+					sinkPortId: sinkPort.id,
+					type: sourcePort.type
+				}));
+			}
+
+			if (connections.length) dispatch(setConnections(connections));
+		} catch (e) {
+			console.log(e);
+		}
+	};
+
+export const updateInstanceSinkPortConnections = (index: number, portId: GraphPortRecord["id"], sources: string[]): AppThunk =>
+	(dispatch, getState) => {
+		try {
+			const state = getState();
+			const sinkNode = getNodeByIndex(state, index);
+			if (sinkNode?.type !== NodeType.Patcher) return;
+
+			const sinkPort = sinkNode.getPort(portId);
+			if (!sinkPort) return;
+
+			const existingConnections = getConnectionsForSinkNodeAndPort(state, { sinkNodeId: sinkNode.id, sinkPortId: sinkPort.id });
+			dispatch(deleteConnections(existingConnections.valueSeq().toArray()));
+
+			const connections = [];
+			for (const source of sources) {
+				const [sourceNodeId, sourcePortId] = source.split(":");
+
+				const sourceNode = getNode(state, sourceNodeId === GraphSystemNodeRecord.systemName ? GraphSystemNodeRecord.systemInputName : sourceNodeId);
+				if (!sourceNode) continue;
+
+				const sourcePort = sinkNode.getPort(sourcePortId);
+				if (!sourcePort) continue;
+
+				connections.push(new GraphConnectionRecord({
+					sourceNodeId: sourceNode.id,
+					sourcePortId: sourcePort.id,
+					sinkNodeId: sinkNode.id,
+					sinkPortId: sinkPort.id,
+					type: sourcePort.type
+				}));
+			}
+
+			if (connections.length) dispatch(setConnections(connections));
+
 		} catch (e) {
 			console.log(e);
 		}

@@ -356,7 +356,6 @@ export class GraphSystemNodeRecord extends ImmuRecord<GraphSystemNodeProps>({
 export type GraphNodeRecord = GraphPatcherNodeRecord | GraphSystemNodeRecord;
 
 export type GraphConnectionProps = {
-	path: string;
 	sourceNodeId: string;
 	sourcePortId: string;
 	sinkNodeId: string;
@@ -365,8 +364,6 @@ export type GraphConnectionProps = {
 }
 
 export class GraphConnectionRecord extends ImmuRecord<GraphConnectionProps>({
-
-	path: "",
 
 	sourceNodeId: "",
 	sourcePortId: "",
@@ -395,7 +392,6 @@ export class GraphConnectionRecord extends ImmuRecord<GraphConnectionProps>({
 			const commonConnProps: Omit<GraphConnectionProps, "id" | "sinkNodeId" | "sinkPortId"> = {
 				sourceNodeId: nodeId,
 				sourcePortId: portId,
-				path: info.FULL_PATH,
 				type: ConnectionType.Audio
 			};
 
@@ -413,7 +409,6 @@ export class GraphConnectionRecord extends ImmuRecord<GraphConnectionProps>({
 			const commonConnProps: Omit<GraphConnectionProps, "id" | "sinkNodeId" | "sinkPortId"> = {
 				sourceNodeId: nodeId,
 				sourcePortId: portId,
-				path: info.FULL_PATH,
 				type: ConnectionType.MIDI
 			};
 
