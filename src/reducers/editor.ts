@@ -23,7 +23,7 @@ const getDefaultCoordinates = (graphNode: GraphNodeRecord, editorNode: EditorNod
 	}
 
 	return {
-		x: (graphNode.id === GraphSystemNodeRecord.systemInputName ? -1 : 1) * (editorNode.width + defaultNodeSpacing * 2),
+		x: (graphNode.id === GraphSystemNodeRecord.systemInputName ? -1 : 1) * (editorNode.width + defaultNodeSpacing * 3),
 		y: 0
 	};
 };
