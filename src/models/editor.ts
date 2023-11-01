@@ -10,8 +10,6 @@ export type EditorNodeRecordProps = {
 	y: number;
 }
 
-
-export const EditorNodeBaseHeight = 200;
 export class EditorNodeRecord extends ImmuRecord<EditorNodeRecordProps>({
 
 	id: "",
