@@ -5,7 +5,7 @@ import EditorPort from "./port";
 import classes from "./editor.module.css";
 import { ActionIcon, Paper } from "@mantine/core";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faGamepad } from "@fortawesome/free-solid-svg-icons";
+import { faGears } from "@fortawesome/free-solid-svg-icons";
 import Link from "next/link";
 import { useRouter } from "next/router";
 
@@ -35,7 +35,7 @@ const EditorPatcherNode: FunctionComponent<EditorNodeProps> = memo(function Wrap
 						size="md"
 						variant="transparent"
 					>
-						<FontAwesomeIcon icon={ faGamepad} />
+						<FontAwesomeIcon icon={ faGears } />
 					</ActionIcon>
 				</div>
 			</div>
