@@ -1,5 +1,4 @@
 import { ChangeEvent, MouseEvent, useCallback } from "react";
-import Link from "next/link";
 import { useAppDispatch, useAppSelector } from "../../hooks/useAppDispatch";
 import { RootStateType } from "../../lib/store";
 import { getNodeByIndex, getPatcherNodes } from "../../selectors/graph";
@@ -8,7 +7,7 @@ import { useRouter } from "next/router";
 import { Button, Group, NativeSelect, Stack } from "@mantine/core";
 import classes from "../../components/device/device.module.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArrowLeft, faGears, faTrash } from "@fortawesome/free-solid-svg-icons";
+import { faTrash, faVectorSquare } from "@fortawesome/free-solid-svg-icons";
 import { unloadPatcherFromRemoteInstance } from "../../actions/device";
 import { getSetting } from "../../selectors/settings";
 import { Setting } from "../../reducers/settings";
@@ -44,15 +43,10 @@ export default function Device() {
 
 	return (
 		<Stack className={ classes.deviceInstanceWrap } >
-			<div>
-				<Button variant="subtle" color="gray" component={ Link } href={{ pathname: "/", query: restQuery }} leftSection={ <FontAwesomeIcon icon={ faArrowLeft } /> } >
-					Back to Graph
-				</Button>
-			</div>
 			<Group justify="space-between" align="flex-end">
 				<NativeSelect
 					data={ devices.valueSeq().sortBy(n => n.index).toArray().map(d => ({ value: `${d.index}`, label: `${d.index}: ${d.patcher}` })) }
-					leftSection={ <FontAwesomeIcon icon={ faGears } /> }
+					leftSection={ <FontAwesomeIcon icon={ faVectorSquare } /> }
 					onChange={ onChangeDevice }
 					value={ currentDevice.index }
 				/>

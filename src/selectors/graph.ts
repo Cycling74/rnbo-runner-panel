@@ -23,6 +23,10 @@ export const getPatcherNodesByIndex = (state: RootStateType): ImmuMap<GraphPatch
 	});
 };
 
+export const getFirstPatcherNodeIndex = (state: RootStateType): number | undefined => {
+	return state.graph.patcherNodeIdByIndex.keySeq().sort().first();
+};
+
 export const getSystemNodes = (state: RootStateType): ImmuMap<GraphSystemNodeRecord["id"], GraphSystemNodeRecord> => {
 	return state.graph.nodes.filter(node => node.type === NodeType.System) as ImmuMap<GraphSystemNodeRecord["id"], GraphSystemNodeRecord>;
 };
