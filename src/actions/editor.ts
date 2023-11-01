@@ -154,7 +154,7 @@ export const removeEditorConnectionById = (id: GraphConnectionRecord["id"]): App
 				));
 			} else if (sinkNode.type === NodeType.Patcher) {
 				// Handle System Input connections by adjusting the connections on the sink node
-				const sinkPort = sourceNode.getPort(connection.sinkPortId);
+				const sinkPort = sinkNode.getPort(connection.sinkPortId);
 				if (!sinkPort) {
 					throw new Error(`Port with id ${connection.sinkPortId} does not exist on node ${sinkNode.id}.`);
 				}
