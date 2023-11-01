@@ -1,3 +1,12 @@
+.deviceNotFound {
+	align-items: center;
+	color: var(--mantine-color-dimmed);
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	height: 100%;
+}
+
 .deviceInstanceWrap {
 	height: 100%;
 	gap: var(--mantine-spacing-md);
@@ -43,3 +52,4 @@
 .paramListWrap {
 	flex: 1;
 }
+

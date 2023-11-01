@@ -65,7 +65,7 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 				<Menu position="bottom-end">
 					<Menu.Target>
 						<Button variant="default" size="xs" leftSection={ <FontAwesomeIcon icon={ faPlus } /> } >
-							Add Instance
+							Add Device
 						</Button>
 					</Menu.Target>
 					<Menu.Dropdown>

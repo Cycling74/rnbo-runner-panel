@@ -7,10 +7,13 @@ import { useRouter } from "next/router";
 import { Button, Group, NativeSelect, Stack } from "@mantine/core";
 import classes from "../../components/device/device.module.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faTrash, faVectorSquare } from "@fortawesome/free-solid-svg-icons";
+import { faDiagramProject, faTrash, faVectorSquare } from "@fortawesome/free-solid-svg-icons";
 import { unloadPatcherFromRemoteInstance } from "../../actions/device";
 import { getSetting } from "../../selectors/settings";
 import { Setting } from "../../reducers/settings";
+import { getAppStatus } from "../../selectors/appStatus";
+import { AppStatus } from "../../lib/constants";
+import Link from "next/link";
 
 export default function Device() {
 
@@ -23,6 +26,7 @@ export default function Device() {
 
 	const [
 		currentDevice,
+		appStatus,
 		devices,
 		enabledMessageOuput,
 		outputValues
@@ -31,6 +35,7 @@ export default function Device() {
 		const enabledMessageOuput = getSetting<boolean>(state, Setting.debugMessageOutput);
 		return [
 			currentDevice,
+			getAppStatus(state),
 			getPatcherNodes(state),
 			enabledMessageOuput,
 			currentDevice && enabledMessageOuput ? getPatcherNodeMessageOutputs(state, currentDevice.id) : undefined
@@ -46,7 +51,25 @@ export default function Device() {
 		push({ pathname: "/", query: restQuery });
 	}, [dispatch, currentDevice, push, restQuery]);
 
-	if (!isReady || !currentDevice) return null;
+	if (!isReady || appStatus !== AppStatus.Ready) return null;
+
+	if (!currentDevice) {
+		// Device not found / doesn't exist
+		return (
+			<div className={ classes.deviceNotFound } >
+				<h2>Device Not Found</h2>
+				<Button
+					component={ Link }
+					href={{ pathname: "/", query: restQuery }}
+					leftSection={ <FontAwesomeIcon icon={ faDiagramProject } /> }
+					variant="outline"
+					color="gray"
+				>
+					Back to Graph
+				</Button>
+			</div>
+		);
+	}
 
 	return (
 		<Stack className={ classes.deviceInstanceWrap } >
