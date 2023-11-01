@@ -14,10 +14,6 @@ const defaultNodeSpacing = 100;
 const getDefaultCoordinates = (graphNode: GraphNodeRecord, editorNode: EditorNodeRecord, nodes: EditorState["nodes"]): { x: number, y: number } => {
 
 	if (graphNode.type === NodeType.Patcher) {
-
-		const existingNode = nodes.find(n => n.id === editorNode.id);
-		if (existingNode) return { x: existingNode.x, y: existingNode.y };
-
 		const bottomNode: EditorNodeRecord | undefined = nodes.reduce((n, current) => {
 			if (current.type === NodeType.System) return n;
 			if (!n && current.type === NodeType.Patcher) return current;
@@ -106,20 +102,24 @@ export const editor = (state: EditorState = {
 				...state,
 				edges: ImmuMap<EditorEdgeRecord["id"], EditorEdgeRecord>().withMutations(map => {
 					for (const connection of connections) {
-						const edge = EditorEdgeRecord.create({ id: connection.id });
+						const edge = state.edges.get(connection.id) || EditorEdgeRecord.create({ id: connection.id });
 						map.set(edge.id, edge);
 					}
 				}),
 				nodes: ImmuMap<EditorNodeRecord["id"], EditorNodeRecord>().withMutations(map => {
 					for (const node of nodes) {
-						const edNode = EditorNodeRecord.create({
-							id: node.id,
-							type: node.type,
-							ports: node.ports
-						});
+						let editorNode = state.nodes.get(node.id);
+						if (!editorNode) {
+							editorNode = EditorNodeRecord.create({
+								id: node.id,
+								type: node.type,
+								ports: node.ports
+							});
+							const { x, y } = getDefaultCoordinates(node, editorNode, map);
+							editorNode = editorNode.updatePosition(x, y);
+						}
 
-						const { x, y } = getDefaultCoordinates(node, edNode, map);
-						map.set(edNode.id, edNode.updatePosition(x, y));
+						map.set(editorNode.id, editorNode);
 					}
 				})
 			};
