@@ -1,4 +1,4 @@
-import { writePacket } from "osc";
+import { OSCArgument, writePacket } from "osc";
 import { OSCQueryRNBOInstance, OSCQueryRNBOInstancePresetEntries, OSCValue } from "../lib/types";
 import { PresetRecord } from "../models/preset";
 import { PatcherRecord } from "../models/patcher";
@@ -181,10 +181,26 @@ export const setInstanceSinkPortConnections = (device: GraphPatcherNodeRecord, p
 
 
 export const sendMessageToRemoteInstanceInport = (instance: GraphPatcherNodeRecord, msgInport: MessageInportRecord, value: string): AppThunk =>
-	() => {
+	(dispatch) => {
+		const values = value.split(" ").reduce((values, v) => {
+			const fv = parseFloat(v.replaceAll(",", ".").trim());
+			if (!isNaN(fv)) values.push({ type: "f", value: fv });
+			return values;
+		}, [] as OSCArgument[]);
+
+		if (!values.length) {
+			dispatch(showNotification({
+				title: "Invalid Message Input",
+				level: NotificationLevel.warn,
+				message: `Could not send message input "${value}" as it appears to contain non-valid number input. Please provide a single or multiple numbers separated by a space.`
+			}));
+			return;
+		}
+
+
 		const message = {
 			address: `/rnbo/inst/${instance.index}/messages/in/${msgInport.name}`,
-			args: [{ type: "s", value }] // values.map(value => ({ type: "f", value }))
+			args: values
 		};
 		oscQueryBridge.sendPacket(writePacket(message));
 	};
