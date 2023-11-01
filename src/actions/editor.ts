@@ -87,7 +87,7 @@ export const makeEditorConnection = (connection: Connection): AppThunk =>
 			}
 
 			if (sourceNode.type === NodeType.System && sinkNode.type === NodeType.System) {
-				// TODO
+				// TODO: Discuss whether we allow passthrough
 			} else if (sourceNode.type === NodeType.Patcher) {
 				const connections = getConnectionsForSourceNodeAndPort(state, { sourceNodeId: sourceNode.id, sourcePortId: sourcePort.id }).toArray();
 				connections.push(new GraphConnectionRecord({
@@ -140,8 +140,7 @@ export const removeEditorConnectionById = (id: GraphConnectionRecord["id"]): App
 			}
 
 			if (sourceNode.type === NodeType.System && sinkNode.type === NodeType.System) {
-				// TODO
-
+				// TODO: Discuss whether we allow passthrough
 			} else if (sourceNode.type === NodeType.Patcher) {
 				const sourcePort = sourceNode.getPort(connection.sourcePortId);
 				if (!sourcePort) {
