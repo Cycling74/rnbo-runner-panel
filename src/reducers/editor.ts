@@ -14,6 +14,10 @@ const defaultNodeSpacing = 100;
 const getDefaultCoordinates = (graphNode: GraphNodeRecord, editorNode: EditorNodeRecord, nodes: EditorState["nodes"]): { x: number, y: number } => {
 
 	if (graphNode.type === NodeType.Patcher) {
+
+		const existingNode = nodes.find(n => n.id === editorNode.id);
+		if (existingNode) return { x: existingNode.x, y: existingNode.y };
+
 		const bottomNode: EditorNodeRecord | undefined = nodes.reduce((n, current) => {
 			if (current.type === NodeType.System) return n;
 			if (!n && current.type === NodeType.Patcher) return current;
