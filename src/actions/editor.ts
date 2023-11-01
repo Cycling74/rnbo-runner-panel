@@ -1,4 +1,4 @@
-import { Connection, Edge, Node, NodeChange } from "reactflow";
+import { Connection, Edge, EdgeChange, Node, NodeChange } from "reactflow";
 import { ActionBase, AppThunk } from "../lib/store";
 import { showNotification } from "./notifications";
 import { NotificationLevel } from "../models/notification";
@@ -11,7 +11,9 @@ import { setInstanceSourcePortConnections, setInstanceSinkPortConnections, unloa
 export enum EditorActionType {
 	POSITION_NODE = "POSITION_NODE",
 	SELECT_NODE = "SELECT_NODE",
-	UNSELECT_NODE = "UNSELECT_NODE"
+	UNSELECT_NODE = "UNSELECT_NODE",
+	SELECT_EDGE = "SELECT_EDGE",
+	UNSELECT_EDGE = "UNSELECT_EDGE"
 }
 
 export interface IPositionNode extends ActionBase {
@@ -37,7 +39,21 @@ export interface IUnselectNode extends ActionBase {
 	};
 }
 
-export type EditorAction = IPositionNode | ISelectNode | IUnselectNode;
+export interface ISelectEgde extends ActionBase {
+	type: EditorActionType.SELECT_EDGE;
+	payload: {
+		id: EditorNodeRecord["id"];
+	};
+}
+
+export interface IUnselectEdge extends ActionBase {
+	type: EditorActionType.UNSELECT_EDGE;
+	payload: {
+		id: EditorNodeRecord["id"];
+	};
+}
+
+export type EditorAction = IPositionNode | ISelectNode | IUnselectNode | ISelectEgde | IUnselectEdge;
 
 export const makeEditorConnection = (connection: Connection): AppThunk =>
 	(dispatch, getState) => {
@@ -187,14 +203,14 @@ export const removeEditorNodeById = (id: EditorNodeRecord["id"]): AppThunk =>
 		}
 	};
 
-export const removeEditorNodes = (nodes: Node[]): AppThunk =>
+export const removeEditorNodes = (nodes: Pick<Node, "id">[]): AppThunk =>
 	(dispatch) => {
 		for (const node of nodes) {
 			dispatch(removeEditorNodeById(node.id));
 		}
 	};
 
-export const removeEditorEdges = (edges: Edge[]): AppThunk =>
+export const removeEditorEdges = (edges: Pick<Edge, "id">[]): AppThunk =>
 	(dispatch) => {
 		for (const edge of edges) {
 			dispatch(removeEditorConnectionById(edge.id));
@@ -212,6 +228,13 @@ export const changeNodePosition = (id: EditorNodeRecord["id"], x: number, y: num
 
 export const changeNodeSelection = (id: EditorNodeRecord["id"], selected: boolean): ISelectNode | IUnselectNode => ({
 	type: selected ? EditorActionType.SELECT_NODE : EditorActionType.UNSELECT_NODE,
+	payload: {
+		id
+	}
+});
+
+export const changeEdgeSelection = (id: EditorNodeRecord["id"], selected: boolean): ISelectEgde | IUnselectEdge => ({
+	type: selected ? EditorActionType.SELECT_EDGE : EditorActionType.UNSELECT_EDGE,
 	payload: {
 		id
 	}
@@ -241,6 +264,24 @@ export const applyEditorNodeChanges = (changes: NodeChange[]): AppThunk =>
 				case "add":
 				case "reset":
 				case "dimensions":
+				default:
+					// no-op
+			}
+		}
+	};
+
+export const applyEditorEdgeChanges = (changes: EdgeChange[]): AppThunk =>
+	(dispatch) => {
+		for (const change of changes) {
+			switch (change.type) {
+				case "select": {
+					dispatch(changeEdgeSelection(change.id, change.selected));
+					break;
+				}
+
+				case "remove": // handled separetely via dedicated action
+				case "add":
+				case "reset":
 				default:
 					// no-op
 			}

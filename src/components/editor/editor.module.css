@@ -28,6 +28,12 @@
 	}
 }
 
+.edgeLabel {
+	cursor: pointer;
+	position: absolute;
+	pointer-events: all;
+}
+
 .editor {
 	flex: 1;
 

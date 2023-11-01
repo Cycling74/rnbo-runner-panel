@@ -79,3 +79,30 @@ export class EditorNodeRecord extends ImmuRecord<EditorNodeRecordProps>({
 		return this.set("selected", !this.selected);
 	}
 }
+
+export type EditorEdgeRecordProps = {
+	id: string;
+	selected: boolean;
+}
+
+export class EditorEdgeRecord extends ImmuRecord<EditorEdgeRecordProps>({
+	id: "",
+	selected: false
+}) {
+
+	public static create({ id, selected = false }: Pick<EditorEdgeRecordProps, "id"> & { selected?: boolean }): EditorEdgeRecord {
+		return new EditorEdgeRecord({ id, selected });
+	}
+
+	public select(): EditorEdgeRecord {
+		return this.set("selected", true);
+	}
+
+	public unselect(): EditorEdgeRecord {
+		return this.set("selected", false);
+	}
+
+	public toggleSelect(): EditorEdgeRecord {
+		return this.set("selected", !this.selected);
+	}
+}

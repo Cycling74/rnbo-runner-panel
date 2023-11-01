@@ -1,10 +1,11 @@
 import { Map as ImmuMap } from "immutable";
 import { GraphAction, GraphActionType } from "../actions/graph";
-import { EditorNodeRecord } from "../models/editor";
+import { EditorEdgeRecord, EditorNodeRecord } from "../models/editor";
 import { GraphNodeRecord, GraphSystemNodeRecord, NodeType } from "../models/graph";
 import { EditorAction, EditorActionType } from "../actions/editor";
 
 export interface EditorState {
+	edges: ImmuMap<EditorEdgeRecord["id"], EditorEdgeRecord>,
 	nodes: ImmuMap<EditorNodeRecord["id"], EditorNodeRecord>;
 }
 
@@ -30,6 +31,7 @@ const getDefaultCoordinates = (graphNode: GraphNodeRecord, editorNode: EditorNod
 
 export const editor = (state: EditorState = {
 
+	edges: ImmuMap<EditorEdgeRecord["id"], EditorEdgeRecord>(),
 	nodes: ImmuMap<EditorNodeRecord["id"], EditorNodeRecord>()
 
 }, action: GraphAction | EditorAction): EditorState => {
@@ -70,12 +72,40 @@ export const editor = (state: EditorState = {
 			};
 		}
 
-		// Device Graph Actions
-		case GraphActionType.INIT: {
-			const { nodes } = action.payload;
+		case EditorActionType.SELECT_EDGE: {
+			const { id } = action.payload;
+			const edge = state.edges.get(id);
+			if (!edge) return state;
 
 			return {
 				...state,
+				edges: state.edges.set(edge.id, edge.select())
+			};
+		}
+
+		case EditorActionType.UNSELECT_EDGE: {
+			const { id } = action.payload;
+			const edge = state.edges.get(id);
+			if (!edge) return state;
+
+			return {
+				...state,
+				edges: state.edges.set(edge.id, edge.unselect())
+			};
+		}
+
+		// Device Graph Actions
+		case GraphActionType.INIT: {
+			const { connections, nodes } = action.payload;
+
+			return {
+				...state,
+				edges: ImmuMap<EditorEdgeRecord["id"], EditorEdgeRecord>().withMutations(map => {
+					for (const connection of connections) {
+						const edge = EditorEdgeRecord.create({ id: connection.id });
+						map.set(edge.id, edge);
+					}
+				}),
 				nodes: ImmuMap<EditorNodeRecord["id"], EditorNodeRecord>().withMutations(map => {
 					for (const node of nodes) {
 						const edNode = EditorNodeRecord.create({
@@ -139,6 +169,47 @@ export const editor = (state: EditorState = {
 
 						const { x, y } = getDefaultCoordinates(node, edNode, map);
 						map.set(edNode.id, edNode.updatePosition(x, y));
+					}
+				})
+			};
+		}
+
+		case GraphActionType.DELETE_CONNECTION: {
+			const { connection } = action.payload;
+			return {
+				...state,
+				edges: state.edges.delete(connection.id)
+			};
+		}
+
+		case GraphActionType.DELETE_CONNECTIONS: {
+			const { connections } = action.payload;
+			const edgeIds = connections.map(c => c.id);
+			return {
+				...state,
+				edges: state.edges.deleteAll(edgeIds)
+			};
+		}
+
+		case GraphActionType.SET_CONNECTION: {
+			const { connection } = action.payload;
+
+			const edge = EditorEdgeRecord.create({ id: connection.id });
+			return {
+				...state,
+				edges: state.edges.set(edge.id, edge)
+			};
+		}
+
+		case GraphActionType.SET_CONNECTIONS: {
+			const { connections } = action.payload;
+
+			return {
+				...state,
+				edges: state.edges.withMutations(map => {
+					for (const connection of connections) {
+						const edge = EditorEdgeRecord.create({ id: connection.id });
+						map.set(edge.id, edge);
 					}
 				})
 			};

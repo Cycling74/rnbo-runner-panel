@@ -7,10 +7,10 @@ import { addRemoteInstance } from "../actions/device";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import { getConnections, getNodes } from "../selectors/graph";
-import { getEditorNodes } from "../selectors/editor";
+import { getEditorNodes, getEditorEdges } from "../selectors/editor";
 import GraphEditor from "../components/editor";
-import { Connection, Edge, Node, NodeChange } from "reactflow";
-import { applyEditorNodeChanges, makeEditorConnection, removeEditorEdges, removeEditorNodes } from "../actions/editor";
+import { Connection, Edge, EdgeChange, Node, NodeChange } from "reactflow";
+import { applyEditorEdgeChanges, applyEditorNodeChanges, makeEditorConnection, removeEditorEdges, removeEditorNodes } from "../actions/editor";
 
 const Index: FunctionComponent<Record<string, never>> = () => {
 
@@ -18,13 +18,15 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 	const [
 		patchers,
 		graphNodes,
+		graphConnections,
 		editorNodes,
-		connections
+		editorEdges
 	] = useAppSelector((state: RootStateType) => [
 		getPatchers(state),
 		getNodes(state),
+		getConnections(state),
 		getEditorNodes(state),
-		getConnections(state)
+		getEditorEdges(state)
 	]);
 
 	const onAddInstance = useCallback((e: MouseEvent<HTMLButtonElement>) => {
@@ -45,11 +47,15 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 		dispatch(applyEditorNodeChanges(changes));
 	}, [dispatch]);
 
-	const onNodesDelete = useCallback((nodes: Node[]) => {
+	const onNodesDelete = useCallback((nodes: Pick<Node, "id">[]) => {
 		dispatch(removeEditorNodes(nodes));
 	}, [dispatch]);
 
-	const onEdgesDelete = useCallback((edges: Edge[]) => {
+	const onEdgesChange = useCallback((changes: EdgeChange[]) => {
+		dispatch(applyEditorEdgeChanges(changes));
+	}, [dispatch]);
+
+	const onEdgesDelete = useCallback((edges: Pick<Edge, "id">[]) => {
 		dispatch(removeEditorEdges(edges));
 	}, [dispatch]);
 
@@ -76,11 +82,13 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 			</Group>
 			<GraphEditor
 				graphNodes={ graphNodes }
+				graphConnections={ graphConnections }
 				editorNodes={ editorNodes }
-				connections={ connections }
+				editorEdges= { editorEdges }
 				onConnect={ onConnectNodes }
 				onNodesChange={ onNodesChange }
 				onNodesDelete={ onNodesDelete }
+				onEdgesChange={ onEdgesChange }
 				onEdgesDelete={ onEdgesDelete }
 			/>
 		</Stack>
