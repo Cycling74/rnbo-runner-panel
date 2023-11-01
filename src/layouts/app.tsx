@@ -6,6 +6,7 @@ import classes from "./app.module.css";
 import { useDisclosure } from "@mantine/hooks";
 import AppNav from "../components/nav";
 import { useRouter } from "next/router";
+import AppStatusWrapper from "../components/page/statusWrapper";
 
 export const AppLayout: React.FC<PropsWithChildren> = ({ children }) => {
 
@@ -26,9 +27,11 @@ export const AppLayout: React.FC<PropsWithChildren> = ({ children }) => {
 			<Header navOpen={ navOpen } onToggleNav={ toggleNav } />
 			<AppNav />
 			<AppShell.Main className={ classes.main } >
-				<div className={ classes.wrapper } >
-					{ children }
-				</div>
+				<AppStatusWrapper>
+					<div className={ classes.wrapper } >
+						{ children }
+					</div>
+				</AppStatusWrapper>
 			</AppShell.Main>
 		</AppShell>
 	);

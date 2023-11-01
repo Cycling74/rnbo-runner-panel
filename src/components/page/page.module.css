@@ -12,5 +12,28 @@
 	font-size: var(--mantine-font-size-xs);
 	max-width: 100%;
 	width: 450px;
+}
 
+.appStatus {
+	align-items: center;
+	display: flex;
+	justify-content: center;
+	flex-direction: column;
+	gap: var(--mantine-spacing-md);
+	height: 100%;
+
+	&[data-status="connecting"],
+	&[data-status="initializingstate"],
+	&[data-status="reconnecting"],
+	&[data-status="resyncingstate"] {
+		color: var(--mantine-color-dimmed);
+	}
+
+	&[data-status="closed"] {
+		color: var(--mantine-color-yellow-7);
+	}
+
+	&[data-status="error"] {
+		color: var(--mantine-color-red-7);
+	}
 }

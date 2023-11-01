@@ -1,8 +1,11 @@
 import React, { FunctionComponent, memo } from "react";
-import { AppShell, Burger, Group } from "@mantine/core";
-import Status from "./status";
+import { ActionIcon, AppShell, Burger, Group } from "@mantine/core";
 import classes from "./header.module.css";
 import { useThemeColorScheme } from "../../hooks/useTheme";
+import { faSatelliteDish } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { useAppDispatch } from "../../hooks/useAppDispatch";
+import { toggleEndpointInfo } from "../../actions/appStatus";
 
 export type HeaderProps = {
 	navOpen: boolean;
@@ -15,6 +18,8 @@ export const Header: FunctionComponent<HeaderProps> = memo(function WrappedHeade
 }) {
 
 	const scheme = useThemeColorScheme();
+	const dispatch = useAppDispatch();
+	const onToggleEndpointInfo = () => dispatch(toggleEndpointInfo());
 
 	return (
 		<AppShell.Header>
@@ -24,7 +29,9 @@ export const Header: FunctionComponent<HeaderProps> = memo(function WrappedHeade
 					<img src={ scheme === "light" ? "/c74-dark.svg" : "/c74-light.svg" } />
 				</Group>
 				<Group justify="end" align="center">
-					<Status />
+					<ActionIcon variant="outline" color="gray" onClick={ onToggleEndpointInfo } >
+						<FontAwesomeIcon icon={ faSatelliteDish } />
+					</ActionIcon>
 				</Group>
 			</Group>
 		</AppShell.Header>

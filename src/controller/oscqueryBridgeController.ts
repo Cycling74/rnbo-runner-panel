@@ -12,10 +12,10 @@ import {
 	updateInstanceSinkPortConnections,
 	updateInstanceSourcePortConnections
 } from "../actions/device";
-import { setConnectionStatus } from "../actions/network";
+import { setAppStatus, setConnectionEndpoint } from "../actions/appStatus";
 import { AppDispatch, store } from "../lib/store";
 import { ReconnectingWebsocket } from "../lib/reconnectingWs";
-import { WebSocketState } from "../lib/constants";
+import { AppStatus } from "../lib/constants";
 import { OSCQueryRNBOInstance, OSCQueryRNBOInstancesState, OSCQueryRNBOJackPortInfo, OSCQueryRNBOPatchersState, OSCValue } from "../lib/types";
 import { initGraph } from "../actions/graph";
 import { initPatchers } from "../actions/patchers";
@@ -67,26 +67,6 @@ export class OSCQueryBridgeControllerPrivate {
 		});
 	}
 
-	private get readyState(): WebSocketState {
-		return this._ws?.readyState || WebSocketState.CLOSED;
-	}
-
-	private _onClose = (evt: ErrorEvent) => {
-		dispatch(setConnectionStatus(this.readyState));
-	};
-
-	private _onError = (evt: ErrorEvent) => {
-		dispatch(setConnectionStatus(this.readyState));
-	};
-
-	private _onReconnecting = () => {
-		dispatch(setConnectionStatus(this.readyState));
-	};
-
-	private _onReconnected = () => {
-		dispatch(setConnectionStatus(this.readyState));
-	};
-
 	private async _init() {
 
 		// Fetch Patcher Info
@@ -101,7 +81,27 @@ export class OSCQueryBridgeControllerPrivate {
 
 		// Initialize RNBO Graph
 		dispatch(initGraph(jackPortsInfo, instancesInfo));
+
+		// Set Init App Status
+		dispatch(setAppStatus(AppStatus.Ready));
 	}
+
+	private _onClose = (evt: ErrorEvent) => {
+		dispatch(setAppStatus(AppStatus.Closed, new Error("The connection to the RNBO Runner was closed")));
+	};
+
+	private _onError = (evt: ErrorEvent) => {
+		dispatch(setAppStatus(AppStatus.Error, new Error(`The connection to the RNBO Runner encountered an error ${evt.error.message}`)));
+	};
+
+	private _onReconnecting = () => {
+		dispatch(setAppStatus(AppStatus.Reconnecting));
+	};
+
+	private _onReconnected = () => {
+		dispatch(setAppStatus(AppStatus.ResyncingState));
+		this._init();
+	};
 
 	private _onMessage = async (evt: MessageEvent): Promise<void> => {
 		try {
@@ -116,39 +116,6 @@ export class OSCQueryBridgeControllerPrivate {
 				} else if (isCommand && data.COMMAND === OSCQueryCommand.PATH_REMOVED) {
 					await this._onPathRemoved(data.DATA as string);
 				}
-
-				// const pathisstring = typeof data.FULL_PATH === "string";
-				// if (pathisstring && data.FULL_PATH === "/rnbo/inst/0" && (typeof data.CONTENTS !== "undefined")) {
-				// 	// brand new device
-				// 	dispatch(initializeDevice(data));
-				// } else if (pathisstring && data.FULL_PATH === "/rnbo/patchers" && (typeof data.CONTENTS !== "undefined")) {
-				// 	dispatch(initializePatchers(data));
-				// } else if (pathisstring && data.FULL_PATH === "/rnbo/inst/0/name") {
-				// 	dispatch(setSelectedPatcher(data.VALUE));
-				// } else
-				// if (pathisstring && data.FULL_PATH.startsWith("/rnbo/inst/0/params")) {
-
-				// 	// individual parameter
-				// 	const paramMatcher = /\/rnbo\/inst\/0\/params\/(\S+)/;
-				// 	const matches = data.FULL_PATH.match(paramMatcher);
-
-				// 	// If it's a new parameter, fetch its data
-				// 	if (matches) {
-				// 		const paramPath = matches[1];
-				// 		// const params = ParameterRecord.arrayFromDescription(data, paramPath);
-				// 		// if (params.length) dispatch(setEntity(EntityType.ParameterRecord, params[0]));
-				// 	}
-				// // need to add cond to check for preset and then set entity
-				// } else if (pathisstring && data.FULL_PATH === "/rnbo/inst/0/presets/entries") {
-				// 	dispatch(updatePresets(data.VALUE));
-				// } else if (typeof data.COMMAND === "string" && data.COMMAND === "PATH_ADDED") {
-				// 	this._onPathAdded(data.DATA);
-				// } else if (typeof data.COMMAND === "string" && data.COMMAND === "PATH_REMOVED") {
-				// 	this._onPathRemoved(data.DATA);
-				// } else {
-				// 	// unhandled message
-				// 	// console.log("unhandled", { data });
-				// }
 			} else {
 				const buf: Uint8Array = await evt.data.arrayBuffer();
 				const data = readPacket(buf, {});
@@ -346,22 +313,20 @@ export class OSCQueryBridgeControllerPrivate {
 
 		this._ws = new ReconnectingWebsocket({ hostname, port });
 		try {
+			dispatch(setConnectionEndpoint(hostname, port));
 			await this._ws.connect();
+			dispatch(setAppStatus(AppStatus.InitializingState));
 
 			this._ws.on("close", this._onClose);
 			this._ws.on("error", this._onError);
-			// this._ws.on("reconnecting", this._onReconnecting);
-			// this._ws.on("reconnect", this._onReconnected);
-			// this._ws.on("reconnect_failed", this._onClose);
+			this._ws.on("reconnecting", this._onReconnecting);
+			this._ws.on("reconnect", this._onReconnected);
+			this._ws.on("reconnect_failed", this._onClose);
 			this._ws.on("message", this._onMessage);
 
-			// Update Connection Status
-			dispatch(setConnectionStatus(this.readyState));
 			await this._init();
 		} catch (err) {
-			// Update Connection Status
-			dispatch(setConnectionStatus(this.readyState));
-
+			dispatch(setAppStatus(AppStatus.Error, new Error(`Failed to connect to start up: ${err.message}`)));
 			// Rethrow error
 			throw err;
 		}

@@ -21,6 +21,7 @@ import { PageSettings } from "../components/page/settings";
 import { PageTheme } from "../components/page/theme";
 import Notifications from "../components/notifications";
 import Settings from "../components/settings";
+import EndpointInfo from "../components/page/endpoint";
 
 function App({ Component, pageProps }: AppProps) {
 
@@ -39,8 +40,9 @@ function App({ Component, pageProps }: AppProps) {
 						<title>RNBO</title>
 					</Head>
 					<Notifications />
+					<Settings />
+					<EndpointInfo />
 					<AppLayout>
-						<Settings />
 						<Component {...pageProps} />
 					</AppLayout>
 				</PageTheme>

@@ -14,6 +14,7 @@ import { getFirstPatcherNodeIndex } from "../../selectors/graph";
 const AppNav: FunctionComponent = memo(function WrappedNav() {
 
 	const { pathname, query } = useRouter();
+
 	const dispatch = useAppDispatch();
 	const onToggleSettings = useCallback(() => dispatch(toggleShowSettings()), [dispatch]);
 	const [
@@ -24,6 +25,9 @@ const AppNav: FunctionComponent = memo(function WrappedNav() {
 		getFirstPatcherNodeIndex(state)
 	]);
 
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	const { index, ...restQuery } = query; // slurp out potential index query element for a clean query
+
 	return (
 		<AppShell.Navbar>
 			<Stack className={ classes.navWrapper } >
@@ -31,13 +35,13 @@ const AppNav: FunctionComponent = memo(function WrappedNav() {
 					<NavLink
 						icon={ faDiagramProject }
 						label="Graph Editor"
-						href={{ pathname: "/", query }}
+						href={{ pathname: "/", query: restQuery }}
 						isActive={ pathname === "/" }
 					/>
 					<NavLink
 						icon={ faVectorSquare }
 						label="Device Control"
-						href={{ pathname: "/devices/[index]", query: { ...query, index: deviceIndex } }}
+						href={{ pathname: "/devices/[index]", query: { ...restQuery, index: deviceIndex } }}
 						isActive={ pathname === "/devices/[index]" }
 					/>
 				</Stack>

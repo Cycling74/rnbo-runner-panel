@@ -5,6 +5,16 @@ export enum WebSocketState {
 	CLOSED = 3
 }
 
+export enum AppStatus {
+	Connecting,
+	InitializingState,
+	Ready,
+	Reconnecting,
+	ResyncingState,
+	Closed,
+	Error
+}
+
 export enum DeviceTab {
 	MessagePorts = "msg",
 	MIDI = "midi",
