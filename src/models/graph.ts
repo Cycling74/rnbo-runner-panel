@@ -1,6 +1,6 @@
 
 import { Record as ImmuRecord, Map as ImmuMap } from "immutable";
-import { OSCQueryRNBOInstance, OSCQueryRNBOInstanceConnections, OSCQueryRNBOInstancePresetEntries, OSCQueryRNBOJackPortInfo, OSCValue } from "../lib/types";
+import { OSCQueryRNBOInstance, OSCQueryRNBOInstanceConnections, OSCQueryRNBOInstancePresetEntries, OSCQueryRNBOJackPortInfo } from "../lib/types";
 import { ParameterRecord } from "./parameter";
 import { MessageInportRecord, MessageOutputRecord } from "./messages";
 import { PresetRecord } from "./preset";
@@ -94,14 +94,6 @@ export class GraphPatcherNodeRecord extends ImmuRecord<GraphPatcherNodeProps>({
 
 	public get type(): NodeType.Patcher {
 		return NodeType.Patcher;
-	}
-
-	public setMessageOutportValue(id: MessageOutputRecord["id"], value: OSCValue | OSCValue[]): GraphPatcherNodeRecord {
-		const outport = this.messageOutputs.get(id);
-		if (!outport) return this;
-
-		return this.set("messageOutputs", this.messageOutputs.set(outport.id, outport.setLastValue(value)));
-
 	}
 
 	public setParameterValue(id: ParameterRecord["id"], value: number): GraphPatcherNodeRecord {

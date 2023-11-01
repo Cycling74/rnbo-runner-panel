@@ -1,7 +1,7 @@
 import { ChangeEvent, MouseEvent, useCallback } from "react";
 import { useAppDispatch, useAppSelector } from "../../hooks/useAppDispatch";
 import { RootStateType } from "../../lib/store";
-import { getNodeByIndex, getPatcherNodes } from "../../selectors/graph";
+import { getNodeByIndex, getPatcherNodeMessageOutputs, getPatcherNodes } from "../../selectors/graph";
 import DeviceInstance from "../../components/device";
 import { useRouter } from "next/router";
 import { Button, Group, NativeSelect, Stack } from "@mantine/core";
@@ -20,15 +20,22 @@ export default function Device() {
 	const deviceIndex = parseInt(Array.isArray(index) ? index.join("") : index || "0", 10);
 
 	const dispatch = useAppDispatch();
+
 	const [
 		currentDevice,
 		devices,
-		enabledMessageOuput
-	] = useAppSelector((state: RootStateType) => [
-		getNodeByIndex(state, deviceIndex),
-		getPatcherNodes(state),
-		getSetting(state, Setting.debugMessageOutput)
-	]);
+		enabledMessageOuput,
+		outputValues
+	] = useAppSelector((state: RootStateType) => {
+		const currentDevice = getNodeByIndex(state, deviceIndex);
+		const enabledMessageOuput = getSetting<boolean>(state, Setting.debugMessageOutput);
+		return [
+			currentDevice,
+			getPatcherNodes(state),
+			enabledMessageOuput,
+			currentDevice && enabledMessageOuput ? getPatcherNodeMessageOutputs(state, currentDevice.id) : undefined
+		];
+	});
 
 	const onChangeDevice = useCallback((e: ChangeEvent<HTMLSelectElement>) => {
 		push({ pathname, query: { ...query, index: e.currentTarget.value } });
@@ -54,7 +61,11 @@ export default function Device() {
 					<FontAwesomeIcon icon={ faTrash } />
 				</Button>
 			</Group>
-			<DeviceInstance device={ currentDevice } enabledMessageOuput={ enabledMessageOuput } />
+			<DeviceInstance
+				device={ currentDevice }
+				enabledMessageOuput={ enabledMessageOuput }
+				messageOuputValues={ outputValues }
+			/>
 		</Stack>
 	);
 }

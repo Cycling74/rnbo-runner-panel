@@ -1,3 +1,4 @@
+import { Map as ImmuMap } from "immutable";
 import { Tabs } from "@mantine/core";
 import { FunctionComponent, memo, useCallback } from "react";
 import { DeviceTab } from "../../lib/constants";
@@ -5,7 +6,7 @@ import { GraphPatcherNodeRecord } from "../../models/graph";
 import { useAppDispatch } from "../../hooks/useAppDispatch";
 import { sendMessageToRemoteInstanceInport } from "../../actions/device";
 import MessageInportList from "../messages/inportList";
-import { MessageInportRecord } from "../../models/messages";
+import { MessageInportRecord, MessageOutputRecord } from "../../models/messages";
 import { SectionTitle } from "../page/sectionTitle";
 import MessageOutportList from "../messages/outportList";
 import classes from "./device.module.css";
@@ -13,11 +14,13 @@ import classes from "./device.module.css";
 export type DeviceMessageTabProps = {
 	device: GraphPatcherNodeRecord;
 	outputEnabled: boolean;
+	messageOuputValues?: ImmuMap<MessageOutputRecord["id"], string>;
 }
 
 const DeviceMessagesTab: FunctionComponent<DeviceMessageTabProps> = memo(function WrappedDeviceMessagesTab({
 	device,
-	outputEnabled
+	outputEnabled,
+	messageOuputValues
 }) {
 
 	const dispatch = useAppDispatch();
@@ -45,7 +48,7 @@ const DeviceMessagesTab: FunctionComponent<DeviceMessageTabProps> = memo(functio
 					<div className={ classes.disabledMessageOutput } >
 						Message output monitoring is currently disabled. Enable it in the settings in order to display the output values.
 					</div>
-				) : <MessageOutportList outports={ device.messageOutputs } />
+				) : <MessageOutportList outports={ device.messageOutputs } values={ messageOuputValues } />
 			}
 		</Tabs.Panel>
 	);

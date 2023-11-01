@@ -8,7 +8,7 @@ import { showNotification } from "./notifications";
 import { NotificationLevel } from "../models/notification";
 import { ConnectionType, GraphConnectionRecord, GraphPatcherNodeRecord, GraphPortRecord, GraphSystemNodeRecord, NodeType } from "../models/graph";
 import { getConnectionsForSinkNodeAndPort, getConnectionsForSourceNodeAndPort, getNode, getNodeByIndex, getPatcherNodesByIndex } from "../selectors/graph";
-import { deleteConnections, deleteNode, setConnections, setNode } from "./graph";
+import { deleteConnections, deleteNode, setConnections, setNode, setNodeMessageOutportValue } from "./graph";
 import { MessageInportRecord, MessageOutputRecord } from "../models/messages";
 import throttle from "lodash.throttle";
 import { ParameterRecord } from "../models/parameter";
@@ -309,8 +309,11 @@ export const updateInstanceMessageOutputValue = (index: number, id: MessageOutpu
 
 			const node = getNodeByIndex(state, index);
 			if (node?.type !== NodeType.Patcher) return;
-
-			dispatch(setNode(node.setMessageOutportValue(id, value)));
+			dispatch(setNodeMessageOutportValue(
+				node.id,
+				id,
+				Array.isArray(value) ? value.join(", ") : `${value}`
+			));
 		} catch (e) {
 			console.log(e);
 		}

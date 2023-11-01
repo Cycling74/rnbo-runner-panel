@@ -1,11 +1,13 @@
 import { Map as ImmuMap } from "immutable";
 import { GraphAction, GraphActionType } from "../actions/graph";
 import { GraphConnectionRecord, GraphNodeRecord, GraphPatcherNodeRecord, NodeType } from "../models/graph";
+import { MessageOutputRecord } from "../models/messages";
 
 export interface GraphState {
 
 	connections: ImmuMap<GraphConnectionRecord["id"], GraphConnectionRecord>;
 	nodes: ImmuMap<GraphNodeRecord["id"], GraphNodeRecord>;
+	outportValues: ImmuMap<GraphPatcherNodeRecord["id"], ImmuMap<MessageOutputRecord["id"], string>>,
 	patcherNodeIdByIndex: ImmuMap<GraphPatcherNodeRecord["index"], GraphPatcherNodeRecord["id"]>;
 
 }
@@ -14,6 +16,7 @@ export const graph = (state: GraphState = {
 
 	connections: ImmuMap<GraphConnectionRecord["id"], GraphConnectionRecord>(),
 	nodes: ImmuMap<GraphNodeRecord["id"], GraphNodeRecord>(),
+	outportValues: ImmuMap<GraphPatcherNodeRecord["id"], ImmuMap<MessageOutputRecord["id"], string>>(),
 	patcherNodeIdByIndex: ImmuMap<GraphPatcherNodeRecord["index"], GraphPatcherNodeRecord["id"]>()
 
 }, action: GraphAction): GraphState => {
@@ -31,6 +34,18 @@ export const graph = (state: GraphState = {
 					}
 				}),
 				nodes: ImmuMap<GraphNodeRecord["id"], GraphNodeRecord>(nodes.map(n => [n.id, n])),
+				outportValues: ImmuMap<GraphPatcherNodeRecord["id"], ImmuMap<MessageOutputRecord["id"], string>>().withMutations((nodeMap) => {
+					for (const node of nodes) {
+						if (node.type === NodeType.Patcher) {
+							const portMap = ImmuMap<MessageOutputRecord["id"], string>().withMutations((map) => {
+								for (const port of node.messageOutputs.valueSeq().toArray()) {
+									map.set(port.id, "");
+								}
+							});
+							nodeMap.set(node.id, portMap);
+						}
+					}
+				}),
 				patcherNodeIdByIndex: ImmuMap<GraphPatcherNodeRecord["index"], GraphPatcherNodeRecord["id"]>().withMutations((map) => {
 					for (const node of nodes) {
 						if (node.type === NodeType.Patcher) {
@@ -46,6 +61,7 @@ export const graph = (state: GraphState = {
 			return {
 				...state,
 				nodes: state.nodes.delete(node.id),
+				outportValues: state.outportValues.delete(node.id),
 				patcherNodeIdByIndex: node.type === NodeType.Patcher ? state.patcherNodeIdByIndex.delete(node.index) : state.patcherNodeIdByIndex,
 				connections: state.connections
 					.filter(connection => connection.sourceNodeId !== node.id && connection.sinkNodeId !== node.id )
@@ -58,6 +74,7 @@ export const graph = (state: GraphState = {
 			return {
 				...state,
 				nodes: state.nodes.deleteAll(nodeIds),
+				outportValues: state.outportValues.deleteAll(nodeIds),
 				patcherNodeIdByIndex: state.patcherNodeIdByIndex.deleteAll(
 					(nodes.filter(n => n.type === NodeType.Patcher) as GraphPatcherNodeRecord[])
 						.map(n => n .index)
@@ -72,6 +89,11 @@ export const graph = (state: GraphState = {
 			return {
 				...state,
 				nodes: state.nodes.set(node.id, node),
+				outportValues: node.type === NodeType.Patcher ? state.outportValues.set(node.id, ImmuMap<MessageOutputRecord["id"], string>().withMutations((map) => {
+					for (const port of node.messageOutputs.valueSeq().toArray()) {
+						map.set(port.id, "");
+					}
+				})) : state.outportValues,
 				patcherNodeIdByIndex: node.type === NodeType.Patcher ? state.patcherNodeIdByIndex.set(node.index, node.id) : state.patcherNodeIdByIndex
 			};
 		}
@@ -85,6 +107,18 @@ export const graph = (state: GraphState = {
 						map.set(node.id, node);
 					}
 				}),
+				outportValues: state.outportValues.withMutations((nodeMap) => {
+					for (const node of nodes) {
+						if (node.type === NodeType.Patcher) {
+							const portMap = ImmuMap<MessageOutputRecord["id"], string>().withMutations((map) => {
+								for (const port of node.messageOutputs.valueSeq().toArray()) {
+									map.set(port.id, "");
+								}
+							});
+							nodeMap.set(node.id, portMap);
+						}
+					}
+				}),
 				patcherNodeIdByIndex: state.patcherNodeIdByIndex.withMutations(map => {
 					for (const node of nodes) {
 						if (node.type === NodeType.Patcher) {
@@ -92,6 +126,18 @@ export const graph = (state: GraphState = {
 						}
 					}
 				})
+			};
+		}
+
+		case GraphActionType.SET_OUTPORT_MESSAGE_VALUE: {
+			const { nodeId, portId, value } = action.payload;
+
+			const portMap = state.outportValues.get(nodeId);
+			if (!portMap) return state;
+
+			return {
+				...state,
+				outportValues: state.outportValues.set(nodeId, portMap.set(portId, value))
 			};
 		}
 

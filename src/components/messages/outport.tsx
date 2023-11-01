@@ -5,9 +5,10 @@ import { MessageOutputRecord } from "../../models/messages";
 
 interface MessageOutportEntryProps {
 	port: MessageOutputRecord;
+	value: string;
 }
 
-const MessageOutportEntry: FunctionComponent<MessageOutportEntryProps> = memo(function WrappedMessageOutportEntry({ port }) {
+const MessageOutportEntry: FunctionComponent<MessageOutportEntryProps> = memo(function WrappedMessageOutportEntry({ port, value }) {
 
 	return (
 		<div className={ classes.outport } >
@@ -16,7 +17,7 @@ const MessageOutportEntry: FunctionComponent<MessageOutportEntryProps> = memo(fu
 				size="sm"
 				placeholder="No value received"
 				readOnly
-				value={ port.lastValue || "" }
+				value={ value }
 			/>
 		</div>
 	);

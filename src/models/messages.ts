@@ -22,13 +22,11 @@ export class MessageInportRecord extends ImmuRecord<MessageInportRecordProps>({
 
 export type MessageOutputRecordProps = {
 	name: string;
-	lastValue: string | undefined;
 };
 
 export class MessageOutputRecord extends ImmuRecord<MessageOutputRecordProps>({
 
-	name: "",
-	lastValue: ""
+	name: ""
 
 }) {
 
@@ -38,9 +36,5 @@ export class MessageOutputRecord extends ImmuRecord<MessageOutputRecordProps>({
 
 	get id(): string {
 		return this.name;
-	}
-
-	public setLastValue(v: OSCValue | OSCValue[]): MessageOutputRecord {
-		return this.set("lastValue", Array.isArray(v) ? v.join(", ") : `${v}`);
 	}
 }

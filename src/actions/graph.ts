@@ -1,6 +1,7 @@
 import { ActionBase } from "../lib/store";
 import { OSCQueryRNBOInstancesState, OSCQueryRNBOJackPortInfo } from "../lib/types";
 import { GraphConnectionRecord, GraphNodeRecord, GraphPatcherNodeRecord, GraphSystemNodeRecord } from "../models/graph";
+import { MessageOutputRecord } from "../models/messages";
 
 export enum GraphActionType {
 	DELETE_NODE = "DELETE_NODE",
@@ -11,6 +12,7 @@ export enum GraphActionType {
 	DELETE_CONNECTIONS = "DELETE_CONNECTIONS",
 	SET_CONNECTION = "SET_CONNECTION",
 	SET_CONNECTIONS = "SET_CONNECTIONS",
+	SET_OUTPORT_MESSAGE_VALUE = "SET_OUTPORT_MESSAGE_VALUE",
 	INIT = "INIT_GRAPH"
 }
 
@@ -70,6 +72,15 @@ export interface IDeleteGraphConnections extends ActionBase {
 	};
 }
 
+export interface ISetNodeOutportMessageValue extends ActionBase {
+	type: GraphActionType.SET_OUTPORT_MESSAGE_VALUE;
+	payload: {
+		nodeId: GraphNodeRecord["id"];
+		portId: MessageOutputRecord["id"];
+		value: string;
+	};
+}
+
 export interface IInitGraph extends ActionBase {
 	type: GraphActionType.INIT;
 	payload: {
@@ -79,7 +90,8 @@ export interface IInitGraph extends ActionBase {
 }
 
 export type GraphAction = IInitGraph | ISetGraphNode | ISetGraphNodes | IDeleteGraphNode | IDeleteGraphNodes
-| ISetGraphConnection  | IDeleteGraphConnection | ISetGraphConnections  | IDeleteGraphConnections;
+| ISetGraphConnection  | IDeleteGraphConnection | ISetGraphConnections  | IDeleteGraphConnections
+| ISetNodeOutportMessageValue;
 
 
 export const initGraph = (jackPortsInfo: OSCQueryRNBOJackPortInfo, instanceInfo: OSCQueryRNBOInstancesState): GraphAction => {
@@ -175,6 +187,18 @@ export const deleteConnections = (connections: GraphConnectionRecord[]): GraphAc
 		type: GraphActionType.DELETE_CONNECTIONS,
 		payload: {
 			connections
+		}
+	};
+};
+
+export const setNodeMessageOutportValue = (nodeId: GraphPatcherNodeRecord["id"], portId: MessageOutputRecord["id"], value: string): GraphAction => {
+
+	return {
+		type: GraphActionType.SET_OUTPORT_MESSAGE_VALUE,
+		payload: {
+			nodeId,
+			portId,
+			value
 		}
 	};
 };

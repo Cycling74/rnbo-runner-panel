@@ -1,3 +1,4 @@
+import { Map as ImmuMap } from "immutable";
 import { Tabs } from "@mantine/core";
 import { FunctionComponent, memo, useState } from "react";
 import { faArrowRightArrowLeft, faMusic, faSliders } from "@fortawesome/free-solid-svg-icons";
@@ -9,6 +10,7 @@ import DeviceParameterTab from "./paramTab";
 import DeviceMessagesTab from "./messageTab";
 import DeviceMIDITab from "./midiTab";
 import { useIsMobileDevice } from "../../hooks/useIsMobileDevice";
+import { MessageOutputRecord } from "../../models/messages";
 
 const tabs = [
 	{ icon: faSliders, value: DeviceTab.Parameters, label: "Parameters" },
@@ -19,11 +21,13 @@ const tabs = [
 export type DeviceInstanceProps = {
 	device: GraphPatcherNodeRecord;
 	enabledMessageOuput: boolean;
+	messageOuputValues?: ImmuMap<MessageOutputRecord["id"], string>;
 }
 
 const DeviceInstance: FunctionComponent<DeviceInstanceProps> = memo(function WrappedDeviceInstance({
 	device,
-	enabledMessageOuput
+	enabledMessageOuput,
+	messageOuputValues
 }) {
 
 	const [activeTab, setActiveTab] = useState<DeviceTab>(DeviceTab.Parameters);
@@ -46,7 +50,7 @@ const DeviceInstance: FunctionComponent<DeviceInstanceProps> = memo(function Wra
 			</Tabs.List>
 			<div className={ classes.deviceTabContentWrap } >
 				<DeviceParameterTab device={ device } />
-				<DeviceMessagesTab device={ device } outputEnabled={ enabledMessageOuput } />
+				<DeviceMessagesTab device={ device } outputEnabled={ enabledMessageOuput } messageOuputValues={ messageOuputValues } />
 				<DeviceMIDITab device={ device } />
 			</div>
 		</Tabs>
