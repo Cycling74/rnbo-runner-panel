@@ -39,8 +39,25 @@
 
 	:global {
 
-		.react-flow__edge-path {
-			stroke-width: 2;
+		.react-flow__edge {
+
+			.react-flow__edge-path {
+				stroke-width: 2;
+			}
+
+			&.selected {
+				.react-flow__edge-path {
+					stroke: var(--mantine-primary-color-filled);
+				}
+			}
+		}
+
+		.react-flow__connection {
+
+			.react-flow__connection-path {
+				stroke-width: 2;
+				stroke: var(--mantine-primary-color-filled);
+			}
 		}
 
 		.react-flow__handle {
