@@ -1,7 +1,7 @@
 import React, { FunctionComponent, useCallback } from "react";
 import { getBezierPath, EdgeLabelRenderer, BaseEdge } from "reactflow";
 import classes from "./editor.module.css";
-import { CloseButton } from "@mantine/core";
+import { ActionIcon, CloseIcon } from "@mantine/core";
 import { EditorEdgeProps } from "./util";
 
 export const RNBOGraphEdgeType = "rnbo-edge";
@@ -37,10 +37,12 @@ const GraphEdge: FunctionComponent<EditorEdgeProps> = ({
 					className={ `nodrag nopan ${classes.edgeLabel}` }
 					style={{
 						display: selected ? "initial" : "none",
-						transform: `translate(-50%, -100%) translate(${labelX}px,${labelY}px)`
+						transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`
 					}}
 				>
-					<CloseButton onClick={ onTriggerDelete } />
+					<ActionIcon onClick={ onTriggerDelete } >
+						<CloseIcon />
+					</ActionIcon>
 				</div>
 			</EdgeLabelRenderer>
 		</>
