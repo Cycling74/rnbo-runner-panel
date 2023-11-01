@@ -376,10 +376,10 @@ export class GraphConnectionRecord extends ImmuRecord<GraphConnectionProps>({
 		return `${sourceId}:${sourcePortId}${this.connectionDelimiter}${sinkId}:${sinkPortId}`;
 	}
 
-	public static connectionsFromDescription(sourceNodeId: GraphNodeRecord["id"], desc: OSCQueryRNBOInstanceConnections): GraphConnectionRecord[] {
+	public static connectionsFromDescription(nodeId: GraphNodeRecord["id"], desc: OSCQueryRNBOInstanceConnections): GraphConnectionRecord[] {
 		const conns: GraphConnectionRecord[] = [];
-		const nodeId = sourceNodeId === GraphSystemNodeRecord.systemName ? GraphSystemNodeRecord.systemInputName : sourceNodeId;
 
+		// Node as source
 		for (const [portId, info] of Object.entries(desc.CONTENTS.audio?.CONTENTS?.sources?.CONTENTS || {})) {
 			const commonConnProps: Omit<GraphConnectionProps, "id" | "sinkNodeId" | "sinkPortId"> = {
 				sourceNodeId: nodeId,
@@ -413,6 +413,44 @@ export class GraphConnectionRecord extends ImmuRecord<GraphConnectionProps>({
 				});
 			})));
 		}
+
+		// Node as sink gets only applied for system node connections
+		for (const [portId, info] of Object.entries(desc.CONTENTS.audio?.CONTENTS?.sinks?.CONTENTS || {})) {
+			const commonConnProps: Omit<GraphConnectionProps, "id" | "sourceNodeId" | "sourcePortId"> = {
+				sinkNodeId: nodeId,
+				sinkPortId: portId,
+				type: ConnectionType.Audio
+			};
+
+			for (const target of info.VALUE) {
+				const [soureNodeId, sourcePortId] = target.split(":");
+				if (soureNodeId !== GraphSystemNodeRecord.systemName) continue;
+				conns.push(new GraphConnectionRecord({
+					...commonConnProps,
+					sourceNodeId: GraphSystemNodeRecord.systemInputName,
+					sourcePortId
+				}));
+			}
+		}
+
+		for (const [portId, info] of Object.entries(desc.CONTENTS.midi?.CONTENTS?.sources?.CONTENTS || {})) {
+			const commonConnProps: Omit<GraphConnectionProps, "id" | "sourceNodeId" | "sourcePortId"> = {
+				sinkNodeId: nodeId,
+				sinkPortId: portId,
+				type: ConnectionType.MIDI
+			};
+
+			for (const target of info.VALUE) {
+				const [soureNodeId, sourcePortId] = target.split(":");
+				if (soureNodeId !== GraphSystemNodeRecord.systemName) continue;
+				conns.push(new GraphConnectionRecord({
+					...commonConnProps,
+					sourceNodeId: GraphSystemNodeRecord.systemInputName,
+					sourcePortId
+				}));
+			}
+		}
+
 
 		return conns;
 	}
