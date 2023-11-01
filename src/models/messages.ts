@@ -1,5 +1,4 @@
 import { Record as ImmuRecord } from "immutable";
-import { OSCValue } from "../lib/types";
 
 export type MessageInportRecordProps = {
 	name: string;
