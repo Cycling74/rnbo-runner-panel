@@ -435,7 +435,7 @@ export const updateInstanceSinkPortConnections = (index: number, portId: GraphPo
 				const sourceNode = getNode(state, sourceNodeId === GraphSystemNodeRecord.systemName ? GraphSystemNodeRecord.systemInputName : sourceNodeId);
 				if (!sourceNode) continue;
 
-				const sourcePort = sinkNode.getPort(sourcePortId);
+				const sourcePort = sourceNode.getPort(sourcePortId);
 				if (!sourcePort) continue;
 
 				connections.push(new GraphConnectionRecord({
