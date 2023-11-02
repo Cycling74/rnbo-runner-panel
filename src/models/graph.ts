@@ -261,21 +261,34 @@ export class GraphSystemNodeRecord extends ImmuRecord<GraphSystemNodeProps>({
 		return this.set("selected", !this.selected);
 	}
 
-	static get systemName(): string {
+	static get systemAudioName(): string {
 		return "system";
 	}
 
-	static get systemOutputName(): string {
-		return `${this.systemName}-out`;
+
+	static get systemMIDIName(): string {
+		return "system_midi";
 	}
 
-	static get systemInputName(): string {
-		return `${this.systemName}-in`;
+	static get systemAudioOutputName(): string {
+		return `${this.systemAudioName}-audio-out`;
 	}
 
-	private static sinksFromDescription(desc: OSCQueryRNBOJackPortInfo): ImmuMap<GraphPortRecord["id"], GraphPortRecord> {
+	static get systemAudioInputName(): string {
+		return `${this.systemAudioName}-audio-in`;
+	}
 
-		const portNameReplace = `${this.systemName}:`;
+	static get systemMIDIOutputName(): string {
+		return `${this.systemMIDIName}-out`;
+	}
+
+	static get systemMIDIInputName(): string {
+		return `${this.systemMIDIName}-in`;
+	}
+
+	private static audioSinksFromDescription(desc: OSCQueryRNBOJackPortInfo): ImmuMap<GraphPortRecord["id"], GraphPortRecord> {
+
+		const portNameReplace = `${this.systemAudioName}:`;
 
 		return ImmuMap<GraphPortRecord["id"], GraphPortRecord>().withMutations(ports => {
 			if (
@@ -293,7 +306,14 @@ export class GraphSystemNodeRecord extends ImmuRecord<GraphSystemNodeProps>({
 					}
 				}
 			}
+		});
+	}
 
+	private static midiSinksFromDescription(desc: OSCQueryRNBOJackPortInfo): ImmuMap<GraphPortRecord["id"], GraphPortRecord> {
+
+		const portNameReplace = `${this.systemMIDIName}:`;
+
+		return ImmuMap<GraphPortRecord["id"], GraphPortRecord>().withMutations(ports => {
 			if (
 				desc.CONTENTS.midi.CONTENTS.sinks.TYPE !== "" &&
 				desc.CONTENTS.midi.CONTENTS.sinks.VALUE.length
@@ -312,8 +332,8 @@ export class GraphSystemNodeRecord extends ImmuRecord<GraphSystemNodeProps>({
 		});
 	}
 
-	private static sourcesFromDescription(desc: OSCQueryRNBOJackPortInfo): ImmuMap<GraphPortRecord["id"], GraphPortRecord> {
-		const portNameReplace = `${this.systemName}:`;
+	private static audioSourcesFromDescription(desc: OSCQueryRNBOJackPortInfo): ImmuMap<GraphPortRecord["id"], GraphPortRecord> {
+		const portNameReplace = `${this.systemAudioName}:`;
 		return ImmuMap<GraphPortRecord["id"], GraphPortRecord>().withMutations(ports => {
 			if (
 				desc.CONTENTS.audio.CONTENTS.sources.TYPE !== "" &&
@@ -349,30 +369,73 @@ export class GraphSystemNodeRecord extends ImmuRecord<GraphSystemNodeProps>({
 		});
 	}
 
+	private static midiSourcesFromDescription(desc: OSCQueryRNBOJackPortInfo): ImmuMap<GraphPortRecord["id"], GraphPortRecord> {
+		const portNameReplace = `${this.systemMIDIName}:`;
+		return ImmuMap<GraphPortRecord["id"], GraphPortRecord>().withMutations(ports => {
+			if (
+				desc.CONTENTS.midi.CONTENTS.sources.TYPE !== "" &&
+				desc.CONTENTS.midi.CONTENTS.sources.VALUE.length
+			) {
+				for (const portName of desc.CONTENTS.midi.CONTENTS.sources.VALUE) {
+					if (portName.startsWith(portNameReplace)) {
+						const port = new GraphPortRecord({
+							id: portName.replace(portNameReplace, ""),
+							direction: PortDirection.Source,
+							type: ConnectionType.MIDI
+						});
+						ports.set(port.id, port);
+					}
+				}
+			}
+		});
+	}
+
 	static fromDescription(desc: OSCQueryRNBOJackPortInfo): GraphSystemNodeRecord[] {
-		// System Input
-		const inputPorts = this.sourcesFromDescription(desc);
-		const input = new GraphSystemNodeRecord({
-			name: this.systemInputName,
-			ports: inputPorts,
-			contentHeight: calculateContentHeight(inputPorts),
+		// System Audio Input
+		const audioInputPorts = this.audioSourcesFromDescription(desc);
+		const audioInput = new GraphSystemNodeRecord({
+			name: this.systemAudioInputName,
+			ports: audioInputPorts,
+			contentHeight: calculateContentHeight(audioInputPorts),
 			selected: false,
 			x: 0,
 			y: 0
 		});
 
-		// System Output
-		const outputPorts = this.sinksFromDescription(desc);
-		const output = new GraphSystemNodeRecord({
-			name: this.systemOutputName,
-			ports: outputPorts,
-			contentHeight: calculateContentHeight(outputPorts),
+		// System Audio Output
+		const audioOutputPorts = this.audioSinksFromDescription(desc);
+		const audioOutput = new GraphSystemNodeRecord({
+			name: this.systemAudioOutputName,
+			ports: audioOutputPorts,
+			contentHeight: calculateContentHeight(audioOutputPorts),
 			selected: false,
 			x: 0,
 			y: 0
 		});
 
-		return [input, output];
+		// System MIDI Input
+		const midiInputPorts = this.midiSourcesFromDescription(desc);
+		const midiInput = new GraphSystemNodeRecord({
+			name: this.systemMIDIInputName,
+			ports: midiInputPorts,
+			contentHeight: calculateContentHeight(midiInputPorts),
+			selected: false,
+			x: 0,
+			y: 0
+		});
+
+		// System Audio Output
+		const midiOutputPorts = this.midiSinksFromDescription(desc);
+		const midiOutput = new GraphSystemNodeRecord({
+			name: this.systemMIDIOutputName,
+			ports: midiOutputPorts,
+			contentHeight: calculateContentHeight(midiOutputPorts),
+			selected: false,
+			x: 0,
+			y: 0
+		});
+
+		return [audioInput, audioOutput, midiInput, midiOutput];
 	}
 }
 
@@ -438,7 +501,7 @@ export class GraphConnectionRecord extends ImmuRecord<GraphConnectionProps>({
 				const [sinkNodeId, sinkPortId] = target.split(":");
 				return new GraphConnectionRecord({
 					...commonConnProps,
-					sinkNodeId: sinkNodeId === GraphSystemNodeRecord.systemName ? GraphSystemNodeRecord.systemOutputName : sinkNodeId,
+					sinkNodeId: sinkNodeId === GraphSystemNodeRecord.systemAudioName ? GraphSystemNodeRecord.systemAudioOutputName : sinkNodeId,
 					sinkPortId
 				});
 			})));
@@ -456,7 +519,7 @@ export class GraphConnectionRecord extends ImmuRecord<GraphConnectionProps>({
 				const [sinkNodeId, sinkPortId] = target.split(":");
 				return new GraphConnectionRecord({
 					...commonConnProps,
-					sinkNodeId: sinkNodeId === GraphSystemNodeRecord.systemName ? GraphSystemNodeRecord.systemOutputName : sinkNodeId,
+					sinkNodeId: sinkNodeId === GraphSystemNodeRecord.systemMIDIName ? GraphSystemNodeRecord.systemMIDIOutputName : sinkNodeId,
 					sinkPortId
 				});
 			})));
@@ -473,16 +536,16 @@ export class GraphConnectionRecord extends ImmuRecord<GraphConnectionProps>({
 
 			for (const target of info.VALUE) {
 				const [soureNodeId, sourcePortId] = target.split(":");
-				if (soureNodeId !== GraphSystemNodeRecord.systemName) continue;
+				if (soureNodeId !== GraphSystemNodeRecord.systemAudioName) continue;
 				conns.push(new GraphConnectionRecord({
 					...commonConnProps,
-					sourceNodeId: GraphSystemNodeRecord.systemInputName,
+					sourceNodeId: GraphSystemNodeRecord.systemAudioInputName,
 					sourcePortId
 				}));
 			}
 		}
 
-		for (const [portId, info] of Object.entries(desc.CONTENTS.midi?.CONTENTS?.sources?.CONTENTS || {})) {
+		for (const [portId, info] of Object.entries(desc.CONTENTS.midi?.CONTENTS?.sinks?.CONTENTS || {})) {
 			const commonConnProps: Omit<GraphConnectionProps, "id" | "sourceNodeId" | "sourcePortId"> = {
 				sinkNodeId: nodeId,
 				sinkPortId: portId,
@@ -492,10 +555,10 @@ export class GraphConnectionRecord extends ImmuRecord<GraphConnectionProps>({
 
 			for (const target of info.VALUE) {
 				const [soureNodeId, sourcePortId] = target.split(":");
-				if (soureNodeId !== GraphSystemNodeRecord.systemName) continue;
+				if (soureNodeId !== GraphSystemNodeRecord.systemMIDIName) continue;
 				conns.push(new GraphConnectionRecord({
 					...commonConnProps,
-					sourceNodeId: GraphSystemNodeRecord.systemInputName,
+					sourceNodeId: GraphSystemNodeRecord.systemMIDIInputName,
 					sourcePortId
 				}));
 			}

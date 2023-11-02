@@ -14,14 +14,7 @@ import { Connection, EdgeChange, NodeChange } from "reactflow";
 import { isValidConnection } from "../lib/editorUtils";
 
 const defaultNodeSpacing = 100;
-const getNodeCoordinates = (node: GraphNodeRecord, nodes: GraphNodeRecord[]): { x: number, y: number } => {
-
-	if (node.type === NodeType.System) {
-		return {
-			x: (node.id === GraphSystemNodeRecord.systemInputName ? -1 : 1) * (node.width + defaultNodeSpacing * 3),
-			y: 0
-		};
-	}
+const getPatcherNodeCoordinates = (node: GraphPatcherNodeRecord, nodes: GraphNodeRecord[]): { x: number, y: number } => {
 
 	const bottomNode: GraphNodeRecord | undefined = nodes.reduce((n, current) => {
 		if (current.type === NodeType.System) return n;
@@ -123,12 +116,28 @@ export const initGraph = (jackPortsInfo: OSCQueryRNBOJackPortInfo, instanceInfo:
 		const patcherNodes: GraphPatcherNodeRecord[] = [];
 		const connections: GraphConnectionRecord[] = [];
 
+		let systemInputY = -defaultNodeSpacing;
+		let systemOutputY = -defaultNodeSpacing;
 		const systemNodes: GraphSystemNodeRecord[] = GraphSystemNodeRecord.fromDescription(jackPortsInfo).map(sysNode => {
 			const exNode = existingNodes.get(sysNode.id);
 			if (exNode) return sysNode.updatePosition(exNode.x, exNode.y);
 
-			const { x, y } = getNodeCoordinates(sysNode, []);
-			return sysNode.updatePosition(x, y);
+			let node = sysNode;
+			if (node.id === GraphSystemNodeRecord.systemAudioInputName || node.id === GraphSystemNodeRecord.systemMIDIInputName) {
+				node = node.updatePosition(
+					-1 * (node.width + defaultNodeSpacing * 3),
+					systemInputY + defaultNodeSpacing
+				);
+				systemInputY = node.y + node.contentHeight;
+			} else {
+				node = node.updatePosition(
+					node.width + defaultNodeSpacing * 3,
+					systemOutputY + defaultNodeSpacing
+				);
+				systemOutputY = node.y + node.contentHeight;
+			}
+
+			return node;
 		});
 
 		for (const [key, value] of Object.entries(instanceInfo.CONTENTS)) {
@@ -139,7 +148,7 @@ export const initGraph = (jackPortsInfo: OSCQueryRNBOJackPortInfo, instanceInfo:
 			if (exNode) {
 				node = node.updatePosition(exNode.x, exNode.y);
 			} else {
-				const { x, y } = getNodeCoordinates(node, patcherNodes);
+				const { x, y } = getPatcherNodeCoordinates(node, patcherNodes);
 				node = node.updatePosition(x, y);
 			}
 
@@ -282,7 +291,12 @@ const setPatcherNodeSourcePortConnectionsOnRemote = (node: GraphPatcherNodeRecor
 			const message = {
 				address: `${node.path}/jack/connections/${port.type === ConnectionType.Audio ? "audio" : "midi"}/sources/${port.id}`,
 				args: connections.length ? connections.map(conn => {
-					const id = conn.sinkNodeId === GraphSystemNodeRecord.systemOutputName ? GraphSystemNodeRecord.systemName : conn.sinkNodeId;
+					let id = conn.sinkNodeId;
+					if (id === GraphSystemNodeRecord.systemAudioOutputName) {
+						id = GraphSystemNodeRecord.systemAudioName;
+					} else if (id === GraphSystemNodeRecord.systemMIDIOutputName) {
+						id = GraphSystemNodeRecord.systemMIDIName;
+					}
 					return {
 						type: "s",
 						value: `${id}:${conn.sinkPortId}`
@@ -308,7 +322,12 @@ const setPatcherNodeSinkPortConnectionsOnRemote = (device: GraphPatcherNodeRecor
 			const message = {
 				address: `${device.path}/jack/connections/${port.type === ConnectionType.Audio ? "audio" : "midi"}/sinks/${port.id}`,
 				args: connections.length ? connections.map(conn => {
-					const id = conn.sourceNodeId === GraphSystemNodeRecord.systemInputName ? GraphSystemNodeRecord.systemName : conn.sourceNodeId;
+					let id = conn.sourceNodeId;
+					if (id === GraphSystemNodeRecord.systemAudioInputName) {
+						id = GraphSystemNodeRecord.systemAudioName;
+					} else if (id === GraphSystemNodeRecord.systemMIDIInputName) {
+						id = GraphSystemNodeRecord.systemMIDIName;
+					}
 					return {
 						type: "s",
 						value: `${id}:${conn.sourcePortId}`
@@ -578,9 +597,17 @@ export const updatePatcherNodeSourcePortConnections = (index: number, portId: Gr
 
 			const connections = [];
 			for (const sink of sinks) {
-				const [sinkNodeId, sinkPortId] = sink.split(":");
+				const parts = sink.split(":");
+				let sinkNodeId = parts[0];
+				const sinkPortId = parts[1];
 
-				const sinkNode = getNode(state, sinkNodeId === GraphSystemNodeRecord.systemName ? GraphSystemNodeRecord.systemOutputName : sinkNodeId);
+				if (sinkNodeId === GraphSystemNodeRecord.systemAudioName) {
+					sinkNodeId = GraphSystemNodeRecord.systemAudioOutputName;
+				} else if (sinkNodeId === GraphSystemNodeRecord.systemMIDIName) {
+					sinkNodeId = GraphSystemNodeRecord.systemMIDIOutputName;
+				}
+
+				const sinkNode = getNode(state, sinkNodeId);
 				if (!sinkNode) continue;
 				const sinkPort = sinkNode.getPort(sinkPortId);
 				if (!sinkPort) continue;
@@ -615,9 +642,17 @@ export const updatePatcherNodeSinkPortConnections = (index: number, portId: Grap
 
 			const connections = [];
 			for (const source of sources) {
-				const [sourceNodeId, sourcePortId] = source.split(":");
+				const parts = source.split(":");
+				let sourceNodeId = parts[0];
+				const sourcePortId = parts[1];
 
-				const sourceNode = getNode(state, sourceNodeId === GraphSystemNodeRecord.systemName ? GraphSystemNodeRecord.systemInputName : sourceNodeId);
+				if (sourceNodeId === GraphSystemNodeRecord.systemAudioName) {
+					sourceNodeId = GraphSystemNodeRecord.systemAudioInputName;
+				} else if (sourceNodeId === GraphSystemNodeRecord.systemMIDIName) {
+					sourceNodeId = GraphSystemNodeRecord.systemMIDIInputName;
+				}
+
+				const sourceNode = getNode(state, sourceNodeId);
 				if (!sourceNode) continue;
 
 				const sourcePort = sourceNode.getPort(sourcePortId);
@@ -647,7 +682,7 @@ export const addPatcherNode = (desc: OSCQueryRNBOInstance): AppThunk =>
 
 		// Create Node
 		let node = GraphPatcherNodeRecord.fromDescription(desc);
-		const { x, y } = getNodeCoordinates(node, existingNodes);
+		const { x, y } = getPatcherNodeCoordinates(node, existingNodes);
 		node = node.updatePosition(x, y);
 
 		dispatch(setNode(node));
