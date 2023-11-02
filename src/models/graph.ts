@@ -271,11 +271,11 @@ export class GraphSystemNodeRecord extends ImmuRecord<GraphSystemNodeProps>({
 	}
 
 	static get systemAudioOutputName(): string {
-		return `${this.systemAudioName}-audio-out`;
+		return `${this.systemAudioName}_audio-out`;
 	}
 
 	static get systemAudioInputName(): string {
-		return `${this.systemAudioName}-audio-in`;
+		return `${this.systemAudioName}_audio-in`;
 	}
 
 	static get systemMIDIOutputName(): string {
