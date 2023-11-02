@@ -19,7 +19,7 @@ export type PatcherAction = IInitPatchers;
 export const initPatchers = (patchersInfo: OSCQueryRNBOPatchersState): PatcherAction => {
 
 	const patchers: PatcherRecord[] = [];
-	for (const [name, desc] of Object.entries(patchersInfo.CONTENTS)) {
+	for (const [name, desc] of Object.entries(patchersInfo.CONTENTS || {})) {
 		patchers.push(PatcherRecord.fromDescription(name, desc));
 	}
 
