@@ -78,8 +78,8 @@ export class DeviceStateRecord extends ImmuRecord<DeviceStateProps>({
 	public static parametersFromDescription(paramsDesc: OSCQueryRNBOInstance["CONTENTS"]["params"]): ImmuMap<ParameterRecord["id"], ParameterRecord> {
 		return ImmuMap<ParameterRecord["id"], ParameterRecord>().withMutations((map) => {
 			for (const [name, desc] of Object.entries(paramsDesc.CONTENTS || {})) {
-				const pr = ParameterRecord.fromDescription(name, desc);
-				map.set(pr.id, pr);
+				const params = ParameterRecord.arrayFromDescription(desc, name);
+				params.forEach(pr => map.set(pr.id, pr));
 			}
 		});
 	}

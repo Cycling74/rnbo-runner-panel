@@ -1,5 +1,5 @@
 import { Record as ImmuRecord } from "immutable";
-import { OSCQueryRNBOInstanceParameter } from "../lib/types";
+import { OSCQueryRNBOInstanceParameterInfo, OSCQueryRNBOInstanceParameterValue } from "../lib/types";
 
 export type ParameterRecordProps = {
 	min: number;
@@ -22,16 +22,27 @@ export class ParameterRecord extends ImmuRecord<ParameterRecordProps>({
 
 }) {
 
-	public static fromDescription(name: string, desc: OSCQueryRNBOInstanceParameter): ParameterRecord {
-		return new ParameterRecord({
-			min: desc.RANGE?.[0]?.MIN,
-			max: desc.RANGE?.[0]?.MAX,
-			name,
-			normalizedValue: desc.CONTENTS.normalized.VALUE,
-			path: desc.FULL_PATH,
-			type: desc.TYPE,
-			value: desc.VALUE
-		});
+	public static arrayFromDescription(desc: OSCQueryRNBOInstanceParameterInfo, name?: string): ParameterRecord[] {
+		const result: ParameterRecord[] = [];
+		if (typeof desc.VALUE !== "undefined") {
+			const paramInfo = desc as OSCQueryRNBOInstanceParameterValue;
+			result.push(new ParameterRecord({
+				min: paramInfo.RANGE?.[0]?.MIN,
+				max: paramInfo.RANGE?.[0]?.MAX,
+				name,
+				normalizedValue: paramInfo.CONTENTS.normalized.VALUE,
+				path: paramInfo.FULL_PATH,
+				type: paramInfo.TYPE,
+				value: paramInfo.VALUE
+			}));
+		} else {
+			// Polyphonic params
+			for (const [subParamName, subDesc] of Object.entries(desc.CONTENTS) as Array<[string, OSCQueryRNBOInstanceParameterInfo]>) {
+				const subPrefix = name ? `${name}/${subParamName}` : subParamName;
+				result.push(...this.arrayFromDescription(subDesc, subPrefix));
+			}
+		}
+		return result;
 	}
 
 	// public static arrayFromDescription(desc: JsonMap, prefix?: string): ParameterRecord[] {

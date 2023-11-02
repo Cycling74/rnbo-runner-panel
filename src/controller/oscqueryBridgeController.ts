@@ -240,7 +240,7 @@ export class OSCQueryBridgeControllerPrivate {
 		// Parameter Changes
 		if (packetMatch.groups.content === "params") {
 			const isNormalized = packetMatch.groups.rest.endsWith("/normalized");
-			const name = packetMatch.groups.rest.split("/")[0];
+			const name = isNormalized ? packetMatch.groups.rest.split("/").slice(0, -1).join("/") : packetMatch.groups.rest;
 			if (!name || !packet.args.length || typeof packet.args[0] !== "number") return;
 
 			isNormalized
