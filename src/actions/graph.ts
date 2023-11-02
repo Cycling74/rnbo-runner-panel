@@ -119,6 +119,10 @@ export const initGraph = (jackPortsInfo: OSCQueryRNBOJackPortInfo, instanceInfo:
 		const state = getState();
 		const existingNodes = getNodes(state);
 
+		const devices: DeviceStateRecord[] = [];
+		const patcherNodes: GraphPatcherNodeRecord[] = [];
+		const connections: GraphConnectionRecord[] = [];
+
 		const systemNodes: GraphSystemNodeRecord[] = GraphSystemNodeRecord.fromDescription(jackPortsInfo).map(sysNode => {
 			const exNode = existingNodes.get(sysNode.id);
 			if (exNode) return sysNode.updatePosition(exNode.x, exNode.y);
@@ -126,10 +130,6 @@ export const initGraph = (jackPortsInfo: OSCQueryRNBOJackPortInfo, instanceInfo:
 			const { x, y } = getNodeCoordinates(sysNode, []);
 			return sysNode.updatePosition(x, y);
 		});
-
-		const devices: DeviceStateRecord[] = [];
-		const patcherNodes: GraphPatcherNodeRecord[] = [];
-		const connections: GraphConnectionRecord[] = [];
 
 		for (const [key, value] of Object.entries(instanceInfo.CONTENTS)) {
 			if (!/^\d+$/.test(key)) continue;
@@ -143,7 +143,7 @@ export const initGraph = (jackPortsInfo: OSCQueryRNBOJackPortInfo, instanceInfo:
 				node = node.updatePosition(x, y);
 			}
 
-			connections.push(...GraphConnectionRecord.connectionsFromDescription(node.id, value.CONTENTS.jack.CONTENTS.connections));
+			connections.push(...GraphConnectionRecord.patcherNodeConnectionsFromDescription(node.id, value.CONTENTS.jack.CONTENTS.connections));
 			patcherNodes.push(node);
 			devices.push(DeviceStateRecord.fromDescription(value));
 		}
@@ -653,7 +653,7 @@ export const addPatcherNode = (desc: OSCQueryRNBOInstance): AppThunk =>
 		dispatch(setNode(node));
 
 		// Create Edges
-		const connections = GraphConnectionRecord.connectionsFromDescription(node.id, desc.CONTENTS.jack.CONTENTS.connections);
+		const connections = GraphConnectionRecord.patcherNodeConnectionsFromDescription(node.id, desc.CONTENTS.jack.CONTENTS.connections);
 		dispatch(setConnections(connections));
 
 		// Create Device State

@@ -422,10 +422,10 @@ export class GraphConnectionRecord extends ImmuRecord<GraphConnectionProps>({
 		return `${sourceId}:${sourcePortId}${this.connectionDelimiter}${sinkId}:${sinkPortId}`;
 	}
 
-	public static connectionsFromDescription(nodeId: GraphNodeRecord["id"], desc: OSCQueryRNBOInstanceConnections): GraphConnectionRecord[] {
+	public static patcherNodeConnectionsFromDescription(nodeId: GraphNodeRecord["id"], desc: OSCQueryRNBOInstanceConnections): GraphConnectionRecord[] {
 		const conns: GraphConnectionRecord[] = [];
 
-		// Node as source
+		// Patcher Node as Source
 		for (const [portId, info] of Object.entries(desc.CONTENTS.audio?.CONTENTS?.sources?.CONTENTS || {})) {
 			const commonConnProps: Omit<GraphConnectionProps, "id" | "sinkNodeId" | "sinkPortId"> = {
 				sourceNodeId: nodeId,
@@ -462,7 +462,7 @@ export class GraphConnectionRecord extends ImmuRecord<GraphConnectionProps>({
 			})));
 		}
 
-		// Node as sink gets only applied for system node connections
+		// Patcher Node as Sink - Apply only to connections to system Nodes
 		for (const [portId, info] of Object.entries(desc.CONTENTS.audio?.CONTENTS?.sinks?.CONTENTS || {})) {
 			const commonConnProps: Omit<GraphConnectionProps, "id" | "sourceNodeId" | "sourcePortId"> = {
 				sinkNodeId: nodeId,
