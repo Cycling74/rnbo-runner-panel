@@ -76,6 +76,7 @@ export type OSCQueryStringValue = OSCQuerySingleValue<OSCQueryValueType.String, 
 export type OSCQueryTimetagValue = OSCQuerySingleValue<OSCQueryValueType.Timetag, string>;
 export type OSCQueryTrueValue = OSCQuerySingleValue<OSCQueryValueType.True, null>;
 
+export type OSCQueryBooleanValue = OSCQueryBooleanValue;
 export type OSCQueryUnknownValue = OSCQuerySingleValue<OSCQueryValueType.Unknown, "">;
 
 export type OSCQueryValue = OSCQueryFalseValue | OSCQueryCharValue | OSCQueryDoubleValue | OSCQueryFloatValue | OSCQueryInfValue |
@@ -103,7 +104,7 @@ export type OSCQueryRNBOInfoState = OSCQueryBaseNode & {
 		unpported_cmds: OSCQueryListValue;
 		update: OSCQueryBaseNode & {
 			CONTENTS: {
-				supported: OSCQueryFalseValue | OSCQueryTrueValue;
+				supported: OSCQueryBooleanValue;
 			};
 		}
 		version: OSCQueryListValue;
@@ -136,11 +137,11 @@ export type OSCQueryRNBOJackPortInfo = OSCQueryBaseNode & {
 
 export type OSCQueryRNBOJackState = OSCQueryBaseNode & {
 	CONTENTS: {
-		active: OSCQueryFalseValue | OSCQueryTrueValue;
+		active: OSCQueryBooleanValue;
 		info: OSCQueryBaseNode & {
 			CONTENTS: {
-				is_realtime: OSCQueryFalseValue | OSCQueryTrueValue;
-				owns_server: OSCQueryFalseValue | OSCQueryTrueValue;
+				is_realtime: OSCQueryBooleanValue;
+				owns_server: OSCQueryBooleanValue;
 				ports: OSCQueryRNBOJackPortInfo;
 			};
 		};
@@ -153,8 +154,8 @@ export type OSCQueryRNBOJackState = OSCQueryBaseNode & {
 		control: any;
 		transport: {
 			bpm: OSCQueryFloatValue;
-			rolling: OSCQueryFalseValue | OSCQueryTrueValue;
-			sync: OSCQueryFalseValue | OSCQueryTrueValue;
+			rolling: OSCQueryBooleanValue;
+			sync: OSCQueryBooleanValue;
 		};
 	};
 };
