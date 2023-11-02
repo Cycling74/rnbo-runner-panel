@@ -3,7 +3,7 @@ import { oscQueryBridge } from "../controller/oscqueryBridgeController";
 import { ActionBase, AppThunk } from "../lib/store";
 import { OSCQueryRNBOInstance, OSCQueryRNBOInstancesState, OSCQueryRNBOJackPortInfo } from "../lib/types";
 import { ConnectionType, GraphConnectionRecord, GraphNode, GraphNodeRecord, GraphPatcherNode, GraphPatcherNodeRecord, GraphPortRecord, GraphSystemNodeRecord, NodeType } from "../models/graph";
-import { getConnection, getConnectionByNodesAndPorts, getConnectionsForSinkNodeAndPort, getConnectionsForSourceNodeAndPort, getNode, getNodeByIndex, getNodes, getPatcherNodesByIndex } from "../selectors/graph";
+import { getConnection, getConnectionByNodesAndPorts, getConnectionsForSinkNodeAndPort, getConnectionsForSourceNodeAndPort, getNode, getNodeByIndex, getNodes } from "../selectors/graph";
 import { showNotification } from "./notifications";
 import { NotificationLevel } from "../models/notification";
 import { DeviceStateRecord } from "../models/device";
@@ -256,21 +256,12 @@ export const unloadPatcherNodeByIndexOnRemote = (deviceIndex: number): AppThunk 
 	};
 
 export const loadPatcherNodeOnRemote = (patcher: PatcherRecord): AppThunk =>
-	(dispatch, getState) => {
+	(dispatch) => {
 		try {
-			const state = getState();
-			const patchersByIndex = getPatcherNodesByIndex(state);
-
-			let instanceIndex = 0;
-			for (;instanceIndex < patchersByIndex.size; instanceIndex++) {
-				const patcher = patchersByIndex.get(instanceIndex);
-				if (!patcher) break;
-			}
-
 			const message = {
 				address: "/rnbo/inst/control/load",
 				args: [
-					{ type: "i", value: instanceIndex },
+					{ type: "i", value: -1 },
 					{ type: "s", value: patcher.name }
 				]
 			};
