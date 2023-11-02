@@ -1,19 +1,19 @@
 import { ChangeEvent, MouseEvent, useCallback } from "react";
 import { useAppDispatch, useAppSelector } from "../../hooks/useAppDispatch";
 import { RootStateType } from "../../lib/store";
-import { getNodeByIndex, getPatcherNodeMessageOutputs, getPatcherNodes } from "../../selectors/graph";
 import DeviceInstance from "../../components/device";
 import { useRouter } from "next/router";
 import { Button, Group, NativeSelect, Stack } from "@mantine/core";
 import classes from "../../components/device/device.module.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faDiagramProject, faTrash, faVectorSquare } from "@fortawesome/free-solid-svg-icons";
-import { unloadPatcherFromRemoteInstance } from "../../actions/device";
 import { getSetting } from "../../selectors/settings";
 import { Setting } from "../../reducers/settings";
 import { getAppStatus } from "../../selectors/appStatus";
 import { AppStatus } from "../../lib/constants";
 import Link from "next/link";
+import { getDeviceByIndex, getDevices } from "../../selectors/instances";
+import { unloadPatcherNodeByIndexOnRemote } from "../../actions/graph";
 
 export default function Device() {
 
@@ -28,17 +28,15 @@ export default function Device() {
 		currentDevice,
 		appStatus,
 		devices,
-		enabledMessageOuput,
-		outputValues
+		enabledMessageOuput
 	] = useAppSelector((state: RootStateType) => {
-		const currentDevice = getNodeByIndex(state, deviceIndex);
+		const currentDevice = getDeviceByIndex(state, deviceIndex);
 		const enabledMessageOuput = getSetting<boolean>(state, Setting.debugMessageOutput);
 		return [
 			currentDevice,
 			getAppStatus(state),
-			getPatcherNodes(state),
-			enabledMessageOuput,
-			currentDevice && enabledMessageOuput ? getPatcherNodeMessageOutputs(state, currentDevice.id) : undefined
+			getDevices(state),
+			enabledMessageOuput
 		];
 	});
 
@@ -47,7 +45,7 @@ export default function Device() {
 	}, [push, pathname, query]);
 
 	const onUnloadDevice = useCallback((e: MouseEvent<HTMLButtonElement>) => {
-		dispatch(unloadPatcherFromRemoteInstance(currentDevice));
+		dispatch(unloadPatcherNodeByIndexOnRemote(currentDevice.index));
 		push({ pathname: "/", query: restQuery });
 	}, [dispatch, currentDevice, push, restQuery]);
 
@@ -87,7 +85,6 @@ export default function Device() {
 			<DeviceInstance
 				device={ currentDevice }
 				enabledMessageOuput={ enabledMessageOuput }
-				messageOuputValues={ outputValues }
 			/>
 		</Stack>
 	);

@@ -1,38 +1,34 @@
-import { Map as ImmuMap } from "immutable";
 import { Tabs } from "@mantine/core";
 import { FunctionComponent, memo, useCallback } from "react";
 import { DeviceTab } from "../../lib/constants";
-import { GraphPatcherNodeRecord } from "../../models/graph";
 import { useAppDispatch } from "../../hooks/useAppDispatch";
-import { sendMessageToRemoteInstanceInport } from "../../actions/device";
 import MessageInportList from "../messages/inportList";
-import { MessageInportRecord, MessageOutputRecord } from "../../models/messages";
 import { SectionTitle } from "../page/sectionTitle";
 import MessageOutportList from "../messages/outportList";
 import classes from "./device.module.css";
+import { DeviceStateRecord } from "../../models/device";
+import { sendDeviceInstanceMessageToRemote } from "../../actions/instances";
 
 export type DeviceMessageTabProps = {
-	device: GraphPatcherNodeRecord;
+	device: DeviceStateRecord;
 	outputEnabled: boolean;
-	messageOuputValues?: ImmuMap<MessageOutputRecord["id"], string>;
 }
 
 const DeviceMessagesTab: FunctionComponent<DeviceMessageTabProps> = memo(function WrappedDeviceMessagesTab({
 	device,
-	outputEnabled,
-	messageOuputValues
+	outputEnabled
 }) {
 
 	const dispatch = useAppDispatch();
-	const onSendMessage = useCallback((port: MessageInportRecord, value: string) => {
-		dispatch(sendMessageToRemoteInstanceInport(device, port, value));
+	const onSendInportMessage = useCallback((id: string, value: string) => {
+		dispatch(sendDeviceInstanceMessageToRemote(device, id, value));
 	}, [dispatch, device]);
 
 	return (
 		<Tabs.Panel value={ DeviceTab.MessagePorts } >
 			<SectionTitle>Inputs</SectionTitle>
 			{
-				device.messageInputs.size ? <MessageInportList inports={ device.messageInputs } onSendMessage={ onSendMessage } /> : (
+				device.messageInputs.size ? <MessageInportList inports={ device.messageInputs } onSendMessage={ onSendInportMessage } /> : (
 					<div className={ classes.emptySection }>
 						This device has no message inputs
 					</div>
@@ -48,7 +44,7 @@ const DeviceMessagesTab: FunctionComponent<DeviceMessageTabProps> = memo(functio
 					<div className={ classes.disabledMessageOutput } >
 						Message output monitoring is currently disabled. Enable it in the settings in order to display the output values.
 					</div>
-				) : <MessageOutportList outports={ device.messageOutputs } values={ messageOuputValues } />
+				) : <MessageOutportList outports={ device.messageOutputs } />
 			}
 		</Tabs.Panel>
 	);

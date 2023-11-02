@@ -1,7 +1,6 @@
 import { Map as ImmuMap, Seq } from "immutable";
 import { RootStateType } from "../lib/store";
 import { GraphConnectionRecord, GraphNodeRecord, GraphPatcherNodeRecord, GraphSystemNodeRecord, NodeType } from "../models/graph";
-import { MessageOutputRecord } from "../models/messages";
 
 export const getNode = (state: RootStateType, id: GraphNodeRecord["id"]): GraphNodeRecord | undefined => state.graph.nodes.get(id);
 export const getNodes = (state: RootStateType): ImmuMap<GraphNodeRecord["id"], GraphNodeRecord> => state.graph.nodes;
@@ -28,14 +27,9 @@ export const getFirstPatcherNodeIndex = (state: RootStateType): number | undefin
 	return state.graph.patcherNodeIdByIndex.keySeq().sort().first();
 };
 
-export const getPatcherNodeMessageOutputs = (state: RootStateType, id: GraphNodeRecord["id"]): ImmuMap<MessageOutputRecord["id"], string> => {
-	return state.graph.outportValues.get(id) || ImmuMap<MessageOutputRecord["id"], string>();
-};
-
 export const getSystemNodes = (state: RootStateType): ImmuMap<GraphSystemNodeRecord["id"], GraphSystemNodeRecord> => {
 	return state.graph.nodes.filter(node => node.type === NodeType.System) as ImmuMap<GraphSystemNodeRecord["id"], GraphSystemNodeRecord>;
 };
-
 
 export const getConnection = (state: RootStateType, id: GraphConnectionRecord["id"]): GraphConnectionRecord | undefined => state.graph.connections.get(id);
 export const getConnections = (state: RootStateType): ImmuMap<GraphConnectionRecord["id"], GraphConnectionRecord> => state.graph.connections;

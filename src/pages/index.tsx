@@ -3,30 +3,24 @@ import React, { FunctionComponent, MouseEvent, useCallback } from "react";
 import { useAppDispatch, useAppSelector } from "../hooks/useAppDispatch";
 import { RootStateType } from "../lib/store";
 import { getPatchers } from "../selectors/patchers";
-import { addRemoteInstance } from "../actions/device";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import { getConnections, getNodes } from "../selectors/graph";
-import { getEditorNodes, getEditorEdges } from "../selectors/editor";
 import GraphEditor from "../components/editor";
 import { Connection, Edge, EdgeChange, Node, NodeChange } from "reactflow";
-import { applyEditorEdgeChanges, applyEditorNodeChanges, makeEditorConnection, removeEditorEdges, removeEditorNodes } from "../actions/editor";
+import { applyEditorEdgeChanges, applyEditorNodeChanges, createEditorConnection, loadPatcherNodeOnRemote, removeEditorConnectionsById, removeEditorNodesById } from "../actions/graph";
 
 const Index: FunctionComponent<Record<string, never>> = () => {
 
 	const dispatch = useAppDispatch();
 	const [
 		patchers,
-		graphNodes,
-		graphConnections,
-		editorNodes,
-		editorEdges
+		nodes,
+		connections
 	] = useAppSelector((state: RootStateType) => [
 		getPatchers(state),
 		getNodes(state),
-		getConnections(state),
-		getEditorNodes(state),
-		getEditorEdges(state)
+		getConnections(state)
 	]);
 
 	const onAddInstance = useCallback((e: MouseEvent<HTMLButtonElement>) => {
@@ -36,11 +30,11 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 		const patcher = patchers.get(id);
 		if (!patcher) return;
 
-		dispatch(addRemoteInstance(patcher));
+		dispatch(loadPatcherNodeOnRemote(patcher));
 	}, [dispatch, patchers]);
 
 	const onConnectNodes = useCallback((connection: Connection) => {
-		dispatch(makeEditorConnection(connection));
+		dispatch(createEditorConnection(connection));
 	}, [dispatch]);
 
 	const onNodesChange = useCallback((changes: NodeChange[]) => {
@@ -48,7 +42,7 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 	}, [dispatch]);
 
 	const onNodesDelete = useCallback((nodes: Pick<Node, "id">[]) => {
-		dispatch(removeEditorNodes(nodes));
+		dispatch(removeEditorNodesById(nodes.map(n => n.id)));
 	}, [dispatch]);
 
 	const onEdgesChange = useCallback((changes: EdgeChange[]) => {
@@ -56,7 +50,7 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 	}, [dispatch]);
 
 	const onEdgesDelete = useCallback((edges: Pick<Edge, "id">[]) => {
-		dispatch(removeEditorEdges(edges));
+		dispatch(removeEditorConnectionsById(edges.map(e => e.id)));
 	}, [dispatch]);
 
 	return (
@@ -81,10 +75,8 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 				</Menu>
 			</Group>
 			<GraphEditor
-				graphNodes={ graphNodes }
-				graphConnections={ graphConnections }
-				editorNodes={ editorNodes }
-				editorEdges= { editorEdges }
+				nodes={ nodes }
+				connections={ connections }
 				onConnect={ onConnectNodes }
 				onNodesChange={ onNodesChange }
 				onNodesDelete={ onNodesDelete }

@@ -4,12 +4,12 @@ import classes from "./parameters.module.css";
 import { useElementSize, useViewportSize } from "@mantine/hooks";
 import { Breakpoints } from "../../lib/constants";
 import { clamp } from "../../lib/util";
-import { GraphPatcherNodeRecord } from "../../models/graph";
 import { ParameterRecord } from "../../models/parameter";
+import { DeviceStateRecord } from "../../models/device";
 
 export type ParameterListProps = {
 	onSetNormalizedValue: (parameter: ParameterRecord, nValue: number) => any;
-	parameters: GraphPatcherNodeRecord["parameters"];
+	parameters: DeviceStateRecord["parameters"];
 }
 
 const ParameterList: FunctionComponent<ParameterListProps> = memo(function WrappedParameterList({

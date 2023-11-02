@@ -1,12 +1,11 @@
 import { FunctionComponent, memo } from "react";
 import InportEntry from "./inport";
 import classes from "./ports.module.css";
-import { GraphPatcherNodeRecord } from "../../models/graph";
-import { MessageInportRecord } from "../../models/messages";
+import { DeviceStateRecord } from "../../models/device";
 
 export type MessageInportListProps = {
-	inports: GraphPatcherNodeRecord["messageInputs"];
-	onSendMessage: (port: MessageInportRecord, value: string) => any;
+	inports: DeviceStateRecord["messageInputs"];
+	onSendMessage: (id: string, value: string) => any;
 }
 
 const MessageInportList: FunctionComponent<MessageInportListProps> = memo(function WrappedMessageInportList({
@@ -17,7 +16,7 @@ const MessageInportList: FunctionComponent<MessageInportListProps> = memo(functi
 	return (
 		<div className={ classes.portList }>
 			{
-				inports.valueSeq().map(inport => <InportEntry key={inport.id} port={ inport } onSend={ onSendMessage } />)
+				inports.keySeq().map((id) => <InportEntry key={id} id={ id } onSend={ onSendMessage } />)
 			}
 		</div>
 	);

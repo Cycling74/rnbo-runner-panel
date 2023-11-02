@@ -1,7 +1,7 @@
 import { combineReducers } from "redux";
 
 import { appStatus } from "./appStatus";
-import { editor } from "./editor";
+import { instances } from "./instances";
 import { graph } from "./graph";
 import { nofitications } from "./notifications";
 import { patchers } from "./patchers";
@@ -9,7 +9,7 @@ import { settings } from "./settings";
 
 export const rootReducer = combineReducers({
 	appStatus,
-	editor,
+	instances,
 	graph,
 	nofitications,
 	patchers,

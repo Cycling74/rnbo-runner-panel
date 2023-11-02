@@ -2,16 +2,16 @@ import { Tabs } from "@mantine/core";
 import { FunctionComponent, memo, useCallback } from "react";
 import { DeviceTab } from "../../lib/constants";
 import ParameterList from "../parameter/list";
-import { GraphPatcherNodeRecord } from "../../models/graph";
 import { ParameterRecord } from "../../models/parameter";
 import classes from "./device.module.css";
 import PresetControl from "../parameter/presets";
 import { useAppDispatch } from "../../hooks/useAppDispatch";
 import { PresetRecord } from "../../models/preset";
-import { loadPresetOnRemoteInstance, savePresetToRemoteInstance, setParameterValueNormalizedOnRemote } from "../../actions/device";
+import { DeviceStateRecord } from "../../models/device";
+import { loadPresetOnRemoteDeviceInstance, savePresetToRemoteDeviceInstance, setDeviceInstanceParameterValueNormalizedOnRemote } from "../../actions/instances";
 
 export type DeviceParameterTabProps = {
-	device: GraphPatcherNodeRecord;
+	device: DeviceStateRecord;
 }
 
 const DeviceParameterTab: FunctionComponent<DeviceParameterTabProps> = memo(function WrappedDeviceParameterTab({
@@ -20,15 +20,15 @@ const DeviceParameterTab: FunctionComponent<DeviceParameterTabProps> = memo(func
 
 	const dispatch = useAppDispatch();
 	const onSetNormalizedParamValue = useCallback((param: ParameterRecord, val: number) => {
-		dispatch(setParameterValueNormalizedOnRemote(device, param, val));
+		dispatch(setDeviceInstanceParameterValueNormalizedOnRemote(device, param, val));
 	}, [dispatch, device]);
 
 	const onLoadPreset = useCallback((preset: PresetRecord) => {
-		dispatch(loadPresetOnRemoteInstance(device, preset));
+		dispatch(loadPresetOnRemoteDeviceInstance(device, preset));
 	}, [dispatch, device]);
 
 	const onSavePreset = useCallback((name: string) => {
-		dispatch(savePresetToRemoteInstance(device, name));
+		dispatch(savePresetToRemoteDeviceInstance(device, name));
 	}, [dispatch, device]);
 
 	return (

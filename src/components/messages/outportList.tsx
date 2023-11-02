@@ -1,24 +1,20 @@
-import { Map as ImmuMap } from "immutable";
 import { FunctionComponent, memo } from "react";
 import classes from "./ports.module.css";
-import { GraphPatcherNodeRecord } from "../../models/graph";
 import MessageOutportEntry from "./outport";
-import { MessageOutputRecord } from "../../models/messages";
+import { DeviceStateRecord } from "../../models/device";
 
 export type MessageOutportListProps = {
-	outports: GraphPatcherNodeRecord["messageOutputs"];
-	values?: ImmuMap<MessageOutputRecord["id"], string>;
+	outports: DeviceStateRecord["messageOutputs"];
 }
 
 const MessageOutportList: FunctionComponent<MessageOutportListProps> = memo(function WrappedMessageOutportList({
-	outports,
-	values
+	outports
 }) {
 
 	return (
 		<div className={ classes.portList }>
 			{
-				outports.valueSeq().map(outport => <MessageOutportEntry key={outport.id} port={ outport } value={ values?.get(outport.id) || "" } />)
+				outports.entrySeq().map(([id, value]) => <MessageOutportEntry key={ id } id={ id } value={ value } />)
 			}
 		</div>
 	);

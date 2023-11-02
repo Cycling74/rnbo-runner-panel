@@ -1,14 +1,13 @@
 import { EdgeProps, NodeProps } from "reactflow";
-import { GraphNodeRecord } from "../../models/graph";
-import { EditorEdgeRecord, EditorNodeRecord } from "../../models/editor";
+import { GraphConnectionRecord, GraphNodeRecord } from "../../models/graph";
 
 export type NodeDataProps = {
 	node: GraphNodeRecord;
-	contentHeight: EditorNodeRecord["contentHeight"];
+	contentHeight: GraphNodeRecord["contentHeight"];
 };
 
 export type EdgeDataProps = {
-	onDelete: (id: EditorEdgeRecord["id"]) => void;
+	onDelete: (id: GraphConnectionRecord["id"]) => void;
 };
 
 export type EditorNodeProps = NodeProps<NodeDataProps>;

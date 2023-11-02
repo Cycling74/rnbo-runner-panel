@@ -1,26 +1,15 @@
 import { parse as parseQuery } from "querystring";
 import { OSCBundle, OSCMessage, readPacket } from "osc";
-import {
-	addInstance,
-	removeInstance,
-	updateInstanceMessageOutputValue,
-	updateInstanceMessages,
-	updateInstanceParameterValue,
-	updateInstanceParameterValueNormalized,
-	updateInstanceParameters,
-	updateInstancePresetEntries,
-	updateInstanceSinkPortConnections,
-	updateInstanceSourcePortConnections
-} from "../actions/device";
 import { setAppStatus, setConnectionEndpoint } from "../actions/appStatus";
 import { AppDispatch, store } from "../lib/store";
 import { ReconnectingWebsocket } from "../lib/reconnectingWs";
 import { AppStatus } from "../lib/constants";
 import { OSCQueryRNBOInstance, OSCQueryRNBOInstancesState, OSCQueryRNBOJackPortInfo, OSCQueryRNBOPatchersState, OSCValue } from "../lib/types";
-import { initGraph } from "../actions/graph";
+import { addPatcherNode, initGraph, removePatcherNode, updatePatcherNodeSinkPortConnections, updatePatcherNodeSourcePortConnections } from "../actions/graph";
 import { initPatchers } from "../actions/patchers";
 import { sleep } from "../lib/util";
 import { getNodeByIndex } from "../selectors/graph";
+import { updateDeviceInstanceMessageOutputValue, updateDeviceInstanceMessages, updateDeviceInstanceParameterValue, updateDeviceInstanceParameterValueNormalized, updateDeviceInstanceParameters, updateDeviceInstancePresetEntries } from "../actions/instances";
 
 const dispatch = store.dispatch as AppDispatch;
 
@@ -139,7 +128,7 @@ export class OSCQueryBridgeControllerPrivate {
 			// New Device Instance Added - slight timeout to let the graph build on the runner first
 			await sleep(500);
 			const info = await this._requestState<OSCQueryRNBOInstance>(path);
-			return void dispatch(addInstance(info));
+			return void dispatch(addPatcherNode(info));
 		}
 
 		// Handle changes to patchers list - request updated list
@@ -162,20 +151,20 @@ export class OSCQueryBridgeControllerPrivate {
 		) {
 			// Updated Preset Entries
 			const presetInfo = await this._requestState< OSCQueryRNBOInstance["CONTENTS"]["presets"]>(`/rnbo/inst/${index}/presets`);
-			return void dispatch(updateInstancePresetEntries(index, presetInfo.CONTENTS.entries));
+			return void dispatch(updateDeviceInstancePresetEntries(index, presetInfo.CONTENTS.entries));
 		} else if (
 			instInfoMatch.groups.content === "params" &&
 			!instInfoMatch.groups.rest.endsWith("/normalized")
 		) {
 			// Add Parameter
 			const paramInfo = await this._requestState< OSCQueryRNBOInstance["CONTENTS"]["params"]>(`/rnbo/inst/${index}/params`);
-			return void dispatch(updateInstanceParameters(index, paramInfo));
+			return void dispatch(updateDeviceInstanceParameters(index, paramInfo));
 		} else if (
 			instInfoMatch.groups.content === "messages/in" || instInfoMatch.groups.content === "messages/out"
 		) {
 			// Add Message Inputs & Outputs
 			const messagesInfo = await this._requestState<OSCQueryRNBOInstance["CONTENTS"]["messages"]>(`/rnbo/inst/${index}/messages`);
-			return void dispatch(updateInstanceMessages(index, messagesInfo));
+			return void dispatch(updateDeviceInstanceMessages(index, messagesInfo));
 		}
 	}
 
@@ -186,7 +175,7 @@ export class OSCQueryBridgeControllerPrivate {
 		if (instMatch?.groups?.index) {
 			const index = parseInt(instMatch.groups.index, 10);
 			if (isNaN(index)) return;
-			return void dispatch(removeInstance(index));
+			return void dispatch(removePatcherNode(index));
 		}
 
 		// Removed Patcher
@@ -209,7 +198,7 @@ export class OSCQueryBridgeControllerPrivate {
 			instInfoMatch.groups.rest === "entries"
 		) {
 			const presetInfo = await this._requestState< OSCQueryRNBOInstance["CONTENTS"]["presets"]>(`/rnbo/inst/${index}/presets`);
-			return void dispatch(updateInstancePresetEntries(index, presetInfo.CONTENTS.entries));
+			return void dispatch(updateDeviceInstancePresetEntries(index, presetInfo.CONTENTS.entries));
 		}
 
 		// Removed Parameter
@@ -218,7 +207,7 @@ export class OSCQueryBridgeControllerPrivate {
 			!instInfoMatch.groups.rest.endsWith("/normalized")
 		) {
 			const paramInfo = await this._requestState< OSCQueryRNBOInstance["CONTENTS"]["params"]>(`/rnbo/inst/${index}/params`);
-			return void dispatch(updateInstanceParameters(index, paramInfo));
+			return void dispatch(updateDeviceInstanceParameters(index, paramInfo));
 		}
 
 		// Removed Message Inport
@@ -226,7 +215,7 @@ export class OSCQueryBridgeControllerPrivate {
 			instInfoMatch.groups.content === "messages/in" || instInfoMatch.groups.content === "messages/out"
 		) {
 			const messagesInfo = await this._requestState<OSCQueryRNBOInstance["CONTENTS"]["messages"]>(`/rnbo/inst/${index}/messages`);
-			return void dispatch(updateInstanceMessages(index, messagesInfo));
+			return void dispatch(updateDeviceInstanceMessages(index, messagesInfo));
 		}
 	}
 
@@ -255,8 +244,8 @@ export class OSCQueryBridgeControllerPrivate {
 			if (!name || !packet.args.length || typeof packet.args[0] !== "number") return;
 
 			isNormalized
-				? dispatch(updateInstanceParameterValueNormalized(index, name, packet.args[0]))
-				: dispatch(updateInstanceParameterValue(index, name, packet.args[0]));
+				? dispatch(updateDeviceInstanceParameterValueNormalized(index, name, packet.args[0]))
+				: dispatch(updateDeviceInstanceParameterValue(index, name, packet.args[0]));
 
 			return;
 		}
@@ -267,7 +256,7 @@ export class OSCQueryBridgeControllerPrivate {
 			packetMatch.groups.rest === "entries"
 		) {
 			const presetInfo = await this._requestState< OSCQueryRNBOInstance["CONTENTS"]["presets"]>(`/rnbo/inst/${index}/presets`);
-			return void dispatch(updateInstancePresetEntries(index, presetInfo.CONTENTS.entries));
+			return void dispatch(updateDeviceInstancePresetEntries(index, presetInfo.CONTENTS.entries));
 		}
 
 		// Output Messages
@@ -275,7 +264,7 @@ export class OSCQueryBridgeControllerPrivate {
 			packetMatch.groups.content === "messages/out" &&
 			packetMatch.groups.rest?.length
 		) {
-			return void dispatch(updateInstanceMessageOutputValue(index, packetMatch.groups.rest, packet.args as any as OSCValue | OSCValue[]));
+			return void dispatch(updateDeviceInstanceMessageOutputValue(index, packetMatch.groups.rest, packet.args as any as OSCValue | OSCValue[]));
 		}
 
 		// Update Instance Connections
@@ -293,9 +282,9 @@ export class OSCQueryBridgeControllerPrivate {
 			}
 
 			if (direction === "sources") {
-				dispatch(updateInstanceSourcePortConnections(index, portId, args));
+				dispatch(updatePatcherNodeSourcePortConnections(index, portId, args));
 			} else if (direction === "sinks") {
-				dispatch(updateInstanceSinkPortConnections(index, portId, args));
+				dispatch(updatePatcherNodeSinkPortConnections(index, portId, args));
 			}
 		}
 
@@ -327,6 +316,7 @@ export class OSCQueryBridgeControllerPrivate {
 			await this._init();
 		} catch (err) {
 			dispatch(setAppStatus(AppStatus.Error, new Error(`Failed to connect to start up: ${err.message}`)));
+			console.log(err);
 			// Rethrow error
 			throw err;
 		}

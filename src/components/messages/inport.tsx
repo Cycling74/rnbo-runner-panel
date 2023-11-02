@@ -3,14 +3,13 @@ import classes from "./ports.module.css";
 import { Button, Group, TextInput } from "@mantine/core";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPaperPlane } from "@fortawesome/free-solid-svg-icons";
-import { MessageInportRecord } from "../../models/messages";
 
 interface MessageInportEntryProps {
-	port: MessageInportRecord;
-	onSend: (port: MessageInportRecord, value: string) => any;
+	id: string;
+	onSend: (id: string, value: string) => any;
 }
 
-const MessageInportEntry: FunctionComponent<MessageInportEntryProps> = memo(function WrappedMessageInportEntry({ port, onSend }) {
+const MessageInportEntry: FunctionComponent<MessageInportEntryProps> = memo(function WrappedMessageInportEntry({ id, onSend }) {
 
 	const [text, setText] = useState("");
 
@@ -20,15 +19,15 @@ const MessageInportEntry: FunctionComponent<MessageInportEntryProps> = memo(func
 
 	const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
-		if (onSend) onSend(port, text);
+		if (onSend) onSend(id, text);
 	};
 
 	return (
 		<form className={ classes.inport } onSubmit={handleSubmit} >
 			<Group align="flex-end">
 				<TextInput
-					label={ port.name }
-					description={ `Send data to the inport with name "${port.name}"`}
+					label={ id }
+					description={ `Send data to the inport with name "${id}"`}
 					onChange={ handleChange }
 					size="sm"
 					value={ text }

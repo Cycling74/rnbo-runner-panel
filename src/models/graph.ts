@@ -1,9 +1,6 @@
 
 import { Record as ImmuRecord, Map as ImmuMap } from "immutable";
-import { OSCQueryRNBOInstance, OSCQueryRNBOInstanceConnections, OSCQueryRNBOInstancePresetEntries, OSCQueryRNBOJackPortInfo } from "../lib/types";
-import { ParameterRecord } from "./parameter";
-import { MessageInportRecord, MessageOutputRecord } from "./messages";
-import { PresetRecord } from "./preset";
+import { OSCQueryRNBOInstance, OSCQueryRNBOInstanceConnections, OSCQueryRNBOJackPortInfo } from "../lib/types";
 
 export enum ConnectionType {
 	Audio = "audio",
@@ -32,11 +29,32 @@ export class GraphPortRecord extends ImmuRecord<GraphPortProps> ({
 	direction: PortDirection.Source,
 	type: ConnectionType.Audio
 
-}) {
-}
+}) {}
+
+const headerHeight = 50;
+const portHeight = 20;
+const portSpacing = 30;
+const nodeWidth = 300;
+
+const calculateContentHeight = (ports: ImmuMap<GraphPortRecord["id"], GraphPortRecord>): number => {
+	const { sinkCount, sourceCount } = ports.valueSeq().reduce((result, port) => {
+		if (port.direction === PortDirection.Sink) {
+			result.sinkCount += 1;
+		} else {
+			result.sourceCount += 1;
+		}
+		return result;
+	}, { sinkCount: 0, sourceCount: 0 });
+
+	return (sinkCount > sourceCount ? sinkCount : sourceCount) * (portHeight + portSpacing);
+};
 
 export type CommonGraphNodeProps = {
 	ports: ImmuMap<GraphPortRecord["id"], GraphPortRecord>;
+	contentHeight: number;
+	selected: boolean;
+	x: number;
+	y: number;
 }
 
 export type GraphSystemNodeProps = CommonGraphNodeProps & {
@@ -48,10 +66,6 @@ export type GraphPatcherNodeProps = CommonGraphNodeProps & {
 	patcher: string;
 	path: string;
 	name: string;
-	messageInputs: ImmuMap<MessageInportRecord["id"], MessageInportRecord>;
-	messageOutputs: ImmuMap<MessageOutputRecord["id"], MessageOutputRecord>;
-	parameters: ImmuMap<ParameterRecord["id"], ParameterRecord>;
-	presets: ImmuMap<PresetRecord["id"], PresetRecord>;
 }
 
 export interface GraphNode extends CommonGraphNodeProps {
@@ -74,12 +88,13 @@ export class GraphPatcherNodeRecord extends ImmuRecord<GraphPatcherNodeProps>({
 	name: "",
 	patcher: "",
 	path: "",
+	ports: ImmuMap<GraphPortRecord["id"], GraphPortRecord>(),
 
-	messageInputs: ImmuMap<MessageInportRecord["id"], MessageInportRecord>(),
-	messageOutputs: ImmuMap<MessageOutputRecord["id"], MessageOutputRecord>(),
-	parameters: ImmuMap<ParameterRecord["id"], ParameterRecord>(),
-	presets: ImmuMap<PresetRecord["id"], PresetRecord>(),
-	ports: ImmuMap<GraphPortRecord["id"], GraphPortRecord>()
+	// Editor props
+	contentHeight: 0,
+	selected: false,
+	y: 0,
+	x: 0
 
 }) implements GraphPatcherNode {
 
@@ -96,54 +111,28 @@ export class GraphPatcherNodeRecord extends ImmuRecord<GraphPatcherNodeProps>({
 		return NodeType.Patcher;
 	}
 
-	public setParameterValue(id: ParameterRecord["id"], value: number): GraphPatcherNodeRecord {
-		const param = this.parameters.get(id);
-		if (!param) return this;
-
-		return this.set("parameters", this.parameters.set(param.id, param.setValue(value)));
+	public get height(): number {
+		return this.contentHeight + headerHeight;
 	}
 
-	public setParameterNormalizedValue(id: ParameterRecord["id"], value: number): GraphPatcherNodeRecord {
-		const param = this.parameters.get(id);
-		if (!param) return this;
-
-		return this.set("parameters", this.parameters.set(param.id, param.setNormalizedValue(value)));
+	public get width(): number {
+		return nodeWidth;
 	}
 
-	public static presetsFromDescription(entries: OSCQueryRNBOInstancePresetEntries): ImmuMap<PresetRecord["id"], PresetRecord> {
-		return ImmuMap<PresetRecord["id"], PresetRecord>().withMutations((map) => {
-			for (const name of entries.VALUE) {
-				const pr = PresetRecord.fromDescription(name);
-				map.set(pr.id, pr);
-			}
-		});
+	public updatePosition(x: number, y: number): GraphPatcherNodeRecord {
+		return this.withMutations(record => record.set("x", x).set("y", y));
 	}
 
-	public static messageInputsFromDescription(messagesDesc: OSCQueryRNBOInstance["CONTENTS"]["messages"]): ImmuMap<MessageInportRecord["id"], MessageInportRecord> {
-		return ImmuMap<MessageInportRecord["id"], MessageInportRecord>().withMutations((map) => {
-			for (const name of Object.keys(messagesDesc?.CONTENTS?.in?.CONTENTS || {})) {
-				const mr = MessageInportRecord.fromDescription(name);
-				map.set(mr.id, mr);
-			}
-		});
+	public select(): GraphPatcherNodeRecord {
+		return this.set("selected", true);
 	}
 
-	public static messageOutputsFromDescription(messagesDesc: OSCQueryRNBOInstance["CONTENTS"]["messages"]): ImmuMap<MessageOutputRecord["id"], MessageOutputRecord> {
-		return ImmuMap<MessageOutputRecord["id"], MessageOutputRecord>().withMutations((map) => {
-			for (const name of Object.keys(messagesDesc?.CONTENTS?.out?.CONTENTS || {})) {
-				const mr = MessageOutputRecord.fromDescription(name);
-				map.set(mr.id, mr);
-			}
-		});
+	public unselect(): GraphPatcherNodeRecord {
+		return this.set("selected", false);
 	}
 
-	public static parametersFromDescription(paramsDesc: OSCQueryRNBOInstance["CONTENTS"]["params"]): ImmuMap<ParameterRecord["id"], ParameterRecord> {
-		return ImmuMap<ParameterRecord["id"], ParameterRecord>().withMutations((map) => {
-			for (const [name, desc] of Object.entries(paramsDesc.CONTENTS || {})) {
-				const pr = ParameterRecord.fromDescription(name, desc);
-				map.set(pr.id, pr);
-			}
-		});
+	public toggleSelect(): GraphPatcherNodeRecord {
+		return this.set("selected", !this.selected);
 	}
 
 	public static getJackName(desc: OSCQueryRNBOInstance["CONTENTS"]["jack"]): string {
@@ -206,17 +195,18 @@ export class GraphPatcherNodeRecord extends ImmuRecord<GraphPatcherNodeProps>({
 	}
 
 	public static fromDescription(desc: OSCQueryRNBOInstance): GraphPatcherNodeRecord {
+		const ports = this.portsFromDescription(desc.CONTENTS.jack);
 
 		return new GraphPatcherNodeRecord({
 			index: parseInt(desc.FULL_PATH.split("/").pop(), 10),
 			name: this.getJackName(desc.CONTENTS.jack),
 			patcher: desc.CONTENTS.name.VALUE,
 			path: desc.FULL_PATH,
-			messageInputs: this.messageInputsFromDescription(desc.CONTENTS.messages),
-			messageOutputs: this.messageOutputsFromDescription(desc.CONTENTS.messages),
-			parameters: this.parametersFromDescription(desc.CONTENTS.params),
-			ports: this.portsFromDescription(desc.CONTENTS.jack),
-			presets: this.presetsFromDescription(desc.CONTENTS.presets.CONTENTS.entries)
+			ports,
+			contentHeight: calculateContentHeight(ports),
+			selected: false,
+			x: 0,
+			y: 0
 		});
 	}
 
@@ -225,7 +215,13 @@ export class GraphPatcherNodeRecord extends ImmuRecord<GraphPatcherNodeProps>({
 export class GraphSystemNodeRecord extends ImmuRecord<GraphSystemNodeProps>({
 
 	name: "",
-	ports: ImmuMap<GraphPortRecord["id"], GraphPortRecord>()
+	ports: ImmuMap<GraphPortRecord["id"], GraphPortRecord>(),
+
+	// Editor props
+	contentHeight: 0,
+	selected: false,
+	y: 0,
+	x: 0
 
 }) implements GraphSystemNode {
 
@@ -239,6 +235,30 @@ export class GraphSystemNodeRecord extends ImmuRecord<GraphSystemNodeProps>({
 
 	get type(): NodeType.System {
 		return NodeType.System;
+	}
+
+	public get height(): number {
+		return this.contentHeight + headerHeight;
+	}
+
+	public get width(): number {
+		return nodeWidth;
+	}
+
+	public updatePosition(x: number, y: number): GraphSystemNodeRecord {
+		return this.withMutations(record => record.set("x", x).set("y", y));
+	}
+
+	public select(): GraphSystemNodeRecord {
+		return this.set("selected", true);
+	}
+
+	public unselect(): GraphSystemNodeRecord {
+		return this.set("selected", false);
+	}
+
+	public toggleSelect(): GraphSystemNodeRecord {
+		return this.set("selected", !this.selected);
 	}
 
 	static get systemName(): string {
@@ -330,18 +350,29 @@ export class GraphSystemNodeRecord extends ImmuRecord<GraphSystemNodeProps>({
 	}
 
 	static fromDescription(desc: OSCQueryRNBOJackPortInfo): GraphSystemNodeRecord[] {
-		return [
-			// System Input
-			new GraphSystemNodeRecord({
-				name: this.systemInputName,
-				ports: this.sourcesFromDescription(desc)
-			}),
-			// System Output
-			new GraphSystemNodeRecord({
-				name: this.systemOutputName,
-				ports: this.sinksFromDescription(desc)
-			})
-		];
+		// System Input
+		const inputPorts = this.sourcesFromDescription(desc);
+		const input = new GraphSystemNodeRecord({
+			name: this.systemInputName,
+			ports: inputPorts,
+			contentHeight: calculateContentHeight(inputPorts),
+			selected: false,
+			x: 0,
+			y: 0
+		});
+
+		// System Output
+		const outputPorts = this.sinksFromDescription(desc);
+		const output = new GraphSystemNodeRecord({
+			name: this.systemOutputName,
+			ports: outputPorts,
+			contentHeight: calculateContentHeight(outputPorts),
+			selected: false,
+			x: 0,
+			y: 0
+		});
+
+		return [input, output];
 	}
 }
 
@@ -352,6 +383,7 @@ export type GraphConnectionProps = {
 	sourcePortId: string;
 	sinkNodeId: string;
 	sinkPortId: string;
+	selected: boolean;
 	type: ConnectionType;
 }
 
@@ -363,6 +395,7 @@ export class GraphConnectionRecord extends ImmuRecord<GraphConnectionProps>({
 	sinkNodeId: "",
 	sinkPortId: "",
 
+	selected: false,
 	type: ConnectionType.Audio
 
 }) {
@@ -371,7 +404,20 @@ export class GraphConnectionRecord extends ImmuRecord<GraphConnectionProps>({
 		return GraphConnectionRecord.idFromNodesAndPorts(this.sourceNodeId, this.sourcePortId, this.sinkNodeId, this.sinkPortId);
 	}
 
+	public select(): GraphConnectionRecord {
+		return this.set("selected", true);
+	}
+
+	public unselect(): GraphConnectionRecord {
+		return this.set("selected", false);
+	}
+
+	public toggleSelect(): GraphConnectionRecord {
+		return this.set("selected", !this.selected);
+	}
+
 	private static readonly connectionDelimiter = "__=__";
+
 	public static idFromNodesAndPorts(sourceId: string, sourcePortId: string, sinkId: string, sinkPortId: string): string {
 		return `${sourceId}:${sourcePortId}${this.connectionDelimiter}${sinkId}:${sinkPortId}`;
 	}
@@ -384,6 +430,7 @@ export class GraphConnectionRecord extends ImmuRecord<GraphConnectionProps>({
 			const commonConnProps: Omit<GraphConnectionProps, "id" | "sinkNodeId" | "sinkPortId"> = {
 				sourceNodeId: nodeId,
 				sourcePortId: portId,
+				selected: false,
 				type: ConnectionType.Audio
 			};
 
@@ -401,6 +448,7 @@ export class GraphConnectionRecord extends ImmuRecord<GraphConnectionProps>({
 			const commonConnProps: Omit<GraphConnectionProps, "id" | "sinkNodeId" | "sinkPortId"> = {
 				sourceNodeId: nodeId,
 				sourcePortId: portId,
+				selected: false,
 				type: ConnectionType.MIDI
 			};
 
@@ -419,6 +467,7 @@ export class GraphConnectionRecord extends ImmuRecord<GraphConnectionProps>({
 			const commonConnProps: Omit<GraphConnectionProps, "id" | "sourceNodeId" | "sourcePortId"> = {
 				sinkNodeId: nodeId,
 				sinkPortId: portId,
+				selected: false,
 				type: ConnectionType.Audio
 			};
 
@@ -437,6 +486,7 @@ export class GraphConnectionRecord extends ImmuRecord<GraphConnectionProps>({
 			const commonConnProps: Omit<GraphConnectionProps, "id" | "sourceNodeId" | "sourcePortId"> = {
 				sinkNodeId: nodeId,
 				sinkPortId: portId,
+				selected: false,
 				type: ConnectionType.MIDI
 			};
 

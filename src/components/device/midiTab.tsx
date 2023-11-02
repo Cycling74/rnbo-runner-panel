@@ -1,13 +1,13 @@
 import { Tabs } from "@mantine/core";
 import { FunctionComponent, memo, useCallback } from "react";
 import { DeviceTab } from "../../lib/constants";
-import { GraphPatcherNodeRecord } from "../../models/graph";
 import { useAppDispatch } from "../../hooks/useAppDispatch";
-import { triggerMidiNoteOffEventOnRemoteInstance, triggerMidiNoteOnEventOnRemoteInstance } from "../../actions/device";
 import KeyRoll from "../keyroll";
+import { DeviceStateRecord } from "../../models/device";
+import { triggerDeviceInstanceMidiNoteOffEventOnRemote, triggerDeviceInstanceMidiNoteOnEventOnRemote } from "../../actions/instances";
 
 export type DeviceMIDITabProps = {
-	device: GraphPatcherNodeRecord;
+	device: DeviceStateRecord;
 }
 
 const DeviceMIDITab: FunctionComponent<DeviceMIDITabProps> = memo(function WrappedDeviceMIDITab({
@@ -17,11 +17,11 @@ const DeviceMIDITab: FunctionComponent<DeviceMIDITabProps> = memo(function Wrapp
 	const dispatch = useAppDispatch();
 
 	const triggerMIDINoteOn = useCallback((p: number) => {
-		dispatch(triggerMidiNoteOnEventOnRemoteInstance(device, p));
+		dispatch(triggerDeviceInstanceMidiNoteOnEventOnRemote(device, p));
 	}, [dispatch, device]);
 
 	const triggerMIDINoteOff = useCallback((p: number) => {
-		dispatch(triggerMidiNoteOffEventOnRemoteInstance(device, p));
+		dispatch(triggerDeviceInstanceMidiNoteOffEventOnRemote(device, p));
 	}, [dispatch, device]);
 
 	return (

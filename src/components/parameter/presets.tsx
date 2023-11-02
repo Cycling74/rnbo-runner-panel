@@ -5,7 +5,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCamera, faPlus, faRotateRight } from "@fortawesome/free-solid-svg-icons";
 import { PresetRecord } from "../../models/preset";
 import classes from "./presets.module.css";
-import { GraphPatcherNodeRecord } from "../../models/graph";
+import { DeviceStateRecord } from "../../models/device";
 
 enum ActiveView {
 	Load = "load",
@@ -14,7 +14,7 @@ enum ActiveView {
 
 export type LoadPresetProps = {
 	onLoad: (preset: PresetRecord) => any;
-	presets: GraphPatcherNodeRecord["presets"];
+	presets: DeviceStateRecord["presets"];
 }
 
 const LoadPreset: FunctionComponent<LoadPresetProps> = memo(function WrappedLoadPreset({
@@ -100,7 +100,7 @@ const SavePreset: FunctionComponent<SavePresetProps> = memo(function WrappedSave
 export type PresetControlProps = {
 	onLoadPreset: (preset: PresetRecord) => any;
 	onSavePreset: (name: string) => any;
-	presets: GraphPatcherNodeRecord["presets"];
+	presets: DeviceStateRecord["presets"];
 };
 
 
