@@ -76,7 +76,7 @@ export type OSCQueryStringValue = OSCQuerySingleValue<OSCQueryValueType.String, 
 export type OSCQueryTimetagValue = OSCQuerySingleValue<OSCQueryValueType.Timetag, string>;
 export type OSCQueryTrueValue = OSCQuerySingleValue<OSCQueryValueType.True, null>;
 
-export type OSCQueryBooleanValue = OSCQueryBooleanValue;
+export type OSCQueryBooleanValue = OSCQueryFalseValue | OSCQueryTrueValue;
 export type OSCQueryUnknownValue = OSCQuerySingleValue<OSCQueryValueType.Unknown, "">;
 
 export type OSCQueryValue = OSCQueryFalseValue | OSCQueryCharValue | OSCQueryDoubleValue | OSCQueryFloatValue | OSCQueryInfValue |
