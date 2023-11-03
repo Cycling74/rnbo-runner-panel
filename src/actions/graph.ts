@@ -150,6 +150,9 @@ export const initGraph = (jackPortsInfo: OSCQueryRNBOJackPortInfo, instanceInfo:
 			devices.push(DeviceStateRecord.fromDescription(value));
 		}
 
+
+		// Build a list of all Jack generated names that have not been used for PatcherNodes above
+		// as we assume moving forward that they are SystemNames
 		const systemJackNames = ImmuSet<string>(getSystemNodeJackNamesFromPortInfo(jackPortsInfo, patcherNodes));
 
 		for (const node of patcherNodes) {

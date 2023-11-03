@@ -343,11 +343,14 @@ export class GraphSystemNodeRecord extends ImmuRecord<GraphSystemNodeProps>({
 		});
 	}
 
-	static fromDescription(systemJackName: ImmuSet<string>, desc: OSCQueryRNBOJackPortInfo): GraphSystemNodeRecord[] {
+	static fromDescription(systemJackNames: ImmuSet<string>, desc: OSCQueryRNBOJackPortInfo): GraphSystemNodeRecord[] {
 
+		// We expect systemJackNames to be a Set of all, non device instances jack assigned names
+		// in order to be able to filter out the global Jack Port description for creating SystemNodes.
+		// This is necessary as SystemNodes, in contrast to device instances, don't have a dedicated tree desc
 		const nodes: GraphSystemNodeRecord[] = [];
 
-		for (const jackName of systemJackName.valueSeq().toArray()) {
+		for (const jackName of systemJackNames.valueSeq().toArray()) {
 
 			const inputPorts = this.sourcesFromDescription(jackName, desc);
 			const outputPorts = this.sinksFromDescription(jackName, desc);
@@ -437,6 +440,11 @@ export class GraphConnectionRecord extends ImmuRecord<GraphConnectionProps>({
 		desc: OSCQueryRNBOInstanceConnections,
 		systemNodeJackNames: ImmuSet<GraphSystemNodeRecord["jackName"]>
 	): GraphConnectionRecord[] {
+
+		// Expect a list of systemNodeJackNames in order to be able to set up the correct
+		// connections as we make two nodes for each SystemNode in the graph - an Input and an Output
+		// by adding a static suffix to the jackName of the node.
+
 		const conns: GraphConnectionRecord[] = [];
 
 		// Patcher Node as Source
