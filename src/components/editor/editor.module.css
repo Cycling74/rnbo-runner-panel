@@ -87,7 +87,7 @@
 
 			&:before {
 				content: attr(data-c74-id);
-				padding-right: 20px;
+				padding-right: 25px;
 				right: 0;
 			}
 		}
@@ -98,7 +98,7 @@
 
 			&:after {
 				content: attr(data-c74-id);
-				padding-left: 20px;
+				padding-left: 25px;
 				left: 0;
 			}
 		}
