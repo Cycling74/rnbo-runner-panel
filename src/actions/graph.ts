@@ -1,9 +1,10 @@
+import { Set as ImmuSet } from "immutable";
 import { writePacket } from "osc";
 import { oscQueryBridge } from "../controller/oscqueryBridgeController";
 import { ActionBase, AppThunk } from "../lib/store";
 import { OSCQueryRNBOInstance, OSCQueryRNBOInstancesState, OSCQueryRNBOJackPortInfo } from "../lib/types";
-import { ConnectionType, GraphConnectionRecord, GraphNode, GraphNodeRecord, GraphPatcherNode, GraphPatcherNodeRecord, GraphPortRecord, GraphSystemNodeRecord, NodeType } from "../models/graph";
-import { getConnection, getConnectionByNodesAndPorts, getConnectionsForSinkNodeAndPort, getConnectionsForSourceNodeAndPort, getNode, getNodeByIndex, getNodes } from "../selectors/graph";
+import { ConnectionType, GraphConnectionRecord, GraphNode, GraphNodeRecord, GraphPatcherNode, GraphPatcherNodeRecord, GraphPortRecord, GraphSystemNodeRecord, NodeType, PortDirection } from "../models/graph";
+import { getConnection, getConnectionByNodesAndPorts, getConnectionsForSinkNodeAndPort, getConnectionsForSourceNodeAndPort, getNode, getPatcherNodeByIndex, getNodes, getSystemNodeByJackNameAndDirection, getSystemNodesJackNames } from "../selectors/graph";
 import { showNotification } from "./notifications";
 import { NotificationLevel } from "../models/notification";
 import { DeviceStateRecord } from "../models/device";
@@ -106,6 +107,22 @@ export type GraphAction = IInitGraph | ISetGraphNode | ISetGraphNodes | IDeleteG
 | ISetGraphConnection  | IDeleteGraphConnection | ISetGraphConnections  | IDeleteGraphConnections;
 
 
+const getSystemNodeJackNamesFromPortInfo = (jackPortsInfo: OSCQueryRNBOJackPortInfo, patcherNodes: GraphPatcherNodeRecord[]): string[] => {
+	const pNodeIds = new Set(patcherNodes.map(pn => pn.id));
+	const portNames = [
+		...(jackPortsInfo.CONTENTS?.audio?.CONTENTS?.sources?.VALUE || []),
+		...(jackPortsInfo.CONTENTS?.midi?.CONTENTS?.sources?.VALUE || []),
+		...(jackPortsInfo.CONTENTS?.audio?.CONTENTS?.sinks?.VALUE || []),
+		...(jackPortsInfo.CONTENTS?.midi?.CONTENTS?.sinks?.VALUE || [])
+	];
+
+	return portNames.reduce((result, portName) => {
+		const [nodeName] = portName.split(":");
+		if (!pNodeIds.has(nodeName)) result.push(nodeName);
+		return result;
+	}, [] as string[]);
+};
+
 export const initGraph = (jackPortsInfo: OSCQueryRNBOJackPortInfo, instanceInfo: OSCQueryRNBOInstancesState): AppThunk =>
 	(dispatch, getState) => {
 
@@ -115,30 +132,6 @@ export const initGraph = (jackPortsInfo: OSCQueryRNBOJackPortInfo, instanceInfo:
 		const devices: DeviceStateRecord[] = [];
 		const patcherNodes: GraphPatcherNodeRecord[] = [];
 		const connections: GraphConnectionRecord[] = [];
-
-		let systemInputY = -defaultNodeSpacing;
-		let systemOutputY = -defaultNodeSpacing;
-		const systemNodes: GraphSystemNodeRecord[] = GraphSystemNodeRecord.fromDescription(jackPortsInfo).map(sysNode => {
-			const exNode = existingNodes.get(sysNode.id);
-			if (exNode) return sysNode.updatePosition(exNode.x, exNode.y);
-
-			let node = sysNode;
-			if (node.id === GraphSystemNodeRecord.systemAudioInputName || node.id === GraphSystemNodeRecord.systemMIDIInputName) {
-				node = node.updatePosition(
-					-1 * (node.width + defaultNodeSpacing * 3),
-					systemInputY + defaultNodeSpacing
-				);
-				systemInputY = node.y + node.contentHeight;
-			} else {
-				node = node.updatePosition(
-					node.width + defaultNodeSpacing * 3,
-					systemOutputY + defaultNodeSpacing
-				);
-				systemOutputY = node.y + node.contentHeight;
-			}
-
-			return node;
-		});
 
 		for (const [key, value] of Object.entries(instanceInfo.CONTENTS)) {
 			if (!/^\d+$/.test(key)) continue;
@@ -152,10 +145,47 @@ export const initGraph = (jackPortsInfo: OSCQueryRNBOJackPortInfo, instanceInfo:
 				node = node.updatePosition(x, y);
 			}
 
-			connections.push(...GraphConnectionRecord.patcherNodeConnectionsFromDescription(node.id, value.CONTENTS.jack.CONTENTS.connections));
+
 			patcherNodes.push(node);
 			devices.push(DeviceStateRecord.fromDescription(value));
 		}
+
+		const systemJackNames = ImmuSet<string>(getSystemNodeJackNamesFromPortInfo(jackPortsInfo, patcherNodes));
+
+		for (const node of patcherNodes) {
+			connections.push(...GraphConnectionRecord.patcherNodeConnectionsFromDescription(
+				node.id,
+				instanceInfo.CONTENTS[`${node.index}`].CONTENTS.jack.CONTENTS.connections,
+				systemJackNames
+			));
+		}
+
+		let systemInputY = -defaultNodeSpacing;
+		let systemOutputY = -defaultNodeSpacing;
+
+		const systemNodes: GraphSystemNodeRecord[] = GraphSystemNodeRecord
+			.fromDescription(systemJackNames, jackPortsInfo)
+			.map(sysNode => {
+				const exNode = existingNodes.get(sysNode.id);
+				if (exNode) return sysNode.updatePosition(exNode.x, exNode.y);
+
+				let node = sysNode;
+				if (node.id.endsWith(GraphSystemNodeRecord.inputSuffix)) {
+					node = node.updatePosition(
+						-1 * (node.width + defaultNodeSpacing * 3),
+						systemInputY + defaultNodeSpacing
+					);
+					systemInputY = node.y + node.contentHeight;
+				} else {
+					node = node.updatePosition(
+						node.width + defaultNodeSpacing * 3,
+						systemOutputY + defaultNodeSpacing
+					);
+					systemOutputY = node.y + node.contentHeight;
+				}
+
+				return node;
+			});
 
 		const initAction: IInitGraph = {
 			type: GraphActionType.INIT,
@@ -286,20 +316,17 @@ export const loadPatcherNodeOnRemote = (patcher: PatcherRecord): AppThunk =>
 	};
 
 const setPatcherNodeSourcePortConnectionsOnRemote = (node: GraphPatcherNodeRecord, port: GraphPortRecord, connections: GraphConnectionRecord[]): AppThunk =>
-	(dispatch) => {
+	(dispatch, getState) => {
 		try {
+			const state = getState();
 			const message = {
 				address: `${node.path}/jack/connections/${port.type === ConnectionType.Audio ? "audio" : "midi"}/sources/${port.id}`,
 				args: connections.length ? connections.map(conn => {
-					let id = conn.sinkNodeId;
-					if (id === GraphSystemNodeRecord.systemAudioOutputName) {
-						id = GraphSystemNodeRecord.systemAudioName;
-					} else if (id === GraphSystemNodeRecord.systemMIDIOutputName) {
-						id = GraphSystemNodeRecord.systemMIDIName;
-					}
+					const sinkNode = getNode(state, conn.sinkNodeId);
+					const sinkId = sinkNode.type === NodeType.System ? sinkNode.jackName : sinkNode.id;
 					return {
 						type: "s",
-						value: `${id}:${conn.sinkPortId}`
+						value: `${sinkId}:${conn.sinkPortId}`
 					};
 				}) : [ { type: "N", value: "" } ]
 			};
@@ -316,21 +343,18 @@ const setPatcherNodeSourcePortConnectionsOnRemote = (node: GraphPatcherNodeRecor
 	};
 
 const setPatcherNodeSinkPortConnectionsOnRemote = (device: GraphPatcherNodeRecord, port: GraphPortRecord, connections: GraphConnectionRecord[]): AppThunk =>
-	(dispatch) => {
+	(dispatch, getState) => {
 
 		try {
+			const state = getState();
 			const message = {
 				address: `${device.path}/jack/connections/${port.type === ConnectionType.Audio ? "audio" : "midi"}/sinks/${port.id}`,
 				args: connections.length ? connections.map(conn => {
-					let id = conn.sourceNodeId;
-					if (id === GraphSystemNodeRecord.systemAudioInputName) {
-						id = GraphSystemNodeRecord.systemAudioName;
-					} else if (id === GraphSystemNodeRecord.systemMIDIInputName) {
-						id = GraphSystemNodeRecord.systemMIDIName;
-					}
+					const sourceNode = getNode(state, conn.sourceNodeId);
+					const sourceId = sourceNode.type === NodeType.System ? sourceNode.jackName : sourceNode.id;
 					return {
 						type: "s",
-						value: `${id}:${conn.sourcePortId}`
+						value: `${sourceId}:${conn.sourcePortId}`
 					};
 				}) : [ { type: "N", value: "" } ]
 			};
@@ -586,7 +610,7 @@ export const updatePatcherNodeSourcePortConnections = (index: number, portId: Gr
 	(dispatch, getState) => {
 		try {
 			const state = getState();
-			const sourceNode = getNodeByIndex(state, index);
+			const sourceNode = getPatcherNodeByIndex(state, index);
 			if (sourceNode?.type !== NodeType.Patcher) return;
 
 			const sourcePort = sourceNode.getPort(portId);
@@ -597,17 +621,9 @@ export const updatePatcherNodeSourcePortConnections = (index: number, portId: Gr
 
 			const connections = [];
 			for (const sink of sinks) {
-				const parts = sink.split(":");
-				let sinkNodeId = parts[0];
-				const sinkPortId = parts[1];
+				const [sinkNodeName, sinkPortId] = sink.split(":");
 
-				if (sinkNodeId === GraphSystemNodeRecord.systemAudioName) {
-					sinkNodeId = GraphSystemNodeRecord.systemAudioOutputName;
-				} else if (sinkNodeId === GraphSystemNodeRecord.systemMIDIName) {
-					sinkNodeId = GraphSystemNodeRecord.systemMIDIOutputName;
-				}
-
-				const sinkNode = getNode(state, sinkNodeId);
+				const sinkNode = getNode(state, sinkNodeName) || getSystemNodeByJackNameAndDirection(state, sinkNodeName, PortDirection.Sink);
 				if (!sinkNode) continue;
 				const sinkPort = sinkNode.getPort(sinkPortId);
 				if (!sinkPort) continue;
@@ -631,7 +647,7 @@ export const updatePatcherNodeSinkPortConnections = (index: number, portId: Grap
 	(dispatch, getState) => {
 		try {
 			const state = getState();
-			const sinkNode = getNodeByIndex(state, index);
+			const sinkNode = getPatcherNodeByIndex(state, index);
 			if (sinkNode?.type !== NodeType.Patcher) return;
 
 			const sinkPort = sinkNode.getPort(portId);
@@ -642,17 +658,9 @@ export const updatePatcherNodeSinkPortConnections = (index: number, portId: Grap
 
 			const connections = [];
 			for (const source of sources) {
-				const parts = source.split(":");
-				let sourceNodeId = parts[0];
-				const sourcePortId = parts[1];
+				const [sourceNodeName, sourcePortId] = source.split(":");
 
-				if (sourceNodeId === GraphSystemNodeRecord.systemAudioName) {
-					sourceNodeId = GraphSystemNodeRecord.systemAudioInputName;
-				} else if (sourceNodeId === GraphSystemNodeRecord.systemMIDIName) {
-					sourceNodeId = GraphSystemNodeRecord.systemMIDIInputName;
-				}
-
-				const sourceNode = getNode(state, sourceNodeId);
+				const sourceNode = getNode(state, sourceNodeName) || getSystemNodeByJackNameAndDirection(state, sourceNodeName, PortDirection.Source);
 				if (!sourceNode) continue;
 
 				const sourcePort = sourceNode.getPort(sourcePortId);
@@ -688,7 +696,7 @@ export const addPatcherNode = (desc: OSCQueryRNBOInstance): AppThunk =>
 		dispatch(setNode(node));
 
 		// Create Edges
-		const connections = GraphConnectionRecord.patcherNodeConnectionsFromDescription(node.id, desc.CONTENTS.jack.CONTENTS.connections);
+		const connections = GraphConnectionRecord.patcherNodeConnectionsFromDescription(node.id, desc.CONTENTS.jack.CONTENTS.connections, getSystemNodesJackNames(state));
 		dispatch(setConnections(connections));
 
 		// Create Device State
@@ -701,7 +709,7 @@ export const removePatcherNode = (index: number): AppThunk =>
 		try {
 			const state = getState();
 
-			const node = getNodeByIndex(state, index);
+			const node = getPatcherNodeByIndex(state, index);
 			if (node?.type !== NodeType.Patcher) return;
 			dispatch(deleteNode(node));
 
