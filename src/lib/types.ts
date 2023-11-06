@@ -135,9 +135,21 @@ export type OSCQueryRNBOJackPortInfo = OSCQueryBaseNode & {
 	};
 };
 
+export type OSCQueryRNBOJackConnections = OSCQueryBaseNode & {
+	CONTENTS: {
+		audio: OSCQueryBaseNode & {
+			CONTENTS?: Record<string, OSCQueryListValue<string, string[]>>;
+		};
+		midi: OSCQueryBaseNode & {
+			CONTENTS?: Record<string, OSCQueryListValue<string, string[]>>;
+		};
+	};
+};
+
 export type OSCQueryRNBOJackState = OSCQueryBaseNode & {
 	CONTENTS: {
 		active: OSCQueryBooleanValue;
+		connections: OSCQueryRNBOJackConnections,
 		info: OSCQueryBaseNode & {
 			CONTENTS: {
 				is_realtime: OSCQueryBooleanValue;

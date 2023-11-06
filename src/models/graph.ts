@@ -1,6 +1,6 @@
 
 import { Record as ImmuRecord, Map as ImmuMap, Set as ImmuSet } from "immutable";
-import { OSCQueryRNBOInstance, OSCQueryRNBOInstanceConnections, OSCQueryRNBOJackPortInfo } from "../lib/types";
+import { OSCQueryRNBOInstance, OSCQueryRNBOJackPortInfo } from "../lib/types";
 
 export enum ConnectionType {
 	Audio = "audio",
@@ -50,6 +50,7 @@ const calculateContentHeight = (ports: ImmuMap<GraphPortRecord["id"], GraphPortR
 };
 
 export type CommonGraphNodeProps = {
+	jackName: string;
 	ports: ImmuMap<GraphPortRecord["id"], GraphPortRecord>;
 	contentHeight: number;
 	selected: boolean;
@@ -60,14 +61,13 @@ export type CommonGraphNodeProps = {
 export type GraphSystemNodeProps = CommonGraphNodeProps & {
 	direction: PortDirection;
 	id: string;
-	jackName: string;
+
 }
 
 export type GraphPatcherNodeProps = CommonGraphNodeProps & {
 	index: number;
 	patcher: string;
 	path: string;
-	name: string;
 }
 
 export interface GraphNode extends CommonGraphNodeProps {
@@ -87,7 +87,7 @@ export interface GraphSystemNode extends GraphNode {
 export class GraphPatcherNodeRecord extends ImmuRecord<GraphPatcherNodeProps>({
 
 	index: 0,
-	name: "",
+	jackName: "",
 	patcher: "",
 	path: "",
 	ports: ImmuMap<GraphPortRecord["id"], GraphPortRecord>(),
@@ -106,7 +106,7 @@ export class GraphPatcherNodeRecord extends ImmuRecord<GraphPatcherNodeProps>({
 	}
 
 	public get id(): string {
-		return this.name;
+		return this.jackName;
 	}
 
 	public get type(): NodeType.Patcher {
@@ -201,7 +201,7 @@ export class GraphPatcherNodeRecord extends ImmuRecord<GraphPatcherNodeProps>({
 
 		return new GraphPatcherNodeRecord({
 			index: parseInt(desc.FULL_PATH.split("/").pop(), 10),
-			name: this.getJackName(desc.CONTENTS.jack),
+			jackName: this.getJackName(desc.CONTENTS.jack),
 			patcher: desc.CONTENTS.name.VALUE,
 			path: desc.FULL_PATH,
 			ports,
@@ -433,97 +433,5 @@ export class GraphConnectionRecord extends ImmuRecord<GraphConnectionProps>({
 
 	public static idFromNodesAndPorts(sourceId: string, sourcePortId: string, sinkId: string, sinkPortId: string): string {
 		return `${sourceId}:${sourcePortId}${this.connectionDelimiter}${sinkId}:${sinkPortId}`;
-	}
-
-	public static patcherNodeConnectionsFromDescription(
-		nodeId: GraphNodeRecord["id"],
-		desc: OSCQueryRNBOInstanceConnections,
-		systemNodeJackNames: ImmuSet<GraphSystemNodeRecord["jackName"]>
-	): GraphConnectionRecord[] {
-
-		// Expect a list of systemNodeJackNames in order to be able to set up the correct
-		// connections as we make two nodes for each SystemNode in the graph - an Input and an Output
-		// by adding a static suffix to the jackName of the node.
-
-		const conns: GraphConnectionRecord[] = [];
-
-		// Patcher Node as Source
-		for (const [portId, info] of Object.entries(desc.CONTENTS.audio?.CONTENTS?.sources?.CONTENTS || {})) {
-			const commonConnProps: Omit<GraphConnectionProps, "id" | "sinkNodeId" | "sinkPortId"> = {
-				sourceNodeId: nodeId,
-				sourcePortId: portId,
-				selected: false,
-				type: ConnectionType.Audio
-			};
-
-			conns.push(...(info.VALUE.map(target => {
-				const [sinkNodeId, sinkPortId] = target.split(":");
-				return new GraphConnectionRecord({
-					...commonConnProps,
-					sinkNodeId: systemNodeJackNames.has(sinkNodeId) ? `${sinkNodeId}${GraphSystemNodeRecord.outputSuffix}` : sinkNodeId,
-					sinkPortId
-				});
-			})));
-		}
-
-		for (const [portId, info] of Object.entries(desc.CONTENTS.midi?.CONTENTS?.sources?.CONTENTS || {})) {
-			const commonConnProps: Omit<GraphConnectionProps, "id" | "sinkNodeId" | "sinkPortId"> = {
-				sourceNodeId: nodeId,
-				sourcePortId: portId,
-				selected: false,
-				type: ConnectionType.MIDI
-			};
-
-			conns.push(...(info.VALUE.map(target => {
-				const [sinkNodeId, sinkPortId] = target.split(":");
-				return new GraphConnectionRecord({
-					...commonConnProps,
-					sinkNodeId: systemNodeJackNames.has(sinkNodeId) ? `${sinkNodeId}${GraphSystemNodeRecord.outputSuffix}` : sinkNodeId,
-					sinkPortId
-				});
-			})));
-		}
-
-		// Patcher Node as Sink - Apply only to connections to system Nodes
-		for (const [portId, info] of Object.entries(desc.CONTENTS.audio?.CONTENTS?.sinks?.CONTENTS || {})) {
-			const commonConnProps: Omit<GraphConnectionProps, "id" | "sourceNodeId" | "sourcePortId"> = {
-				sinkNodeId: nodeId,
-				sinkPortId: portId,
-				selected: false,
-				type: ConnectionType.Audio
-			};
-
-			for (const target of info.VALUE) {
-				const [soureNodeId, sourcePortId] = target.split(":");
-				if (!systemNodeJackNames.has(soureNodeId)) continue;
-				conns.push(new GraphConnectionRecord({
-					...commonConnProps,
-					sourceNodeId: `${soureNodeId}${GraphSystemNodeRecord.inputSuffix}`,
-					sourcePortId
-				}));
-			}
-		}
-
-		for (const [portId, info] of Object.entries(desc.CONTENTS.midi?.CONTENTS?.sinks?.CONTENTS || {})) {
-			const commonConnProps: Omit<GraphConnectionProps, "id" | "sourceNodeId" | "sourcePortId"> = {
-				sinkNodeId: nodeId,
-				sinkPortId: portId,
-				selected: false,
-				type: ConnectionType.MIDI
-			};
-
-			for (const target of info.VALUE) {
-				const [soureNodeId, sourcePortId] = target.split(":");
-				if (!systemNodeJackNames.has(soureNodeId)) continue;
-				conns.push(new GraphConnectionRecord({
-					...commonConnProps,
-					sourceNodeId: `${soureNodeId}${GraphSystemNodeRecord.inputSuffix}`,
-					sourcePortId
-				}));
-			}
-		}
-
-
-		return conns;
 	}
 }
