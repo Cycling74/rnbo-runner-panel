@@ -8,7 +8,7 @@ import { OSCQueryRNBOInstance, OSCQueryRNBOInstancesState, OSCQueryRNBOJackPortI
 import { addPatcherNode, initGraph, removePatcherNode, updatePatcherNodeSinkPortConnections, updatePatcherNodeSourcePortConnections } from "../actions/graph";
 import { initPatchers } from "../actions/patchers";
 import { sleep } from "../lib/util";
-import { getNodeByIndex } from "../selectors/graph";
+import { getPatcherNodeByIndex } from "../selectors/graph";
 import { updateDeviceInstanceMessageOutputValue, updateDeviceInstanceMessages, updateDeviceInstanceParameterValue, updateDeviceInstanceParameterValueNormalized, updateDeviceInstanceParameters, updateDeviceInstancePresetEntries } from "../actions/instances";
 
 const dispatch = store.dispatch as AppDispatch;
@@ -26,7 +26,7 @@ const oscPacketAddressMatcher = /^\/rnbo\/inst\/(?<index>\d+)\/(?<content>params
 export class OSCQueryBridgeControllerPrivate {
 
 	private static instanceExists(index: number): boolean {
-		return !!getNodeByIndex(store.getState(), index);
+		return !!getPatcherNodeByIndex(store.getState(), index);
 	}
 
 	private _ws: ReconnectingWebsocket | null = null;
