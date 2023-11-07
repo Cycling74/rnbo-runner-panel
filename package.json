@@ -11,7 +11,7 @@
     "start": "next start",
     "lint": "next lint",
     "export": "next export",
-    "prepackage-debian": "export",
+    "prepackage-debian": "build",
     "package-debian": "node scripts/package-debian.mjs"
   },
   "dependencies": {
