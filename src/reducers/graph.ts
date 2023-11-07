@@ -20,27 +20,6 @@ export const graph = (state: GraphState = {
 
 	switch (action.type) {
 
-		case GraphActionType.INIT: {
-			const { connections, nodes } = action.payload;
-
-			return {
-				...state,
-				connections: ImmuMap<GraphConnectionRecord["id"], GraphConnectionRecord>().withMutations((map) => {
-					for (const connection of connections) {
-						map.set(connection.id, connection);
-					}
-				}),
-				nodes: ImmuMap<GraphNodeRecord["id"], GraphNodeRecord>(nodes.map(n => [n.id, n])),
-				patcherNodeIdByIndex: ImmuMap<GraphPatcherNodeRecord["index"], GraphPatcherNodeRecord["id"]>().withMutations((map) => {
-					for (const node of nodes) {
-						if (node.type === NodeType.Patcher) {
-							map.set(node.index, node.id);
-						}
-					}
-				})
-			};
-		}
-
 		case GraphActionType.DELETE_NODE: {
 			const { node } = action.payload;
 			return {

@@ -4,8 +4,8 @@ import { setAppStatus, setConnectionEndpoint } from "../actions/appStatus";
 import { AppDispatch, store } from "../lib/store";
 import { ReconnectingWebsocket } from "../lib/reconnectingWs";
 import { AppStatus } from "../lib/constants";
-import { OSCQueryRNBOInstance, OSCQueryRNBOInstancesState, OSCQueryRNBOJackPortInfo, OSCQueryRNBOPatchersState, OSCValue } from "../lib/types";
-import { addPatcherNode, initGraph, removePatcherNode, updatePatcherNodeSinkPortConnections, updatePatcherNodeSourcePortConnections } from "../actions/graph";
+import { OSCQueryRNBOInstance, OSCQueryRNBOInstancesState, OSCQueryRNBOJackConnections, OSCQueryRNBOJackPortInfo, OSCQueryRNBOPatchersState, OSCValue } from "../lib/types";
+import { addPatcherNode, initConnections, initNodes, removePatcherNode, updateSourcePortConnections } from "../actions/graph";
 import { initPatchers } from "../actions/patchers";
 import { sleep } from "../lib/util";
 import { getPatcherNodeByIndex } from "../selectors/graph";
@@ -18,10 +18,10 @@ enum OSCQueryCommand {
 	PATH_REMOVED = "PATH_REMOVED"
 }
 
-const instPathMatcher = /^\/rnbo\/inst\/(?<index>\d+)$/;
 const patchersPathMatcher = /^\/rnbo\/patchers/;
-const instInfoPathMatcher = /^\/rnbo\/inst\/(?<index>\d+)\/(?<content>params|messages\/in|messages\/out|presets)\/(?<rest>\S+)/;
-const oscPacketAddressMatcher = /^\/rnbo\/inst\/(?<index>\d+)\/(?<content>params|presets|messages\/out|jack\/connections)\/(?<rest>\S+)/;
+const instancePathMatcher = /^\/rnbo\/inst\/(?<index>\d+)$/;
+const instanceStatePathMatcher = /^\/rnbo\/inst\/(?<index>\d+)\/(?<content>params|messages\/in|messages\/out|presets)\/(?<rest>\S+)/;
+const connectionsPathMatcher = /^\/rnbo\/jack\/connections\/(?<type>audio|midi)\/(?<name>.+)$/;
 
 export class OSCQueryBridgeControllerPrivate {
 
@@ -56,6 +56,11 @@ export class OSCQueryBridgeControllerPrivate {
 		});
 	}
 
+	private async _initConnections() {
+		const connectionsInfo = await this._requestState<OSCQueryRNBOJackConnections>("/rnbo/jack/connections");
+		dispatch(initConnections(connectionsInfo));
+	}
+
 	private async _init() {
 
 		// Fetch Patcher Info
@@ -68,8 +73,11 @@ export class OSCQueryBridgeControllerPrivate {
 		// Fetch Instances Info
 		const instancesInfo = await this._requestState<OSCQueryRNBOInstancesState>("/rnbo/inst");
 
-		// Initialize RNBO Graph
-		dispatch(initGraph(jackPortsInfo, instancesInfo));
+		// Initialize RNBO Graph Nodes
+		dispatch(initNodes(jackPortsInfo, instancesInfo));
+
+		// Fetch Connections Info
+		await this._initConnections();
 
 		// Set Init App Status
 		dispatch(setAppStatus(AppStatus.Ready));
@@ -124,11 +132,14 @@ export class OSCQueryBridgeControllerPrivate {
 	private async _onPathAdded(path: string): Promise<void> {
 
 		// Handle Instances and Patcher Nodes first
-		if (instPathMatcher.test(path)) {
+		if (instancePathMatcher.test(path)) {
 			// New Device Instance Added - slight timeout to let the graph build on the runner first
 			await sleep(500);
 			const info = await this._requestState<OSCQueryRNBOInstance>(path);
-			return void dispatch(addPatcherNode(info));
+			dispatch(addPatcherNode(info));
+
+			// Refresh Connections Info to include node
+			return void await this._initConnections();
 		}
 
 		// Handle changes to patchers list - request updated list
@@ -138,7 +149,7 @@ export class OSCQueryBridgeControllerPrivate {
 		}
 
 		// Parse out if instance path?
-		const instInfoMatch = path.match(instInfoPathMatcher);
+		const instInfoMatch = path.match(instanceStatePathMatcher);
 		if (!instInfoMatch?.groups?.index) return;
 
 		// Known Instance?
@@ -171,7 +182,7 @@ export class OSCQueryBridgeControllerPrivate {
 	private async _onPathRemoved(path: string): Promise<void> {
 
 		// Removed Instance
-		const instMatch = path.match(instPathMatcher);
+		const instMatch = path.match(instancePathMatcher);
 		if (instMatch?.groups?.index) {
 			const index = parseInt(instMatch.groups.index, 10);
 			if (isNaN(index)) return;
@@ -185,7 +196,7 @@ export class OSCQueryBridgeControllerPrivate {
 		}
 
 		// Parse out if instance path?
-		const instInfoMatch = path.match(instInfoPathMatcher);
+		const instInfoMatch = path.match(instanceStatePathMatcher);
 		if (!instInfoMatch?.groups?.index) return;
 
 		// Known Instance?
@@ -231,7 +242,13 @@ export class OSCQueryBridgeControllerPrivate {
 
 	private async _processOSCMessage(packet: OSCMessage): Promise<void> {
 
-		const packetMatch = packet.address.match(oscPacketAddressMatcher);
+
+		const connectionMatch = packet.address.match(connectionsPathMatcher);
+		if (connectionMatch?.groups?.name) {
+			return void dispatch(updateSourcePortConnections(connectionMatch.groups.name, packet.args as unknown as string[]));
+		}
+
+		const packetMatch = packet.address.match(instanceStatePathMatcher);
 		if (!packetMatch?.groups?.index) return;
 
 		const index = parseInt(packetMatch.groups.index, 10);
@@ -265,27 +282,6 @@ export class OSCQueryBridgeControllerPrivate {
 			packetMatch.groups.rest?.length
 		) {
 			return void dispatch(updateDeviceInstanceMessageOutputValue(index, packetMatch.groups.rest, packet.args as any as OSCValue | OSCValue[]));
-		}
-
-		// Update Instance Connections
-		if (
-			packetMatch.groups.content === "jack/connections" &&
-			packetMatch.groups.rest?.length
-		) {
-			// eslint-disable-next-line @typescript-eslint/no-unused-vars
-			const [type, direction, portId] = packetMatch.groups.rest.split("/");
-
-			// Seems like we get [1] when no connections so filter to be a string-only array here
-			const args: string[] = [];
-			for (const arg of packet.args) {
-				if (arg && typeof arg === "string") args.push(arg);
-			}
-
-			if (direction === "sources") {
-				dispatch(updatePatcherNodeSourcePortConnections(index, portId, args));
-			} else if (direction === "sinks") {
-				dispatch(updatePatcherNodeSinkPortConnections(index, portId, args));
-			}
 		}
 
 	}
