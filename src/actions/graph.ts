@@ -118,7 +118,7 @@ const getSystemNodeJackNamesFromPortInfo = (jackPortsInfo: OSCQueryRNBOJackPortI
 
 	return portNames.reduce((result, portName) => {
 		const [nodeName] = portName.split(":");
-		if (!pNodeIds.has(nodeName)) result.push(nodeName);
+		if (!pNodeIds.has(nodeName) && nodeName.startsWith("system")) result.push(nodeName);
 		return result;
 	}, [] as string[]);
 };
