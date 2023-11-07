@@ -228,13 +228,13 @@ export const initNodes = (jackPortsInfo: OSCQueryRNBOJackPortInfo, instanceInfo:
 				let node = sysNode;
 				if (node.id.endsWith(GraphSystemNodeRecord.inputSuffix)) {
 					node = node.updatePosition(
-						-1 * (node.width + defaultNodeSpacing * 3),
+						0,
 						systemInputY + defaultNodeSpacing
 					);
 					systemInputY = node.y + node.contentHeight;
 				} else {
 					node = node.updatePosition(
-						node.width + defaultNodeSpacing * 3,
+						(node.width + defaultNodeSpacing ) * 2,
 						systemOutputY + defaultNodeSpacing
 					);
 					systemOutputY = node.y + node.contentHeight;
