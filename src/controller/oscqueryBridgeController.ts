@@ -4,8 +4,8 @@ import { setAppStatus, setConnectionEndpoint } from "../actions/appStatus";
 import { AppDispatch, store } from "../lib/store";
 import { ReconnectingWebsocket } from "../lib/reconnectingWs";
 import { AppStatus } from "../lib/constants";
-import { OSCQueryRNBOInstance, OSCQueryRNBOInstancesState, OSCQueryRNBOJackConnections, OSCQueryRNBOJackPortInfo, OSCQueryRNBOPatchersState, OSCValue } from "../lib/types";
-import { addPatcherNode, initConnections, initNodes, removePatcherNode, updateSourcePortConnections } from "../actions/graph";
+import { OSCQueryRNBOInstance, OSCQueryRNBOInstancesControlState, OSCQueryRNBOInstancesState, OSCQueryRNBOJackConnections, OSCQueryRNBOJackPortInfo, OSCQueryRNBOPatchersState, OSCValue } from "../lib/types";
+import { addPatcherNode, initConnections, initNodes, removePatcherNode, updateSetMeta, updateSourcePortConnections } from "../actions/graph";
 import { initPatchers } from "../actions/patchers";
 import { sleep } from "../lib/util";
 import { getPatcherNodeByIndex } from "../selectors/graph";
@@ -22,6 +22,7 @@ const patchersPathMatcher = /^\/rnbo\/patchers/;
 const instancePathMatcher = /^\/rnbo\/inst\/(?<index>\d+)$/;
 const instanceStatePathMatcher = /^\/rnbo\/inst\/(?<index>\d+)\/(?<content>params|messages\/in|messages\/out|presets)\/(?<rest>\S+)/;
 const connectionsPathMatcher = /^\/rnbo\/jack\/connections\/(?<type>audio|midi)\/(?<name>.+)$/;
+const setMetaPathMatcher = /^\/rnbo\/inst\/control\/sets\/meta/;
 
 export class OSCQueryBridgeControllerPrivate {
 
@@ -136,7 +137,8 @@ export class OSCQueryBridgeControllerPrivate {
 			// New Device Instance Added - slight timeout to let the graph build on the runner first
 			await sleep(500);
 			const info = await this._requestState<OSCQueryRNBOInstance>(path);
-			dispatch(addPatcherNode(info));
+			const meta = await this._requestState<OSCQueryRNBOInstancesControlState["CONTENTS"]["sets"]["CONTENTS"]["meta"]>("/rnbo/inst/control/sets/meta");
+			dispatch(addPatcherNode(info, meta.VALUE as string));
 
 			// Refresh Connections Info to include node
 			return void await this._initConnections();
@@ -242,6 +244,10 @@ export class OSCQueryBridgeControllerPrivate {
 
 	private async _processOSCMessage(packet: OSCMessage): Promise<void> {
 
+		const metaMatch = packet.address.match(setMetaPathMatcher);
+		if (metaMatch) {
+			return void dispatch(updateSetMeta(packet.args as unknown as string));
+		}
 
 		const connectionMatch = packet.address.match(connectionsPathMatcher);
 		if (connectionMatch?.groups?.name) {
