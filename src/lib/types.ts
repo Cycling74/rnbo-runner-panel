@@ -268,8 +268,24 @@ export type OSCQueryRNBOInstance = OSCQueryBaseNode & {
 	}
 };
 
+export type OSCQueryRNBOInstancesControlState = OSCQueryBaseNode & {
+	CONTENTS: {
+		sets: OSCQueryBaseNode & {
+			CONTENTS: {
+				meta: OSCQuerySingleValue<OSCQueryValueType.String, string>;
+				save: OSCQuerySingleValue<OSCQueryValueType.String, string>;
+				load: OSCQuerySingleValue<OSCQueryValueType.String, string> & {
+					RANGE: Array<{ VALS: string[]; }>;
+				}
+			}
+		};
+	};
+}
+
 export type OSCQueryRNBOInstancesState = OSCQueryBaseNode & {
-	CONTENTS: Record<string, OSCQueryRNBOInstance>;
+	CONTENTS: Record<string, OSCQueryRNBOInstance> & {
+		control: OSCQueryRNBOInstancesControlState;
+	};
 };
 
 export type OSCQueryRNBOState = OSCQueryBaseNode & {
@@ -287,3 +303,9 @@ export type OSCQueryState = OSCQueryBaseNode & {
 		rnbo: OSCQueryRNBOState;
 	};
 };
+
+export type OSCQuerySetNodeMeta = { position: { x: number; y: number; }; };
+
+export type OSCQuerySetMeta = {
+	nodes: Record<string, OSCQuerySetNodeMeta>;
+}

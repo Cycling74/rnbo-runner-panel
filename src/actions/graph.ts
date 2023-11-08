@@ -1,8 +1,8 @@
-import { Set as ImmuSet } from "immutable";
+import { Set as ImmuSet, Map as ImmuMap } from "immutable";
 import { writePacket } from "osc";
 import { oscQueryBridge } from "../controller/oscqueryBridgeController";
 import { ActionBase, AppThunk, RootStateType } from "../lib/store";
-import { OSCQueryRNBOInstance, OSCQueryRNBOInstancesState, OSCQueryRNBOJackConnections, OSCQueryRNBOJackPortInfo } from "../lib/types";
+import { OSCQueryRNBOInstance, OSCQueryRNBOInstancesState, OSCQueryRNBOJackConnections, OSCQueryRNBOJackPortInfo, OSCQuerySetMeta, OSCQuerySetNodeMeta } from "../lib/types";
 import { GraphConnectionRecord, GraphNode, GraphNodeRecord, GraphPatcherNode, GraphPatcherNodeRecord, GraphPortRecord, GraphSystemNodeRecord, NodeType, PortDirection } from "../models/graph";
 import { getConnection, getConnectionByNodesAndPorts, getConnectionsForSourceNodeAndPort, getNode, getPatcherNodeByIndex, getNodes, getSystemNodeByJackNameAndDirection, getConnections } from "../selectors/graph";
 import { showNotification } from "./notifications";
@@ -13,6 +13,7 @@ import { getDevice } from "../selectors/instances";
 import { PatcherRecord } from "../models/patcher";
 import { Connection, EdgeChange, NodeChange } from "reactflow";
 import { isValidConnection } from "../lib/editorUtils";
+import throttle from "lodash.throttle";
 
 const defaultNodeSpacing = 150;
 const getPatcherNodeCoordinates = (node: GraphPatcherNodeRecord, nodes: GraphNodeRecord[]): { x: number, y: number } => {
@@ -25,6 +26,14 @@ const getPatcherNodeCoordinates = (node: GraphPatcherNodeRecord, nodes: GraphNod
 
 	const y = bottomNode ? bottomNode.y + bottomNode.height + defaultNodeSpacing : 0;
 	return { x: 300 + defaultNodeSpacing, y };
+};
+
+const serializeSetMeta = (nodes: GraphNodeRecord[]): OSCQuerySetMeta => {
+	const result: OSCQuerySetMeta = { nodes: {} };
+	for (const node of nodes) {
+		result.nodes[node.id] = { position: { x: node.x, y: node.y } };
+	}
+	return result;
 };
 
 export enum GraphActionType {
@@ -195,21 +204,27 @@ export const initNodes = (jackPortsInfo: OSCQueryRNBOJackPortInfo, instanceInfo:
 		const devices: DeviceStateRecord[] = [];
 		const patcherNodes: GraphPatcherNodeRecord[] = [];
 
+		let meta: OSCQuerySetMeta = { nodes: {} };
+		try {
+			meta = JSON.parse(instanceInfo.CONTENTS.control.CONTENTS.sets.CONTENTS.meta.VALUE as string || '{ "nodes": {} }') as OSCQuerySetMeta;
+		} catch (err) {
+			console.warn(`Failed to parse Set Meta Info: ${err.message}`);
+		}
+
 		for (const [key, value] of Object.entries(instanceInfo.CONTENTS)) {
 			if (!/^\d+$/.test(key)) continue;
-
-			let node = GraphPatcherNodeRecord.fromDescription(value);
-			const exNode = existingNodes.get(node.id);
-			if (exNode) {
-				node = node.updatePosition(exNode.x, exNode.y);
+			const info = value as OSCQueryRNBOInstance;
+			let node = GraphPatcherNodeRecord.fromDescription(info);
+			const nodeMeta = meta.nodes[node.id];
+			if (nodeMeta) {
+				node = node.updatePosition(nodeMeta.position.x, nodeMeta.position.y);
 			} else {
 				const { x, y } = getPatcherNodeCoordinates(node, patcherNodes);
 				node = node.updatePosition(x, y);
 			}
 
-
 			patcherNodes.push(node);
-			devices.push(DeviceStateRecord.fromDescription(value));
+			devices.push(DeviceStateRecord.fromDescription(info));
 		}
 
 		// Build a list of all Jack generated names that have not been used for PatcherNodes above
@@ -222,8 +237,10 @@ export const initNodes = (jackPortsInfo: OSCQueryRNBOJackPortInfo, instanceInfo:
 		const systemNodes: GraphSystemNodeRecord[] = GraphSystemNodeRecord
 			.fromDescription(systemJackNames, jackPortsInfo)
 			.map(sysNode => {
-				const exNode = existingNodes.get(sysNode.id);
-				if (exNode) return sysNode.updatePosition(exNode.x, exNode.y);
+				const nodeMeta = meta.nodes[sysNode.id];
+				if (nodeMeta) {
+					return sysNode.updatePosition(nodeMeta.position.x, nodeMeta.position.y);
+				}
 
 				let node = sysNode;
 				if (node.id.endsWith(GraphSystemNodeRecord.inputSuffix)) {
@@ -349,6 +366,25 @@ export const loadPatcherNodeOnRemote = (patcher: PatcherRecord): AppThunk =>
 		}
 	};
 
+const doUpdateNodesMeta = throttle((nodes: ImmuMap<GraphNodeRecord["id"], GraphNodeRecord>) => {
+	try {
+		const meta = serializeSetMeta(nodes.valueSeq().toArray());
+
+		const message = {
+			address: "/rnbo/inst/control/sets/meta",
+			args: [
+				{ type: "s", value: JSON.stringify(meta) }
+			]
+		};
+		oscQueryBridge.sendPacket(writePacket(message));
+	} catch (err) {
+		console.warn(`Failed to update Set Meta on remote: ${err.message}`);
+	}
+
+}, 150, { leading: true, trailing: true });
+
+const updateSetMetaOnRemote = (): AppThunk => (dispatch, getState) => doUpdateNodesMeta(getNodes(getState()));
+
 // Editor Actions
 export const createEditorConnection = (connection: Connection): AppThunk =>
 	(dispatch, getState) => {
@@ -441,7 +477,7 @@ export const removeEditorConnectionById = (id: GraphConnectionRecord["id"]): App
 	};
 
 
-export const removeEditorNodeById = (id: GraphNode["id"]): AppThunk =>
+export const removeEditorNodeById = (id: GraphNode["id"], updateSetMeta = true): AppThunk =>
 	(dispatch, getState) => {
 		try {
 			const state = getState();
@@ -456,6 +492,7 @@ export const removeEditorNodeById = (id: GraphNode["id"]): AppThunk =>
 			}
 
 			dispatch(unloadPatcherNodeByIndexOnRemote(node.index));
+			if (updateSetMeta) doUpdateNodesMeta(getNodes(state).delete(node.id));
 
 		} catch (err) {
 			dispatch(showNotification({
@@ -468,10 +505,12 @@ export const removeEditorNodeById = (id: GraphNode["id"]): AppThunk =>
 	};
 
 export const removeEditorNodesById = (ids: GraphPatcherNode["id"][]): AppThunk =>
-	(dispatch) => {
+	(dispatch, getState) => {
 		for (const id of ids) {
-			dispatch(removeEditorNodeById(id));
+			dispatch(removeEditorNodeById(id, false));
 		}
+		// Only at the end update the meta to ensure all coord data has been removed
+		doUpdateNodesMeta(getNodes(getState()).deleteAll(ids));
 	};
 
 export const removeEditorConnectionsById = (ids: GraphConnectionRecord["id"][]): AppThunk =>
@@ -487,6 +526,7 @@ export const changeNodePosition = (id: GraphNode["id"], x: number, y: number): A
 		const node = getNode(state, id);
 		if (!node) return;
 		dispatch(setNode(node.updatePosition(x, y)));
+		dispatch(updateSetMetaOnRemote());
 	};
 
 export const changeNodeSelection = (id: GraphNode["id"], selected: boolean): AppThunk =>
@@ -580,7 +620,30 @@ export const updateSourcePortConnections = (source: string, sinks: string[]): Ap
 		}
 	};
 
-export const addPatcherNode = (desc: OSCQueryRNBOInstance): AppThunk =>
+export const updateSetMeta = (metaString: string): AppThunk =>
+	(dispatch, getState) => {
+		try {
+			const meta = JSON.parse(metaString) as OSCQuerySetMeta;
+			const state = getState();
+
+			const nodes: GraphNodeRecord[] = [];
+			for (const [id, nodeMeta] of Object.entries(meta.nodes)) {
+				const node = getNode(state, id);
+				if (!node) continue;
+
+				const updatedNode = node.updatePosition(nodeMeta.position.x, nodeMeta.position.y);
+				if (node === updatedNode) continue;
+
+				nodes.push(updatedNode);
+			}
+
+			dispatch(setNodes(nodes));
+		} catch (err) {
+			console.warn(`Failed to update local Set Meta: ${err.message}`);
+		}
+	};
+
+export const addPatcherNode = (desc: OSCQueryRNBOInstance, metaString: string): AppThunk =>
 	(dispatch, getState) => {
 
 		const state = getState();
@@ -588,7 +651,15 @@ export const addPatcherNode = (desc: OSCQueryRNBOInstance): AppThunk =>
 
 		// Create Node
 		let node = GraphPatcherNodeRecord.fromDescription(desc);
-		const { x, y } = getPatcherNodeCoordinates(node, existingNodes);
+		let nodeMeta: OSCQuerySetNodeMeta | undefined = undefined;
+		try {
+			const meta = JSON.parse(metaString) as OSCQuerySetMeta;
+			nodeMeta = meta?.nodes?.[node.id];
+		} catch (err) {
+			console.warn(`Failed to parse Set Meta when creating new node: ${err.message}`);
+		}
+
+		const { x, y } = nodeMeta?.position || getPatcherNodeCoordinates(node, existingNodes);
 		node = node.updatePosition(x, y);
 
 		dispatch(setNode(node));
