@@ -10,8 +10,7 @@
 .aboutText {
 	color: var(--mantine-color-dimmed);
 	font-size: var(--mantine-font-size-xs);
-	max-width: 100%;
-	width: 450px;
+	width: 100%;
 }
 
 .appStatus {
