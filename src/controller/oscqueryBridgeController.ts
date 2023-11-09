@@ -4,9 +4,10 @@ import { setAppStatus, setConnectionEndpoint } from "../actions/appStatus";
 import { AppDispatch, store } from "../lib/store";
 import { ReconnectingWebsocket } from "../lib/reconnectingWs";
 import { AppStatus } from "../lib/constants";
-import { OSCQueryRNBOInstance, OSCQueryRNBOInstancesControlState, OSCQueryRNBOInstancesState, OSCQueryRNBOJackConnections, OSCQueryRNBOJackPortInfo, OSCQueryRNBOPatchersState, OSCValue } from "../lib/types";
+import { OSCQueryRNBOState, OSCQueryRNBOInstance, OSCQueryRNBOInstancesControlState, OSCQueryRNBOJackConnections, OSCQueryRNBOPatchersState, OSCValue } from "../lib/types";
 import { addPatcherNode, initConnections, initNodes, removePatcherNode, updateSetMeta, updateSourcePortConnections } from "../actions/graph";
 import { initPatchers } from "../actions/patchers";
+import { initConfig } from "../actions/config";
 import { sleep } from "../lib/util";
 import { getPatcherNodeByIndex } from "../selectors/graph";
 import { updateDeviceInstanceMessageOutputValue, updateDeviceInstanceMessages, updateDeviceInstanceParameterValue, updateDeviceInstanceParameterValueNormalized, updateDeviceInstanceParameters, updateDeviceInstancePresetEntries } from "../actions/instances";
@@ -64,18 +65,16 @@ export class OSCQueryBridgeControllerPrivate {
 
 	private async _init() {
 
-		// Fetch Patcher Info
-		const patcherInfo = await this._requestState<OSCQueryRNBOPatchersState>("/rnbo/patchers");
-		dispatch(initPatchers(patcherInfo));
+		const state = await this._requestState<OSCQueryRNBOState>("/rnbo");
 
-		// Fetch System Jack Port Info
-		const jackPortsInfo = await this._requestState<OSCQueryRNBOJackPortInfo>("/rnbo/jack/info/ports");
+		// Init Config
+		dispatch(initConfig(state));
 
-		// Fetch Instances Info
-		const instancesInfo = await this._requestState<OSCQueryRNBOInstancesState>("/rnbo/inst");
+		// Init Patcher Info
+		dispatch(initPatchers(state.CONTENTS.patchers));
 
 		// Initialize RNBO Graph Nodes
-		dispatch(initNodes(jackPortsInfo, instancesInfo));
+		dispatch(initNodes(state.CONTENTS.jack.CONTENTS.info.CONTENTS.ports, state.CONTENTS.inst));
 
 		// Fetch Connections Info
 		await this._initConnections();
