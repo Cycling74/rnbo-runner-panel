@@ -75,13 +75,22 @@ export const updateConfig = (base: ConfigBase, key: string, value: ConfigValue):
 		});
 	};
 
-export const updateIntConfig = (base: ConfigBase, key: string, value: number): ConfigAction => {
-	setTypedConfig(base, key, value, "i");
-	return {
-		type: ConfigActionType.UPDATE,
-		payload: {
-			base, key, value
-		}
+export const updateIntConfig = (base: ConfigBase, key: string, value: number): AppThunk =>
+	(dispatch) => {
+		setTypedConfig(base, key, value, "i");
+		dispatch({
+			type: ConfigActionType.UPDATE,
+			payload: {
+				base, key, value
+			}
+		});
 	};
-};
+
+export const updateAudio = (): AppThunk =>
+	async () => {
+		//can we do this with just 1 message and no sleep?
+		oscQueryBridge.sendPacket(writePacket({ address: `/rnbo/jack/active`, args: [{ value: "false", type: "F" }] }));
+		await new Promise(f => setTimeout(f, 1000));
+		oscQueryBridge.sendPacket(writePacket({ address: `/rnbo/jack/active`, args: [{ value: "true", type: "T" }] }));
+	};
 

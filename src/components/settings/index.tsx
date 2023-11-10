@@ -6,10 +6,11 @@ import { FunctionComponent, memo } from "react";
 import { useAppDispatch, useAppSelector } from "../../hooks/useAppDispatch";
 import { RootStateType } from "../../lib/store";
 import { getShowSettingsModal } from "../../selectors/settings";
-import { hideSettings, resetSettingsToDefault } from "../../actions/settings";
+import { hideSettings } from "../../actions/settings";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faRotateRight } from "@fortawesome/free-solid-svg-icons";
 import { useIsMobileDevice } from "../../hooks/useIsMobileDevice";
+import { updateAudio } from "../../actions/config";
 
 const Settings: FunctionComponent = memo(function WrappedSettings() {
 
@@ -18,7 +19,7 @@ const Settings: FunctionComponent = memo(function WrappedSettings() {
 
 	const dispatch = useAppDispatch();
 	const onCloseModal = () => dispatch(hideSettings());
-	const onReset = () => dispatch(resetSettingsToDefault());
+	const onAudioUpdate = () => dispatch(updateAudio());
 
 	return (
 		<Modal
@@ -32,8 +33,8 @@ const Settings: FunctionComponent = memo(function WrappedSettings() {
 				<SettingsIntro />
 				<SettingsList />
 				<div>
-					<Button variant="default" size="xs" onClick={ onReset } leftSection={ <FontAwesomeIcon icon={ faRotateRight } /> } >
-						Reset
+					<Button variant="default" size="xs" onClick={ onAudioUpdate } leftSection={ <FontAwesomeIcon icon={ faRotateRight } /> } >
+						Update Audio
 					</Button>
 				</div>
 				<AboutInfo />
