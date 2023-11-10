@@ -28,17 +28,17 @@ const SettingsList: FunctionComponent = memo(function SettingsWrapper() {
 			case ConfigBase.Base:
 			return [
 				config.config[key as keyof ConfigProps] as ConfigValue,
-				(options_key ? config.config[options_key as keyof ConfigProps] : []) as string[]
+				(options_key ? config.config[options_key as keyof ConfigProps] as string[] : null)
 			];
 			case ConfigBase.Jack:
 			return [
 				config.jack[key as keyof JackConfigProps] as ConfigValue,
-				(options_key ? config.jack[options_key as keyof JackConfigProps] : []) as string[]
+				(options_key ? config.jack[options_key as keyof JackConfigProps] as string[] : null)
 			];
 			case ConfigBase.Instance:
 			return [
 				config.instance[key as keyof InstanceConfigProps] as ConfigValue,
-				(options_key ? config.instance[options_key as keyof InstanceConfigProps] : []) as string[]
+				(options_key ? config.instance[options_key as keyof InstanceConfigProps] as string[] : null)
 			];
 		}
 		return [null, null];
@@ -50,14 +50,14 @@ const SettingsList: FunctionComponent = memo(function SettingsWrapper() {
 		for (const e of entries) {
 			const [v, o] = getValue(base as ConfigBase, e.key, e.options);
 			//if there is a value and, if options are specified, the options exist
-			if (v && (!e.options || o)) {
+			if (v != undefined && (!e.options || o != undefined)) {
 				configProps.push({...e, base, value: v, options: o});
 			}
 		}
 	}
 
 
-const configItem = <Key, >(base: ConfigBase, key: Key, value_type: ConfigValueType, description: string, value: ConfigValue, options?: ConfigOptions) : React.JSX.Element => {
+const configItem = <Key, >(base: ConfigBase, key: Key, value_type: ConfigValueType, description: string, value: ConfigValue, options?: ConfigOptions, min?: number, max?: number) : React.JSX.Element => {
 	switch (value_type) {
 	case ConfigValueType.Boolean:
 		return <ConfigItem
@@ -81,16 +81,30 @@ const configItem = <Key, >(base: ConfigBase, key: Key, value_type: ConfigValueTy
 			value={ value as string }
 		/>;
 	case ConfigValueType.Float:
-		return <ConfigItem
-			key={ key as string }
-			name={ key as string }
-			base={ base }
-			options={ options }
-			onChange={ onChangeConfig }
-			title= { description }
-			type={ ConfigType.Combobox }
-			value={ value as string }
-		/>;
+		if (options) {
+			return <ConfigItem
+				key={ key as string }
+				name={ key as string }
+				base={ base }
+				options={ options }
+				onChange={ onChangeConfig }
+				title= { description }
+				type={ ConfigType.Combobox }
+				value={ value as string }
+			/>;
+		} else {
+			return <ConfigItem
+				key={ key as string }
+				name={ key as string }
+				base={ base }
+				min={ min }
+				max={ max }
+				onChange={ onChangeConfig }
+				title= { description }
+				type={ ConfigType.Numeric }
+				value={ value as number }
+			/>;
+		}
 	case ConfigValueType.Int:
 		return <ConfigItem
 			key={ key as string }
@@ -126,8 +140,8 @@ const configItem = <Key, >(base: ConfigBase, key: Key, value_type: ConfigValueTy
 				value={ settings[Setting.debugMessageOutput] as boolean }
 			/>
 			{
-				configProps.map(({base, key, value_type, value, description, options}) => {
-					return configItem(base as ConfigBase, key, value_type, description, value, options);
+				configProps.map(({base, key, value_type, value, description, options, min, max}) => {
+					return configItem(base as ConfigBase, key, value_type, description, value, options, min, max);
 				})
 			}
 		</Stack>

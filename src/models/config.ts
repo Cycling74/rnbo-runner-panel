@@ -53,17 +53,18 @@ export type ConfigPropDescription<Key> = {
 	options?: Key,
 	description: string,
 	value_type: ConfigValueType
+	min?: number,
+	max?: number
 }
 
-type ConfigDescritpions = {
+type ConfigDescriptions = {
 	[ConfigBase.Base]: ConfigPropDescription<keyof ConfigProps>[]
 	[ConfigBase.Jack]: ConfigPropDescription<keyof JackConfigProps>[]
 	[ConfigBase.Instance]: ConfigPropDescription<keyof InstanceConfigProps>[]
 }
 
-export const CONFIG_PROPS: ConfigDescritpions = {
+export const CONFIG_PROPS: ConfigDescriptions = {
 	[ConfigBase.Base]: [
-
 		{
 			key: "patcher_midi_program_change_channel",
 			options: "patcher_midi_program_change_channel_options",
@@ -77,6 +78,46 @@ export const CONFIG_PROPS: ConfigDescritpions = {
 		},
 	],
 	[ConfigBase.Instance]: [
+		{
+			key: "auto_connect_audio",
+			value_type: ConfigValueType.Boolean,
+			description: "Automatically Connect Instance Audio"
+		},
+		{
+			key: "auto_connect_audio_indexed",
+			value_type: ConfigValueType.Boolean,
+			description: "Automatically Connect Instance Audio by Index",
+		},
+		{
+			key: "auto_connect_midi",
+			value_type: ConfigValueType.Boolean,
+			description: "Automatically Connect Instance to All MIDI",
+		},
+		{
+			key: "auto_start_last",
+			value_type: ConfigValueType.Boolean,
+			description: "Auto Start Last Set on Startup"
+		},
+		{
+			key: "audio_fade_in",
+			description: "Instance Fade In Milliseconds",
+			value_type: ConfigValueType.Float,
+			min: 0,
+			max: 2000
+		},
+		{
+			key: "audio_fade_out",
+			description: "Instance Fade Out Milliseconds",
+			value_type: ConfigValueType.Float,
+			min: 0,
+			max: 2000
+		},
+		{
+			key: "preset_midi_program_change_channel",
+			value_type: ConfigValueType.String,
+			description: "Preset MIDI Program Change Channel",
+			options: "preset_midi_program_change_channel_options"
+		}
 	],
 	[ConfigBase.Jack]: [
 		{
