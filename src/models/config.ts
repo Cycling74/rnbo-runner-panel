@@ -121,6 +121,12 @@ export const CONFIG_PROPS: ConfigDescriptions = {
 	],
 	[ConfigBase.Jack]: [
 		{
+			key: "card",
+			options: "card_options",
+			value_type: ConfigValueType.String,
+			description: "Interface"
+		},
+		{
 			key: "period_frames",
 			options: "period_frame_options",
 			value_type: ConfigValueType.Int,
@@ -137,12 +143,6 @@ export const CONFIG_PROPS: ConfigDescriptions = {
 			options: "num_period_options",
 			value_type: ConfigValueType.Int,
 			description: "Num Periods"
-		},
-		{
-			key: "card",
-			options: "card_options",
-			value_type: ConfigValueType.String,
-			description: "Interface"
 		}
 	]
 };
