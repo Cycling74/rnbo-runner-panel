@@ -1,4 +1,4 @@
-import { Group, SegmentedControl, Switch, Combobox, useCombobox, Input, InputBase } from "@mantine/core";
+import { Group, SegmentedControl, Switch, Combobox, useCombobox, Input, InputBase, NumberInput } from "@mantine/core";
 import { ChangeEvent, FunctionComponent, ReactNode, memo } from "react";
 import classes from "./settings.module.css";
 import { Setting, SettingsValue } from "../../reducers/settings";
@@ -83,7 +83,8 @@ export const SettingsItem: FunctionComponent<SettingsItemProps> = memo(function 
 
 export enum ConfigType {
 	OnOff,
-	Combobox
+	Combobox,
+	Numeric
 }
 
 export type ConfigOption = string | { label: string; value: string };
@@ -97,23 +98,36 @@ export interface BaseConfigItemProps {
 	title: string;
 	type: ConfigType;
 	value: ConfigValueType;
+	min?: number;
+	max?: number;
 }
 
 export interface ConfigOnOffProps extends BaseConfigItemProps {
-	type: ConfigType.OnOff,
+	type: ConfigType.OnOff;
 	value: boolean;
 }
 
 export interface ConfigComboboxProps extends BaseConfigItemProps {
 	options: Array<ConfigOption>;
-	type: ConfigType.Combobox,
+	type: ConfigType.Combobox;
 	value: string;
 }
 
-export type ConfigItemProps = ConfigOnOffProps | ConfigComboboxProps;
+export interface ConfigNumericProps extends BaseConfigItemProps {
+	min: number;
+	max: number;
+	type: ConfigType.Numeric;
+	value: number;
+}
+
+export type ConfigItemProps = ConfigOnOffProps | ConfigComboboxProps | ConfigNumericProps;
 
 const ConfigOnOffInput = ({ onChange, base, name, value }: Pick<ConfigOnOffProps, "base" | "name" | "onChange" | "value">) => (
 	<Switch name={ name } checked={ value } onChange={ (ev: ChangeEvent<HTMLInputElement>) => onChange(base, name, ev.currentTarget.checked) } />
+);
+
+const ConfigNumericInput = ({ onChange, base, name, value, min, max }: Pick<ConfigNumericProps, "base" | "name" | "onChange" | "value" | "min" | "max">) => (
+	<NumberInput name={ name } value={ value } onChange={ (v: number) => onChange(base, name, v) } min ={ min} max={ max } />
 );
 
 const ConfigComboboxInput = ({ onChange, base, name, options, value }: Pick<ConfigComboboxProps, "base" | "name" | "onChange" | "options" | "value">) => {
@@ -164,7 +178,9 @@ export const ConfigItem: FunctionComponent<ConfigItemProps> = memo(function Conf
 	options,
 	title,
 	type,
-	value
+	value,
+	min,
+	max
 }: ConfigItemProps) {
 
 	let el: ReactNode;
@@ -175,6 +191,9 @@ export const ConfigItem: FunctionComponent<ConfigItemProps> = memo(function Conf
 			break;
 		case ConfigType.Combobox:
 			el = <ConfigComboboxInput { ...commonProps } options={ options } value={ value } />;
+			break;
+		case ConfigType.Numeric:
+			el = <ConfigNumericInput { ...commonProps } min={ min } max= { max } value={ value } />;
 			break;
 		default:
 			throw new Error(`Unknown ConfigType ${type}`);
