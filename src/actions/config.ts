@@ -1,6 +1,6 @@
 import { ActionBase, AppThunk } from "../lib/store";
 import { OSCQueryRNBOState } from "../lib/types";
-import { Config, ConfigBase, ConfigValueType } from "../models/config";
+import { Config, JackConfig, InstanceConfig, ConfigBase, ConfigValue } from "../models/config";
 import { oscQueryBridge } from "../controller/oscqueryBridgeController";
 import { writePacket  } from "osc";
 
@@ -12,7 +12,9 @@ export enum ConfigActionType {
 export interface IInitConfig extends ActionBase {
 	type: ConfigActionType.INIT;
 	payload: {
-		config: Config
+		config: Config,
+		jack: JackConfig,
+		instance: InstanceConfig
 	}
 }
 
@@ -21,7 +23,7 @@ export interface IUpdateConfig extends ActionBase {
 	payload: {
 		base: ConfigBase,
 		key: string,
-		value: ConfigValueType
+		value: ConfigValue
 	}
 }
 
@@ -31,7 +33,7 @@ const setTypedConfig = (base: ConfigBase, key: string, value: number | string, t
 	oscQueryBridge.sendPacket(writePacket({ address: `/rnbo${base}/config/${key}`, args: [{ value, type }] }));
 };
 
-const setConfig = (base: ConfigBase, key: string, value: ConfigValueType): void => {
+const setConfig = (base: ConfigBase, key: string, value: ConfigValue): void => {
 	try {
 		switch (typeof value) {
 			case "string":
@@ -55,12 +57,14 @@ export const initConfig = (desc: OSCQueryRNBOState): ConfigAction => {
 	return {
 		type: ConfigActionType.INIT,
 		payload: {
-			config: Config.fromDescription(desc)
+			config: Config.fromDescription(desc),
+			jack: JackConfig.fromDescription(desc.CONTENTS.jack.CONTENTS.config),
+			instance: InstanceConfig.fromDescription(desc.CONTENTS.inst.CONTENTS.config),
 		}
 	};
 };
 
-export const updateConfig = (base: ConfigBase, key: string, value: ConfigValueType): AppThunk =>
+export const updateConfig = (base: ConfigBase, key: string, value: ConfigValue): AppThunk =>
 	(dispatch) => {
 		setConfig(base, key, value);
 		dispatch({

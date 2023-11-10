@@ -1,4 +1,4 @@
-import { Group, SegmentedControl, Switch } from "@mantine/core";
+import { Group, SegmentedControl, Switch, Combobox, useCombobox, Input, InputBase } from "@mantine/core";
 import { ChangeEvent, FunctionComponent, ReactNode, memo } from "react";
 import classes from "./settings.module.css";
 import { Setting, SettingsValue } from "../../reducers/settings";
@@ -83,7 +83,7 @@ export const SettingsItem: FunctionComponent<SettingsItemProps> = memo(function 
 
 export enum ConfigType {
 	OnOff,
-	Switch
+	Combobox
 }
 
 export type ConfigOption = string | { label: string; value: string };
@@ -104,21 +104,57 @@ export interface ConfigOnOffProps extends BaseConfigItemProps {
 	value: boolean;
 }
 
-export interface ConfigToggleProps extends BaseConfigItemProps {
+export interface ConfigComboboxProps extends BaseConfigItemProps {
 	options: Array<ConfigOption>;
-	type: ConfigType.Switch,
+	type: ConfigType.Combobox,
 	value: string;
 }
 
-export type ConfigItemProps = ConfigOnOffProps | ConfigToggleProps;
+export type ConfigItemProps = ConfigOnOffProps | ConfigComboboxProps;
 
 const ConfigOnOffInput = ({ onChange, base, name, value }: Pick<ConfigOnOffProps, "base" | "name" | "onChange" | "value">) => (
 	<Switch name={ name } checked={ value } onChange={ (ev: ChangeEvent<HTMLInputElement>) => onChange(base, name, ev.currentTarget.checked) } />
 );
 
-const ConfigToggleInput = ({ onChange, base, name, options, value }: Pick<ConfigToggleProps, "base" | "name" | "onChange" | "options" | "value">) => (
-	<SegmentedControl size="xs" color="blue" name={ name } value={ value } data={ options } onChange={ (v: string) => onChange(base, name, v) }/>
-);
+const ConfigComboboxInput = ({ onChange, base, name, options, value }: Pick<ConfigComboboxProps, "base" | "name" | "onChange" | "options" | "value">) => {
+  const combobox = useCombobox({
+    onDropdownClose: () => combobox.resetSelectedOption(),
+  });
+
+ const o = options.map((item: string) => (
+    <Combobox.Option value={item} key={item}>
+      {item}
+    </Combobox.Option>
+  ));
+
+  return (
+    <Combobox
+      store={combobox}
+      withinPortal={false}
+      onOptionSubmit={(val) => {
+        onChange(base, name, val);
+        combobox.closeDropdown();
+      }}
+    >
+      <Combobox.Target>
+        <InputBase
+          component="button"
+          type="button"
+          pointer
+          rightSection={<Combobox.Chevron />}
+          onClick={() => combobox.toggleDropdown()}
+          rightSectionPointerEvents="none"
+        >
+          {value || <Input.Placeholder>Pick value</Input.Placeholder>}
+        </InputBase>
+      </Combobox.Target>
+
+      <Combobox.Dropdown>
+        <Combobox.Options>{o}</Combobox.Options>
+      </Combobox.Dropdown>
+    </Combobox>
+  );
+};
 
 export const ConfigItem: FunctionComponent<ConfigItemProps> = memo(function ConfigItemWrapper({
 	description,
@@ -137,8 +173,8 @@ export const ConfigItem: FunctionComponent<ConfigItemProps> = memo(function Conf
 		case ConfigType.OnOff:
 			el = <ConfigOnOffInput { ...commonProps } value={ value } />;
 			break;
-		case ConfigType.Switch:
-			el = <ConfigToggleInput { ...commonProps } options={ options } value={ value } />;
+		case ConfigType.Combobox:
+			el = <ConfigComboboxInput { ...commonProps } options={ options } value={ value } />;
 			break;
 		default:
 			throw new Error(`Unknown ConfigType ${type}`);
