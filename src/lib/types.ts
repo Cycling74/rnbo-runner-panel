@@ -169,6 +169,15 @@ export type OSCQueryRNBOJackConnections = OSCQueryBaseNode & {
 	};
 };
 
+export type OSCQueryRNBOJackConfig =  OSCQueryBaseNode & {
+	CONTENTS: {
+		period_frames: OSCQueryIntValue & OSCQueryValueRange;
+		sample_rate: OSCQueryFloatValue & OSCQueryValueRange;
+		num_periods?: OSCQueryIntValue & OSCQueryValueRange;
+		card?: OSCQueryStringValue & OSCQueryStringValueRange;
+	};
+};
+
 export type OSCQueryRNBOJackState = OSCQueryBaseNode & {
 	CONTENTS: {
 		active: OSCQueryBooleanValue;
@@ -180,14 +189,7 @@ export type OSCQueryRNBOJackState = OSCQueryBaseNode & {
 				ports: OSCQueryRNBOJackPortInfo;
 			};
 		};
-		config: OSCQueryBaseNode & {
-			CONTENTS: {
-				period_frames: OSCQueryIntValue & OSCQueryValueRange;
-				sample_rate: OSCQueryFloatValue & OSCQueryValueRange;
-				num_periods?: OSCQueryIntValue & OSCQueryValueRange;
-				card?: OSCQueryStringValue & OSCQueryStringValueRange;
-			};
-		};
+		config: OSCQueryRNBOJackConfig;
 		control: any;
 		transport: {
 			bpm: OSCQueryFloatValue;

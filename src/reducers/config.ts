@@ -1,43 +1,43 @@
-import { Config, ConfigBase } from "../models/config";
+import {
+	Config, ConfigBase, ConfigValue,
+	JackConfig, InstanceConfig,
+	ConfigProps, JackConfigProps, InstanceConfigProps
+} from "../models/config";
 import { ConfigAction, ConfigActionType } from "../actions/config";
 
 export interface ConfigState {
-	config: Config
+	config: Config,
+	jack: JackConfig,
+	instance: InstanceConfig
 }
 
-const defaultConfig: ConfigState = { config: new Config() };
+const defaultConfig: ConfigState = {
+	config: new Config(),
+	jack: new JackConfig(),
+	instance: new InstanceConfig()
+};
 
 export const config = (state: ConfigState = defaultConfig, action: ConfigAction): ConfigState => {
 
 	switch (action.type) {
 
 		case ConfigActionType.INIT: {
-			const { config } = action.payload;
+			const { config, jack, instance } = action.payload;
 
-			return { config };
+			return { config, jack, instance };
 		}
 
 		case ConfigActionType.UPDATE: {
 			const { base, key, value } = action.payload;
 
-			let config = state.config;
-
 			switch (base) {
 				case ConfigBase.Base:
-					config = { ...config, [key]: value };
-					break;
+					return { ...state, config: state.config.set(key as keyof ConfigProps, value as string | boolean | string[]) };
 				case ConfigBase.Jack:
-					config = { ...config, jack: {...config.jack, [key]: value }};
-					break;
+					return { ...state, jack: state.jack.set(key as keyof JackConfigProps, value as string | number | number[] | string[]) };
 				case ConfigBase.Instance:
-					config = { ...config, instance: {...config.instance, [key]: value }};
-					break;
-				default:
-					throw new Error(`unknown config base ${base}`);
+					return { ...state, instance: state.instance.set(key as keyof InstanceConfigProps, value) };
 			}
-
-			return { config };
-
 		}
 
 		default:

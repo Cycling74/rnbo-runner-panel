@@ -8,7 +8,7 @@ import { getSettings } from "../../selectors/settings";
 import { setSetting } from "../../actions/settings";
 import { getConfig } from "../../selectors/config";
 import { updateConfig, updateIntConfig } from "../../actions/config";
-import { ConfigBase, ConfigValueType } from "../../models/config";
+import { ConfigBase, ConfigValue, ConfigOptions, CONFIG_PROPS, ConfigValueType, ConfigProps, JackConfigProps, InstanceConfigProps } from "../../models/config";
 
 const SettingsList: FunctionComponent = memo(function SettingsWrapper() {
 
@@ -16,10 +16,97 @@ const SettingsList: FunctionComponent = memo(function SettingsWrapper() {
 	const dispatch = useAppDispatch();
 
 	const onChangeSetting = (name: Setting, value: SettingsValue) => dispatch(setSetting(name, value));
-	const onChangeConfig = useCallback((base: ConfigBase, key: string, value: ConfigValueType) => {
+	const onChangeConfig = useCallback((base: ConfigBase, key: string, value: ConfigValue) => {
 		dispatch(updateConfig(base, key, value));
 	}, [dispatch]);
-	const onChangeIntConfig = (base: ConfigBase, key: string, value: number) => dispatch(updateIntConfig(base, key, value));
+	const onChangeIntConfig = useCallback((base: ConfigBase, key: string, value: number) => {
+		dispatch(updateIntConfig(base, key, value));
+	}, [dispatch]);
+
+	const getValue = <Key, >(base: ConfigBase, key: Key, options_key?: Key) : [ConfigValue | null, string[] | null] => {
+		switch (base) {
+			case ConfigBase.Base:
+			return [
+				config.config[key as keyof ConfigProps] as ConfigValue,
+				(options_key ? config.config[options_key as keyof ConfigProps] : []) as string[]
+			];
+			case ConfigBase.Jack:
+			return [
+				config.jack[key as keyof JackConfigProps] as ConfigValue,
+				(options_key ? config.jack[options_key as keyof JackConfigProps] : []) as string[]
+			];
+			case ConfigBase.Instance:
+			return [
+				config.instance[key as keyof InstanceConfigProps] as ConfigValue,
+				(options_key ? config.instance[options_key as keyof InstanceConfigProps] : []) as string[]
+			];
+		}
+		return [null, null];
+	}
+
+	//filte appropriate props
+	const configProps = [];
+	for (const [base, entries] of Object.entries(CONFIG_PROPS)) {
+		for (const e of entries) {
+			const [v, o] = getValue(base as ConfigBase, e.key, e.options);
+			//if there is a value and, if options are specified, the options exist
+			if (v && (!e.options || o)) {
+				configProps.push({...e, base, value: v, options: o});
+			}
+		}
+	}
+
+
+const configItem = <Key, >(base: ConfigBase, key: Key, value_type: ConfigValueType, description: string, value: ConfigValue, options?: ConfigOptions) : React.JSX.Element => {
+	switch (value_type) {
+	case ConfigValueType.Boolean:
+		return <ConfigItem
+			key={ key as string }
+			name={ key as string }
+			base= { base}
+			onChange={ onChangeConfig }
+			title= { description }
+			type={ ConfigType.OnOff }
+			value={ value as boolean }
+		/>;
+	case ConfigValueType.String:
+		return <ConfigItem
+			key={ key as string }
+			name={ key as string }
+			base={ base }
+			options={ options }
+			onChange={ onChangeConfig }
+			title= { description }
+			type={ ConfigType.Combobox }
+			value={ value as string }
+		/>;
+	case ConfigValueType.Float:
+		return <ConfigItem
+			key={ key as string }
+			name={ key as string }
+			base={ base }
+			options={ options }
+			onChange={ onChangeConfig }
+			title= { description }
+			type={ ConfigType.Combobox }
+			value={ value as string }
+		/>;
+	case ConfigValueType.Int:
+		return <ConfigItem
+			key={ key as string }
+			name={ key as string }
+			base={ base }
+			options={ options }
+			onChange={ onChangeIntConfig }
+			title= { description }
+			type={ ConfigType.Combobox }
+			value={ value as string }
+		/>;
+
+	default:
+	throw new Error("unhandled");
+	}
+}
 
 	return (
 		<Stack gap="sm">
@@ -38,14 +125,11 @@ const SettingsList: FunctionComponent = memo(function SettingsWrapper() {
 				type={ SettingsType.OnOff }
 				value={ settings[Setting.debugMessageOutput] as boolean }
 			/>
-			<ConfigItem
-				name={ "control_auto_connect_midi" }
-				base= { ConfigBase.Base }
-				onChange={ onChangeConfig }
-				title="Auto Connect App Control MIDI"
-				type={ ConfigType.OnOff }
-				value={ config["control_auto_connect_midi"] }
-			/>
+			{
+				configProps.map(({base, key, value_type, value, description, options}) => {
+					return configItem(base as ConfigBase, key, value_type, description, value, options);
+				})
+			}
 		</Stack>
 	);
 });

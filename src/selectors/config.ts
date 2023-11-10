@@ -1,6 +1,6 @@
 import { RootStateType } from "../lib/store";
-import { Config } from "../models/config";
+import { Config, InstanceConfig, JackConfig } from "../models/config";
 
-export const getConfig = (state: RootStateType): Config => {
-	return state.config.config;
+export const getConfig = (state: RootStateType): {config: Config, jack: JackConfig, instance: InstanceConfig }  => {
+	return state.config;
 };
