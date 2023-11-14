@@ -88,9 +88,6 @@ export const updateIntConfig = (base: ConfigBase, key: string, value: number): A
 
 export const updateAudio = (): AppThunk =>
 	async () => {
-		//can we do this with just 1 message and no sleep?
-		oscQueryBridge.sendPacket(writePacket({ address: `/rnbo/jack/active`, args: [{ value: "false", type: "F" }] }));
-		await new Promise(f => setTimeout(f, 1000));
-		oscQueryBridge.sendPacket(writePacket({ address: `/rnbo/jack/active`, args: [{ value: "true", type: "T" }] }));
+		oscQueryBridge.sendPacket(writePacket({ address: `/rnbo/jack/restart`, args: [{ value: "true", type: "T" }] }));
 	};
 
