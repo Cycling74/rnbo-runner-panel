@@ -1,5 +1,5 @@
 import { Record as ImmuRecord } from "immutable";
-import { OSCQueryRNBOState, OSCQueryStringValueRange, OSCQueryValueRange, OSCQueryRNBOInstanceConfig, OSCQueryRNBOJackConfig, OSCQueryJackState } from "../lib/types";
+import { OSCQueryRNBOState, OSCQueryStringValueRange, OSCQueryValueRange, OSCQueryRNBOInstanceConfig, OSCQueryRNBOJackConfig } from "../lib/types";
 
 export enum ConfigBase {
 	Base = "",
