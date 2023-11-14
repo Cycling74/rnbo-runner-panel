@@ -13,7 +13,7 @@ export interface IInitConfig extends ActionBase {
 	type: ConfigActionType.INIT;
 	payload: {
 		config: Config,
-		jack: JackConfig,
+		jack?: JackConfig,
 		instance: InstanceConfig
 	}
 }
@@ -54,11 +54,13 @@ const setConfig = (base: ConfigBase, key: string, value: ConfigValue): void => {
 };
 
 export const initConfig = (desc: OSCQueryRNBOState): ConfigAction => {
+	const jack = JackConfig.fromDescription(desc.CONTENTS.jack.CONTENTS.config);
+	const owns_server = (desc.CONTENTS.jack.CONTENTS.info.CONTENTS?.owns_server?.TYPE || "T") === "T";
 	return {
 		type: ConfigActionType.INIT,
 		payload: {
 			config: Config.fromDescription(desc),
-			jack: JackConfig.fromDescription(desc.CONTENTS.jack.CONTENTS.config),
+			jack: owns_server ? jack : null,
 			instance: InstanceConfig.fromDescription(desc.CONTENTS.inst.CONTENTS.config),
 		}
 	};
