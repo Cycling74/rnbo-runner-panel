@@ -31,10 +31,13 @@ const SettingsList: FunctionComponent = memo(function SettingsWrapper() {
 				(options_key ? config.config[options_key as keyof ConfigProps] as string[] : null)
 			];
 			case ConfigBase.Jack:
-			return [
-				config.jack[key as keyof JackConfigProps] as ConfigValue,
-				(options_key ? config.jack[options_key as keyof JackConfigProps] as string[] : null)
-			];
+			if (config.jack) {
+				return [
+					config.jack[key as keyof JackConfigProps] as ConfigValue,
+					(options_key ? config.jack[options_key as keyof JackConfigProps] as string[] : null)
+				];
+			}
+			break;
 			case ConfigBase.Instance:
 			return [
 				config.instance[key as keyof InstanceConfigProps] as ConfigValue,
