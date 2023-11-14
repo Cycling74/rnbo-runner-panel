@@ -1,5 +1,5 @@
 import { Record as ImmuRecord } from "immutable";
-import { OSCQueryRNBOState, OSCQueryStringValueRange, OSCQueryValueRange, OSCQueryRNBOInstanceConfig, OSCQueryRNBOJackConfig } from "../lib/types";
+import { OSCQueryRNBOState, OSCQueryStringValueRange, OSCQueryValueRange, OSCQueryRNBOInstanceConfig, OSCQueryRNBOJackConfig, OSCQueryJackState } from "../lib/types";
 
 export enum ConfigBase {
 	Base = "",
@@ -68,46 +68,46 @@ export const CONFIG_PROPS: ConfigDescriptions = {
 		{
 			key: "patcher_midi_program_change_channel",
 			options: "patcher_midi_program_change_channel_options",
-			description: "Patcher MIDI Program Change Channel",
+			description: "Patcher Select: MIDI Program Change Channel",
 			value_type: ConfigValueType.String
 		},
 		{
 			key: "control_auto_connect_midi",
-			description: "Connect RNBO control to MIDI automatically",
+			description: "RNBO Control: Auto Connect MIDI",
 			value_type: ConfigValueType.Boolean
 		},
 	],
 	[ConfigBase.Instance]: [
 		{
+			key: "auto_start_last",
+			value_type: ConfigValueType.Boolean,
+			description: "Startup: Auto Start Last Set"
+		},
+		{
 			key: "auto_connect_audio",
 			value_type: ConfigValueType.Boolean,
-			description: "Automatically Connect Instance Audio"
+			description: "Instance: Auto Connect Audio"
 		},
 		{
 			key: "auto_connect_audio_indexed",
 			value_type: ConfigValueType.Boolean,
-			description: "Automatically Connect Instance Audio by Index",
+			description: "Instance: Auto Connect Audio by i/o Index number",
 		},
 		{
 			key: "auto_connect_midi",
 			value_type: ConfigValueType.Boolean,
-			description: "Automatically Connect Instance to All MIDI",
-		},
-		{
-			key: "auto_start_last",
-			value_type: ConfigValueType.Boolean,
-			description: "Auto Start Last Set on Startup"
+			description: "Instance: Auto Connect MIDI",
 		},
 		{
 			key: "audio_fade_in",
-			description: "Instance Fade In Milliseconds",
+			description: "Instance: Fade In Milliseconds",
 			value_type: ConfigValueType.Float,
 			min: 0,
 			max: 2000
 		},
 		{
 			key: "audio_fade_out",
-			description: "Instance Fade Out Milliseconds",
+			description: "Instance: Fade Out Milliseconds",
 			value_type: ConfigValueType.Float,
 			min: 0,
 			max: 2000
@@ -115,7 +115,7 @@ export const CONFIG_PROPS: ConfigDescriptions = {
 		{
 			key: "preset_midi_program_change_channel",
 			value_type: ConfigValueType.String,
-			description: "Preset MIDI Program Change Channel",
+			description: "Preset: MIDI Program Change Channel",
 			options: "preset_midi_program_change_channel_options"
 		}
 	],
@@ -124,25 +124,25 @@ export const CONFIG_PROPS: ConfigDescriptions = {
 			key: "card",
 			options: "card_options",
 			value_type: ConfigValueType.String,
-			description: "Interface"
-		},
-		{
-			key: "period_frames",
-			options: "period_frame_options",
-			value_type: ConfigValueType.Int,
-			description: "Frames per audio buffer"
+			description: "Audio: Interface"
 		},
 		{
 			key: "sample_rate",
 			options: "sample_rate_options",
 			value_type: ConfigValueType.Float,
-			description: "Sample Rate"
+			description: "Audio: Sample Rate"
+		},
+		{
+			key: "period_frames",
+			options: "period_frame_options",
+			value_type: ConfigValueType.Int,
+			description: "Audio: Period Frames"
 		},
 		{
 			key: "num_periods",
 			options: "num_period_options",
 			value_type: ConfigValueType.Int,
-			description: "Num Periods"
+			description: "Audio: Num Periods"
 		}
 	]
 };
