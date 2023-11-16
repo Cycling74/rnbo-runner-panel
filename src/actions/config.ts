@@ -29,21 +29,25 @@ export interface IUpdateConfig extends ActionBase {
 
 export type ConfigAction = IInitConfig | IUpdateConfig;
 
-const setTypedConfig = (base: ConfigBase, key: string, value: number | string, type: string): void => {
+const sendTypedConfig = (base: ConfigBase, key: string, value: number | string, type: string): void => {
 	oscQueryBridge.sendPacket(writePacket({ address: `/rnbo${base}/config/${key}`, args: [{ value, type }] }));
 };
 
-const setConfig = (base: ConfigBase, key: string, value: ConfigValue): void => {
+const sendIntConfig = (base: ConfigBase, key: string, value: number): void => {
+	return sendTypedConfig(base, key, value, "i");
+}
+
+const sendConfig = (base: ConfigBase, key: string, value: ConfigValue): void => {
 	try {
 		switch (typeof value) {
 			case "string":
-				setTypedConfig(base, key, value, "s");
+				sendTypedConfig(base, key, value, "s");
 				break;
 			case "number":
-				setTypedConfig(base, key, value, "f");
+				sendTypedConfig(base, key, value, "f");
 				break;
 			case "boolean":
-				setTypedConfig(base, key, value ? "true" : "false", value ? "T" : "F");
+				sendTypedConfig(base, key, value ? "true" : "false", value ? "T" : "F");
 				break;
 			default:
 				throw new Error(`unhandled type ${typeof value}`);
@@ -66,9 +70,18 @@ export const initConfig = (desc: OSCQueryRNBOState): ConfigAction => {
 	};
 };
 
+export const setConfig = (base: ConfigBase, key: string, value: ConfigValue): ConfigAction => {
+	return {
+		type: ConfigActionType.UPDATE,
+		payload: {
+			base, key, value
+		}
+	};
+};
+
 export const updateConfig = (base: ConfigBase, key: string, value: ConfigValue): AppThunk =>
 	(dispatch) => {
-		setConfig(base, key, value);
+		sendConfig(base, key, value);
 		dispatch({
 			type: ConfigActionType.UPDATE,
 			payload: {
@@ -79,7 +92,7 @@ export const updateConfig = (base: ConfigBase, key: string, value: ConfigValue):
 
 export const updateIntConfig = (base: ConfigBase, key: string, value: number): AppThunk =>
 	(dispatch) => {
-		setTypedConfig(base, key, value, "i");
+		sendIntConfig(base, key, value);
 		dispatch({
 			type: ConfigActionType.UPDATE,
 			payload: {
