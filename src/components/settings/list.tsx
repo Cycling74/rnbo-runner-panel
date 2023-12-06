@@ -1,4 +1,4 @@
-import { Stack } from "@mantine/core";
+import { Stack, Tabs, Button } from "@mantine/core";
 import { FunctionComponent, memo, useCallback } from "react";
 import { Setting, SettingsValue } from "../../reducers/settings";
 import { SettingsItem, SettingsType, ConfigItem, ConfigType } from "./item";
@@ -8,7 +8,11 @@ import { getSettings } from "../../selectors/settings";
 import { setSetting } from "../../actions/settings";
 import { getConfig } from "../../selectors/config";
 import { updateConfig, updateIntConfig } from "../../actions/config";
-import { ConfigBase, ConfigValue, ConfigOptions, CONFIG_PROPS, ConfigValueType, ConfigProps, JackConfigProps, InstanceConfigProps } from "../../models/config";
+import { ConfigBase, ConfigValue, ConfigOptions, CONFIG_PROPS, ConfigValueType, ConfigProps, JackConfigProps, InstanceConfigProps, configBaseLabel } from "../../models/config";
+import { updateAudio } from "../../actions/config";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faRotateRight } from "@fortawesome/free-solid-svg-icons";
+import classes from "./settings.module.css";
 
 const SettingsList: FunctionComponent = memo(function SettingsWrapper() {
 
@@ -22,6 +26,7 @@ const SettingsList: FunctionComponent = memo(function SettingsWrapper() {
 	const onChangeIntConfig = useCallback((base: ConfigBase, key: string, value: number) => {
 		dispatch(updateIntConfig(base, key, value));
 	}, [dispatch]);
+	const onAudioUpdate = () => dispatch(updateAudio());
 
 	const getValue = <Key, >(base: ConfigBase, key: Key, options_key?: Key) : [ConfigValue | null, string[] | null] => {
 		switch (base) {
@@ -47,18 +52,23 @@ const SettingsList: FunctionComponent = memo(function SettingsWrapper() {
 		return [null, null];
 	}
 
-	//filte appropriate props
+	//filter appropriate props
 	const configProps = [];
 	for (const [base, entries] of Object.entries(CONFIG_PROPS)) {
+		const values = [];
 		for (const e of entries) {
 			const [v, o] = getValue(base as ConfigBase, e.key, e.options);
 			//if there is a value and, if options are specified, the options exist
 			if (v != undefined && (!e.options || o != undefined)) {
-				configProps.push({...e, base, value: v, options: o});
+				values.push({...e, value: v, options: o});
 			}
+		}
+		if (values.length > 0) {
+			configProps.push({base, entries: values, label: configBaseLabel(base as ConfigBase), key: (base || "base").replaceAll("/", "_")});
 		}
 	}
 
+	const audioKey = ConfigBase.Jack.replaceAll("/", "_");
 
 const configItem = <Key, >(base: ConfigBase, key: Key, value_type: ConfigValueType, description: string, value: ConfigValue, options?: ConfigOptions, min?: number, max?: number) : React.JSX.Element => {
 	switch (value_type) {
@@ -126,28 +136,57 @@ const configItem = <Key, >(base: ConfigBase, key: Key, value_type: ConfigValueTy
 }
 
 	return (
-		<Stack gap="sm">
-			<SettingsItem
-				name={ Setting.colorScheme }
-				onChange={ onChangeSetting }
-				options={ ["light", "dark"] }
-				title="Color Scheme"
-				type={ SettingsType.Switch }
-				value={ settings[Setting.colorScheme] as string }
-			/>
-			<SettingsItem
-				name={ Setting.debugMessageOutput }
-				onChange={ onChangeSetting }
-				title="Debug Message Output"
-				type={ SettingsType.OnOff }
-				value={ settings[Setting.debugMessageOutput] as boolean }
-			/>
+		<Tabs defaultValue="app">
+      <Tabs.List>
+        <Tabs.Tab value="app">App</Tabs.Tab>
+				{
+					configProps.map(({key, label}) => {
+							return <Tabs.Tab value={key} key={key}>{label}</Tabs.Tab>
+					})
+				}
+      </Tabs.List>
+
+			<Tabs.Panel value="app" className={ classes.tabPanel }>
+				<Stack gap="sm">
+					<SettingsItem
+						name={ Setting.colorScheme }
+						onChange={ onChangeSetting }
+						options={ ["light", "dark"] }
+						title="Color Scheme"
+						type={ SettingsType.Switch }
+						value={ settings[Setting.colorScheme] as string }
+					/>
+					<SettingsItem
+						name={ Setting.debugMessageOutput }
+						onChange={ onChangeSetting }
+						title="Debug Message Output"
+						type={ SettingsType.OnOff }
+						value={ settings[Setting.debugMessageOutput] as boolean }
+					/>
+				</Stack>
+			</Tabs.Panel>
 			{
-				configProps.map(({base, key, value_type, value, description, options, min, max}) => {
-					return configItem(base as ConfigBase, key, value_type, description, value, options, min, max);
+				configProps.map(({base, key, entries}) => {
+				return <Tabs.Panel value={key} key={key} className={ classes.tabPanel }>
+					<Stack gap="sm">
+					{
+						 entries.map(({key, value_type, value, description, options, min, max}) => {
+							return configItem(base as ConfigBase, key, value_type, description, value, options, min, max);
+						})
+					}
+					{
+						key === audioKey ?
+							<div>
+								<Button variant="default" size="xs" onClick={ onAudioUpdate } leftSection={ <FontAwesomeIcon icon={ faRotateRight } /> } >
+									Update Audio
+								</Button>
+							</div> : null
+					}
+					</Stack>
+				</Tabs.Panel>
 				})
 			}
-		</Stack>
+		</Tabs>
 	);
 });
 

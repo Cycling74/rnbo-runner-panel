@@ -34,3 +34,7 @@
 	color: var(--mantine-color-dimmed);
 	font-size: var(--mantine-font-size-xs);
 }
+
+.tabPanel {
+	margin-top: 10px;
+}
