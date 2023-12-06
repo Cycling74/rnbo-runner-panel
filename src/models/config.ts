@@ -40,6 +40,9 @@ export type JackConfigProps = {
 
 	card?: string;
 	card_options?: string[];
+
+	midi_system?: string;
+	midi_system_options?: string[];
 };
 
 export type ConfigProps = {
@@ -127,6 +130,12 @@ export const CONFIG_PROPS: ConfigDescriptions = {
 			description: "Audio: Interface"
 		},
 		{
+			key: "midi_system",
+			options: "midi_system_options",
+			value_type: ConfigValueType.String,
+			description: "Audio: MIDI System"
+		},
+		{
 			key: "sample_rate",
 			options: "sample_rate_options",
 			value_type: ConfigValueType.Float,
@@ -198,7 +207,10 @@ export class JackConfig extends ImmuRecord<JackConfigProps>({
 	num_period_options: [2],
 
 	card: null,
-	card_options: []
+	card_options: [],
+
+	midi_system: null,
+	midi_system_options: ["seq", "raw"]
 }) {
 	static fromDescription(desc: OSCQueryRNBOJackConfig): JackConfig {
 		const jack = desc.CONTENTS;
@@ -213,7 +225,10 @@ export class JackConfig extends ImmuRecord<JackConfigProps>({
 			num_period_options: get_number_range(jack.num_periods),
 
 			card: jack?.card?.VALUE as string,
-			card_options: get_string_range(jack?.card)
+			card_options: get_string_range(jack?.card),
+
+			midi_system: jack?.midi_system?.VALUE as string,
+			midi_system_options: get_string_range(jack?.midi_system)
 		});
 	}
 }
