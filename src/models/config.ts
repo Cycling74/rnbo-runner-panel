@@ -66,6 +66,18 @@ type ConfigDescriptions = {
 	[ConfigBase.Instance]: ConfigPropDescription<keyof InstanceConfigProps>[]
 }
 
+export const configBaseLabel = (b: ConfigBase): string => {
+	switch(b) {
+		case ConfigBase.Base:
+			return "Control";
+		case ConfigBase.Instance:
+			return "Instance";
+		case ConfigBase.Jack:
+			return "Audio";
+	}
+	throw new Error(`unhandled base ${b}`);
+}
+
 export const CONFIG_PROPS: ConfigDescriptions = {
 	[ConfigBase.Base]: [
 		{
