@@ -2,8 +2,7 @@ import { Group, SegmentedControl, Switch, Combobox, useCombobox, Input, InputBas
 import { ChangeEvent, FunctionComponent, ReactNode, memo } from "react";
 import classes from "./settings.module.css";
 import { Setting, SettingsValue } from "../../reducers/settings";
-import { ConfigValueType } from "../../actions/config";
-import { ConfigBase } from "../../models/config";
+import { ConfigBase, ConfigValue } from "../../models/config";
 
 export enum SettingsType {
 	OnOff,
@@ -93,11 +92,11 @@ export interface BaseConfigItemProps {
 	description?: string;
 	base: ConfigBase;
 	name: string;
-	onChange: (base: ConfigBase, key: string, value: ConfigValueType) => any;
+	onChange: (base: ConfigBase, key: string, value: ConfigValue) => any;
 	options?: Array<ConfigOption>;
 	title: string;
 	type: ConfigType;
-	value: ConfigValueType;
+	value: ConfigValue;
 	min?: number;
 	max?: number;
 }
