@@ -137,14 +137,14 @@ const configItem = <Key, >(base: ConfigBase, key: Key, value_type: ConfigValueTy
 
 	return (
 		<Tabs defaultValue="app">
-      <Tabs.List>
-        <Tabs.Tab value="app">App</Tabs.Tab>
+			<Tabs.List>
+				<Tabs.Tab value="app">App</Tabs.Tab>
 				{
 					configProps.map(({key, label}) => {
 							return <Tabs.Tab value={key} key={key}>{label}</Tabs.Tab>
 					})
 				}
-      </Tabs.List>
+			</Tabs.List>
 
 			<Tabs.Panel value="app" className={ classes.tabPanel }>
 				<Stack gap="sm">
