@@ -31,35 +31,37 @@ const SettingsList: FunctionComponent = memo(function SettingsWrapper() {
 	const getValue = <Key, >(base: ConfigBase, key: Key, options_key?: Key) : [ConfigValue | null, string[] | null] => {
 		switch (base) {
 			case ConfigBase.Base:
-			return [
-				config.config[key as keyof ConfigProps] as ConfigValue,
-				(options_key ? config.config[options_key as keyof ConfigProps] as string[] : null)
-			];
-			case ConfigBase.Jack:
-			if (config.jack) {
 				return [
-					config.jack[key as keyof JackConfigProps] as ConfigValue,
-					(options_key ? config.jack[options_key as keyof JackConfigProps] as string[] : null)
+					config.config[key as keyof ConfigProps] as ConfigValue,
+					(options_key ? config.config[options_key as keyof ConfigProps] as string[] : null)
 				];
-			}
-			break;
+			case ConfigBase.Jack:
+				if (config.jack) {
+					return [
+						config.jack[key as keyof JackConfigProps] as ConfigValue,
+						(options_key ? config.jack[options_key as keyof JackConfigProps] as string[] : null)
+					];
+				}
+				break;
 			case ConfigBase.Instance:
-			return [
-				config.instance[key as keyof InstanceConfigProps] as ConfigValue,
-				(options_key ? config.instance[options_key as keyof InstanceConfigProps] as string[] : null)
-			];
+				return [
+					config.instance[key as keyof InstanceConfigProps] as ConfigValue,
+					(options_key ? config.instance[options_key as keyof InstanceConfigProps] as string[] : null)
+				];
+			default:
+				throw new Error(`unhandled base ${base}`);
 		}
 		return [null, null];
-	}
+	};
 
-	//filter appropriate props
+	// filter appropriate props
 	const configProps = [];
 	for (const [base, entries] of Object.entries(CONFIG_PROPS)) {
 		const values = [];
 		for (const e of entries) {
 			const [v, o] = getValue(base as ConfigBase, e.key, e.options);
-			//if there is a value and, if options are specified, the options exist
-			if (v != undefined && (!e.options || o != undefined)) {
+			// if there is a value and, if options are specified, the options exist
+			if (v !== undefined && (!e.options || o !== undefined)) {
 				values.push({...e, value: v, options: o});
 			}
 		}
@@ -70,70 +72,70 @@ const SettingsList: FunctionComponent = memo(function SettingsWrapper() {
 
 	const audioKey = ConfigBase.Jack.replaceAll("/", "_");
 
-const configItem = <Key, >(base: ConfigBase, key: Key, value_type: ConfigValueType, description: string, value: ConfigValue, options?: ConfigOptions, min?: number, max?: number) : React.JSX.Element => {
-	switch (value_type) {
-	case ConfigValueType.Boolean:
-		return <ConfigItem
-			key={ key as string }
-			name={ key as string }
-			base= { base}
-			onChange={ onChangeConfig }
-			title= { description }
-			type={ ConfigType.OnOff }
-			value={ value as boolean }
-		/>;
-	case ConfigValueType.String:
-		return <ConfigItem
-			key={ key as string }
-			name={ key as string }
-			base={ base }
-			options={ options }
-			onChange={ onChangeConfig }
-			title= { description }
-			type={ ConfigType.Combobox }
-			value={ value as string }
-		/>;
-	case ConfigValueType.Float:
-		if (options) {
-			return <ConfigItem
-				key={ key as string }
-				name={ key as string }
-				base={ base }
-				options={ options }
-				onChange={ onChangeConfig }
-				title= { description }
-				type={ ConfigType.Combobox }
-				value={ value as string }
-			/>;
-		} else {
-			return <ConfigItem
-				key={ key as string }
-				name={ key as string }
-				base={ base }
-				min={ min }
-				max={ max }
-				onChange={ onChangeConfig }
-				title= { description }
-				type={ ConfigType.Numeric }
-				value={ value as number }
-			/>;
-		}
-	case ConfigValueType.Int:
-		return <ConfigItem
-			key={ key as string }
-			name={ key as string }
-			base={ base }
-			options={ options }
-			onChange={ onChangeIntConfig }
-			title= { description }
-			type={ ConfigType.Combobox }
-			value={ value as string }
-		/>;
+	const configItem = <Key, >(base: ConfigBase, key: Key, value_type: ConfigValueType, description: string, value: ConfigValue, options?: ConfigOptions, min?: number, max?: number) : React.JSX.Element => {
+		switch (value_type) {
+			case ConfigValueType.Boolean:
+				return <ConfigItem
+					key={ key as string }
+					name={ key as string }
+					base= { base}
+					onChange={ onChangeConfig }
+					title= { description }
+					type={ ConfigType.OnOff }
+					value={ value as boolean }
+				/>;
+			case ConfigValueType.String:
+				return <ConfigItem
+					key={ key as string }
+					name={ key as string }
+					base={ base }
+					options={ options }
+					onChange={ onChangeConfig }
+					title= { description }
+					type={ ConfigType.Combobox }
+					value={ value as string }
+				/>;
+			case ConfigValueType.Float:
+				if (options) {
+					return <ConfigItem
+						key={ key as string }
+						name={ key as string }
+						base={ base }
+						options={ options }
+						onChange={ onChangeConfig }
+						title= { description }
+						type={ ConfigType.Combobox }
+						value={ value as string }
+					/>;
+				}
+				return <ConfigItem
+					key={ key as string }
+					name={ key as string }
+					base={ base }
+					min={ min }
+					max={ max }
+					onChange={ onChangeConfig }
+					title= { description }
+					type={ ConfigType.Numeric }
+					value={ value as number }
+				/>;
 
-	default:
-	throw new Error("unhandled");
-	}
-}
+			case ConfigValueType.Int:
+				return <ConfigItem
+					key={ key as string }
+					name={ key as string }
+					base={ base }
+					options={ options }
+					onChange={ onChangeIntConfig }
+					title= { description }
+					type={ ConfigType.Combobox }
+					value={ value as string }
+				/>;
+
+			default:
+				throw new Error("unhandled");
+		}
+	};
 
 	return (
 		<Tabs defaultValue="app">
@@ -141,7 +143,7 @@ const configItem = <Key, >(base: ConfigBase, key: Key, value_type: ConfigValueTy
 				<Tabs.Tab value="app">App</Tabs.Tab>
 				{
 					configProps.map(({key, label}) => {
-							return <Tabs.Tab value={key} key={key}>{label}</Tabs.Tab>
+						return <Tabs.Tab value={key} key={key}>{label}</Tabs.Tab>;
 					})
 				}
 			</Tabs.List>
@@ -167,23 +169,23 @@ const configItem = <Key, >(base: ConfigBase, key: Key, value_type: ConfigValueTy
 			</Tabs.Panel>
 			{
 				configProps.map(({base, key, entries}) => {
-				return <Tabs.Panel value={key} key={key} className={ classes.tabPanel }>
-					<Stack gap="sm">
-					{
-						 entries.map(({key, value_type, value, description, options, min, max}) => {
-							return configItem(base as ConfigBase, key, value_type, description, value, options, min, max);
-						})
-					}
-					{
-						key === audioKey ?
-							<div>
-								<Button variant="default" size="xs" onClick={ onAudioUpdate } leftSection={ <FontAwesomeIcon icon={ faRotateRight } /> } >
+					return <Tabs.Panel value={key} key={key} className={ classes.tabPanel }>
+						<Stack gap="sm">
+							{
+								entries.map(({key, value_type, value, description, options, min, max}) => {
+									return configItem(base as ConfigBase, key, value_type, description, value, options, min, max);
+								})
+							}
+							{
+								key === audioKey ?
+									<div>
+										<Button variant="default" size="xs" onClick={ onAudioUpdate } leftSection={ <FontAwesomeIcon icon={ faRotateRight } /> } >
 									Update Audio
-								</Button>
-							</div> : null
-					}
-					</Stack>
-				</Tabs.Panel>
+										</Button>
+									</div> : null
+							}
+						</Stack>
+					</Tabs.Panel>;
 				})
 			}
 		</Tabs>

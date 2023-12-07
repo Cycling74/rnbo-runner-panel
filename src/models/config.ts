@@ -74,9 +74,10 @@ export const configBaseLabel = (b: ConfigBase): string => {
 			return "Instance";
 		case ConfigBase.Jack:
 			return "Audio";
+		default:
+			throw new Error(`unhandled base ${b}`);
 	}
-	throw new Error(`unhandled base ${b}`);
-}
+};
 
 export const CONFIG_PROPS: ConfigDescriptions = {
 	[ConfigBase.Base]: [
@@ -90,7 +91,7 @@ export const CONFIG_PROPS: ConfigDescriptions = {
 			key: "control_auto_connect_midi",
 			description: "RNBO Control: Auto Connect MIDI",
 			value_type: ConfigValueType.Boolean
-		},
+		}
 	],
 	[ConfigBase.Instance]: [
 		{
@@ -106,12 +107,12 @@ export const CONFIG_PROPS: ConfigDescriptions = {
 		{
 			key: "auto_connect_audio_indexed",
 			value_type: ConfigValueType.Boolean,
-			description: "Instance: Auto Connect Audio by i/o Index number",
+			description: "Instance: Auto Connect Audio by i/o Index number"
 		},
 		{
 			key: "auto_connect_midi",
 			value_type: ConfigValueType.Boolean,
-			description: "Instance: Auto Connect MIDI",
+			description: "Instance: Auto Connect MIDI"
 		},
 		{
 			key: "audio_fade_in",
@@ -196,14 +197,14 @@ export class InstanceConfig extends ImmuRecord<InstanceConfigProps>({
 	static fromDescription(desc: OSCQueryRNBOInstanceConfig): InstanceConfig {
 		const inst = desc.CONTENTS;
 		return new InstanceConfig({
-				auto_connect_audio: inst.auto_connect_audio.TYPE === "T",
-				auto_connect_audio_indexed: inst.auto_connect_audio_indexed.TYPE === "T",
-				auto_connect_midi: inst.auto_connect_midi.TYPE === "T",
-				auto_start_last: inst.auto_start_last.TYPE === "T",
-				audio_fade_in: inst.audio_fade_in.VALUE as number,
-				audio_fade_out: inst.audio_fade_out.VALUE as number,
-				preset_midi_program_change_channel: inst.preset_midi_program_change_channel.VALUE as string,
-				preset_midi_program_change_channel_options: get_midi_range(inst.preset_midi_program_change_channel)
+			auto_connect_audio: inst.auto_connect_audio.TYPE === "T",
+			auto_connect_audio_indexed: inst.auto_connect_audio_indexed.TYPE === "T",
+			auto_connect_midi: inst.auto_connect_midi.TYPE === "T",
+			auto_start_last: inst.auto_start_last.TYPE === "T",
+			audio_fade_in: inst.audio_fade_in.VALUE as number,
+			audio_fade_out: inst.audio_fade_out.VALUE as number,
+			preset_midi_program_change_channel: inst.preset_midi_program_change_channel.VALUE as string,
+			preset_midi_program_change_channel_options: get_midi_range(inst.preset_midi_program_change_channel)
 		});
 	}
 }
@@ -231,7 +232,7 @@ export class JackConfig extends ImmuRecord<JackConfigProps>({
 			period_frame_options: get_number_range(jack.period_frames),
 
 			sample_rate: jack.sample_rate.VALUE as number,
-			sample_rate_options: DEFAULT_SAMPLE_RATES, //get_number_range(jack.sample_rate),
+			sample_rate_options: DEFAULT_SAMPLE_RATES, // get_number_range(jack.sample_rate),
 
 			num_periods: jack?.num_periods?.VALUE as number,
 			num_period_options: get_number_range(jack.num_periods),
@@ -248,7 +249,7 @@ export class JackConfig extends ImmuRecord<JackConfigProps>({
 export class Config extends ImmuRecord<ConfigProps>({
 	patcher_midi_program_change_channel: "omni",
 	patcher_midi_program_change_channel_options: DEFAULT_MIDI_RANGE,
-	control_auto_connect_midi: true,
+	control_auto_connect_midi: true
 }) {
 
 	static fromDescription(desc: OSCQueryRNBOState): Config {
@@ -256,7 +257,7 @@ export class Config extends ImmuRecord<ConfigProps>({
 		return new Config({
 			patcher_midi_program_change_channel: top.patcher_midi_program_change_channel.VALUE as string,
 			patcher_midi_program_change_channel_options: get_midi_range(top.patcher_midi_program_change_channel),
-			control_auto_connect_midi: top.control_auto_connect_midi.TYPE === "T",
+			control_auto_connect_midi: top.control_auto_connect_midi.TYPE === "T"
 		});
 	}
 

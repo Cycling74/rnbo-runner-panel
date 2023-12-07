@@ -35,7 +35,7 @@ const sendTypedConfig = (base: ConfigBase, key: string, value: number | string, 
 
 const sendIntConfig = (base: ConfigBase, key: string, value: number): void => {
 	return sendTypedConfig(base, key, value, "i");
-}
+};
 
 const sendConfig = (base: ConfigBase, key: string, value: ConfigValue): void => {
 	try {
@@ -65,7 +65,7 @@ export const initConfig = (desc: OSCQueryRNBOState): ConfigAction => {
 		payload: {
 			config: Config.fromDescription(desc),
 			jack: owns_server ? jack : null,
-			instance: InstanceConfig.fromDescription(desc.CONTENTS.inst.CONTENTS.config),
+			instance: InstanceConfig.fromDescription(desc.CONTENTS.inst.CONTENTS.config)
 		}
 	};
 };
@@ -103,6 +103,6 @@ export const updateIntConfig = (base: ConfigBase, key: string, value: number): A
 
 export const updateAudio = (): AppThunk =>
 	async () => {
-		oscQueryBridge.sendPacket(writePacket({ address: `/rnbo/jack/restart`, args: [{ value: "true", type: "T" }] }));
+		oscQueryBridge.sendPacket(writePacket({ address: "/rnbo/jack/restart", args: [{ value: "true", type: "T" }] }));
 	};
 

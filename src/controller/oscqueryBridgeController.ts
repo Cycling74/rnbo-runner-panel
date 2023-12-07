@@ -262,7 +262,7 @@ export class OSCQueryBridgeControllerPrivate {
 			return void dispatch(updateSourcePortConnections(connectionMatch.groups.name, packet.args as unknown as string[]));
 		}
 
-		//update configs
+		// update configs
 		{
 			const tests: [RegExp, ConfigBase][] = [
 				[configPathMatcher, ConfigBase.Base],
@@ -276,7 +276,7 @@ export class OSCQueryBridgeControllerPrivate {
 						const arg = packet.args[0];
 						let value: boolean | number | string = true;
 
-						//should this be happening, aren't args supposed to be OSCArgument?
+						// should this be happening, aren't args supposed to be OSCArgument?
 						switch (typeof arg) {
 							case "boolean":
 							case "number":
@@ -288,16 +288,17 @@ export class OSCQueryBridgeControllerPrivate {
 								switch (arg.type) {
 									case "T":
 										value = true;
-									break;
+										break;
 									case "F":
 										value = false;
-									break;
+										break;
 									default:
 										break;
 								}
-							break;
+								break;
 						}
-						return this._handleConfig(base, m.groups.name, value);
+						this._handleConfig(base, m.groups.name, value);
+						return;
 					}
 				}
 			}

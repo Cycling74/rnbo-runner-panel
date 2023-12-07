@@ -131,43 +131,43 @@ const ConfigNumericInput = ({ onChange, base, name, value, min, max }: Pick<Conf
 );
 
 const ConfigComboboxInput = ({ onChange, base, name, options, value }: Pick<ConfigComboboxProps, "base" | "name" | "onChange" | "options" | "value">) => {
-  const combobox = useCombobox({
-    onDropdownClose: () => combobox.resetSelectedOption(),
-  });
+	const combobox = useCombobox({
+		onDropdownClose: () => combobox.resetSelectedOption()
+	});
 
- const o = options.map((item: string) => (
-    <Combobox.Option value={item} key={item}>
-      {item}
-    </Combobox.Option>
-  ));
+	const o = options.map((item: string) => (
+		<Combobox.Option value={item} key={item}>
+			{item}
+		</Combobox.Option>
+	));
 
-  return (
-    <Combobox
-      store={combobox}
-      withinPortal={false}
-      onOptionSubmit={(val) => {
-        onChange(base, name, val);
-        combobox.closeDropdown();
-      }}
-    >
-      <Combobox.Target>
-        <InputBase
-          component="button"
-          type="button"
-          pointer
-          rightSection={<Combobox.Chevron />}
-          onClick={() => combobox.toggleDropdown()}
-          rightSectionPointerEvents="none"
-        >
-          {value || <Input.Placeholder>Pick value</Input.Placeholder>}
-        </InputBase>
-      </Combobox.Target>
+	return (
+		<Combobox
+			store={combobox}
+			withinPortal={false}
+			onOptionSubmit={(val) => {
+				onChange(base, name, val);
+				combobox.closeDropdown();
+			}}
+		>
+			<Combobox.Target>
+				<InputBase
+					component="button"
+					type="button"
+					pointer
+					rightSection={<Combobox.Chevron />}
+					onClick={() => combobox.toggleDropdown()}
+					rightSectionPointerEvents="none"
+				>
+					{value || <Input.Placeholder>Pick value</Input.Placeholder>}
+				</InputBase>
+			</Combobox.Target>
 
-      <Combobox.Dropdown>
-        <Combobox.Options>{o}</Combobox.Options>
-      </Combobox.Dropdown>
-    </Combobox>
-  );
+			<Combobox.Dropdown>
+				<Combobox.Options>{o}</Combobox.Options>
+			</Combobox.Dropdown>
+		</Combobox>
+	);
 };
 
 export const ConfigItem: FunctionComponent<ConfigItemProps> = memo(function ConfigItemWrapper({

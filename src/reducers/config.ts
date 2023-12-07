@@ -1,5 +1,5 @@
 import {
-	Config, ConfigBase, ConfigValue,
+	Config, ConfigBase,
 	JackConfig, InstanceConfig,
 	ConfigProps, JackConfigProps, InstanceConfigProps
 } from "../models/config";
@@ -37,6 +37,8 @@ export const config = (state: ConfigState = defaultConfig, action: ConfigAction)
 					return { ...state, jack: state.jack.set(key as keyof JackConfigProps, value as string | number | number[] | string[]) };
 				case ConfigBase.Instance:
 					return { ...state, instance: state.instance.set(key as keyof InstanceConfigProps, value) };
+				default:
+					throw new Error(`unhandled base ${base}`);
 			}
 		}
 
