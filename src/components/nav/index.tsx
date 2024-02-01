@@ -44,6 +44,12 @@ const AppNav: FunctionComponent = memo(function WrappedNav() {
 						href={{ pathname: "/devices/[index]", query: { ...restQuery, index: deviceIndex } }}
 						isActive={ pathname === "/devices/[index]" }
 					/>
+					<NavLink
+						icon={ faVectorSquare }
+						label="Sets"
+						href={{ pathname: "/sets", query: restQuery }}
+						isActive={ pathname === "/sets" }
+					/>
 				</Stack>
 				<Stack className={ classes.navMenu } >
 					<NavButton onClick={ onToggleSettings } label="Settings" icon={ faGear } isActive={ settingsAreShown } />
