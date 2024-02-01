@@ -367,20 +367,20 @@ export const loadPatcherNodeOnRemote = (patcher: PatcherRecord): AppThunk =>
 		}
 	};
 
-export const loadSetOnRemote = (set: SetRecord): AppThunk =>
+export const loadSetOnRemote = (name: string): AppThunk =>
 	(dispatch) => {
 		try {
 			const message = {
 				address: "/rnbo/inst/control/sets/load",
 				args: [
-					{ type: "s", value: set.name }
+					{ type: "s", value: name }
 				]
 			};
 			oscQueryBridge.sendPacket(writePacket(message));
 		} catch (err) {
 			dispatch(showNotification({
 				level: NotificationLevel.error,
-				title: `Error while trying to load set ${set.name}`,
+				title: `Error while trying to load set ${name}`,
 				message: "Please check the consolor for further details."
 			}));
 			console.error(err);
