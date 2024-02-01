@@ -407,6 +407,47 @@ export const saveSetOnRemote = (name: string): AppThunk =>
 		}
 	};
 
+export const destroySetOnRemote = (name: string): AppThunk =>
+	(dispatch) => {
+		try {
+			const message = {
+				address: "/rnbo/inst/control/sets/destroy",
+				args: [
+					{ type: "s", value: name }
+				]
+			};
+			oscQueryBridge.sendPacket(writePacket(message));
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: `Error while trying to delete set ${name}`,
+				message: "Please check the consolor for further details."
+			}));
+			console.error(err);
+		}
+	};
+
+export const renameSetOnRemote = (oldName: string, newName: string): AppThunk =>
+	(dispatch) => {
+		try {
+			const message = {
+				address: "/rnbo/inst/control/sets/rename",
+				args: [
+					{ type: "s", value: oldName },
+					{ type: "s", value: newName }
+				]
+			};
+			oscQueryBridge.sendPacket(writePacket(message));
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: `Error while trying to rename set ${oldName} -> ${newName}`,
+				message: "Please check the consolor for further details."
+			}));
+			console.error(err);
+		}
+	};
+
 const doUpdateNodesMeta = throttle((nodes: ImmuMap<GraphNodeRecord["id"], GraphNodeRecord>) => {
 	try {
 		const meta = serializeSetMeta(nodes.valueSeq().toArray());
