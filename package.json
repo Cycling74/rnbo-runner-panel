@@ -21,6 +21,7 @@
     "@fortawesome/react-fontawesome": "^0.2.0",
     "@mantine/core": "^7.1.0",
     "@mantine/hooks": "^7.1.0",
+    "@mantine/modals": "^7.5.1",
     "@types/websocket": "^1.0.2",
     "immutable": "^4.0.0-rc.12",
     "lodash.throttle": "^4.1.1",
