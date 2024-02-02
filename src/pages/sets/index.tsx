@@ -1,4 +1,4 @@
-import { ChangeEvent, useState, useCallback, FormEvent } from "react";
+import { ChangeEvent, useState, useCallback, useRef, FormEvent } from "react";
 import { useAppDispatch, useAppSelector } from "../../hooks/useAppDispatch";
 import { RootStateType } from "../../lib/store";
 import { useRouter } from "next/router";
@@ -18,7 +18,6 @@ export default function Sets() {
 	const dispatch = useAppDispatch();
 
 	const [name, setName] = useState<string>("");
-	const [newName, setNewName] = useState<string>("");
 	const [error, setError] = useState<string | undefined>(undefined);
 
 	const [sets, appStatus] = useAppSelector((state: RootStateType) => {
@@ -50,8 +49,16 @@ export default function Sets() {
 		push({ pathname: "/", query: restQuery });
 	}, [dispatch, restQuery]);
 
+	const newNameInput = useRef<HTMLInputElement>(null);
 	const onRenameSet = (name: string) => {
-		setNewName("");
+		const handleClick = async () => {
+			const newName = newNameInput.current?.value;
+			if (newName) {
+				dispatch(renameSetOnRemote(name, newName));
+			}
+			modals.closeAll();
+		};
+
 		return modals.open({
 			title: `Rename set "${name}"`,
 			children: (
@@ -59,15 +66,10 @@ export default function Sets() {
 					<TextInput
 						label="New Name"
 						placeholder={name}
-						onChange={ (e: ChangeEvent<HTMLInputElement>) => setNewName(e.target.value) }
+						ref={newNameInput}
 						data-autofocus
 					/>
-					<Button fullWidth onClick={() => {
-						if (newName.length) {
-							dispatch(renameSetOnRemote(name, newName));
-						}
-						modals.closeAll();
-					}} mt="md">
+					<Button fullWidth onClick={handleClick} mt="md">
 						Submit
 					</Button>
 				</>
