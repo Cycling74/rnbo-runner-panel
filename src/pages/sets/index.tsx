@@ -43,7 +43,7 @@ export default function Sets() {
 			dispatch(saveSetOnRemote(name));
 			setName("");
 		}
-	}, [dispatch]);
+	}, [dispatch, name, setName, setError]);
 
 
 	const onNameChange = (e: ChangeEvent<HTMLInputElement>): void => {
@@ -54,7 +54,7 @@ export default function Sets() {
 	const onLoadSet = useCallback((name: string): void => {
 		dispatch(loadSetOnRemote(name));
 		push({ pathname: "/", query: restQuery });
-	}, [dispatch]);
+	}, [dispatch, restQuery]);
 
 	const onRenameSet = (name: string) => {
 		setNewName("");
