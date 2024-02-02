@@ -245,7 +245,7 @@ export class OSCQueryBridgeControllerPrivate {
 
 	private async _onAttributesChanged(data: any): Promise<void> {
 		// console.log("ATTRIBUTES_CHANGED", data);
-		if (data.FULL_PATH === "/rnbo/inst/control/sets/load" && data.RANGE) {
+		if (data.FULL_PATH === "/rnbo/inst/control/sets/load" && data.RANGE !== undefined) {
 			const sets: Array<string> = data.RANGE?.[0]?.VALS || [];
 			dispatch(initSets(sets));
 		}
