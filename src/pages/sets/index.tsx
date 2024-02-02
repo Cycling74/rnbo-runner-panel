@@ -1,19 +1,13 @@
-import { ChangeEvent, MouseEvent, useState, useCallback, FormEvent } from "react";
+import { ChangeEvent, useState, useCallback, FormEvent } from "react";
 import { useAppDispatch, useAppSelector } from "../../hooks/useAppDispatch";
 import { RootStateType } from "../../lib/store";
-import DeviceInstance from "../../components/device";
 import { useRouter } from "next/router";
-import { Button, Table, TextInput, Stack, Text } from "@mantine/core";
+import { Button, Table, TextInput, Stack, Text, ActionIcon } from "@mantine/core";
 import { modals } from '@mantine/modals';
-import classes from "../../components/device/device.module.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faDiagramProject, faTrash, faVectorSquare } from "@fortawesome/free-solid-svg-icons";
-import { getSetting } from "../../selectors/settings";
-import { Setting } from "../../reducers/settings";
+import { faPenToSquare, faTrash, faUpload } from "@fortawesome/free-solid-svg-icons";
 import { getAppStatus } from "../../selectors/appStatus";
 import { AppStatus } from "../../lib/constants";
-import Link from "next/link";
-import { getDeviceByIndex, getDevices } from "../../selectors/instances";
 import { saveSetOnRemote, loadSetOnRemote, destroySetOnRemote, renameSetOnRemote } from "../../actions/graph";
 
 export default function Sets() {
@@ -104,15 +98,15 @@ export default function Sets() {
 					{name}
         </Table.Td>
         <Table.Td>
-					<Button variant="default" onClick={() => onLoadSet(name) }>
-						Load
-					</Button>
-					<Button variant="default" onClick={() => onRenameSet(name) }>
-						Rename
-					</Button>
-					<Button variant="default" onClick={() => onDeleteSet(name) }>
-						Delete
-					</Button>
+					<ActionIcon variant="default" onClick={() => onLoadSet(name) }>
+						<FontAwesomeIcon icon={faUpload} />
+					</ActionIcon>
+					<ActionIcon variant="default" onClick={() => onRenameSet(name) }>
+						<FontAwesomeIcon icon={faPenToSquare} />
+					</ActionIcon>
+					<ActionIcon variant="default" onClick={() => onDeleteSet(name) }>
+						<FontAwesomeIcon icon={faTrash} />
+					</ActionIcon>
 				</Table.Td>
       </Table.Tr>
     );
