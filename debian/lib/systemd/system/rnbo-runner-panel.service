@@ -15,4 +15,3 @@
 
 [Install]
   WantedBy=multi-user.target
-  Alias=rnbo-runner-panel
