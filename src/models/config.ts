@@ -1,5 +1,6 @@
 import { Record as ImmuRecord } from "immutable";
-import { OSCQueryRNBOState, OSCQueryStringValueRange, OSCQueryValueRange, OSCQueryRNBOInstanceConfig, OSCQueryRNBOJackConfig } from "../lib/types";
+import { OSCQueryRNBOState, OSCQueryRNBOInstanceConfig, OSCQueryRNBOJackConfig, OSCQueryStringValueRange } from "../lib/types";
+import { getNumberValueRange, getStringValueRange } from "../lib/util";
 
 export enum ConfigBase {
 	Base = "",
@@ -172,16 +173,9 @@ export const CONFIG_PROPS: ConfigDescriptions = {
 const DEFAULT_MIDI_RANGE = ["none", "omni", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16"];
 const DEFAULT_SAMPLE_RATES = [22500, 44100, 48000];
 
-const get_midi_range = (range?: OSCQueryStringValueRange): string[] => {
-	return range?.RANGE?.[0]?.VALS || DEFAULT_MIDI_RANGE;
-};
-
-const get_string_range = (range?: OSCQueryStringValueRange): string[] => {
-	return range?.RANGE?.[0]?.VALS || [];
-};
-
-const get_number_range = (range?: OSCQueryValueRange): number[] => {
-	return range?.RANGE?.[0]?.VALS || [];
+const getMIDIValueRange = (range?: OSCQueryStringValueRange) => {
+	const result = getStringValueRange(range);
+	return !result || result.length === 0 ? DEFAULT_MIDI_RANGE : result;
 };
 
 export class InstanceConfig extends ImmuRecord<InstanceConfigProps>({
@@ -205,7 +199,7 @@ export class InstanceConfig extends ImmuRecord<InstanceConfigProps>({
 			audio_fade_in: inst.audio_fade_in.VALUE,
 			audio_fade_out: inst.audio_fade_out.VALUE,
 			preset_midi_program_change_channel: inst.preset_midi_program_change_channel.VALUE,
-			preset_midi_program_change_channel_options: get_midi_range(inst.preset_midi_program_change_channel)
+			preset_midi_program_change_channel_options: getMIDIValueRange(inst.preset_midi_program_change_channel)
 		});
 	}
 }
@@ -227,24 +221,23 @@ export class JackConfig extends ImmuRecord<JackConfigProps>({
 	midi_system_options: ["seq", "raw"]
 }) {
 	static fromDescription(desc: OSCQueryRNBOJackConfig): JackConfig {
-
 		const jack = desc.CONTENTS;
 
 		return new JackConfig({
 			period_frames: jack.period_frames.VALUE || 512,
-			period_frame_options: get_number_range(jack.period_frames),
+			period_frame_options: getNumberValueRange(jack.period_frames),
 
 			sample_rate: jack.sample_rate.VALUE,
 			sample_rate_options: DEFAULT_SAMPLE_RATES,
 
 			num_periods: jack?.num_periods?.VALUE || undefined,
-			num_period_options: get_number_range(jack.num_periods),
+			num_period_options: getNumberValueRange(jack.num_periods),
 
 			card: jack?.card?.VALUE || undefined,
-			card_options: get_string_range(jack?.card),
+			card_options: getStringValueRange(jack?.card),
 
 			midi_system: jack?.midi_system?.VALUE || undefined,
-			midi_system_options: get_string_range(jack?.midi_system)
+			midi_system_options: getStringValueRange(jack?.midi_system)
 		});
 	}
 }
@@ -260,7 +253,7 @@ export class Config extends ImmuRecord<ConfigProps>({
 
 		return new Config({
 			patcher_midi_program_change_channel: top.patcher_midi_program_change_channel.VALUE,
-			patcher_midi_program_change_channel_options: get_midi_range(top.patcher_midi_program_change_channel),
+			patcher_midi_program_change_channel_options: getMIDIValueRange(top.patcher_midi_program_change_channel),
 			control_auto_connect_midi: top.control_auto_connect_midi.TYPE === "T"
 		});
 	}
