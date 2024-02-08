@@ -196,14 +196,15 @@ export class InstanceConfig extends ImmuRecord<InstanceConfigProps>({
 }) {
 	static fromDescription(desc: OSCQueryRNBOInstanceConfig): InstanceConfig {
 		const inst = desc.CONTENTS;
+
 		return new InstanceConfig({
 			auto_connect_audio: inst.auto_connect_audio.TYPE === "T",
 			auto_connect_audio_indexed: inst.auto_connect_audio_indexed.TYPE === "T",
 			auto_connect_midi: inst.auto_connect_midi.TYPE === "T",
 			auto_start_last: inst.auto_start_last.TYPE === "T",
-			audio_fade_in: inst.audio_fade_in.VALUE as number,
-			audio_fade_out: inst.audio_fade_out.VALUE as number,
-			preset_midi_program_change_channel: inst.preset_midi_program_change_channel.VALUE as string,
+			audio_fade_in: inst.audio_fade_in.VALUE,
+			audio_fade_out: inst.audio_fade_out.VALUE,
+			preset_midi_program_change_channel: inst.preset_midi_program_change_channel.VALUE,
 			preset_midi_program_change_channel_options: get_midi_range(inst.preset_midi_program_change_channel)
 		});
 	}
@@ -216,31 +217,33 @@ export class JackConfig extends ImmuRecord<JackConfigProps>({
 	sample_rate: 48000,
 	sample_rate_options: DEFAULT_SAMPLE_RATES,
 
-	num_periods: null,
+	num_periods: undefined,
 	num_period_options: [2],
 
-	card: null,
+	card: undefined,
 	card_options: [],
 
-	midi_system: null,
+	midi_system: undefined,
 	midi_system_options: ["seq", "raw"]
 }) {
 	static fromDescription(desc: OSCQueryRNBOJackConfig): JackConfig {
+
 		const jack = desc.CONTENTS;
+
 		return new JackConfig({
-			period_frames: jack.period_frames.VALUE as number,
+			period_frames: jack.period_frames.VALUE || 512,
 			period_frame_options: get_number_range(jack.period_frames),
 
-			sample_rate: jack.sample_rate.VALUE as number,
-			sample_rate_options: DEFAULT_SAMPLE_RATES, // get_number_range(jack.sample_rate),
+			sample_rate: jack.sample_rate.VALUE,
+			sample_rate_options: DEFAULT_SAMPLE_RATES,
 
-			num_periods: jack?.num_periods?.VALUE as number,
+			num_periods: jack?.num_periods?.VALUE || undefined,
 			num_period_options: get_number_range(jack.num_periods),
 
-			card: jack?.card?.VALUE as string,
+			card: jack?.card?.VALUE || undefined,
 			card_options: get_string_range(jack?.card),
 
-			midi_system: jack?.midi_system?.VALUE as string,
+			midi_system: jack?.midi_system?.VALUE || undefined,
 			midi_system_options: get_string_range(jack?.midi_system)
 		});
 	}
@@ -254,8 +257,9 @@ export class Config extends ImmuRecord<ConfigProps>({
 
 	static fromDescription(desc: OSCQueryRNBOState): Config {
 		const top = desc.CONTENTS.config.CONTENTS;
+
 		return new Config({
-			patcher_midi_program_change_channel: top.patcher_midi_program_change_channel.VALUE as string,
+			patcher_midi_program_change_channel: top.patcher_midi_program_change_channel.VALUE,
 			patcher_midi_program_change_channel_options: get_midi_range(top.patcher_midi_program_change_channel),
 			control_auto_connect_midi: top.control_auto_connect_midi.TYPE === "T"
 		});
