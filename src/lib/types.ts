@@ -49,12 +49,6 @@ export type OSCQuerySingleValue<T extends OSCQueryValueType, V extends OSCValue 
 	ACCESS: OSCAccess;
 	CLIPMODE: OSCClipMode;
 	EXTENDED_TYPE: undefined;
-} | {
-	TYPE: T;
-	VALUE: V[];
-	ACCESS: OSCAccess;
-	CLIPMODE: OSCClipMode;
-	EXTENDED_TYPE: "list"
 });
 
 export type OSCQueryListValue<T extends string = string, V extends Array<OSCValue> = Array<OSCValue>> = OSCQueryBaseNode & {
