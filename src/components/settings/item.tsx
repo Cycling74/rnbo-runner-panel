@@ -1,214 +1,143 @@
-import { Group, SegmentedControl, Switch, Combobox, useCombobox, Input, InputBase, NumberInput } from "@mantine/core";
+import { Group, SegmentedControl, Switch, NumberInput, Select } from "@mantine/core";
 import { ChangeEvent, FunctionComponent, ReactNode, memo } from "react";
 import classes from "./settings.module.css";
-import { Setting, SettingsValue } from "../../reducers/settings";
-import { ConfigBase, ConfigValue } from "../../models/config";
+import { SettingTarget } from "../../lib/constants";
 
-export enum SettingsType {
+export enum SettingsItemType {
 	OnOff,
-	Switch
-}
-
-export type SettingsOption = string | { label: string; value: string };
-
-export interface BaseSettingsItemProps {
-	description?: string;
-	name: Setting;
-	onChange: (name: Setting, value: SettingsValue) => any;
-	options?: Array<SettingsOption>;
-	title: string;
-	type: SettingsType;
-	value: SettingsValue;
-}
-
-export interface SettingsOnOffProps extends BaseSettingsItemProps {
-	type: SettingsType.OnOff,
-	value: boolean;
-}
-
-export interface SettingsToggleProps extends BaseSettingsItemProps {
-	options: Array<SettingsOption>;
-	type: SettingsType.Switch,
-	value: string;
-}
-
-export type SettingsItemProps = SettingsOnOffProps | SettingsToggleProps;
-
-const SettingOnOffInput = ({ onChange, name, value }: Pick<SettingsOnOffProps, "name" | "onChange" | "value">) => (
-	<Switch name={ name } checked={ value } onChange={ (ev: ChangeEvent<HTMLInputElement>) => onChange(name, ev.currentTarget.checked) } />
-);
-
-const SettingToggleInput = ({ onChange, name, options, value }: Pick<SettingsToggleProps, "name" | "onChange" | "options" | "value">) => (
-	<SegmentedControl size="xs" color="blue" name={ name } value={ value } data={ options } onChange={ (v: string) => onChange(name, v) }/>
-);
-
-export const SettingsItem: FunctionComponent<SettingsItemProps> = memo(function SettingItemWrapper({
-	description,
-	name,
-	onChange,
-	options,
-	title,
-	type,
-	value
-}: SettingsItemProps) {
-
-	let el: ReactNode;
-	const commonProps = { name, onChange };
-	switch (type) {
-		case SettingsType.OnOff:
-			el = <SettingOnOffInput { ...commonProps } value={ value } />;
-			break;
-		case SettingsType.Switch:
-			el = <SettingToggleInput { ...commonProps } options={ options } value={ value } />;
-			break;
-		default:
-			throw new Error(`Unknown SettingsType ${type}`);
-	}
-
-	return (
-		<Group className={ classes.item } >
-			<div className={ classes.itemInputWrap }>
-				{ el }
-			</div>
-			<div className={ classes.itemTitleWrap } >
-				<label htmlFor={ name } className={ classes.itemTitle } >{ title }</label>
-				{
-					description?.length ? <div className={ classes.itemDescription } >{ description }</div> : null
-				}
-			</div>
-		</Group>
-	);
-});
-
-export enum ConfigType {
-	OnOff,
-	Combobox,
+	Select,
+	Switch,
 	Numeric
 }
 
-export type ConfigOption = string | { label: string; value: string };
+export type SettingsItemValue = string | number | boolean;
+export type SettingsItemOption = string | { label: string; value: string };
 
-export interface BaseConfigItemProps {
+export interface BaseSettingsItemProps {
 	description?: string;
-	base: ConfigBase;
-	name: string;
-	onChange: (base: ConfigBase, key: string, value: ConfigValue) => any;
-	options?: Array<ConfigOption>;
-	title: string;
-	type: ConfigType;
-	value: ConfigValue;
-	min?: number;
 	max?: number;
+	min?: number;
+	name: string;
+	onChange: (target: SettingTarget, name: string, value: SettingsItemValue) => any;
+	options?: Array<SettingsItemOption>;
+	target: SettingTarget;
+	title: string;
+	type: SettingsItemType;
+	value: SettingsItemValue
 }
 
-export interface ConfigOnOffProps extends BaseConfigItemProps {
-	type: ConfigType.OnOff;
-	value: boolean;
-}
-
-export interface ConfigComboboxProps extends BaseConfigItemProps {
-	options: Array<ConfigOption>;
-	type: ConfigType.Combobox;
-	value: string;
-}
-
-export interface ConfigNumericProps extends BaseConfigItemProps {
-	min: number;
-	max: number;
-	type: ConfigType.Numeric;
+export interface SettingsNumericProps extends BaseSettingsItemProps {
+	type: SettingsItemType.Numeric;
 	value: number;
 }
 
-export type ConfigItemProps = ConfigOnOffProps | ConfigComboboxProps | ConfigNumericProps;
+export interface SettingsOnOffProps extends BaseSettingsItemProps {
+	type: SettingsItemType.OnOff,
+	value: boolean;
+}
 
-const ConfigOnOffInput = ({ onChange, base, name, value }: Pick<ConfigOnOffProps, "base" | "name" | "onChange" | "value">) => (
-	<Switch name={ name } checked={ value } onChange={ (ev: ChangeEvent<HTMLInputElement>) => onChange(base, name, ev.currentTarget.checked) } />
-);
+export interface SettingsSelectProps extends BaseSettingsItemProps {
+	type: SettingsItemType.Select;
+	options: Array<SettingsItemOption>;
+	value: string;
+}
 
-const ConfigNumericInput = ({ onChange, base, name, value, min, max }: Pick<ConfigNumericProps, "base" | "name" | "onChange" | "value" | "min" | "max">) => (
-	<NumberInput name={ name } value={ value } onChange={ (v: number) => onChange(base, name, v) } min ={ min} max={ max } />
-);
+export interface SettingsToggleProps extends BaseSettingsItemProps {
+	options: Array<SettingsItemOption>;
+	type: SettingsItemType.Switch,
+	value: string;
+}
 
-const ConfigComboboxInput = ({ onChange, base, name, options, value }: Pick<ConfigComboboxProps, "base" | "name" | "onChange" | "options" | "value">) => {
-	const combobox = useCombobox({
-		onDropdownClose: () => combobox.resetSelectedOption()
-	});
+export type SettingsItemProps = SettingsNumericProps | SettingsOnOffProps | SettingsSelectProps | SettingsToggleProps;
 
-	const o = options.map((item: string) => (
-		<Combobox.Option value={item} key={item}>
-			{item}
-		</Combobox.Option>
-	));
-
+const SettingsNumericInput = ({ onChange, min, max, name, target, value }: Pick<SettingsNumericProps, "max" | "min" | "name" | "onChange" | "target" | "value">) => {
 	return (
-		<Combobox
-			store={combobox}
-			withinPortal={false}
-			onOptionSubmit={(val) => {
-				onChange(base, name, val);
-				combobox.closeDropdown();
-			}}
-		>
-			<Combobox.Target>
-				<InputBase
-					component="button"
-					type="button"
-					pointer
-					rightSection={<Combobox.Chevron />}
-					onClick={() => combobox.toggleDropdown()}
-					rightSectionPointerEvents="none"
-				>
-					{value || <Input.Placeholder>Pick value</Input.Placeholder>}
-				</InputBase>
-			</Combobox.Target>
-
-			<Combobox.Dropdown>
-				<Combobox.Options>{o}</Combobox.Options>
-			</Combobox.Dropdown>
-		</Combobox>
+		<NumberInput
+			min ={ min }
+			max={ max }
+			onChange={ (v: number) => onChange(target, name, v) }
+			name={ name }
+			value={ value }
+		/>
 	);
 };
 
-export const ConfigItem: FunctionComponent<ConfigItemProps> = memo(function ConfigItemWrapper({
-	description,
-	base,
-	name,
-	onChange,
-	options,
-	title,
-	type,
-	value,
-	min,
-	max
-}: ConfigItemProps) {
+const SettingOnOffInput = ({ onChange, name, target, value }: Pick<SettingsOnOffProps, "name" | "onChange" | "target" | "value">) => {
+	return (
+		<Switch
+			checked={ value }
+			name={ name }
+			onChange={ (ev: ChangeEvent<HTMLInputElement>) => onChange(target, name, ev.currentTarget.checked) }
+			size="md"
+		/>
+	);
+};
+
+const SettingsSelectInput = ({ onChange, name, options, target, value }: Pick<SettingsSelectProps, "name" | "onChange" | "options" | "target" | "value">) => {
+	return (
+		<Select
+			data={ options }
+			name={ name }
+			onChange={ (v) => onChange(target, name, v) }
+			value={ typeof value !== "string" ? `${value}` : value }
+		/>
+	);
+};
+
+const SettingsToggleInput = ({ onChange, name, options, target, value }: Pick<SettingsToggleProps, "name" | "onChange" | "options" | "target" | "value">) => {
+	return (
+		<SegmentedControl
+			color="blue"
+			data={ options }
+			onChange={ (v: string) => onChange(target, name, v) }
+			name={ name }
+			value={ value }
+			size="xs"
+		/>
+	);
+};
+
+export const SettingsItem: FunctionComponent<BaseSettingsItemProps> = memo(function SettingItemWrapper(props: BaseSettingsItemProps) {
 
 	let el: ReactNode;
-	const commonProps = { base, name, onChange };
-	switch (type) {
-		case ConfigType.OnOff:
-			el = <ConfigOnOffInput { ...commonProps } value={ value } />;
+	const commonProps = { name: props.name, onChange: props.onChange, target: props.target };
+	switch (props.type) {
+		case SettingsItemType.Numeric: {
+			const compProps = props as SettingsNumericProps;
+			el = <SettingsNumericInput { ...commonProps } max={ compProps.max } min={ compProps.min } value={ compProps.value } />;
 			break;
-		case ConfigType.Combobox:
-			el = <ConfigComboboxInput { ...commonProps } options={ options } value={ value } />;
+		}
+		case SettingsItemType.OnOff: {
+			const compProps = props as SettingsOnOffProps;
+			el = <SettingOnOffInput { ...commonProps } value={ compProps.value } />;
 			break;
-		case ConfigType.Numeric:
-			el = <ConfigNumericInput { ...commonProps } min={ min } max= { max } value={ value } />;
+		}
+		case SettingsItemType.Select: {
+			const compProps = props as SettingsSelectProps;
+			el = <SettingsSelectInput { ...commonProps } options={ compProps.options } value = { compProps.value } />;
 			break;
+		}
+		case SettingsItemType.Switch: {
+			const compProps = props as SettingsSelectProps;
+			el = <SettingsToggleInput { ...commonProps } options={ compProps.options } value={ compProps.value } />;
+			break;
+		}
 		default:
-			throw new Error(`Unknown ConfigType ${type}`);
+			throw new Error(`Unknown SettingsType ${props.type}`);
 	}
 
 	return (
 		<Group className={ classes.item } >
+			<div className={ classes.itemTitleWrap } >
+				<label htmlFor={ props.name } className={ classes.itemTitle } >{ props.title }</label>
+				{
+					props.description?.length ? <div className={ classes.itemDescription } >{ props.description }</div> : null
+				}
+			</div>
 			<div className={ classes.itemInputWrap }>
 				{ el }
-			</div>
-			<div className={ classes.itemTitleWrap } >
-				<label htmlFor={ name } className={ classes.itemTitle } >{ title }</label>
-				{
-					description?.length ? <div className={ classes.itemDescription } >{ description }</div> : null
-				}
 			</div>
 		</Group>
 	);
 });
+

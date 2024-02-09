@@ -6,7 +6,6 @@ import { graph } from "./graph";
 import { nofitications } from "./notifications";
 import { patchers } from "./patchers";
 import { settings } from "./settings";
-import { config } from "./config";
 
 export const rootReducer = combineReducers({
 	appStatus,
@@ -14,8 +13,7 @@ export const rootReducer = combineReducers({
 	graph,
 	nofitications,
 	patchers,
-	settings,
-	config
+	settings
 });
 
 export type RootReducerType = typeof rootReducer;

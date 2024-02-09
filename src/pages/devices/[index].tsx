@@ -7,13 +7,13 @@ import { Button, Group, NativeSelect, Stack } from "@mantine/core";
 import classes from "../../components/device/device.module.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faDiagramProject, faTrash, faVectorSquare } from "@fortawesome/free-solid-svg-icons";
-import { getSetting } from "../../selectors/settings";
-import { Setting } from "../../reducers/settings";
 import { getAppStatus } from "../../selectors/appStatus";
 import { AppStatus } from "../../lib/constants";
 import Link from "next/link";
 import { getDeviceByIndex, getDevices } from "../../selectors/instances";
 import { unloadPatcherNodeByIndexOnRemote } from "../../actions/graph";
+import { getAppSettingValue } from "../../selectors/settings";
+import { AppSetting } from "../../models/settings";
 
 export default function Device() {
 
@@ -31,7 +31,7 @@ export default function Device() {
 		enabledMessageOuput
 	] = useAppSelector((state: RootStateType) => {
 		const currentDevice = getDeviceByIndex(state, deviceIndex);
-		const enabledMessageOuput = getSetting<boolean>(state, Setting.debugMessageOutput);
+		const enabledMessageOuput = getAppSettingValue<boolean>(state, AppSetting.debugMessageOutput);
 		return [
 			currentDevice,
 			getAppStatus(state),
