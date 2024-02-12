@@ -1,264 +1,248 @@
 import { Record as ImmuRecord } from "immutable";
-import { OSCQueryRNBOState, OSCQueryStringValueRange, OSCQueryValueRange, OSCQueryRNBOInstanceConfig, OSCQueryRNBOJackConfig } from "../lib/types";
-
-export enum ConfigBase {
-	Base = "",
-	Jack = "/jack",
-	Instance = "/inst"
-}
-
-export enum ConfigValueType {
-	Boolean,
-	Float,
-	Int,
-	String
-}
+import { OSCQueryRNBOState, OSCQueryRNBOInstanceConfig, OSCQueryRNBOJackConfig, OSCQueryStringValueRange, OSCQueryValueType, OSCQueryIntValue, OSCQueryStringValue, OSCQueryFloatValue, OSCQueryValueRange, OSCQueryBooleanValue, OSCQueryRNBOConfigState } from "../lib/types";
+import { getNumberValueOptions, getStringValueOptions } from "../lib/util";
+import { DEFAULT_MIDI_RANGE, DEFAULT_SAMPLE_RATES, SettingsTab } from "../lib/constants";
 
 export type ConfigValue = number | string | boolean;
-export type ConfigOptions = string[];
+export type ConfigOptions = string[] | number[];
 
-export type InstanceConfigProps = {
-	auto_connect_audio: boolean;
-	auto_connect_audio_indexed: boolean;
-	auto_connect_midi: boolean;
-	auto_start_last: boolean;
-	audio_fade_in: number;
-	audio_fade_out: number;
-	preset_midi_program_change_channel: string;
-	preset_midi_program_change_channel_options: string[];
-};
+export enum ConfigKey {
 
-export type JackConfigProps = {
-	period_frames: number;
-	period_frame_options: number[];
+	// Instance
+	AutoConnectAudio = "auto_connect_audio",
+	AutoConnectAudioIndexed = "auto_connect_audio_ndexed",
+	AutoConnectMIDI = "auto_connect_midi",
+	AutoStartLast = "auto_start_last",
+	AudioFadeIn = "audio_fade_in",
+	AudioFadeOut = "audio_fade_out",
+	PresetMIDIProgramChangeChannel = "preset_midi_program_change_channel",
 
-	sample_rate: number;
-	sample_rate_options: number[];
+	// Jack
+	PeriodFrames = "period_frames",
+	SampleRate = "sample_rate",
+	NumPeriods = "num_periods",
+	Card = "card",
+	MIDISystem = "midi_system",
 
-	num_periods?: number;
-	num_period_options?: number[];
-
-	card?: string;
-	card_options?: string[];
-
-	midi_system?: string;
-	midi_system_options?: string[];
-};
-
-export type ConfigProps = {
-	patcher_midi_program_change_channel: string;
-	patcher_midi_program_change_channel_options: string[];
-	control_auto_connect_midi: boolean;
+	// Control Config
+	PatcherMIDIProgramChangeChannel = "patcher_midi_program_change_channel",
+	ControlAutoConnectMIDI = "control_auto_connect_midi"
 }
 
-export type ConfigPropDescription<Key> = {
-	key: Key,
-	options?: Key,
-	description: string,
-	value_type: ConfigValueType
-	min?: number,
-	max?: number
+export type ConfigRecordProps = {
+	id: ConfigKey;
+	description?: string;
+	min?: number;
+	max?: number;
+	options?: ConfigOptions;
+	path: string;
+	tab: SettingsTab;
+	title: string;
+
+	oscValue: number | string | boolean | null;
+	oscType: OSCQueryValueType.String | OSCQueryValueType.True | OSCQueryValueType.False | OSCQueryValueType.Int32 | OSCQueryValueType.Float32 | OSCQueryValueType.Double64;
 }
 
-type ConfigDescriptions = {
-	[ConfigBase.Base]: ConfigPropDescription<keyof ConfigProps>[]
-	[ConfigBase.Jack]: ConfigPropDescription<keyof JackConfigProps>[]
-	[ConfigBase.Instance]: ConfigPropDescription<keyof InstanceConfigProps>[]
-}
-
-export const configBaseLabel = (b: ConfigBase): string => {
-	switch(b) {
-		case ConfigBase.Base:
-			return "Control";
-		case ConfigBase.Instance:
-			return "Instance";
-		case ConfigBase.Jack:
-			return "Audio";
-		default:
-			throw new Error(`unhandled base ${b}`);
+const instanceConfigDetails: Partial<Record<ConfigKey, Omit<ConfigRecordProps, "id" | "oscValue" | "oscType" >>> = {
+	[ConfigKey.AutoConnectAudio]: {
+		path: `/rnbo/inst/config/${ConfigKey.AutoConnectAudio}`,
+		tab: SettingsTab.Instance,
+		title: "Instance: Auto Connect Audio"
+	},
+	[ConfigKey.AutoConnectAudioIndexed]: {
+		path: `/rnbo/inst/config/${ConfigKey.AutoConnectAudioIndexed}`,
+		tab: SettingsTab.Instance,
+		title: "Instance: Auto Connect Audio by i/o Index number"
+	},
+	[ConfigKey.AutoConnectMIDI]: {
+		path: `/rnbo/inst/config/${ConfigKey.AutoConnectMIDI}`,
+		tab: SettingsTab.Instance,
+		title: "RNBO Control: Auto Connect MIDI"
+	},
+	[ConfigKey.AutoStartLast]: {
+		path: `/rnbo/inst/config/${ConfigKey.AutoStartLast}`,
+		tab: SettingsTab.Instance,
+		title: "Startup: Auto Start Last Set"
+	},
+	[ConfigKey.AudioFadeIn]: {
+		min: 0,
+		max: 2000,
+		path: `/rnbo/inst/config/${ConfigKey.AudioFadeIn}`,
+		tab: SettingsTab.Instance,
+		title: "Instance: Fade In Milliseconds"
+	},
+	[ConfigKey.AudioFadeOut]: {
+		min: 0,
+		max: 2000,
+		path: `/rnbo/inst/config/${ConfigKey.AudioFadeOut}`,
+		tab: SettingsTab.Instance,
+		title: "Instance: Fade Out Milliseconds"
+	},
+	[ConfigKey.PresetMIDIProgramChangeChannel]: {
+		options: DEFAULT_MIDI_RANGE,
+		path: `/rnbo/inst/config/${ConfigKey.AudioFadeOut}`,
+		tab: SettingsTab.Instance,
+		title: "Preset: MIDI Program Change Channel"
 	}
 };
 
-export const CONFIG_PROPS: ConfigDescriptions = {
-	[ConfigBase.Base]: [
-		{
-			key: "patcher_midi_program_change_channel",
-			options: "patcher_midi_program_change_channel_options",
-			description: "Patcher Select: MIDI Program Change Channel",
-			value_type: ConfigValueType.String
-		},
-		{
-			key: "control_auto_connect_midi",
-			description: "RNBO Control: Auto Connect MIDI",
-			value_type: ConfigValueType.Boolean
-		}
-	],
-	[ConfigBase.Instance]: [
-		{
-			key: "auto_start_last",
-			value_type: ConfigValueType.Boolean,
-			description: "Startup: Auto Start Last Set"
-		},
-		{
-			key: "auto_connect_audio",
-			value_type: ConfigValueType.Boolean,
-			description: "Instance: Auto Connect Audio"
-		},
-		{
-			key: "auto_connect_audio_indexed",
-			value_type: ConfigValueType.Boolean,
-			description: "Instance: Auto Connect Audio by i/o Index number"
-		},
-		{
-			key: "auto_connect_midi",
-			value_type: ConfigValueType.Boolean,
-			description: "Instance: Auto Connect MIDI"
-		},
-		{
-			key: "audio_fade_in",
-			description: "Instance: Fade In Milliseconds",
-			value_type: ConfigValueType.Float,
-			min: 0,
-			max: 2000
-		},
-		{
-			key: "audio_fade_out",
-			description: "Instance: Fade Out Milliseconds",
-			value_type: ConfigValueType.Float,
-			min: 0,
-			max: 2000
-		},
-		{
-			key: "preset_midi_program_change_channel",
-			value_type: ConfigValueType.String,
-			description: "Preset: MIDI Program Change Channel",
-			options: "preset_midi_program_change_channel_options"
-		}
-	],
-	[ConfigBase.Jack]: [
-		{
-			key: "card",
-			options: "card_options",
-			value_type: ConfigValueType.String,
-			description: "Audio: Interface"
-		},
-		{
-			key: "midi_system",
-			options: "midi_system_options",
-			value_type: ConfigValueType.String,
-			description: "Audio: MIDI System"
-		},
-		{
-			key: "sample_rate",
-			options: "sample_rate_options",
-			value_type: ConfigValueType.Float,
-			description: "Audio: Sample Rate"
-		},
-		{
-			key: "period_frames",
-			options: "period_frame_options",
-			value_type: ConfigValueType.Int,
-			description: "Audio: Period Frames"
-		},
-		{
-			key: "num_periods",
-			options: "num_period_options",
-			value_type: ConfigValueType.Int,
-			description: "Audio: Num Periods"
-		}
-	]
-};
-
-const DEFAULT_MIDI_RANGE = ["none", "omni", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16"];
-const DEFAULT_SAMPLE_RATES = [22500, 44100, 48000];
-
-const get_midi_range = (range?: OSCQueryStringValueRange): string[] => {
-	return range?.RANGE?.[0]?.VALS || DEFAULT_MIDI_RANGE;
-};
-
-const get_string_range = (range?: OSCQueryStringValueRange): string[] => {
-	return range?.RANGE?.[0]?.VALS || [];
-};
-
-const get_number_range = (range?: OSCQueryValueRange): number[] => {
-	return range?.RANGE?.[0]?.VALS || [];
-};
-
-export class InstanceConfig extends ImmuRecord<InstanceConfigProps>({
-	auto_connect_audio: true,
-	auto_connect_audio_indexed: true,
-	auto_connect_midi: true,
-	auto_start_last: true,
-	audio_fade_in: 10,
-	audio_fade_out: 10,
-	preset_midi_program_change_channel: "none",
-	preset_midi_program_change_channel_options: DEFAULT_MIDI_RANGE
-}) {
-	static fromDescription(desc: OSCQueryRNBOInstanceConfig): InstanceConfig {
-		const inst = desc.CONTENTS;
-		return new InstanceConfig({
-			auto_connect_audio: inst.auto_connect_audio.TYPE === "T",
-			auto_connect_audio_indexed: inst.auto_connect_audio_indexed.TYPE === "T",
-			auto_connect_midi: inst.auto_connect_midi.TYPE === "T",
-			auto_start_last: inst.auto_start_last.TYPE === "T",
-			audio_fade_in: inst.audio_fade_in.VALUE as number,
-			audio_fade_out: inst.audio_fade_out.VALUE as number,
-			preset_midi_program_change_channel: inst.preset_midi_program_change_channel.VALUE as string,
-			preset_midi_program_change_channel_options: get_midi_range(inst.preset_midi_program_change_channel)
-		});
+const jackConfigDetails: Partial<Record<ConfigKey, Omit<ConfigRecordProps, "id" | "oscValue" | "oscType" >>> = {
+	[ConfigKey.NumPeriods]: {
+		options: [2],
+		path: `/rnbo/jack/config/${ConfigKey.NumPeriods}`,
+		tab: SettingsTab.Audio,
+		title: "Audio: Num Periods"
+	},
+	[ConfigKey.PeriodFrames]: {
+		options: [512],
+		path: `/rnbo/jack/config/${ConfigKey.PeriodFrames}`,
+		tab: SettingsTab.Audio,
+		title: "Audio: Period Frames"
+	},
+	[ConfigKey.SampleRate]: {
+		options: DEFAULT_SAMPLE_RATES,
+		path: `/rnbo/jack/config/${ConfigKey.SampleRate}`,
+		tab: SettingsTab.Audio,
+		title: "Audio: Sample Rate"
+	},
+	[ConfigKey.Card]: {
+		path: `/rnbo/jack/config/${ConfigKey.Card}`,
+		tab: SettingsTab.Audio,
+		title: "Audio: Interface"
+	},
+	[ConfigKey.MIDISystem]: {
+		options: ["seq", "raw"],
+		path: `/rnbo/jack/config/${ConfigKey.MIDISystem}`,
+		tab: SettingsTab.Audio,
+		title: "Audio: MIDI System"
 	}
-}
+};
 
-export class JackConfig extends ImmuRecord<JackConfigProps>({
-	period_frames: 512,
-	period_frame_options: [512],
-
-	sample_rate: 48000,
-	sample_rate_options: DEFAULT_SAMPLE_RATES,
-
-	num_periods: null,
-	num_period_options: [2],
-
-	card: null,
-	card_options: [],
-
-	midi_system: null,
-	midi_system_options: ["seq", "raw"]
-}) {
-	static fromDescription(desc: OSCQueryRNBOJackConfig): JackConfig {
-		const jack = desc.CONTENTS;
-		return new JackConfig({
-			period_frames: jack.period_frames.VALUE as number,
-			period_frame_options: get_number_range(jack.period_frames),
-
-			sample_rate: jack.sample_rate.VALUE as number,
-			sample_rate_options: DEFAULT_SAMPLE_RATES, // get_number_range(jack.sample_rate),
-
-			num_periods: jack?.num_periods?.VALUE as number,
-			num_period_options: get_number_range(jack.num_periods),
-
-			card: jack?.card?.VALUE as string,
-			card_options: get_string_range(jack?.card),
-
-			midi_system: jack?.midi_system?.VALUE as string,
-			midi_system_options: get_string_range(jack?.midi_system)
-		});
+const controlConfigDetails: Partial<Record<ConfigKey, Omit<ConfigRecordProps, "id" | "oscValue" | "oscType" >>> = {
+	[ConfigKey.PatcherMIDIProgramChangeChannel]: {
+		options: DEFAULT_MIDI_RANGE,
+		path: `/rnbo/config/${ConfigKey.PatcherMIDIProgramChangeChannel}`,
+		tab: SettingsTab.Control,
+		title: "Patcher Select: MIDI Program Change Channel"
+	},
+	[ConfigKey.ControlAutoConnectMIDI]: {
+		path: `/rnbo/config/${ConfigKey.ControlAutoConnectMIDI}`,
+		tab: SettingsTab.Control,
+		title: "RNBO Control: Auto Connect MIDI"
 	}
-}
+};
 
-export class Config extends ImmuRecord<ConfigProps>({
-	patcher_midi_program_change_channel: "omni",
-	patcher_midi_program_change_channel_options: DEFAULT_MIDI_RANGE,
-	control_auto_connect_midi: true
+type ConfigOSCDescType = OSCQueryStringValue | OSCQueryIntValue | OSCQueryBooleanValue | OSCQueryFloatValue;
+type ConfigOscDescRangeType = OSCQueryValueRange | OSCQueryStringValueRange;
+
+export class ConfigRecord extends ImmuRecord<ConfigRecordProps>({
+	id: "" as ConfigKey,
+	description: "",
+	min: undefined,
+	max: undefined,
+	options: undefined,
+	path: "",
+	tab: SettingsTab.Instance,
+	title: "",
+
+	oscType: OSCQueryValueType.True,
+	oscValue: null
 }) {
 
-	static fromDescription(desc: OSCQueryRNBOState): Config {
-		const top = desc.CONTENTS.config.CONTENTS;
-		return new Config({
-			patcher_midi_program_change_channel: top.patcher_midi_program_change_channel.VALUE as string,
-			patcher_midi_program_change_channel_options: get_midi_range(top.patcher_midi_program_change_channel),
-			control_auto_connect_midi: top.control_auto_connect_midi.TYPE === "T"
-		});
+	public setValue(v: ConfigValue) {
+		switch (this.oscType) {
+			case OSCQueryValueType.True:
+			case OSCQueryValueType.False:
+				return this.set("oscType", v ? OSCQueryValueType.True : OSCQueryValueType.False);
+			case OSCQueryValueType.Float32:
+			case OSCQueryValueType.Double64:
+			case OSCQueryValueType.Int32:
+			case OSCQueryValueType.String:
+			default:
+				return this.set("oscValue", v);
+		}
 	}
 
+	public get value(): ConfigValue {
+		switch (this.oscType) {
+			case OSCQueryValueType.True:
+				return true;
+			case OSCQueryValueType.False:
+				return false;
+			case OSCQueryValueType.Float32:
+			case OSCQueryValueType.Double64:
+			case OSCQueryValueType.Int32:
+			case OSCQueryValueType.String:
+			default:
+				return this.oscValue;
+		}
+	}
+
+	protected static getConfigOptions(
+		desc: ConfigOSCDescType & ConfigOscDescRangeType,
+		defaultOptions?: ConfigRecordProps["options"]
+	): ConfigRecordProps["options"] {
+		if (!desc.RANGE) return defaultOptions;
+		let vals = undefined;
+		if (desc.TYPE === OSCQueryValueType.String) {
+			vals = getStringValueOptions(desc as OSCQueryStringValueRange);
+		}
+		if (desc.TYPE === OSCQueryValueType.Int32 || desc.TYPE === OSCQueryValueType.Float32) {
+			vals = getNumberValueOptions(desc as OSCQueryValueRange);
+		}
+
+		return vals && vals.length ? vals : defaultOptions;
+	}
+
+	public static arrayFromDescription(desc: OSCQueryRNBOState): Array<ConfigRecord> {
+		const result: Array<ConfigRecord> = [];
+
+		const instConfig: Partial<OSCQueryRNBOInstanceConfig["CONTENTS"]> = desc.CONTENTS.inst.CONTENTS.config?.CONTENTS || {};
+		for (const [key, value] of Object.entries(instConfig)) {
+			if (!instanceConfigDetails[key as ConfigKey]) continue;
+
+			result.push(new ConfigRecord({
+				id: key as ConfigKey,
+				...instanceConfigDetails[key as ConfigKey],
+				description: value.DESCRIPTION || "",
+				options: this.getConfigOptions(value, instanceConfigDetails[key as ConfigKey].options),
+				oscValue: value.VALUE,
+				oscType: value.TYPE
+			}));
+		}
+
+		const controlConfig: Partial<OSCQueryRNBOConfigState["CONTENTS"]> = desc.CONTENTS.config.CONTENTS || {};
+		for (const [key, value] of Object.entries(controlConfig)) {
+			if (!controlConfigDetails[key as ConfigKey]) continue;
+
+			result.push(new ConfigRecord({
+				id: key as ConfigKey,
+				...controlConfigDetails[key as ConfigKey],
+				description: value.DESCRIPTION || "",
+				options: this.getConfigOptions(value, controlConfigDetails[key as ConfigKey].options),
+				oscValue: value.VALUE,
+				oscType: value.TYPE
+			}));
+		}
+
+		// Owns Jack Server and therefore also the configuration?
+		const ownServer = (desc.CONTENTS.jack.CONTENTS.info.CONTENTS?.owns_server?.TYPE || "T") === "T";
+		if (ownServer) {
+			const jackConfig: Partial<OSCQueryRNBOJackConfig["CONTENTS"]> = desc.CONTENTS.jack.CONTENTS.config?.CONTENTS || {};
+
+			for (const [key, value] of Object.entries(jackConfig)) {
+				if (!jackConfigDetails[key as ConfigKey]) continue;
+				result.push(new ConfigRecord({
+					id: key as ConfigKey,
+					...jackConfigDetails[key as ConfigKey],
+					description: value.DESCRIPTION || "",
+					options: this.getConfigOptions(value, jackConfigDetails[key as ConfigKey].options),
+					oscValue: value.VALUE,
+					oscType: value.TYPE
+				}));
+			}
+		}
+
+		return result;
+	}
 }

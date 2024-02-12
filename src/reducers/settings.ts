@@ -1,95 +1,85 @@
+import { Map as ImmuMap } from "immutable";
 import { SettingsAction, SettingsActionType } from "../actions/settings";
+import { AppSetting } from "../models/settings";
+import { ConfigKey, ConfigRecord } from "../models/config";
+import { AppSettingRecord } from "../models/settings";
+import { loadSettingsState, purgeSettingsState, storeSettingsState } from "../lib/settings";
 
-export enum Setting {
-	colorScheme = "colorscheme",
-	debugMessageOutput = "message_out_debug"
+export type AppSettings = {
+	[AppSetting.colorScheme]: string;
+	[AppSetting.debugMessageOutput]: boolean;
 }
-
-export type SettingsValue = string | number | boolean;
 
 export type SettingsState = {
 	loaded: boolean;
 	show: boolean;
-	data: Record<Setting, SettingsValue>;
-}
 
-const LS_KEY = "@@rnbo_runner_settings@@";
-const LS_VERSION = 1;
+	appSettings: ImmuMap<AppSetting, AppSettingRecord>;
+	runnerConfig: ImmuMap<ConfigKey, ConfigRecord>;
+}
 
 const defaultState: SettingsState = {
 	loaded: false,
 	show: false,
-	data: {
-		[Setting.colorScheme]: "light",
-		[Setting.debugMessageOutput]: true
-	}
+
+	appSettings: loadSettingsState(),
+	runnerConfig: ImmuMap<ConfigKey, ConfigRecord>()
 };
 
-const loadState = (): SettingsState["data"] => {
-	if (typeof window == "undefined") return defaultState.data;
-	try {
-		const data = window.localStorage?.getItem(LS_KEY);
-		if (!data?.length) throw new Error("No Saved Settings found");
-		const stored = JSON.parse(data);
-		if (stored?.version !== LS_VERSION || !stored?.data) throw new Error("Settings version not compatible");
-		return stored.data as SettingsState["data"];
-	} catch (err) {
-		return defaultState.data;
-	}
-};
-
-const saveState = (data: SettingsState["data"]) => {
-	if (typeof window == "undefined") return;
-	try {
-		window.localStorage?.setItem(LS_KEY, JSON.stringify({ version: LS_VERSION, data }));
-	} catch (err) {
-		// no-op
-	}
-};
-
-const deleteState = () => {
-	if (typeof window == "undefined") return;
-	try {
-		window.localStorage?.removeItem(LS_KEY);
-	} catch (err) {
-		// no-op
-	}
-};
 
 export const settings = (state: SettingsState = defaultState, action: SettingsAction): SettingsState => {
 
 	switch (action.type) {
 
-		case SettingsActionType.LOAD_SETTINGS: {
-			return {
-				...state,
-				loaded: true,
-				data: loadState()
-			};
-		}
-
-		case SettingsActionType.SET_SETTING: {
-			const { name, value } = action.payload;
-			const data = { ...state.data, [name]: value };
-			saveState(data);
-			return {
-				...state,
-				data
-			};
-		}
-
-		case SettingsActionType.RESET_DEFAULTS: {
-			deleteState();
-			return {
-				...state,
-				data: defaultState.data
-			};
-		}
-
+		// General
 		case SettingsActionType.SET_SHOW_SETTINGS: {
 			return {
 				...state,
 				show: action.payload.show
+			};
+		}
+
+		// App Settings
+		case SettingsActionType.LOAD_APP_SETTINGS: {
+			return {
+				...state,
+				loaded: true,
+				appSettings: loadSettingsState()
+			};
+		}
+
+		case SettingsActionType.SET_APP_SETTING: {
+			const { record } = action.payload;
+			const appSettings = state.appSettings.set(record.id, record);
+			storeSettingsState(appSettings);
+			return {
+				...state,
+				appSettings
+			};
+		}
+
+		case SettingsActionType.RESET_APP_DEFAULTS: {
+			purgeSettingsState();
+			return {
+				...state,
+				appSettings: defaultState.appSettings
+			};
+		}
+
+		// Runner Config
+		case SettingsActionType.INIT_RUNNER_CONFIG: {
+			const { records } = action.payload;
+			return {
+				...state,
+				runnerConfig: ImmuMap<ConfigKey, ConfigRecord>(records.map(r => [r.id, r]))
+			};
+		}
+
+		case SettingsActionType.UPDATE_RUNNER_CONFIG: {
+			const { record } = action.payload;
+			return {
+				...state,
+				runnerConfig: state.runnerConfig.set(record.id, record)
 			};
 		}
 

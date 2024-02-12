@@ -7,11 +7,10 @@ import { AppStatus } from "../lib/constants";
 import { OSCQueryRNBOState, OSCQueryRNBOInstance, OSCQueryRNBOInstancesControlState, OSCQueryRNBOJackConnections, OSCQueryRNBOPatchersState, OSCValue } from "../lib/types";
 import { addPatcherNode, initConnections, initNodes, removePatcherNode, updateSetMeta, updateSourcePortConnections } from "../actions/graph";
 import { initPatchers } from "../actions/patchers";
-import { initConfig, setConfig } from "../actions/config";
+import { initRunnerConfig, updateRunnerConfig } from "../actions/settings";
 import { sleep } from "../lib/util";
 import { getPatcherNodeByIndex } from "../selectors/graph";
 import { updateDeviceInstanceMessageOutputValue, updateDeviceInstanceMessages, updateDeviceInstanceParameterValue, updateDeviceInstanceParameterValueNormalized, updateDeviceInstanceParameters, updateDeviceInstancePresetEntries } from "../actions/instances";
-import { ConfigBase, ConfigValue } from "../models/config";
 
 const dispatch = store.dispatch as AppDispatch;
 
@@ -73,7 +72,7 @@ export class OSCQueryBridgeControllerPrivate {
 		const state = await this._requestState<OSCQueryRNBOState>("/rnbo");
 
 		// Init Config
-		dispatch(initConfig(state));
+		dispatch(initRunnerConfig(state));
 
 		// Init Patcher Info
 		dispatch(initPatchers(state.CONTENTS.patchers));
@@ -246,10 +245,6 @@ export class OSCQueryBridgeControllerPrivate {
 		}
 	}
 
-	private _handleConfig(base: ConfigBase, name: string, value: ConfigValue) {
-		dispatch(setConfig(base, name, value));
-	}
-
 	private async _processOSCMessage(packet: OSCMessage): Promise<void> {
 
 		const metaMatch = packet.address.match(setMetaPathMatcher);
@@ -263,44 +258,13 @@ export class OSCQueryBridgeControllerPrivate {
 		}
 
 		// update configs
-		{
-			const tests: [RegExp, ConfigBase][] = [
-				[configPathMatcher, ConfigBase.Base],
-				[jackConfigPathMatcher, ConfigBase.Jack],
-				[instanceConfigPathMatcher, ConfigBase.Instance]
-			];
-			for (const [r, base]  of tests) {
-				const m = packet.address.match(r);
-				if (m?.groups?.name) {
-					if (packet.args.length > 0) {
-						const arg = packet.args[0];
-						let value: boolean | number | string = true;
-
-						// should this be happening, aren't args supposed to be OSCArgument?
-						switch (typeof arg) {
-							case "boolean":
-							case "number":
-							case "string":
-								value = arg;
-								break;
-							default:
-								value = arg.value;
-								switch (arg.type) {
-									case "T":
-										value = true;
-										break;
-									case "F":
-										value = false;
-										break;
-									default:
-										break;
-								}
-								break;
-						}
-						this._handleConfig(base, m.groups.name, value);
-						return;
-					}
-				}
+		if (
+			configPathMatcher.test(packet.address) ||
+			jackConfigPathMatcher.test(packet.address) ||
+			instanceConfigPathMatcher.test(packet.address)
+		) {
+			if (packet.args.length) {
+				return void dispatch(updateRunnerConfig(packet.address, packet.args[0] as unknown as string | number | boolean));
 			}
 		}
 
