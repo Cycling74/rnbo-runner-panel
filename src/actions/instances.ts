@@ -2,9 +2,8 @@ import Router from "next/router";
 import { ActionBase, AppThunk } from "../lib/store";
 import { OSCQueryRNBOInstance, OSCQueryRNBOInstancePresetEntries, OSCValue } from "../lib/types";
 import { DeviceStateRecord } from "../models/device";
-import { Setting } from "../reducers/settings";
 import { getDeviceByIndex } from "../selectors/instances";
-import { getSetting } from "../selectors/settings";
+import { getAppSettingValue } from "../selectors/settings";
 import { ParameterRecord } from "../models/parameter";
 import { OSCArgument, writePacket } from "osc";
 import { showNotification } from "./notifications";
@@ -12,6 +11,7 @@ import { NotificationLevel } from "../models/notification";
 import { oscQueryBridge } from "../controller/oscqueryBridgeController";
 import throttle from "lodash.throttle";
 import { PresetRecord } from "../models/preset";
+import { AppSetting } from "../models/settings";
 
 export enum InstanceActionType {
 	SET_DEVICE = "SET_DEVICE",
@@ -231,7 +231,7 @@ export const updateDeviceInstanceMessageOutputValue = (index: number, name: stri
 			const state = getState();
 
 			// Debug enabled?!
-			const enabled = getSetting(state, Setting.debugMessageOutput);
+			const enabled = getAppSettingValue<boolean>(state, AppSetting.debugMessageOutput);
 			if (!enabled) return;
 
 			// Active Device view?!

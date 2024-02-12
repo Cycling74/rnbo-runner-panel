@@ -4,9 +4,10 @@ import { setAppStatus, setConnectionEndpoint } from "../actions/appStatus";
 import { AppDispatch, store } from "../lib/store";
 import { ReconnectingWebsocket } from "../lib/reconnectingWs";
 import { AppStatus } from "../lib/constants";
-import { OSCQueryRNBOInstance, OSCQueryRNBOInstancesControlState, OSCQueryRNBOInstancesState, OSCQueryRNBOJackConnections, OSCQueryRNBOJackPortInfo, OSCQueryRNBOPatchersState, OSCValue } from "../lib/types";
+import { OSCQueryRNBOState, OSCQueryRNBOInstance, OSCQueryRNBOInstancesControlState, OSCQueryRNBOJackConnections, OSCQueryRNBOPatchersState, OSCValue } from "../lib/types";
 import { addPatcherNode, initConnections, initNodes, removePatcherNode, updateSetMeta, updateSourcePortConnections } from "../actions/graph";
 import { initPatchers } from "../actions/patchers";
+import { initRunnerConfig, updateRunnerConfig } from "../actions/settings";
 import { sleep } from "../lib/util";
 import { getPatcherNodeByIndex } from "../selectors/graph";
 import { updateDeviceInstanceMessageOutputValue, updateDeviceInstanceMessages, updateDeviceInstanceParameterValue, updateDeviceInstanceParameterValueNormalized, updateDeviceInstanceParameters, updateDeviceInstancePresetEntries } from "../actions/instances";
@@ -23,6 +24,10 @@ const instancePathMatcher = /^\/rnbo\/inst\/(?<index>\d+)$/;
 const instanceStatePathMatcher = /^\/rnbo\/inst\/(?<index>\d+)\/(?<content>params|messages\/in|messages\/out|presets)\/(?<rest>\S+)/;
 const connectionsPathMatcher = /^\/rnbo\/jack\/connections\/(?<type>audio|midi)\/(?<name>.+)$/;
 const setMetaPathMatcher = /^\/rnbo\/inst\/control\/sets\/meta/;
+
+const configPathMatcher = /^\/rnbo\/config\/(?<name>.+)$/;
+const jackConfigPathMatcher = /^\/rnbo\/jack\/config\/(?<name>.+)$/;
+const instanceConfigPathMatcher = /^\/rnbo\/inst\/config\/(?<name>.+)$/;
 
 export class OSCQueryBridgeControllerPrivate {
 
@@ -64,18 +69,16 @@ export class OSCQueryBridgeControllerPrivate {
 
 	private async _init() {
 
-		// Fetch Patcher Info
-		const patcherInfo = await this._requestState<OSCQueryRNBOPatchersState>("/rnbo/patchers");
-		dispatch(initPatchers(patcherInfo));
+		const state = await this._requestState<OSCQueryRNBOState>("/rnbo");
 
-		// Fetch System Jack Port Info
-		const jackPortsInfo = await this._requestState<OSCQueryRNBOJackPortInfo>("/rnbo/jack/info/ports");
+		// Init Config
+		dispatch(initRunnerConfig(state));
 
-		// Fetch Instances Info
-		const instancesInfo = await this._requestState<OSCQueryRNBOInstancesState>("/rnbo/inst");
+		// Init Patcher Info
+		dispatch(initPatchers(state.CONTENTS.patchers));
 
 		// Initialize RNBO Graph Nodes
-		dispatch(initNodes(jackPortsInfo, instancesInfo));
+		dispatch(initNodes(state.CONTENTS.jack.CONTENTS.info.CONTENTS.ports, state.CONTENTS.inst));
 
 		// Fetch Connections Info
 		await this._initConnections();
@@ -252,6 +255,17 @@ export class OSCQueryBridgeControllerPrivate {
 		const connectionMatch = packet.address.match(connectionsPathMatcher);
 		if (connectionMatch?.groups?.name) {
 			return void dispatch(updateSourcePortConnections(connectionMatch.groups.name, packet.args as unknown as string[]));
+		}
+
+		// update configs
+		if (
+			configPathMatcher.test(packet.address) ||
+			jackConfigPathMatcher.test(packet.address) ||
+			instanceConfigPathMatcher.test(packet.address)
+		) {
+			if (packet.args.length) {
+				return void dispatch(updateRunnerConfig(packet.address, packet.args[0] as unknown as string | number | boolean));
+			}
 		}
 
 		const packetMatch = packet.address.match(instanceStatePathMatcher);

@@ -1,4 +1,3 @@
-
 // See https://github.com/Microsoft/TypeScript/issues/1897
 export type AnyJson =
  | string
@@ -49,12 +48,6 @@ export type OSCQuerySingleValue<T extends OSCQueryValueType, V extends OSCValue 
 	ACCESS: OSCAccess;
 	CLIPMODE: OSCClipMode;
 	EXTENDED_TYPE: undefined;
-} | {
-	TYPE: T;
-	VALUE: V[];
-	ACCESS: OSCAccess;
-	CLIPMODE: OSCClipMode;
-	EXTENDED_TYPE: "list"
 });
 
 export type OSCQueryListValue<T extends string = string, V extends Array<OSCValue> = Array<OSCValue>> = OSCQueryBaseNode & {
@@ -92,6 +85,14 @@ export type OSCQueryValueRange = {
 	};
 }
 
+export type OSCQueryStringValueRange = {
+	RANGE?: {
+		0: {
+			VALS?: Array<string>;
+		};
+	};
+}
+
 export type OSCQueryRNBOInfoState = OSCQueryBaseNode & {
 	CONTENTS: {
 		compiler_id: OSCQueryStringValue;
@@ -112,7 +113,22 @@ export type OSCQueryRNBOInfoState = OSCQueryBaseNode & {
 };
 
 export type OSCQueryRNBOConfigState = OSCQueryBaseNode & {
-	CONTENTS: Record<string, OSCQueryValue>;
+	CONTENTS: {
+		patcher_midi_program_change_channel: OSCQueryStringValue & OSCQueryStringValueRange;
+		control_auto_connect_midi: OSCQueryBooleanValue;
+	}
+};
+
+export type OSCQueryRNBOInstanceConfig = OSCQueryBaseNode & {
+	CONTENTS: {
+		auto_connect_audio: OSCQueryBooleanValue;
+		auto_connect_audio_indexed: OSCQueryBooleanValue;
+		auto_connect_midi: OSCQueryBooleanValue;
+		auto_start_last: OSCQueryBooleanValue;
+		audio_fade_in: OSCQueryFloatValue;
+		audio_fade_out: OSCQueryFloatValue;
+		preset_midi_program_change_channel: OSCQueryStringValue & OSCQueryStringValueRange;
+	}
 };
 
 export type OSCQueryRNBOJackPortInfo = OSCQueryBaseNode & {
@@ -146,6 +162,16 @@ export type OSCQueryRNBOJackConnections = OSCQueryBaseNode & {
 	};
 };
 
+export type OSCQueryRNBOJackConfig =  OSCQueryBaseNode & {
+	CONTENTS: {
+		period_frames: OSCQueryIntValue & OSCQueryValueRange;
+		sample_rate: OSCQueryFloatValue & OSCQueryValueRange;
+		num_periods?: OSCQueryIntValue & OSCQueryValueRange;
+		card?: OSCQueryStringValue & OSCQueryStringValueRange;
+		midi_system?: OSCQueryStringValue & OSCQueryStringValueRange;
+	};
+};
+
 export type OSCQueryRNBOJackState = OSCQueryBaseNode & {
 	CONTENTS: {
 		active: OSCQueryBooleanValue;
@@ -157,12 +183,7 @@ export type OSCQueryRNBOJackState = OSCQueryBaseNode & {
 				ports: OSCQueryRNBOJackPortInfo;
 			};
 		};
-		config: OSCQueryBaseNode & {
-			CONTENTS: {
-				period_frames: OSCQueryIntValue & OSCQueryValueRange;
-				sample_rate: OSCQueryFloatValue & OSCQueryValueRange;
-			};
-		};
+		config: OSCQueryRNBOJackConfig;
 		control: any;
 		transport: {
 			bpm: OSCQueryFloatValue;
@@ -283,9 +304,10 @@ export type OSCQueryRNBOInstancesControlState = OSCQueryBaseNode & {
 }
 
 export type OSCQueryRNBOInstancesState = OSCQueryBaseNode & {
-	CONTENTS: Record<string, OSCQueryRNBOInstance> & {
+	CONTENTS: Record<number, OSCQueryRNBOInstance> & {
 		control: OSCQueryRNBOInstancesControlState;
-	};
+		config: OSCQueryRNBOInstanceConfig;
+	}
 };
 
 export type OSCQueryRNBOState = OSCQueryBaseNode & {

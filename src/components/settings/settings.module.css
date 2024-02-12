@@ -6,11 +6,6 @@
 .item {
 	border-bottom: 1px solid var(--mantine-color-default-border);
 	gap: var(--mantine-spacing-xs);
-	padding-bottom: var(--mantine-spacing-sm);
-
-	&:first-child {
-		padding-top: 0;
-	}
 
 	&:last-child {
 		border-bottom: none;
@@ -18,7 +13,17 @@
 }
 
 .itemInputWrap {
-	width: 100px;
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	min-width: 100px;
+	max-width: 250px;
+	height: 100%;
+	padding: var(--mantine-spacing-xs) 0;
+
+	> * {
+		max-width: 100%;
+	}
 }
 
 .itemTitleWrap {
@@ -33,4 +38,8 @@
 .itemDescription {
 	color: var(--mantine-color-dimmed);
 	font-size: var(--mantine-font-size-xs);
+}
+
+.tabPanel {
+	margin-top: 10px;
 }
