@@ -8,6 +8,7 @@ import { OSCQueryRNBOState, OSCQueryRNBOInstance, OSCQueryRNBOInstancesControlSt
 import { addPatcherNode, initConnections, initNodes, removePatcherNode, updateSetMeta, updateSourcePortConnections } from "../actions/graph";
 import { initPatchers } from "../actions/patchers";
 import { initRunnerConfig, updateRunnerConfig } from "../actions/settings";
+import { initSets } from "../actions/sets";
 import { sleep } from "../lib/util";
 import { getPatcherNodeByIndex } from "../selectors/graph";
 import { updateDeviceInstanceMessageOutputValue, updateDeviceInstanceMessages, updateDeviceInstanceParameterValue, updateDeviceInstanceParameterValueNormalized, updateDeviceInstanceParameters, updateDeviceInstancePresetEntries } from "../actions/instances";
@@ -16,7 +17,8 @@ const dispatch = store.dispatch as AppDispatch;
 
 enum OSCQueryCommand {
 	PATH_ADDED = "PATH_ADDED",
-	PATH_REMOVED = "PATH_REMOVED"
+	PATH_REMOVED = "PATH_REMOVED",
+	ATTRIBUTES_CHANGED = "ATTRIBUTES_CHANGED"
 }
 
 const patchersPathMatcher = /^\/rnbo\/patchers/;
@@ -77,6 +79,9 @@ export class OSCQueryBridgeControllerPrivate {
 		// Init Patcher Info
 		dispatch(initPatchers(state.CONTENTS.patchers));
 
+		// get sets info
+		dispatch(initSets(state.CONTENTS.inst?.CONTENTS?.control?.CONTENTS?.sets?.CONTENTS?.load?.RANGE?.[0]?.VALS || []));
+
 		// Initialize RNBO Graph Nodes
 		dispatch(initNodes(state.CONTENTS.jack.CONTENTS.info.CONTENTS.ports, state.CONTENTS.inst));
 
@@ -109,13 +114,16 @@ export class OSCQueryBridgeControllerPrivate {
 
 			if (typeof evt.data === "string") {
 				const data = JSON.parse(evt.data);
+				const isCommand = typeof data.COMMAND === "string" && ["string", "object"].includes(typeof data.DATA);
 
-				const isCommand = typeof data.COMMAND === "string" && typeof data.DATA === "string";
+				// console.log("command", data);
 
 				if (isCommand && data.COMMAND === OSCQueryCommand.PATH_ADDED) {
 					await this._onPathAdded(data.DATA as string);
 				} else if (isCommand && data.COMMAND === OSCQueryCommand.PATH_REMOVED) {
 					await this._onPathRemoved(data.DATA as string);
+				} else if (isCommand && data.COMMAND === OSCQueryCommand.ATTRIBUTES_CHANGED) {
+					await this._onAttributesChanged(data.DATA as object);
 				}
 			} else {
 				const buf: Uint8Array = await evt.data.arrayBuffer();
@@ -232,6 +240,14 @@ export class OSCQueryBridgeControllerPrivate {
 		) {
 			const messagesInfo = await this._requestState<OSCQueryRNBOInstance["CONTENTS"]["messages"]>(`/rnbo/inst/${index}/messages`);
 			return void dispatch(updateDeviceInstanceMessages(index, messagesInfo));
+		}
+	}
+
+	private async _onAttributesChanged(data: any): Promise<void> {
+		// console.log("ATTRIBUTES_CHANGED", data);
+		if (data.FULL_PATH === "/rnbo/inst/control/sets/load" && data.RANGE) {
+			const sets: Array<string> = data.RANGE?.[0]?.VALS || [];
+			dispatch(initSets(sets));
 		}
 	}
 
