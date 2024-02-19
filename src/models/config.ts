@@ -194,6 +194,10 @@ export class ConfigRecord extends ImmuRecord<ConfigRecordProps>({
 		return vals && vals.length ? vals : defaultOptions;
 	}
 
+	public static ownsJackServer(desc: OSCQueryRNBOState): boolean {
+		return (desc.CONTENTS.jack.CONTENTS.info.CONTENTS?.owns_server?.TYPE || "T") === "T";
+	}
+
 	public static arrayFromDescription(desc: OSCQueryRNBOState): Array<ConfigRecord> {
 		const result: Array<ConfigRecord> = [];
 
@@ -226,7 +230,7 @@ export class ConfigRecord extends ImmuRecord<ConfigRecordProps>({
 		}
 
 		// Owns Jack Server and therefore also the configuration?
-		const ownServer = (desc.CONTENTS.jack.CONTENTS.info.CONTENTS?.owns_server?.TYPE || "T") === "T";
+		const ownServer = this.ownsJackServer(desc);
 		if (ownServer) {
 			const jackConfig: Partial<OSCQueryRNBOJackConfig["CONTENTS"]> = desc.CONTENTS.jack.CONTENTS.config?.CONTENTS || {};
 

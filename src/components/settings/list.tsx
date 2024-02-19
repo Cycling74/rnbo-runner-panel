@@ -9,7 +9,7 @@ export type SettingsListProps = {
 const SettingsList: FunctionComponent<SettingsListProps> = memo(function SettingsListWrapper({ items }: SettingsListProps) {
 
 	return (
-		<Stack gap="sm">
+		<Stack gap="xs">
 			{
 				items.map(item => <SettingsItem key={ item.name } { ...item } />)
 			}

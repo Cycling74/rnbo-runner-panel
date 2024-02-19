@@ -4,6 +4,7 @@
 }
 
 .item {
+	padding: 0 0 var(--mantine-spacing-xs) 0;
 	border-bottom: 1px solid var(--mantine-color-default-border);
 	gap: var(--mantine-spacing-xs);
 

@@ -51,6 +51,7 @@ export interface IResetAppSettings extends ActionBase {
 export interface IInitRunnerConfig extends ActionBase {
 	type: SettingsActionType.INIT_RUNNER_CONFIG;
 	payload: {
+		ownsJackServer: boolean;
 		records: ConfigRecord[];
 	};
 }
@@ -153,7 +154,10 @@ export const initRunnerConfig = (desc: OSCQueryRNBOState): SettingsAction => {
 	const records = ConfigRecord.arrayFromDescription(desc);
 	return {
 		type: SettingsActionType.INIT_RUNNER_CONFIG,
-		payload: { records }
+		payload: {
+			ownsJackServer: ConfigRecord.ownsJackServer(desc),
+			records
+		}
 	};
 };
 

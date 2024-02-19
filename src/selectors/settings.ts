@@ -14,6 +14,7 @@ export const getAppSetting = (state: RootStateType, id: AppSetting): AppSettingR
 export const getAppSettingValue = <T = AppSettingValue>(state: RootStateType, id: AppSetting): T => state.settings.appSettings.get(id).value as T;
 
 // Runner Config
+export const getRunnerOwnsJackServer = (state: RootStateType): boolean => state.settings.ownsJackServer;
 export const getRunnerConfig = (state: RootStateType, id: ConfigKey): ConfigRecord => state.settings.runnerConfig.get(id);
 export const getRunnerConfigForTab = (state: RootStateType, tab: SettingsTab) => state.settings.runnerConfig.filter(c => c.tab === tab).valueSeq();
 export const getRunnerConfigByPath = (state: RootStateType, path: string): ConfigRecord | undefined => state.settings.runnerConfig.find(rec => rec.path === path);
