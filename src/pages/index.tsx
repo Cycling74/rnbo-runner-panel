@@ -16,15 +16,17 @@ import {
 import SetsDrawer from "../components/sets";
 import { toggleShowGraphSets } from "../actions/sets";
 
-const NoPatcherInfo = forwardRef<HTMLDivElement, MenuItemProps>((props, ref) => (
-	<div { ...props } ref={ ref } style={{ maxWidth: "50vw", width: 200 }}>
-		<Alert title="No Patch available" variant="outline" color="yellow">
-			<Text fz="xs">
-				Please export a RNBO patch to the runner first.
-			</Text>
-		</Alert>
-	</div>
-));
+const NoPatcherInfo = forwardRef<HTMLDivElement, MenuItemProps>(function ForwardedNoPatcherInfo(props, ref) {
+	return (
+		<div { ...props } ref={ ref } style={{ maxWidth: "50vw", width: 200 }}>
+			<Alert title="No Patch available" variant="outline" color="yellow">
+				<Text fz="xs">
+					Please export a RNBO patch to the runner first.
+				</Text>
+			</Alert>
+		</div>
+	);
+});
 
 const Index: FunctionComponent<Record<string, never>> = () => {
 
