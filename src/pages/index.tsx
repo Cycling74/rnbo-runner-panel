@@ -1,5 +1,5 @@
-import { Button, Group, Menu, Stack } from "@mantine/core";
-import React, { FunctionComponent, MouseEvent, useCallback } from "react";
+import { Alert, Button, Group, Menu, MenuItemProps, Stack, Text } from "@mantine/core";
+import { FunctionComponent, MouseEvent, forwardRef, useCallback } from "react";
 import { useAppDispatch, useAppSelector } from "../hooks/useAppDispatch";
 import { RootStateType } from "../lib/store";
 import { getPatchers } from "../selectors/patchers";
@@ -15,6 +15,16 @@ import {
 } from "../actions/graph";
 import SetsDrawer from "../components/sets";
 import { toggleShowGraphSets } from "../actions/sets";
+
+const NoPatcherInfo = forwardRef<HTMLDivElement, MenuItemProps>((props, ref) => (
+	<div { ...props } ref={ ref } style={{ maxWidth: "50vw", width: 200 }}>
+		<Alert title="No Patch available" variant="outline" color="yellow">
+			<Text fz="xs">
+				Please export a RNBO patch to the runner first.
+			</Text>
+		</Alert>
+	</div>
+));
 
 const Index: FunctionComponent<Record<string, never>> = () => {
 
@@ -74,7 +84,11 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 							</Button>
 						</Menu.Target>
 						<Menu.Dropdown>
-							<Menu.Label>Select Patcher</Menu.Label>
+							{
+								patchers.size === 0 ? (
+									<Menu.Item disabled component={ NoPatcherInfo } />
+								) : <Menu.Label>Select Patcher</Menu.Label>
+							}
 							{
 								patchers.valueSeq().toArray().map(p => (
 									<Menu.Item key={ p.id } data-patcher-id={ p.id } onClick={ onAddInstance } >
