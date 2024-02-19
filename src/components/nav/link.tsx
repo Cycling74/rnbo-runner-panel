@@ -6,18 +6,20 @@ import { FontAwesomeIcon, FontAwesomeIconProps } from "@fortawesome/react-fontaw
 import { UrlObject } from "url";
 
 interface NavLinkProps {
+	disabled?: boolean;
 	href: string | UrlObject;
 	label: string;
 	icon: FontAwesomeIconProps["icon"];
 	isActive: boolean;
 }
 
-export const NavLink: FunctionComponent<NavLinkProps> = ({ href, icon, isActive, label }) => {
+export const NavLink: FunctionComponent<NavLinkProps> = ({ disabled = false, href, icon, isActive, label }) => {
 
 	return (
 		<Tooltip label={ label } position="right" transitionProps={{ duration: 0 }}>
 			<UnstyledButton
-				component={ Link }
+				disabled={ disabled }
+				component={ disabled ? "button" : Link }
 				data-active={ isActive }
 				href={ href }
 				className={ classes.navLink }
