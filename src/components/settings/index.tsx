@@ -132,7 +132,7 @@ const SettingsTabPanel: FunctionComponent<SettingsTabPanelProps> = memo(function
 				}
 			</Stack>
 		</Tabs.Panel>
-	)
+	);
 });
 
 const tabConfigByTab: Record<SettingsTab, TabConfig> = {
@@ -173,7 +173,7 @@ const Settings: FunctionComponent = memo(function WrappedSettings() {
 	const onCloseSettingsModal = useCallback(() => {
 		dispatch(hideSettings());
 		setTimeout(() => setShowAbout(false), 300);
-	}, [dispatch, hideSettings, setShowAbout]);
+	}, [dispatch, setShowAbout]);
 
 	const onChangeSettingsTab = useCallback((tab: SettingsTab) => setActiveTab(tab), [setActiveTab]);
 
