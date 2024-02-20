@@ -336,7 +336,7 @@ export class GraphSystemNodeRecord extends ImmuRecord<GraphSystemNodeProps>({
 					ConnectionType.MIDI,
 					PortDirection.Sink,
 					desc.CONTENTS.midi.CONTENTS.sinks.TYPE !== "" && desc.CONTENTS.midi.CONTENTS.sinks.VALUE.length ? desc.CONTENTS.midi.CONTENTS.sinks.VALUE : []
-				),
+				)
 			];
 
 			if (inputPorts.length) {

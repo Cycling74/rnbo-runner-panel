@@ -1,4 +1,4 @@
-import { Group, SegmentedControl, Switch, NumberInput, Select, Button, ActionIcon } from "@mantine/core";
+import { Group, SegmentedControl, Switch, NumberInput, Select, ActionIcon } from "@mantine/core";
 import { ChangeEvent, FunctionComponent, ReactNode, memo } from "react";
 import classes from "./settings.module.css";
 import { SettingTarget } from "../../lib/constants";
@@ -157,20 +157,20 @@ export const SettingsAction: FunctionComponent<SettingActionProps> = memo(functi
 
 	return (
 		<Group className={ classes.item } >
-		<div className={ classes.itemTitleWrap } >
-			<label className={ classes.itemTitle } >{ props.label }</label>
-			{
-				props.description?.length ? <div className={ classes.itemDescription } >{ props.description }</div> : null
-			}
-		</div>
-		<div className={ classes.itemInputWrap } >
-			<ActionIcon
-				variant="outline"
-				onClick={ () => dispatch(props.action()) }
-			>
-				<FontAwesomeIcon icon={ props.icon } />
-			</ActionIcon>
-		</div>
-	</Group>
-	)
+			<div className={ classes.itemTitleWrap } >
+				<label className={ classes.itemTitle } >{ props.label }</label>
+				{
+					props.description?.length ? <div className={ classes.itemDescription } >{ props.description }</div> : null
+				}
+			</div>
+			<div className={ classes.itemInputWrap } >
+				<ActionIcon
+					variant="outline"
+					onClick={ () => dispatch(props.action()) }
+				>
+					<FontAwesomeIcon icon={ props.icon } />
+				</ActionIcon>
+			</div>
+		</Group>
+	);
 });
