@@ -3,8 +3,8 @@ import { writePacket } from "osc";
 import { oscQueryBridge } from "../controller/oscqueryBridgeController";
 import { ActionBase, AppThunk, RootStateType } from "../lib/store";
 import { OSCQueryRNBOInstance, OSCQueryRNBOInstancesState, OSCQueryRNBOJackConnections, OSCQueryRNBOJackPortInfo, OSCQuerySetMeta, OSCQuerySetNodeMeta } from "../lib/types";
-import { GraphConnectionRecord, GraphNode, GraphNodeRecord, GraphPatcherNode, GraphPatcherNodeRecord, GraphPortRecord, GraphSystemNodeRecord, NodeType, PortDirection } from "../models/graph";
-import { getConnection, getConnectionByNodesAndPorts, getConnectionsForSourceNodeAndPort, getNode, getPatcherNodeByIndex, getNodes, getSystemNodeByJackNameAndDirection, getConnections } from "../selectors/graph";
+import { ConnectionType, GraphConnectionRecord, GraphNode, GraphNodeRecord, GraphPatcherNode, GraphPatcherNodeRecord, GraphPortRecord, GraphSystemNodeRecord, NodeType, PortDirection, calculateNodeContentHeight } from "../models/graph";
+import { getConnection, getConnectionByNodesAndPorts, getConnectionsForSourceNodeAndPort, getNode, getPatcherNodeByIndex, getNodes, getSystemNodeByJackNameAndDirection, getConnections, getPatcherNodes, getSystemNodes } from "../selectors/graph";
 import { showNotification } from "./notifications";
 import { NotificationLevel } from "../models/notification";
 import { DeviceStateRecord } from "../models/device";
@@ -178,21 +178,25 @@ export const deleteConnections = (connections: GraphConnectionRecord[]): GraphAc
 	};
 };
 
-
-const getSystemNodeJackNamesFromPortInfo = (jackPortsInfo: OSCQueryRNBOJackPortInfo, patcherNodes: GraphPatcherNodeRecord[]): string[] => {
+const filterSystemNodeNames = (portNames: string[], patcherNodes: GraphPatcherNodeRecord[]): string[] => {
 	const pNodeIds = new Set(patcherNodes.map(pn => pn.id));
-	const portNames = [
-		...(jackPortsInfo.CONTENTS?.audio?.CONTENTS?.sources?.VALUE || []),
-		...(jackPortsInfo.CONTENTS?.midi?.CONTENTS?.sources?.VALUE || []),
-		...(jackPortsInfo.CONTENTS?.audio?.CONTENTS?.sinks?.VALUE || []),
-		...(jackPortsInfo.CONTENTS?.midi?.CONTENTS?.sinks?.VALUE || [])
-	];
-
 	return portNames.reduce((result, portName) => {
 		const [nodeName] = portName.split(":");
 		if (!pNodeIds.has(nodeName) && nodeName.startsWith("system")) result.push(nodeName);
 		return result;
 	}, [] as string[]);
+};
+
+const getSystemNodeJackNamesFromPortInfo = (jackPortsInfo: OSCQueryRNBOJackPortInfo, patcherNodes: GraphPatcherNodeRecord[]): string[] => {
+	return filterSystemNodeNames(
+		[
+			...(jackPortsInfo.CONTENTS?.audio?.CONTENTS?.sources?.VALUE || []),
+			...(jackPortsInfo.CONTENTS?.midi?.CONTENTS?.sources?.VALUE || []),
+			...(jackPortsInfo.CONTENTS?.audio?.CONTENTS?.sinks?.VALUE || []),
+			...(jackPortsInfo.CONTENTS?.midi?.CONTENTS?.sinks?.VALUE || [])
+		],
+		patcherNodes
+	);
 };
 
 export const initNodes = (jackPortsInfo: OSCQueryRNBOJackPortInfo, instanceInfo: OSCQueryRNBOInstancesState): AppThunk =>
@@ -321,6 +325,77 @@ export const initConnections = (connectionsInfo: OSCQueryRNBOJackConnections): A
 
 		dispatch(deleteConnections(getConnections(state).valueSeq().toArray()));
 		dispatch(setConnections(connectionRecords));
+	};
+
+// Update System I/O
+export const updateSystemPortInfo = (type: ConnectionType, direction: PortDirection, names: string[]): AppThunk =>
+	(dispatch, getState) => {
+
+		const state = getState();
+
+		// Using this set to keep track of newly created System Nodes
+		const systemJackNames = new Set(filterSystemNodeNames(names, getPatcherNodes(state).valueSeq().toArray()));
+
+		const currentSystemNodes = getSystemNodes(state);
+		const deletedNodes: GraphSystemNodeRecord[] = [];
+		const updatedNodes: GraphSystemNodeRecord[] = [];
+
+		for (const sysNode of currentSystemNodes.valueSeq().toArray()) {
+			if (sysNode.direction !== direction) {
+				// if not the same direction => ignore for now, another call will handle that
+				continue;
+			}
+
+			if (systemJackNames.has(sysNode.jackName)) {
+				systemJackNames.delete(sysNode.jackName);
+			}
+
+			// Create Ports relevant for this node for type and direction
+			const newPorts = GraphSystemNodeRecord.createPorts(sysNode.jackName, type, direction, names);
+			const node = sysNode.setPortsByType(type, direction, newPorts);
+			// Any Ports left or can we remove the node?
+			if (node.ports.size) {
+				updatedNodes.push(node);
+			} else {
+				deletedNodes.push(node);
+			}
+		}
+
+		// Create New Nodes
+		let systemInputY = -defaultNodeSpacing;
+		let systemOutputY = -defaultNodeSpacing;
+		for (const jackName of Array.from(systemJackNames.values())) {
+			const ports = ImmuMap<GraphPortRecord["id"], GraphPortRecord>(GraphSystemNodeRecord.createPorts(jackName, type, direction, names).map(p => [p.id, p]));
+			let node = new GraphSystemNodeRecord({
+				jackName,
+				direction,
+				id: `${jackName}${direction === PortDirection.Source ? GraphSystemNodeRecord.inputSuffix : GraphSystemNodeRecord.outputSuffix}`,
+				ports,
+				contentHeight: calculateNodeContentHeight(ports),
+				selected: false,
+				x: 0,
+				y: 0
+			});
+
+			if (node.id.endsWith(GraphSystemNodeRecord.inputSuffix)) {
+				node = node.updatePosition(
+					0,
+					systemInputY + defaultNodeSpacing
+				);
+				systemInputY = node.y + node.contentHeight;
+			} else {
+				node = node.updatePosition(
+					(node.width + defaultNodeSpacing ) * 2,
+					systemOutputY + defaultNodeSpacing
+				);
+				systemOutputY = node.y + node.contentHeight;
+			}
+			updatedNodes.push(node);
+		}
+
+		dispatch(deleteNodes(deletedNodes));
+		dispatch(setNodes(updatedNodes));
+
 	};
 
 // Trigger Updates on remote OSCQuery Runner

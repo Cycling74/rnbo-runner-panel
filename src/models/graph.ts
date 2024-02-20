@@ -36,7 +36,7 @@ const portHeight = 20;
 const portSpacing = 30;
 const nodeWidth = 300;
 
-const calculateContentHeight = (ports: ImmuMap<GraphPortRecord["id"], GraphPortRecord>): number => {
+export const calculateNodeContentHeight = (ports: ImmuMap<GraphPortRecord["id"], GraphPortRecord>): number => {
 	const { sinkCount, sourceCount } = ports.valueSeq().reduce((result, port) => {
 		if (port.direction === PortDirection.Sink) {
 			result.sinkCount += 1;
@@ -205,7 +205,7 @@ export class GraphPatcherNodeRecord extends ImmuRecord<GraphPatcherNodeProps>({
 			patcher: desc.CONTENTS.name.VALUE,
 			path: desc.FULL_PATH,
 			ports,
-			contentHeight: calculateContentHeight(ports),
+			contentHeight: calculateNodeContentHeight(ports),
 			selected: false,
 			x: 0,
 			y: 0
@@ -245,6 +245,22 @@ export class GraphSystemNodeRecord extends ImmuRecord<GraphSystemNodeProps>({
 		return nodeWidth;
 	}
 
+	public setPortsByType(type: ConnectionType, direction: PortDirection, newPorts: GraphPortRecord[]): GraphSystemNodeRecord {
+		const portList = this.ports
+			// Filter out existing ports with the same type and direction as we'll reset them below
+			.filterNot(port => port.type === type && port.direction === direction)
+			// Add new ports
+			.withMutations(map => {
+				for (const port of newPorts) {
+					map.set(port.id, port);
+				}
+			});
+
+		return this
+			.set("ports", portList)
+			.set("contentHeight", calculateNodeContentHeight(portList));
+	}
+
 	public updatePosition(x: number, y: number): GraphSystemNodeRecord {
 		return this.withMutations(record => record.set("x", x).set("y", y));
 	}
@@ -269,78 +285,19 @@ export class GraphSystemNodeRecord extends ImmuRecord<GraphSystemNodeProps>({
 		return "-out";
 	}
 
-	private static sourcesFromDescription(nodeName: string, desc: OSCQueryRNBOJackPortInfo): ImmuMap<GraphPortRecord["id"], GraphPortRecord> {
-		const portNameReplace = `${nodeName}:`;
-		return ImmuMap<GraphPortRecord["id"], GraphPortRecord>().withMutations(ports => {
-			if (
-				desc.CONTENTS.audio.CONTENTS.sources.TYPE !== "" &&
-				desc.CONTENTS.audio.CONTENTS.sources.VALUE.length
-			) {
-				for (const portName of desc.CONTENTS.audio.CONTENTS.sources.VALUE) {
-					if (portName.startsWith(portNameReplace)) {
-						const port = new GraphPortRecord({
-							id: portName.replace(portNameReplace, ""),
-							direction: PortDirection.Source,
-							type: ConnectionType.Audio
-						});
-						ports.set(port.id, port);
-					}
-				}
+	public static createPorts(jackName: string, type: ConnectionType, direction: PortDirection, portNames: string[]): Array<GraphPortRecord> {
+		const portNameReplace = `${jackName}:`;
+		const ports: GraphPortRecord[] = [];
+		for (const portName of portNames) {
+			if (portName.startsWith(portNameReplace)) {
+				ports.push(new GraphPortRecord({
+					id: portName.replace(portNameReplace, ""),
+					direction,
+					type
+				}));
 			}
-
-			if (
-				desc.CONTENTS.midi.CONTENTS.sources.TYPE !== "" &&
-				desc.CONTENTS.midi.CONTENTS.sources.VALUE.length
-			) {
-				for (const portName of desc.CONTENTS.midi.CONTENTS.sources.VALUE) {
-					if (portName.startsWith(portNameReplace)) {
-						const port = new GraphPortRecord({
-							id: portName.replace(portNameReplace, ""),
-							direction: PortDirection.Source,
-							type: ConnectionType.MIDI
-						});
-						ports.set(port.id, port);
-					}
-				}
-			}
-		});
-	}
-
-	private static sinksFromDescription(nodeName: string, desc: OSCQueryRNBOJackPortInfo): ImmuMap<GraphPortRecord["id"], GraphPortRecord> {
-		const portNameReplace = `${nodeName}:`;
-		return ImmuMap<GraphPortRecord["id"], GraphPortRecord>().withMutations(ports => {
-			if (
-				desc.CONTENTS.audio.CONTENTS.sinks.TYPE !== "" &&
-				desc.CONTENTS.audio.CONTENTS.sinks.VALUE.length
-			) {
-				for (const portName of desc.CONTENTS.audio.CONTENTS.sinks.VALUE) {
-					if (portName.startsWith(portNameReplace)) {
-						const port = new GraphPortRecord({
-							id: portName.replace(portNameReplace, ""),
-							direction: PortDirection.Sink,
-							type: ConnectionType.Audio
-						});
-						ports.set(port.id, port);
-					}
-				}
-			}
-
-			if (
-				desc.CONTENTS.midi.CONTENTS.sinks.TYPE !== "" &&
-				desc.CONTENTS.midi.CONTENTS.sinks.VALUE.length
-			) {
-				for (const portName of desc.CONTENTS.midi.CONTENTS.sinks.VALUE) {
-					if (portName.startsWith(portNameReplace)) {
-						const port = new GraphPortRecord({
-							id: portName.replace(portNameReplace, ""),
-							direction: PortDirection.Sink,
-							type: ConnectionType.MIDI
-						});
-						ports.set(port.id, port);
-					}
-				}
-			}
-		});
+		}
+		return ports;
 	}
 
 	static fromDescription(systemJackNames: ImmuSet<string>, desc: OSCQueryRNBOJackPortInfo): GraphSystemNodeRecord[] {
@@ -352,16 +309,45 @@ export class GraphSystemNodeRecord extends ImmuRecord<GraphSystemNodeProps>({
 
 		for (const jackName of systemJackNames.valueSeq().toArray()) {
 
-			const inputPorts = this.sourcesFromDescription(jackName, desc);
-			const outputPorts = this.sinksFromDescription(jackName, desc);
-			if (inputPorts.size) {
+			const inputPorts = [
+				...this.createPorts(
+					jackName,
+					ConnectionType.Audio,
+					PortDirection.Source,
+					desc.CONTENTS.audio.CONTENTS.sources.TYPE !== "" && desc.CONTENTS.audio.CONTENTS.sources.VALUE.length ? desc.CONTENTS.audio.CONTENTS.sources.VALUE : []
+				),
+				...this.createPorts(
+					jackName,
+					ConnectionType.MIDI,
+					PortDirection.Source,
+					desc.CONTENTS.midi.CONTENTS.sources.TYPE !== "" && desc.CONTENTS.midi.CONTENTS.sources.VALUE.length ? desc.CONTENTS.midi.CONTENTS.sources.VALUE : []
+				)
+			];
+
+			const outputPorts = [
+				...this.createPorts(
+					jackName,
+					ConnectionType.Audio,
+					PortDirection.Sink,
+					desc.CONTENTS.audio.CONTENTS.sinks.TYPE !== "" && desc.CONTENTS.audio.CONTENTS.sinks.VALUE.length ? desc.CONTENTS.audio.CONTENTS.sinks.VALUE : []
+				),
+				...this.createPorts(
+					jackName,
+					ConnectionType.MIDI,
+					PortDirection.Sink,
+					desc.CONTENTS.midi.CONTENTS.sinks.TYPE !== "" && desc.CONTENTS.midi.CONTENTS.sinks.VALUE.length ? desc.CONTENTS.midi.CONTENTS.sinks.VALUE : []
+				),
+			];
+
+			if (inputPorts.length) {
+				const ports = ImmuMap<GraphPortRecord["id"], GraphPortRecord>(inputPorts.map(p => [p.id, p]));
 				nodes.push(
 					new GraphSystemNodeRecord({
 						jackName,
 						direction: PortDirection.Source,
 						id: `${jackName}${this.inputSuffix}`,
-						ports: inputPorts,
-						contentHeight: calculateContentHeight(inputPorts),
+						ports,
+						contentHeight: calculateNodeContentHeight(ports),
 						selected: false,
 						x: 0,
 						y: 0
@@ -369,14 +355,15 @@ export class GraphSystemNodeRecord extends ImmuRecord<GraphSystemNodeProps>({
 				);
 			}
 
-			if (outputPorts.size) {
+			if (outputPorts.length) {
+				const ports = ImmuMap<GraphPortRecord["id"], GraphPortRecord>(outputPorts.map(p => [p.id, p]));
 				nodes.push(
 					new GraphSystemNodeRecord({
 						jackName,
 						direction: PortDirection.Sink,
 						id: `${jackName}${this.outputSuffix}`,
-						ports: outputPorts,
-						contentHeight: calculateContentHeight(outputPorts),
+						ports,
+						contentHeight: calculateNodeContentHeight(ports),
 						selected: false,
 						x: 0,
 						y: 0
