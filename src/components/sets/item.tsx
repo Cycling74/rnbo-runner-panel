@@ -4,6 +4,7 @@ import { ActionIcon, Group, TextInput } from "@mantine/core";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheck, faClose, faPen, faTrash, faUpload } from "@fortawesome/free-solid-svg-icons";
 import classes from "./sets.module.css";
+import { keyEventIsValidForName, replaceInvalidNameChars } from "../../lib/util";
 
 export type GraphSetItemProps = {
 	set: GraphSetRecord;
@@ -20,6 +21,7 @@ export const GraphSetItem: FunctionComponent<GraphSetItemProps> = memo(function 
 }: GraphSetItemProps) {
 
 	const [isEditing, setIsEditing] = useState<boolean>(false);
+	const [error, setError] = useState<string | undefined>(undefined);
 	const [name, setName] = useState<string>(set.name);
 	const inputRef = useRef<HTMLInputElement>();
 
@@ -32,8 +34,12 @@ export const GraphSetItem: FunctionComponent<GraphSetItemProps> = memo(function 
 
 	const onRenameSet = useCallback((e: FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
-		onRename(set, name);
-	}, [name, onRename, set]);
+		if (!name?.length) {
+			setError("Please provide a valid set name");
+		} else {
+			onRename(set, name);
+		}
+	}, [name, onRename, set, setError]);
 
 	const onLoadSet = useCallback((e: MouseEvent<HTMLButtonElement>) => {
 		onLoad(set);
@@ -44,14 +50,19 @@ export const GraphSetItem: FunctionComponent<GraphSetItemProps> = memo(function 
 	}, [onDelete, set]);
 
 	const onChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-		setName(e.target.value);
-	}, [setName]);
+		setName(replaceInvalidNameChars(e.target.value));
+		if (error && e.target.value?.length) setError(undefined);
+	}, [setName, error, setError]);
 
 	const onKeyDown = useCallback((e: KeyboardEvent<HTMLInputElement>) => {
 		if (e.key === "Escape") {
 			e.preventDefault();
 			e.stopPropagation();
-			toggleEditing();
+			return void toggleEditing();
+		}
+
+		if (!keyEventIsValidForName(e)) {
+			e.preventDefault();
 		}
 	}, [toggleEditing]);
 
@@ -59,7 +70,10 @@ export const GraphSetItem: FunctionComponent<GraphSetItemProps> = memo(function 
 		if (isEditing && inputRef.current) {
 			inputRef.current.focus();
 		}
-	}, [isEditing, inputRef]);
+		if (!isEditing) {
+			setError(undefined);
+		}
+	}, [isEditing, inputRef, setError]);
 
 	useEffect(() => {
 		setName(set.name);
@@ -68,7 +82,7 @@ export const GraphSetItem: FunctionComponent<GraphSetItemProps> = memo(function 
 
 	return isEditing ? (
 		<form onSubmit={ onRenameSet } >
-			<Group>
+			<Group align="flex-start">
 				<TextInput
 					className={ classes.setItemName }
 					onChange={ onChange }
@@ -76,6 +90,7 @@ export const GraphSetItem: FunctionComponent<GraphSetItemProps> = memo(function 
 					ref={ inputRef }
 					size="sm"
 					value={ name }
+					error={ error }
 					variant="default"
 				/>
 				<ActionIcon.Group>

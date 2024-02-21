@@ -1,5 +1,6 @@
 import { Button, Group, TextInput } from "@mantine/core";
-import { ChangeEvent, FormEvent, FunctionComponent, memo, useState } from "react";
+import { ChangeEvent, FormEvent, FunctionComponent, KeyboardEvent, memo, useCallback, useState } from "react";
+import { keyEventIsValidForName, replaceInvalidNameChars } from "../../lib/util";
 
 export type SaveGraphSetFormProps = {
 	onSave: (name: string) => any;
@@ -12,7 +13,7 @@ export const SaveGraphSetForm: FunctionComponent<SaveGraphSetFormProps> = memo(f
 	const [error, setError] = useState<string | undefined>(undefined);
 
 	const onNameChange = (e: ChangeEvent<HTMLInputElement>): void => {
-		setName(e.target.value);
+		setName(replaceInvalidNameChars(e.target.value));
 		if (error && e.target.value?.length) setError(undefined);
 	};
 
@@ -27,6 +28,12 @@ export const SaveGraphSetForm: FunctionComponent<SaveGraphSetFormProps> = memo(f
 		}
 	};
 
+	const onKeyDown = useCallback((e: KeyboardEvent<HTMLInputElement>) => {
+		if (!keyEventIsValidForName(e)) {
+			e.preventDefault();
+		}
+	}, []);
+
 	return (
 		<form onSubmit={ onSaveSet } >
 			<Group gap="xs" align="flex-end">
@@ -37,6 +44,7 @@ export const SaveGraphSetForm: FunctionComponent<SaveGraphSetFormProps> = memo(f
 					value={ name }
 					error={ error || undefined }
 					onChange={ onNameChange }
+					onKeyDown={ onKeyDown }
 					style={{ flex: 1 }}
 					size="sm"
 				/>
