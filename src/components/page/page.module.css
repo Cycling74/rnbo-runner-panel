@@ -36,3 +36,10 @@
 		color: var(--mantine-color-red-7);
 	}
 }
+
+
+.drawerSectionTitle {
+	margin: var(--mantine-spacing-md) 0;
+	font-size: var(--input-label-size, var(--mantine-font-size-sm));
+	font-weight: 500;
+}

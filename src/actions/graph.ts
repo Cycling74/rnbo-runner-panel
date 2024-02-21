@@ -11,7 +11,6 @@ import { DeviceStateRecord } from "../models/device";
 import { deleteDevice, setDevice, setDevices } from "./instances";
 import { getDevice } from "../selectors/instances";
 import { PatcherRecord } from "../models/patcher";
-import { SetRecord } from "../models/set";
 import { Connection, EdgeChange, NodeChange } from "reactflow";
 import { isValidConnection } from "../lib/editorUtils";
 import throttle from "lodash.throttle";
@@ -367,86 +366,6 @@ export const loadPatcherNodeOnRemote = (patcher: PatcherRecord): AppThunk =>
 		}
 	};
 
-export const loadSetOnRemote = (name: string): AppThunk =>
-	(dispatch) => {
-		try {
-			const message = {
-				address: "/rnbo/inst/control/sets/load",
-				args: [
-					{ type: "s", value: name }
-				]
-			};
-			oscQueryBridge.sendPacket(writePacket(message));
-		} catch (err) {
-			dispatch(showNotification({
-				level: NotificationLevel.error,
-				title: `Error while trying to load set ${name}`,
-				message: "Please check the consolor for further details."
-			}));
-			console.error(err);
-		}
-	};
-
-export const saveSetOnRemote = (name: string): AppThunk =>
-	(dispatch) => {
-		try {
-			const message = {
-				address: "/rnbo/inst/control/sets/save",
-				args: [
-					{ type: "s", value: name }
-				]
-			};
-			oscQueryBridge.sendPacket(writePacket(message));
-		} catch (err) {
-			dispatch(showNotification({
-				level: NotificationLevel.error,
-				title: `Error while trying to save set ${name}`,
-				message: "Please check the consolor for further details."
-			}));
-			console.error(err);
-		}
-	};
-
-export const destroySetOnRemote = (name: string): AppThunk =>
-	(dispatch) => {
-		try {
-			const message = {
-				address: "/rnbo/inst/control/sets/destroy",
-				args: [
-					{ type: "s", value: name }
-				]
-			};
-			oscQueryBridge.sendPacket(writePacket(message));
-		} catch (err) {
-			dispatch(showNotification({
-				level: NotificationLevel.error,
-				title: `Error while trying to delete set ${name}`,
-				message: "Please check the consolor for further details."
-			}));
-			console.error(err);
-		}
-	};
-
-export const renameSetOnRemote = (oldName: string, newName: string): AppThunk =>
-	(dispatch) => {
-		try {
-			const message = {
-				address: "/rnbo/inst/control/sets/rename",
-				args: [
-					{ type: "s", value: oldName },
-					{ type: "s", value: newName }
-				]
-			};
-			oscQueryBridge.sendPacket(writePacket(message));
-		} catch (err) {
-			dispatch(showNotification({
-				level: NotificationLevel.error,
-				title: `Error while trying to rename set ${oldName} -> ${newName}`,
-				message: "Please check the consolor for further details."
-			}));
-			console.error(err);
-		}
-	};
 
 const doUpdateNodesMeta = throttle((nodes: ImmuMap<GraphNodeRecord["id"], GraphNodeRecord>) => {
 	try {

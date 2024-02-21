@@ -1,25 +1,35 @@
 import { Map as ImmuMap } from "immutable";
-import { SetRecord } from "../models/set";
-import { SetAction, SetActionType } from "../actions/sets";
+import { GraphSetRecord } from "../models/set";
+import { GraphSetAction, GraphSetActionType } from "../actions/sets";
 
-export interface setstate {
-	sets: ImmuMap<SetRecord["id"], SetRecord>;
-}
+export type SetState = {
+	show: boolean;
+	sets: ImmuMap<GraphSetRecord["id"], GraphSetRecord>;
+};
 
-export const sets = (state: setstate = {
+export const sets = (state: SetState = {
 
-	sets: ImmuMap<SetRecord["id"], SetRecord>()
+	show: false,
+	sets: ImmuMap<GraphSetRecord["id"], GraphSetRecord>()
 
-}, action: SetAction): setstate => {
+}, action: GraphSetAction): SetState => {
 
 	switch (action.type) {
 
-		case SetActionType.INIT: {
+		case GraphSetActionType.INIT: {
 			const { sets } = action.payload;
 
 			return {
 				...state,
-				sets: ImmuMap<SetRecord["id"], SetRecord>(sets.map(p => [p.id, p]))
+				sets: ImmuMap<GraphSetRecord["id"], GraphSetRecord>(sets.map(p => [p.id, p]))
+			};
+		}
+
+		case GraphSetActionType.SET_SHOW_GRAPH_SETS: {
+			const { show } = action.payload;
+			return {
+				...state,
+				show
 			};
 		}
 

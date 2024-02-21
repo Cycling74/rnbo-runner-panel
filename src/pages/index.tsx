@@ -4,7 +4,7 @@ import { useAppDispatch, useAppSelector } from "../hooks/useAppDispatch";
 import { RootStateType } from "../lib/store";
 import { getPatchers } from "../selectors/patchers";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPlus } from "@fortawesome/free-solid-svg-icons";
+import { faObjectGroup, faPlus } from "@fortawesome/free-solid-svg-icons";
 import { getConnections, getNodes } from "../selectors/graph";
 import GraphEditor from "../components/editor";
 import { Connection, Edge, EdgeChange, Node, NodeChange } from "reactflow";
@@ -13,6 +13,8 @@ import {
 	removeEditorConnectionsById, removeEditorNodesById,
 	loadPatcherNodeOnRemote
 } from "../actions/graph";
+import SetsDrawer from "../components/sets";
+import { toggleShowGraphSets } from "../actions/sets";
 
 const Index: FunctionComponent<Record<string, never>> = () => {
 
@@ -57,37 +59,47 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 		dispatch(removeEditorConnectionsById(edges.map(e => e.id)));
 	}, [dispatch]);
 
+	const onToggleSetsDrawer = useCallback(() => {
+		dispatch(toggleShowGraphSets());
+	}, [dispatch]);
+
 	return (
-		<Stack style={{ height: "100%" }} >
-			<Group justify="flex-end">
-				<Menu position="bottom-end">
-					<Menu.Target>
-						<Button variant="default" leftSection={ <FontAwesomeIcon icon={ faPlus } /> } >
-							Add Device
+		<>
+			<Stack style={{ height: "100%" }} >
+				<Group justify="flex-end">
+					<Menu position="bottom-end">
+						<Menu.Target>
+							<Button variant="default" leftSection={ <FontAwesomeIcon icon={ faPlus } /> } >
+								Add Device
+							</Button>
+						</Menu.Target>
+						<Menu.Dropdown>
+							<Menu.Label>Select Patcher</Menu.Label>
+							{
+								patchers.valueSeq().toArray().map(p => (
+									<Menu.Item key={ p.id } data-patcher-id={ p.id } onClick={ onAddInstance } >
+										{ p.name }
+									</Menu.Item>
+								))
+							}
+						</Menu.Dropdown>
+						<Button variant="default" leftSection={ <FontAwesomeIcon icon={ faObjectGroup } /> } onClick={ onToggleSetsDrawer } >
+							Sets
 						</Button>
-					</Menu.Target>
-					<Menu.Dropdown>
-						<Menu.Label>Select Patcher</Menu.Label>
-						{
-							patchers.valueSeq().toArray().map(p => (
-								<Menu.Item key={ p.id } data-patcher-id={ p.id } onClick={ onAddInstance } >
-									{ p.name }
-								</Menu.Item>
-							))
-						}
-					</Menu.Dropdown>
-				</Menu>
-			</Group>
-			<GraphEditor
-				nodes={ nodes }
-				connections={ connections }
-				onConnect={ onConnectNodes }
-				onNodesChange={ onNodesChange }
-				onNodesDelete={ onNodesDelete }
-				onEdgesChange={ onEdgesChange }
-				onEdgesDelete={ onEdgesDelete }
-			/>
-		</Stack>
+					</Menu>
+				</Group>
+				<GraphEditor
+					nodes={ nodes }
+					connections={ connections }
+					onConnect={ onConnectNodes }
+					onNodesChange={ onNodesChange }
+					onNodesDelete={ onNodesDelete }
+					onEdgesChange={ onEdgesChange }
+					onEdgesDelete={ onEdgesDelete }
+				/>
+			</Stack>
+			<SetsDrawer />
+		</>
 	);
 };
 

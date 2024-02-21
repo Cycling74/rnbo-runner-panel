@@ -4,7 +4,7 @@ import classes from "./nav.module.css";
 import { NavButton } from "./button";
 import { useAppDispatch, useAppSelector } from "../../hooks/useAppDispatch";
 import { toggleShowSettings } from "../../actions/settings";
-import { faDiagramProject, faGear, faVectorSquare, faObjectGroup } from "@fortawesome/free-solid-svg-icons";
+import { faDiagramProject, faGear, faVectorSquare } from "@fortawesome/free-solid-svg-icons";
 import { RootStateType } from "../../lib/store";
 import { getShowSettingsModal } from "../../selectors/settings";
 import { NavLink } from "./link";
@@ -43,12 +43,6 @@ const AppNav: FunctionComponent = memo(function WrappedNav() {
 						label="Device Control"
 						href={{ pathname: "/devices/[index]", query: { ...restQuery, index: deviceIndex } }}
 						isActive={ pathname === "/devices/[index]" }
-					/>
-					<NavLink
-						icon={ faObjectGroup }
-						label="Sets"
-						href={{ pathname: "/sets", query: restQuery }}
-						isActive={ pathname === "/sets" }
 					/>
 				</Stack>
 				<Stack className={ classes.navMenu } >

@@ -1,3 +1,7 @@
 .setTabWrap {
 	padding: var(--mantine-spacing-md) 0 0 0;
 }
+
+.setItemName {
+	flex: 1;
+}

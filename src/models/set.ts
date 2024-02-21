@@ -1,17 +1,17 @@
 import { Record as ImmuRecord } from "immutable";
 
-export type SetRecordProps = {
+export type GraphSetRecordProps = {
 	name: string;
 };
 
-export class SetRecord extends ImmuRecord<SetRecordProps>({
+export class GraphSetRecord extends ImmuRecord<GraphSetRecordProps>({
 
 	name: ""
 
 }) {
 
-	public static fromDescription(name: string): SetRecord {
-		return new SetRecord({ name });
+	public static fromDescription(name: string): GraphSetRecord {
+		return new GraphSetRecord({ name });
 	}
 
 	get id(): string {
