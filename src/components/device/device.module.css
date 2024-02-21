@@ -39,17 +39,6 @@
 
 
 .paramSectionWrap {
-	display: flex;
-	flex-direction: column;
 	height: 100%;
-}
-
-.presetWrap {
-	display: flex;
-	justify-content: flex-end;
-}
-
-.paramListWrap {
-	flex: 1;
 }
 

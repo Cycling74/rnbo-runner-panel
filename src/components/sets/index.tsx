@@ -45,7 +45,7 @@ const SetsDrawer: FunctionComponent = memo(function WrappedSetsDrawer() {
 					Are you sure you want to delete the set named { `"${set.name}"` }?
 				</Text>
 			),
-			labels: { confirm: `Delete set ${name}`, cancel: "Cancel" },
+			labels: { confirm: "Delete", cancel: "Cancel" },
 			confirmProps: { color: "red" },
 			onConfirm: () => dispatch(destroyGraphSetOnRemote(set))
 		});

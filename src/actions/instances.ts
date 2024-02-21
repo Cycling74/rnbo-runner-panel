@@ -119,6 +119,26 @@ export const savePresetToRemoteDeviceInstance = (device: DeviceStateRecord, name
 		}
 	};
 
+export const destroyPresetOnRemoteDeviceInstance = (device: DeviceStateRecord, preset: PresetRecord): AppThunk =>
+	(dispatch) => {
+		try {
+			const message = {
+				address: `${device.path}/presets/delete`,
+				args: [
+					{ type: "s", value: preset.name }
+				]
+			};
+			oscQueryBridge.sendPacket(writePacket(message));
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: `Error while trying to delete preset ${preset.name}`,
+				message: "Please check the consolor for further details."
+			}));
+			console.log(err);
+		}
+	};
+
 export const sendDeviceInstanceMessageToRemote = (device: DeviceStateRecord, inportId: string, value: string): AppThunk =>
 	(dispatch) => {
 		const values = value.split(" ").reduce((values, v) => {
