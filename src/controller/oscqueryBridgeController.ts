@@ -268,7 +268,7 @@ export class OSCQueryBridgeControllerPrivate {
 	private async _processOSCMessage(packet: OSCMessage): Promise<void> {
 
 		if (packet.address === "/rnbo/jack/restart") {
-			return void dispatch(showNotification({ title: "Restarting Jack", message: "Please wait while the Jack server is being restarted to with updated audio configuration settings.", level: NotificationLevel.info }));
+			return void dispatch(showNotification({ title: "Restarting Jack", message: "Please wait while the Jack server is being restarted with the updated audio configuration settings.", level: NotificationLevel.info }));
 		}
 
 		const metaMatch = packet.address.match(setMetaPathMatcher);
