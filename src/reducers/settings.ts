@@ -13,6 +13,7 @@ export type AppSettings = {
 export type SettingsState = {
 	loaded: boolean;
 	show: boolean;
+	ownsJackServer: boolean;
 
 	appSettings: ImmuMap<AppSetting, AppSettingRecord>;
 	runnerConfig: ImmuMap<ConfigKey, ConfigRecord>;
@@ -21,6 +22,7 @@ export type SettingsState = {
 const defaultState: SettingsState = {
 	loaded: false,
 	show: false,
+	ownsJackServer: false,
 
 	appSettings: loadSettingsState(),
 	runnerConfig: ImmuMap<ConfigKey, ConfigRecord>()
@@ -68,9 +70,10 @@ export const settings = (state: SettingsState = defaultState, action: SettingsAc
 
 		// Runner Config
 		case SettingsActionType.INIT_RUNNER_CONFIG: {
-			const { records } = action.payload;
+			const { ownsJackServer, records } = action.payload;
 			return {
 				...state,
+				ownsJackServer,
 				runnerConfig: ImmuMap<ConfigKey, ConfigRecord>(records.map(r => [r.id, r]))
 			};
 		}
