@@ -1,4 +1,4 @@
-import { Map as ImmuMap, Record as ImmuRecord } from "immutable";
+import { Map as ImmuMap, Record as ImmuRecord, OrderedMap as ImmuOrderedMap } from "immutable";
 import { ParameterRecord } from "./parameter";
 import { PresetRecord } from "./preset";
 import { OSCQueryRNBOInstance, OSCQueryRNBOInstancePresetEntries } from "../lib/types";
@@ -11,8 +11,10 @@ export type DeviceStateProps = {
 	messageInputs: ImmuMap<string, string>;
 	messageOutputs: ImmuMap<string, string>;
 	parameters: ImmuMap<ParameterRecord["id"], ParameterRecord>;
-	presets: ImmuMap<PresetRecord["id"], PresetRecord>;
+	presets: ImmuOrderedMap<PresetRecord["id"], PresetRecord>;
 }
+
+const collator = new Intl.Collator("en-US");
 
 export class DeviceStateRecord extends ImmuRecord<DeviceStateProps>({
 
@@ -51,12 +53,12 @@ export class DeviceStateRecord extends ImmuRecord<DeviceStateProps>({
 	}
 
 	public static presetsFromDescription(entries: OSCQueryRNBOInstancePresetEntries): ImmuMap<PresetRecord["id"], PresetRecord> {
-		return ImmuMap<PresetRecord["id"], PresetRecord>().withMutations((map) => {
+		return ImmuOrderedMap<PresetRecord["id"], PresetRecord>().withMutations((map) => {
 			for (const name of entries.VALUE) {
 				const pr = PresetRecord.fromDescription(name);
 				map.set(pr.id, pr);
 			}
-		});
+		}).sort((left: PresetRecord, right: PresetRecord) => collator.compare(left.name, right.name));
 	}
 
 	public static messageInputsFromDescription(messagesDesc: OSCQueryRNBOInstance["CONTENTS"]["messages"]): ImmuMap<string, string> {

@@ -22,6 +22,7 @@ import { PageTheme } from "../components/page/theme";
 import Notifications from "../components/notifications";
 import Settings from "../components/settings";
 import EndpointInfo from "../components/page/endpoint";
+import { ModalsProvider } from "@mantine/modals";
 
 function App({ Component, pageProps }: AppProps) {
 
@@ -36,15 +37,17 @@ function App({ Component, pageProps }: AppProps) {
 		<Provider store={store}>
 			<PageSettings>
 				<PageTheme>
-					<Head>
-						<title>RNBO</title>
-					</Head>
-					<Notifications />
-					<Settings />
-					<EndpointInfo />
-					<AppLayout>
-						<Component {...pageProps} />
-					</AppLayout>
+					<ModalsProvider>
+						<Head>
+							<title>RNBO</title>
+						</Head>
+						<Notifications />
+						<Settings />
+						<EndpointInfo />
+						<AppLayout>
+							<Component {...pageProps} />
+						</AppLayout>
+					</ModalsProvider>
 				</PageTheme>
 			</PageSettings>
 		</Provider>

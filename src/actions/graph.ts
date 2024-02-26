@@ -366,6 +366,7 @@ export const loadPatcherNodeOnRemote = (patcher: PatcherRecord): AppThunk =>
 		}
 	};
 
+
 const doUpdateNodesMeta = throttle((nodes: ImmuMap<GraphNodeRecord["id"], GraphNodeRecord>) => {
 	try {
 		const meta = serializeSetMeta(nodes.valueSeq().toArray());

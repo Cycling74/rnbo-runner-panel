@@ -6,7 +6,7 @@ import { useRouter } from "next/router";
 import { Button, Group, NativeSelect, Stack } from "@mantine/core";
 import classes from "../../components/device/device.module.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faDiagramProject, faTrash, faVectorSquare } from "@fortawesome/free-solid-svg-icons";
+import { faCamera, faDiagramProject, faTrash, faVectorSquare } from "@fortawesome/free-solid-svg-icons";
 import { getAppStatus } from "../../selectors/appStatus";
 import { AppStatus } from "../../lib/constants";
 import Link from "next/link";
@@ -14,10 +14,15 @@ import { getDeviceByIndex, getDevices } from "../../selectors/instances";
 import { unloadPatcherNodeByIndexOnRemote } from "../../actions/graph";
 import { getAppSettingValue } from "../../selectors/settings";
 import { AppSetting } from "../../models/settings";
+import DevicePresetDrawer from "../../components/presets";
+import { PresetRecord } from "../../models/preset";
+import { destroyPresetOnRemoteDeviceInstance, loadPresetOnRemoteDeviceInstance, savePresetToRemoteDeviceInstance } from "../../actions/instances";
+import { useDisclosure } from "@mantine/hooks";
 
 export default function Device() {
 
 	const { query, isReady, pathname, push } = useRouter();
+	const [presetDrawerIsOpen, { close: closePresetDrawer, toggle: togglePresetDrawer }] = useDisclosure();
 
 	const { index, ...restQuery } = query;
 	const deviceIndex = parseInt(Array.isArray(index) ? index.join("") : index || "0", 10);
@@ -49,6 +54,18 @@ export default function Device() {
 		push({ pathname: "/", query: restQuery });
 	}, [dispatch, currentDevice, push, restQuery]);
 
+	const onLoadPreset = useCallback((preset: PresetRecord) => {
+		dispatch(loadPresetOnRemoteDeviceInstance(currentDevice, preset));
+	}, [dispatch, currentDevice]);
+
+	const onSavePreset = useCallback((name: string) => {
+		dispatch(savePresetToRemoteDeviceInstance(currentDevice, name));
+	}, [dispatch, currentDevice]);
+
+	const onDeletePreset = useCallback((preset: PresetRecord) => {
+		dispatch(destroyPresetOnRemoteDeviceInstance(currentDevice, preset));
+	}, [dispatch, currentDevice]);
+
 	if (!isReady || appStatus !== AppStatus.Ready) return null;
 
 	if (!currentDevice) {
@@ -78,13 +95,26 @@ export default function Device() {
 					onChange={ onChangeDevice }
 					value={ currentDevice.index }
 				/>
-				<Button variant="outline" color="red" onClick={ onUnloadDevice } >
-					<FontAwesomeIcon icon={ faTrash } />
-				</Button>
+				<Group>
+					<Button variant="outline" color="red" onClick={ onUnloadDevice } >
+						<FontAwesomeIcon icon={ faTrash } />
+					</Button>
+					<Button variant="default" leftSection={ <FontAwesomeIcon icon={ faCamera } /> } onClick={ togglePresetDrawer } >
+						Presets
+					</Button>
+				</Group>
 			</Group>
 			<DeviceInstance
 				device={ currentDevice }
 				enabledMessageOuput={ enabledMessageOuput }
+			/>
+			<DevicePresetDrawer
+				open={ presetDrawerIsOpen }
+				onClose={ closePresetDrawer }
+				onDeletePreset={ onDeletePreset }
+				onLoadPreset={ onLoadPreset }
+				onSavePreset={ onSavePreset }
+				presets={ currentDevice.presets.valueSeq() }
 			/>
 		</Stack>
 	);

@@ -29,7 +29,7 @@ export const Header: FunctionComponent<HeaderProps> = memo(function WrappedHeade
 					<img src={ scheme === "light" ? "/c74-dark.svg" : "/c74-light.svg" } />
 				</Group>
 				<Group justify="end" align="center">
-					<ActionIcon variant="outline" color="gray" onClick={ onToggleEndpointInfo } >
+					<ActionIcon variant="transparent" color="gray" onClick={ onToggleEndpointInfo } >
 						<FontAwesomeIcon icon={ faSatelliteDish } />
 					</ActionIcon>
 				</Group>
