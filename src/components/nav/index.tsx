@@ -39,6 +39,7 @@ const AppNav: FunctionComponent = memo(function WrappedNav() {
 						isActive={ pathname === "/" }
 					/>
 					<NavLink
+						disabled={ deviceIndex === undefined }
 						icon={ faVectorSquare }
 						label="Device Control"
 						href={{ pathname: "/devices/[index]", query: { ...restQuery, index: deviceIndex } }}

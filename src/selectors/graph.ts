@@ -16,7 +16,7 @@ export const getPatcherNodeByIndex = (state: RootStateType, index: GraphPatcherN
 };
 
 export const getFirstPatcherNodeIndex = (state: RootStateType): number | undefined => {
-	return state.graph.patcherNodeIdByIndex.keySeq().sort().first();
+	return state.graph.patcherNodeIdByIndex.size === 0 ? undefined : state.graph.patcherNodeIdByIndex.keySeq().sort().first();
 };
 
 export const getPatcherNodesByIndex = (state: RootStateType): ImmuMap<GraphPatcherNodeRecord["index"], GraphPatcherNodeRecord> => {

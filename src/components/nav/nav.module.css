@@ -36,4 +36,9 @@
 		background-color: var(--mantine-color-blue-light);
 		color: var(--mantine-color-blue-light-color);
 	}
+
+	&:disabled {
+		cursor: not-allowed;
+		opacity: 0.5;
+	}
 }
