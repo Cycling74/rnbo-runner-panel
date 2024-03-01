@@ -28,7 +28,6 @@ export class ParameterRecord extends ImmuRecord<ParameterRecordProps>({
 		const result: ParameterRecord[] = [];
 		if (typeof desc.VALUE !== "undefined") {
 			const paramInfo = desc as OSCQueryRNBOInstanceParameterValue;
-			console.log(paramInfo);
 			result.push(new ParameterRecord({
 				enumVals: paramInfo.RANGE?.[0]?.VALS || [],
 				min: paramInfo.RANGE?.[0]?.MIN,
