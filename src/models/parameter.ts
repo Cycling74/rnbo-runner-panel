@@ -2,16 +2,18 @@ import { Record as ImmuRecord } from "immutable";
 import { OSCQueryRNBOInstanceParameterInfo, OSCQueryRNBOInstanceParameterValue } from "../lib/types";
 
 export type ParameterRecordProps = {
+	enumVals: Array<string | number>;
 	min: number;
 	max: number;
 	name: string;
 	normalizedValue: number;
 	path: string;
 	type: string;
-	value: number;
+	value: string | number;
 }
 export class ParameterRecord extends ImmuRecord<ParameterRecordProps>({
 
+	enumVals: [],
 	min: 0,
 	max: 1,
 	name: "name",
@@ -26,7 +28,9 @@ export class ParameterRecord extends ImmuRecord<ParameterRecordProps>({
 		const result: ParameterRecord[] = [];
 		if (typeof desc.VALUE !== "undefined") {
 			const paramInfo = desc as OSCQueryRNBOInstanceParameterValue;
+			console.log(paramInfo);
 			result.push(new ParameterRecord({
+				enumVals: paramInfo.RANGE?.[0]?.VALS || [],
 				min: paramInfo.RANGE?.[0]?.MIN,
 				max: paramInfo.RANGE?.[0]?.MAX,
 				name,
@@ -47,6 +51,16 @@ export class ParameterRecord extends ImmuRecord<ParameterRecordProps>({
 
 	public get id(): string {
 		return this.name;
+	}
+
+	public get isEnum(): boolean {
+		return this.enumVals.length >= 1;
+	}
+
+	public getDisplayValueForNormalizedValue(nv: number): string | number {
+		if (this.isEnum) return this.enumVals[Math.round((this.enumVals.length - 1 ) * nv)];
+
+		return typeof this.value !== "number" ? this.value : this.value.toFixed(2);
 	}
 
 	public setValue(v: number): ParameterRecord {
