@@ -1,7 +1,10 @@
-import { Group, SegmentedControl, Switch, NumberInput, Select } from "@mantine/core";
+import { Group, SegmentedControl, Switch, NumberInput, Select, ActionIcon } from "@mantine/core";
 import { ChangeEvent, FunctionComponent, ReactNode, memo } from "react";
 import classes from "./settings.module.css";
 import { SettingTarget } from "../../lib/constants";
+import { useAppDispatch } from "../../hooks/useAppDispatch";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { IconDefinition } from "@fortawesome/free-solid-svg-icons";
 
 export enum SettingsItemType {
 	OnOff,
@@ -141,3 +144,33 @@ export const SettingsItem: FunctionComponent<BaseSettingsItemProps> = memo(funct
 	);
 });
 
+export type SettingActionProps = {
+	action: () => any;
+	description?: string;
+	icon: IconDefinition;
+	label: string;
+}
+
+export const SettingsAction: FunctionComponent<SettingActionProps> = memo(function SettingActionWrapper(props: SettingActionProps) {
+
+	const dispatch = useAppDispatch();
+
+	return (
+		<Group className={ classes.item } >
+			<div className={ classes.itemTitleWrap } >
+				<label className={ classes.itemTitle } >{ props.label }</label>
+				{
+					props.description?.length ? <div className={ classes.itemDescription } >{ props.description }</div> : null
+				}
+			</div>
+			<div className={ classes.itemInputWrap } >
+				<ActionIcon
+					variant="outline"
+					onClick={ () => dispatch(props.action()) }
+				>
+					<FontAwesomeIcon icon={ props.icon } />
+				</ActionIcon>
+			</div>
+		</Group>
+	);
+});

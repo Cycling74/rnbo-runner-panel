@@ -190,10 +190,11 @@ export const updateRunnerConfig = (path: string, value: ConfigRecord["value"]): 
 	};
 
 export const updateRunnerAudio = (): AppThunk =>
-	async () => {
+	(dispatch) => {
 		oscQueryBridge.sendPacket(writePacket({
 			address: "/rnbo/jack/restart",
 			args: [{ value: "true", type: "T" }]
 		}));
+		dispatch(hideSettings());
 	};
 

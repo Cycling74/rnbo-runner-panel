@@ -7,26 +7,19 @@ import { getRunnerOwnsJackServer, getSettingsItemsForTab, getShowSettingsModal }
 import { hideSettings, setAppSetting, setRunnerConfig, updateRunnerAudio } from "../../actions/settings";
 import { useIsMobileDevice } from "../../hooks/useIsMobileDevice";
 import { SettingTarget, SettingsTab } from "../../lib/constants";
-import { IconDefinition, faArrowLeft, faRotateRight } from "@fortawesome/free-solid-svg-icons";
-import { SettingsItemType, SettingsItemValue } from "./item";
+import { faArrowLeft, faRotateRight } from "@fortawesome/free-solid-svg-icons";
+import { SettingActionProps, SettingsItemType, SettingsItemValue } from "./item";
 import { AppSetting, AppSettingRecord, AppSettingType } from "../../models/settings";
 import { ConfigKey, ConfigRecord } from "../../models/config";
 import { OSCQueryValueType } from "../../lib/types";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import AboutInfo from "../page/about";
-
-type TabAction = {
-	action: () => any;
-	icon?: IconDefinition;
-	label: string;
-};
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 type TabConfig = {
-	actions?: Array<TabAction>;
+	actions?: Array<SettingActionProps>;
 	description?: string;
 	title: string;
 };
-
 
 const settingUITypeByAppSettingType: Record<AppSettingType, SettingsItemType> = {
 	[AppSettingType.Boolean]: SettingsItemType.OnOff,
@@ -148,7 +141,14 @@ const tabConfigByTab: Record<SettingsTab, TabConfig> = {
 	},
 	[SettingsTab.Audio]: {
 		title: "Audio",
-		actions: [{ action: updateRunnerAudio, label: "Update Audio", icon: faRotateRight }]
+		actions: [
+			{
+				action: updateRunnerAudio,
+				description: "Restarts the Jack Server with the updated configuration",
+				icon: faRotateRight,
+				label: "Apply Configuration"
+			}
+		]
 	}
 };
 

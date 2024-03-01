@@ -5,13 +5,16 @@ import { AppDispatch, store } from "../lib/store";
 import { ReconnectingWebsocket } from "../lib/reconnectingWs";
 import { AppStatus } from "../lib/constants";
 import { OSCQueryRNBOState, OSCQueryRNBOInstance, OSCQueryRNBOInstancesControlState, OSCQueryRNBOJackConnections, OSCQueryRNBOPatchersState, OSCValue } from "../lib/types";
-import { addPatcherNode, initConnections, initNodes, removePatcherNode, updateSetMeta, updateSourcePortConnections } from "../actions/graph";
+import { addPatcherNode, initConnections, initNodes, removePatcherNode, updateSetMeta, updateSourcePortConnections, updateSystemPortInfo } from "../actions/graph";
 import { initPatchers } from "../actions/patchers";
 import { initRunnerConfig, updateRunnerConfig } from "../actions/settings";
 import { initSets } from "../actions/sets";
 import { sleep } from "../lib/util";
 import { getPatcherNodeByIndex } from "../selectors/graph";
 import { updateDeviceInstanceMessageOutputValue, updateDeviceInstanceMessages, updateDeviceInstanceParameterValue, updateDeviceInstanceParameterValueNormalized, updateDeviceInstanceParameters, updateDeviceInstancePresetEntries } from "../actions/instances";
+import { ConnectionType, PortDirection } from "../models/graph";
+import { showNotification } from "../actions/notifications";
+import { NotificationLevel } from "../models/notification";
 
 const dispatch = store.dispatch as AppDispatch;
 
@@ -21,6 +24,7 @@ enum OSCQueryCommand {
 	ATTRIBUTES_CHANGED = "ATTRIBUTES_CHANGED"
 }
 
+const systemIOPathMatcher = /^\/rnbo\/jack\/info\/ports\/(?<type>audio|midi)\/(?<direction>sources|sinks)$/;
 const patchersPathMatcher = /^\/rnbo\/patchers/;
 const instancePathMatcher = /^\/rnbo\/inst\/(?<index>\d+)$/;
 const instanceStatePathMatcher = /^\/rnbo\/inst\/(?<index>\d+)\/(?<content>params|messages\/in|messages\/out|presets)\/(?<rest>\S+)/;
@@ -263,10 +267,22 @@ export class OSCQueryBridgeControllerPrivate {
 
 	private async _processOSCMessage(packet: OSCMessage): Promise<void> {
 
+		if (packet.address === "/rnbo/jack/restart") {
+			return void dispatch(showNotification({ title: "Restarting Jack", message: "Please wait while the Jack server is being restarted with the updated audio configuration settings.", level: NotificationLevel.info }));
+		}
+
 		const metaMatch = packet.address.match(setMetaPathMatcher);
 		if (metaMatch) {
 			return void dispatch(updateSetMeta(packet.args as unknown as string));
 		}
+
+		const systemIOMatch = packet.address.match(systemIOPathMatcher);
+		if (systemIOMatch) {
+			const type: ConnectionType = systemIOMatch.groups.type === "midi" ? ConnectionType.MIDI : ConnectionType.Audio;
+			const direction: PortDirection = systemIOMatch.groups.direction === "sinks" ? PortDirection.Sink : PortDirection.Source;
+			return void dispatch(updateSystemPortInfo(type, direction, packet.args as unknown as string[]));
+		}
+
 
 		const connectionMatch = packet.address.match(connectionsPathMatcher);
 		if (connectionMatch?.groups?.name) {
