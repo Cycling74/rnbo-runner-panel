@@ -75,6 +75,8 @@ const EndpointInfo: FunctionComponent = memo(function WrappedSettings() {
 						onChange={ onChangeConfig }
 						name="port"
 						label="Port"
+						inputMode="numeric"
+						pattern="[0-9]*"
 						description="The port of the OSCQuery Runner Websocket"
 						value={ port }
 						rightSection={ isEditing ? null : <ActionIcon variant="subtle" color="gray" onClick={ onToggleEdit }><FontAwesomeIcon icon={ faPencil } /></ActionIcon> }
