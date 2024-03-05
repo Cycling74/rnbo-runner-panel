@@ -1,6 +1,6 @@
 import React, { ComponentType, FunctionComponent, memo, useCallback } from "react";
 import ReactFlow, { Connection, Controls, Edge, EdgeChange, Node, NodeChange } from "reactflow";
-import { GraphConnectionRecord, NodeType } from "../../models/graph";
+import { GraphConnectionRecord, GraphPatcherNodeRecord, NodeType } from "../../models/graph";
 import EditorPatcherNode from "./patcherNode";
 import EditorSystemNode from "./systemNode";
 import { EdgeDataProps, EditorEdgeProps, EditorNodeProps, NodeDataProps } from "./util";
@@ -10,6 +10,7 @@ import { RootStateType } from "../../lib/store";
 import "reactflow/dist/base.css";
 import classes from "./editor.module.css";
 import GraphEdge, { RNBOGraphEdgeType } from "./edge";
+import { useRouter } from "next/router";
 
 export type GraphEditorProps = {
 	connections: RootStateType["graph"]["connections"];
@@ -40,6 +41,8 @@ const GraphEditor: FunctionComponent<GraphEditorProps> = memo(function WrappedFl
 	onEdgesDelete
 }) {
 
+	const { push, query } = useRouter();
+
 	// Validate Connection Directions and Types
 	const validateConnection = useCallback((conn: Connection) => {
 		try {
@@ -52,6 +55,11 @@ const GraphEditor: FunctionComponent<GraphEditorProps> = memo(function WrappedFl
 	const triggerDeleteEdge = useCallback((id: GraphConnectionRecord["id"]) => {
 		onEdgesDelete([{ id }]);
 	}, [onEdgesDelete]);
+
+	const onNodeDoubleClick = useCallback((e: React.MouseEvent, node: Node<NodeDataProps>) => {
+		if (node.type !== NodeType.Patcher) return;
+		push({ pathname: "/devices/[index]", query: { ...query, index: (node.data.node as GraphPatcherNodeRecord).index }});
+	}, [query, push]);
 
 	const flowNodes: Node<NodeDataProps>[] = nodes.valueSeq().toArray().map(node => ({
 		id: node.id,
@@ -92,6 +100,7 @@ const GraphEditor: FunctionComponent<GraphEditorProps> = memo(function WrappedFl
 				onEdgesChange={ onEdgesChange }
 				onNodesDelete={ onNodesDelete }
 				onNodesChange={ onNodesChange }
+				onNodeDoubleClick={ onNodeDoubleClick }
 				onConnect={ onConnect }
 				nodeTypes={ nodeTypes }
 				edgeTypes={ edgeTypes }
