@@ -2,16 +2,18 @@ import { Record as ImmuRecord } from "immutable";
 import { OSCQueryRNBOInstanceParameterInfo, OSCQueryRNBOInstanceParameterValue } from "../lib/types";
 
 export type ParameterRecordProps = {
+	enumVals: Array<string | number>;
 	min: number;
 	max: number;
 	name: string;
 	normalizedValue: number;
 	path: string;
 	type: string;
-	value: number;
+	value: string | number;
 }
 export class ParameterRecord extends ImmuRecord<ParameterRecordProps>({
 
+	enumVals: [],
 	min: 0,
 	max: 1,
 	name: "name",
@@ -27,6 +29,7 @@ export class ParameterRecord extends ImmuRecord<ParameterRecordProps>({
 		if (typeof desc.VALUE !== "undefined") {
 			const paramInfo = desc as OSCQueryRNBOInstanceParameterValue;
 			result.push(new ParameterRecord({
+				enumVals: paramInfo.RANGE?.[0]?.VALS || [],
 				min: paramInfo.RANGE?.[0]?.MIN,
 				max: paramInfo.RANGE?.[0]?.MAX,
 				name,
@@ -45,33 +48,18 @@ export class ParameterRecord extends ImmuRecord<ParameterRecordProps>({
 		return result;
 	}
 
-	// public static arrayFromDescription(desc: JsonMap, prefix?: string): ParameterRecord[] {
-
-	// 	if (typeof desc.VALUE !== "undefined") {
-
-	// 		const parameterRecord = new ParameterRecord({
-	// 			name: prefix,
-	// 			value: (desc.VALUE as number),
-	// 			min: ((desc.RANGE as JsonMap[])[0].MIN as number),
-	// 			max: ((desc.RANGE as JsonMap[])[0].MAX as number),
-	// 			type: (desc.TYPE as string),
-	// 			normalizedValue: (((desc.CONTENTS as JsonMap).normalized as JsonMap).VALUE as number)
-	// 		});
-
-	// 		return [parameterRecord];
-	// 	}
-
-	// 	const nextDesc = desc.CONTENTS as JsonMap;
-	// 	const subparamNames = Object.getOwnPropertyNames(nextDesc);
-	// 	const subparamLists = subparamNames.map(subparamName => {
-	// 		const nextPrefix = prefix ? `${prefix}/${subparamName}` : subparamName;
-	// 		return this.arrayFromDescription(nextDesc[subparamName] as JsonMap, nextPrefix);
-	// 	});
-	// 	return subparamLists.reduce((acc, l) => acc.concat(l), []);
-	// }
-
 	public get id(): string {
 		return this.name;
+	}
+
+	public get isEnum(): boolean {
+		return this.enumVals.length >= 1;
+	}
+
+	public getDisplayValueForNormalizedValue(nv: number): string | number {
+		if (this.isEnum) return this.enumVals[Math.round((this.enumVals.length - 1 ) * nv)];
+
+		return typeof this.value !== "number" ? this.value : this.value.toFixed(2);
 	}
 
 	public setValue(v: number): ParameterRecord {

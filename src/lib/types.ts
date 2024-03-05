@@ -209,7 +209,7 @@ export type OSCQueryRNBOInstanceParameterValue = OSCQueryBaseNode & OSCQueryFloa
 	CONTENTS: {
 		normalized: OSCQueryFloatValue & OSCQueryValueRange & { VALUE: number; }
 	};
-	VALUE: number;
+	VALUE: number | string;
 };
 
 export type OSCQueryRNBOInstanceParameterInfo = OSCQueryRNBOInstanceParameterValue | {

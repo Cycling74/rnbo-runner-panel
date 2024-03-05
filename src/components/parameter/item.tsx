@@ -27,7 +27,8 @@ const Parameter = memo(function WrappedParameter({ param, onSetNormalizedValue }
 	}, [setUseLocalValue, onSetNormalizedValue, param]);
 
 	const currentValue = useLocalValue ? localValue : param.normalizedValue;
-	const displayValue = typeof param.value === "number" ? param.value.toFixed(2) : param.value;
+	const displayValue = param.getDisplayValueForNormalizedValue(currentValue);
+	const stepSize = param.isEnum ? 1 / (param.enumVals.length - 1) : 0.001;
 
 	return (
 		<div className={ classes.parameterItem } >
@@ -41,9 +42,14 @@ const Parameter = memo(function WrappedParameter({ param, onSetNormalizedValue }
 				name={ param.name }
 				onChange={ onChange }
 				onChangeEnd={ onChangeEnd }
-				precision={ 2 }
-				step={ 0.001 }
+				precision={ 3 }
+				step={ stepSize }
 				value={ currentValue }
+				marks={
+					param.isEnum
+						? param.enumVals.map((v, i) => ({ label: `${v}`, value: stepSize * i }))
+						: [{ label: `${param.min}`, value: 0 }, { label: `${param.max}`, value: 1 }]
+				}
 			/>
 		</div>
 	);
