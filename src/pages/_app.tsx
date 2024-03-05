@@ -23,6 +23,7 @@ import Notifications from "../components/notifications";
 import Settings from "../components/settings";
 import EndpointInfo from "../components/page/endpoint";
 import { ModalsProvider } from "@mantine/modals";
+import TransportControl from "../components/page/transport";
 
 function App({ Component, pageProps }: AppProps) {
 
@@ -44,6 +45,7 @@ function App({ Component, pageProps }: AppProps) {
 						<Notifications />
 						<Settings />
 						<EndpointInfo />
+						<TransportControl />
 						<AppLayout>
 							<Component {...pageProps} />
 						</AppLayout>
