@@ -1,9 +1,9 @@
 import { ActionIcon, Group, Modal, NumberInput, Switch, Text } from "@mantine/core";
-import { ChangeEvent, FunctionComponent, KeyboardEvent, MouseEvent, memo, useCallback, useState } from "react";
+import { ChangeEvent, FunctionComponent, KeyboardEvent, MouseEvent, memo, useCallback } from "react";
 import { useAppDispatch, useAppSelector } from "../../hooks/useAppDispatch";
 import { RootStateType } from "../../lib/store";
 import { getShowTransportControl, getTransportControlState } from "../../selectors/transport";
-import { decrementTransportBPMOnRemote, hideTransportControl, incrementTransportBPMOnRemote, setTransportBPMOnRemote, toggleTransportRollingOnRemote, toggleTransportSyncOnRemote } from "../../actions/transport";
+import { decrementTransportBPMOnRemote, hideTransportControl, incrementTransportBPMOnRemote, toggleTransportRollingOnRemote, toggleTransportSyncOnRemote } from "../../actions/transport";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronDown, faChevronUp, faPlay } from "@fortawesome/free-solid-svg-icons";
 import classes from "./page.module.css";
