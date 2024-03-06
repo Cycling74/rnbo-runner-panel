@@ -26,7 +26,7 @@ const DeviceParameterTab: FunctionComponent<DeviceParameterTabProps> = memo(func
 			{
 				!device.parameters.size ? (
 					<div className={ classes.emptySection }>
-						This instance has no parameters
+						This patcher instance has no parameters
 					</div>
 				) : (
 					<div className={ classes.paramSectionWrap } >

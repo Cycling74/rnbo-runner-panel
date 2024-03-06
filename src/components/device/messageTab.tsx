@@ -30,7 +30,7 @@ const DeviceMessagesTab: FunctionComponent<DeviceMessageTabProps> = memo(functio
 			{
 				device.messageInputs.size ? <MessageInportList inports={ device.messageInputs } onSendMessage={ onSendInportMessage } /> : (
 					<div className={ classes.emptySection }>
-						This device has no message inputs
+						This patcher instance has no message inputs
 					</div>
 				)
 			}
@@ -38,7 +38,7 @@ const DeviceMessagesTab: FunctionComponent<DeviceMessageTabProps> = memo(functio
 			{
 				!device.messageOutputs.size ? (
 					<div className={ classes.emptySection }>
-						This device has no message outputs
+						This patcher instance has no message outputs
 					</div>
 				) : !outputEnabled ? (
 					<div className={ classes.disabledMessageOutput } >
