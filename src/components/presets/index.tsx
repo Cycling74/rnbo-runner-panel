@@ -9,7 +9,7 @@ import { modals } from "@mantine/modals";
 import { PresetRecord } from "../../models/preset";
 import { Seq } from "immutable";
 
-export type DevicePresetDrawerProps = {
+export type InstancePresetDrawerProps = {
 	open: boolean;
 	onClose: () => any;
 	onDeletePreset: (preset: PresetRecord) => any;
@@ -18,14 +18,14 @@ export type DevicePresetDrawerProps = {
 	presets: Seq.Indexed<PresetRecord>;
 };
 
-const DevicePresetDrawer: FunctionComponent<DevicePresetDrawerProps> = memo(function WrappedDevicePresetDrawer({
+const InstancePresetDrawer: FunctionComponent<InstancePresetDrawerProps> = memo(function WrappedInstancePresetDrawer({
 	open,
 	onClose,
 	onDeletePreset,
 	onLoadPreset,
 	onSavePreset,
 	presets
-}: DevicePresetDrawerProps) {
+}: InstancePresetDrawerProps) {
 
 	const onTriggerDeletePreset = useCallback((preset: PresetRecord) => {
 		modals.openConfirmModal({
@@ -61,4 +61,4 @@ const DevicePresetDrawer: FunctionComponent<DevicePresetDrawerProps> = memo(func
 	);
 });
 
-export default DevicePresetDrawer;
+export default InstancePresetDrawer;

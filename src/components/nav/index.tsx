@@ -19,7 +19,7 @@ const AppNav: FunctionComponent = memo(function WrappedNav() {
 	const onToggleSettings = useCallback(() => dispatch(toggleShowSettings()), [dispatch]);
 	const [
 		settingsAreShown,
-		deviceIndex
+		instanceIndex
 	] = useAppSelector((state: RootStateType) => [
 		getShowSettingsModal(state),
 		getFirstPatcherNodeIndex(state)
@@ -39,10 +39,10 @@ const AppNav: FunctionComponent = memo(function WrappedNav() {
 						isActive={ pathname === "/" }
 					/>
 					<NavLink
-						disabled={ deviceIndex === undefined }
+						disabled={ instanceIndex === undefined }
 						icon={ faVectorSquare }
 						label="Patcher Instance Control"
-						href={{ pathname: "/instances/[index]", query: { ...restQuery, index: deviceIndex } }}
+						href={{ pathname: "/instances/[index]", query: { ...restQuery, index: instanceIndex } }}
 						isActive={ pathname === "/instances/[index]" }
 					/>
 				</Stack>

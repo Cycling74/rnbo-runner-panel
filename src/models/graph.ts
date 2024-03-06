@@ -302,9 +302,9 @@ export class GraphSystemNodeRecord extends ImmuRecord<GraphSystemNodeProps>({
 
 	static fromDescription(systemJackNames: ImmuSet<string>, desc: OSCQueryRNBOJackPortInfo): GraphSystemNodeRecord[] {
 
-		// We expect systemJackNames to be a Set of all, non device instances jack assigned names
+		// We expect systemJackNames to be a Set of all, non rnbo instances jack assigned names
 		// in order to be able to filter out the global Jack Port description for creating SystemNodes.
-		// This is necessary as SystemNodes, in contrast to device instances, don't have a dedicated tree desc
+		// This is necessary as SystemNodes, in contrast to rnbo instances, don't have a dedicated tree desc
 		const nodes: GraphSystemNodeRecord[] = [];
 
 		for (const jackName of systemJackNames.valueSeq().toArray()) {

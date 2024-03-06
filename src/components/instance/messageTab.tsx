@@ -1,34 +1,34 @@
 import { Tabs } from "@mantine/core";
 import { FunctionComponent, memo, useCallback } from "react";
-import { DeviceTab } from "../../lib/constants";
+import { InstanceTab } from "../../lib/constants";
 import { useAppDispatch } from "../../hooks/useAppDispatch";
 import MessageInportList from "../messages/inportList";
 import { SectionTitle } from "../page/sectionTitle";
 import MessageOutportList from "../messages/outportList";
-import classes from "./device.module.css";
-import { DeviceStateRecord } from "../../models/device";
-import { sendDeviceInstanceMessageToRemote } from "../../actions/instances";
+import classes from "./instance.module.css";
+import { InstanceStateRecord } from "../../models/instance";
+import { sendInstanceMessageToRemote } from "../../actions/instances";
 
-export type DeviceMessageTabProps = {
-	device: DeviceStateRecord;
+export type InstanceMessageTabProps = {
+	instance: InstanceStateRecord;
 	outputEnabled: boolean;
 }
 
-const DeviceMessagesTab: FunctionComponent<DeviceMessageTabProps> = memo(function WrappedDeviceMessagesTab({
-	device,
+const InstanceMessagesTab: FunctionComponent<InstanceMessageTabProps> = memo(function WrappedInstanceMessagesTab({
+	instance,
 	outputEnabled
 }) {
 
 	const dispatch = useAppDispatch();
 	const onSendInportMessage = useCallback((id: string, value: string) => {
-		dispatch(sendDeviceInstanceMessageToRemote(device, id, value));
-	}, [dispatch, device]);
+		dispatch(sendInstanceMessageToRemote(instance, id, value));
+	}, [dispatch, instance]);
 
 	return (
-		<Tabs.Panel value={ DeviceTab.MessagePorts } >
+		<Tabs.Panel value={ InstanceTab.MessagePorts } >
 			<SectionTitle>Inputs</SectionTitle>
 			{
-				device.messageInputs.size ? <MessageInportList inports={ device.messageInputs } onSendMessage={ onSendInportMessage } /> : (
+				instance.messageInputs.size ? <MessageInportList inports={ instance.messageInputs } onSendMessage={ onSendInportMessage } /> : (
 					<div className={ classes.emptySection }>
 						This patcher instance has no message inputs
 					</div>
@@ -36,7 +36,7 @@ const DeviceMessagesTab: FunctionComponent<DeviceMessageTabProps> = memo(functio
 			}
 			<SectionTitle>Outputs</SectionTitle>
 			{
-				!device.messageOutputs.size ? (
+				!instance.messageOutputs.size ? (
 					<div className={ classes.emptySection }>
 						This patcher instance has no message outputs
 					</div>
@@ -44,10 +44,10 @@ const DeviceMessagesTab: FunctionComponent<DeviceMessageTabProps> = memo(functio
 					<div className={ classes.disabledMessageOutput } >
 						Message output monitoring is currently disabled. Enable it in the settings in order to display the output values.
 					</div>
-				) : <MessageOutportList outports={ device.messageOutputs } />
+				) : <MessageOutportList outports={ instance.messageOutputs } />
 			}
 		</Tabs.Panel>
 	);
 });
 
-export default DeviceMessagesTab;
+export default InstanceMessagesTab;

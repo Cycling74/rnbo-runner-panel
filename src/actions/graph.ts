@@ -7,9 +7,9 @@ import { ConnectionType, GraphConnectionRecord, GraphNode, GraphNodeRecord, Grap
 import { getConnection, getConnectionByNodesAndPorts, getConnectionsForSourceNodeAndPort, getNode, getPatcherNodeByIndex, getNodes, getSystemNodeByJackNameAndDirection, getConnections, getPatcherNodes, getSystemNodes } from "../selectors/graph";
 import { showNotification } from "./notifications";
 import { NotificationLevel } from "../models/notification";
-import { DeviceStateRecord } from "../models/device";
-import { deleteDevice, setDevice, setDevices } from "./instances";
-import { getDevice } from "../selectors/instances";
+import { InstanceStateRecord } from "../models/instance";
+import { deleteInstance, setInstance, setInstances } from "./instances";
+import { getInstance } from "../selectors/instances";
 import { PatcherRecord } from "../models/patcher";
 import { Connection, EdgeChange, NodeChange } from "reactflow";
 import { isValidConnection } from "../lib/editorUtils";
@@ -205,7 +205,7 @@ export const initNodes = (jackPortsInfo: OSCQueryRNBOJackPortInfo, instanceInfo:
 		const state = getState();
 		const existingNodes = getNodes(state);
 
-		const devices: DeviceStateRecord[] = [];
+		const instances: InstanceStateRecord[] = [];
 		const patcherNodes: GraphPatcherNodeRecord[] = [];
 
 		let meta: OSCQuerySetMeta = { nodes: {} };
@@ -228,7 +228,7 @@ export const initNodes = (jackPortsInfo: OSCQueryRNBOJackPortInfo, instanceInfo:
 			}
 
 			patcherNodes.push(node);
-			devices.push(DeviceStateRecord.fromDescription(info));
+			instances.push(InstanceStateRecord.fromDescription(info));
 		}
 
 		// Build a list of all Jack generated names that have not been used for PatcherNodes above
@@ -266,7 +266,7 @@ export const initNodes = (jackPortsInfo: OSCQueryRNBOJackPortInfo, instanceInfo:
 
 		dispatch(deleteNodes(existingNodes.valueSeq().toArray()));
 		dispatch(setNodes([...systemNodes, ...patcherNodes]));
-		dispatch(setDevices(devices));
+		dispatch(setInstances(instances));
 	};
 
 
@@ -399,14 +399,14 @@ export const updateSystemPortInfo = (type: ConnectionType, direction: PortDirect
 	};
 
 // Trigger Updates on remote OSCQuery Runner
-export const unloadPatcherNodeByIndexOnRemote = (deviceIndex: number): AppThunk =>
+export const unloadPatcherNodeByIndexOnRemote = (instanceIndex: number): AppThunk =>
 	(dispatch) => {
 		try {
 
 			const message = {
 				address: "/rnbo/inst/control/unload",
 				args: [
-					{ type: "i", value: deviceIndex }
+					{ type: "i", value: instanceIndex }
 				]
 			};
 			oscQueryBridge.sendPacket(writePacket(message));
@@ -740,9 +740,9 @@ export const addPatcherNode = (desc: OSCQueryRNBOInstance, metaString: string): 
 
 		dispatch(setNode(node));
 
-		// Create Device State
-		const device = DeviceStateRecord.fromDescription(desc);
-		dispatch(setDevice(device));
+		// Create Instance State
+		const instance = InstanceStateRecord.fromDescription(desc);
+		dispatch(setInstance(instance));
 	};
 
 export const removePatcherNode = (index: number): AppThunk =>
@@ -754,9 +754,9 @@ export const removePatcherNode = (index: number): AppThunk =>
 			if (node?.type !== NodeType.Patcher) return;
 			dispatch(deleteNode(node));
 
-			const device = getDevice(state, node.id);
-			if (!device) return;
-			dispatch(deleteDevice(device));
+			const instance = getInstance(state, node.id);
+			if (!instance) return;
+			dispatch(deleteInstance(instance));
 		} catch (e) {
 			console.log(e);
 		}
