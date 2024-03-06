@@ -255,7 +255,7 @@ export const updateDeviceInstanceMessageOutputValue = (index: number, name: stri
 			if (!enabled) return;
 
 			// Active Device view?!
-			if (Router.asPath !== `/devices/${index}`) return;
+			if (Router.asPath !== `/instances/${index}`) return;
 
 			const device = getDeviceByIndex(state, index);
 			if (!device) return;
