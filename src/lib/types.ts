@@ -162,7 +162,7 @@ export type OSCQueryRNBOJackConnections = OSCQueryBaseNode & {
 	};
 };
 
-export type OSCQueryRNBOJackConfig =  OSCQueryBaseNode & {
+export type OSCQueryRNBOJackConfig = OSCQueryBaseNode & {
 	CONTENTS: {
 		period_frames: OSCQueryIntValue & OSCQueryValueRange;
 		sample_rate: OSCQueryFloatValue & OSCQueryValueRange;
@@ -171,6 +171,14 @@ export type OSCQueryRNBOJackConfig =  OSCQueryBaseNode & {
 		midi_system?: OSCQueryStringValue & OSCQueryStringValueRange;
 	};
 };
+
+export type OSCQueryRNBOJackTransport =  OSCQueryBaseNode & {
+	CONTENTS: {
+		bpm: OSCQueryFloatValue;
+		rolling: OSCQueryBooleanValue;
+		sync: OSCQueryBooleanValue;
+	}
+}
 
 export type OSCQueryRNBOJackState = OSCQueryBaseNode & {
 	CONTENTS: {
@@ -185,11 +193,7 @@ export type OSCQueryRNBOJackState = OSCQueryBaseNode & {
 		};
 		config: OSCQueryRNBOJackConfig;
 		control: any;
-		transport: {
-			bpm: OSCQueryFloatValue;
-			rolling: OSCQueryBooleanValue;
-			sync: OSCQueryBooleanValue;
-		};
+		transport: OSCQueryRNBOJackTransport;
 	};
 };
 
