@@ -15,6 +15,7 @@ import { updateDeviceInstanceMessageOutputValue, updateDeviceInstanceMessages, u
 import { ConnectionType, PortDirection } from "../models/graph";
 import { showNotification } from "../actions/notifications";
 import { NotificationLevel } from "../models/notification";
+import { initTransport, updateTransportStatus } from "../actions/transport";
 
 const dispatch = store.dispatch as AppDispatch;
 
@@ -79,6 +80,9 @@ export class OSCQueryBridgeControllerPrivate {
 
 		// Init Config
 		dispatch(initRunnerConfig(state));
+
+		// Init Transport
+		dispatch(initTransport(state.CONTENTS.jack.CONTENTS.transport));
 
 		// Init Patcher Info
 		dispatch(initPatchers(state.CONTENTS.patchers));
@@ -270,6 +274,20 @@ export class OSCQueryBridgeControllerPrivate {
 		if (packet.address === "/rnbo/jack/restart") {
 			return void dispatch(showNotification({ title: "Restarting Jack", message: "Please wait while the Jack server is being restarted with the updated audio configuration settings.", level: NotificationLevel.info }));
 		}
+
+		// Transport Control Control
+		if (packet.address === "/rnbo/jack/transport/bpm") {
+			if (packet.args?.length) return void dispatch(updateTransportStatus({ bpm: (packet.args as unknown as [number])?.[0] }));
+		}
+
+		if (packet.address === "/rnbo/jack/transport/rolling") {
+			if (packet.args?.length) return void dispatch(updateTransportStatus({ rolling: (packet.args as unknown as [boolean])?.[0] }));
+		}
+
+		if (packet.address === "/rnbo/jack/transport/sync") {
+			if (packet.args?.length) return void dispatch(updateTransportStatus({ sync: (packet.args as unknown as [boolean])?.[0] }));
+		}
+
 
 		const metaMatch = packet.address.match(setMetaPathMatcher);
 		if (metaMatch) {

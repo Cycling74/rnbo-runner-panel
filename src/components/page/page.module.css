@@ -42,3 +42,31 @@
 	font-size: var(--input-label-size, var(--mantine-font-size-sm));
 	font-weight: 500;
 }
+
+.transportTempoControl {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	width: 100%;
+
+	> button {
+		align-items: center;
+		appearance: none;
+		background-color: transparent;
+		border: none;
+		border-radius: 0;
+		border-inline-start: 0.0625rem solid var(--mantine-color-gray-4);
+		color: var(--mantine-color-text);
+		cursor: pointer;
+		display: flex;
+		flex: 0 0 50%;
+		height: 50%;
+		justify-content: center;
+		margin: 0;
+		padding: 0;
+	}
+
+	> button:last-of-type {
+		border-top: 0.0625rem solid var(--mantine-color-gray-4);
+	}
+}
