@@ -1,6 +1,6 @@
 import { Map as ImmuMap, Seq, Set as ImmuSet } from "immutable";
 import { RootStateType } from "../lib/store";
-import { GraphConnectionRecord, GraphNodeRecord, GraphPatcherNodeRecord, GraphSystemNodeRecord, NodeType, PortDirection } from "../models/graph";
+import { GraphConnectionRecord, GraphControlNodeRecord, GraphNodeRecord, GraphPatcherNodeRecord, GraphSystemNodeRecord, NodeType, PortDirection } from "../models/graph";
 
 export const getNode = (state: RootStateType, id: GraphNodeRecord["id"]): GraphNodeRecord | undefined => state.graph.nodes.get(id);
 export const getNodes = (state: RootStateType): ImmuMap<GraphNodeRecord["id"], GraphNodeRecord> => state.graph.nodes;
@@ -25,6 +25,18 @@ export const getPatcherNodesByIndex = (state: RootStateType): ImmuMap<GraphPatch
 			const node = getNode(state, id);
 			if (node && node.type === NodeType.Patcher) map.set(index, node);
 		});
+	});
+};
+
+export const getControlNodes = (state: RootStateType): ImmuMap<GraphControlNodeRecord["id"], GraphControlNodeRecord> => {
+	return state.graph.nodes.filter(node => node.type === NodeType.Control) as ImmuMap<GraphControlNodeRecord["id"], GraphControlNodeRecord>;
+};
+
+export const getControlsNodesJackNames = (state: RootStateType): ImmuSet<GraphControlNodeRecord["jackName"]> => {
+	return ImmuSet<GraphControlNodeRecord["jackName"]>().withMutations(result => {
+		for (const node of state.graph.nodes.valueSeq().toArray()) {
+			if (node.type === NodeType.Control) result.add(node.jackName);
+		}
 	});
 };
 

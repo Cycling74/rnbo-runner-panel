@@ -3,7 +3,7 @@ import { writePacket } from "osc";
 import { oscQueryBridge } from "../controller/oscqueryBridgeController";
 import { ActionBase, AppThunk, RootStateType } from "../lib/store";
 import { OSCQueryRNBOInstance, OSCQueryRNBOInstancesState, OSCQueryRNBOJackConnections, OSCQueryRNBOJackPortInfo, OSCQuerySetMeta, OSCQuerySetNodeMeta } from "../lib/types";
-import { ConnectionType, GraphConnectionRecord, GraphNode, GraphNodeRecord, GraphPatcherNode, GraphPatcherNodeRecord, GraphPortRecord, GraphSystemNodeRecord, NodeType, PortDirection, calculateNodeContentHeight } from "../models/graph";
+import { ConnectionType, GraphConnectionRecord, GraphControlNodeRecord, GraphNode, GraphNodeRecord, GraphPatcherNode, GraphPatcherNodeRecord, GraphPortRecord, GraphSystemNodeRecord, NodeType, PortDirection, calculateNodeContentHeight } from "../models/graph";
 import { getConnection, getConnectionByNodesAndPorts, getConnectionsForSourceNodeAndPort, getNode, getPatcherNodeByIndex, getNodes, getSystemNodeByJackNameAndDirection, getConnections, getPatcherNodes, getSystemNodes } from "../selectors/graph";
 import { showNotification } from "./notifications";
 import { NotificationLevel } from "../models/notification";
@@ -16,11 +16,11 @@ import { isValidConnection } from "../lib/editorUtils";
 import throttle from "lodash.throttle";
 
 const defaultNodeSpacing = 150;
-const getPatcherNodeCoordinates = (node: GraphPatcherNodeRecord, nodes: GraphNodeRecord[]): { x: number, y: number } => {
+const getPatcherOrControlNodeCoordinates = (node: GraphPatcherNodeRecord | GraphControlNodeRecord, nodes: GraphNodeRecord[]): { x: number, y: number } => {
 
 	const bottomNode: GraphNodeRecord | undefined = nodes.reduce((n, current) => {
 		if (current.type === NodeType.System) return n;
-		if (!n && current.type === NodeType.Patcher) return current;
+		if (!n) return current;
 		return current.y > n.y ? current : n;
 	}, undefined as GraphNodeRecord | undefined);
 
@@ -178,8 +178,8 @@ export const deleteConnections = (connections: GraphConnectionRecord[]): GraphAc
 	};
 };
 
-const filterSystemNodeNames = (portNames: string[], patcherNodes: GraphPatcherNodeRecord[]): string[] => {
-	const pNodeIds = new Set(patcherNodes.map(pn => pn.id));
+const filterSystemNodeNames = (portNames: string[], nodes: Array<GraphPatcherNodeRecord | GraphControlNodeRecord>): string[] => {
+	const pNodeIds = new Set(nodes.map(pn => pn.id));
 	return portNames.reduce((result, portName) => {
 		const [nodeName] = portName.split(":");
 		if (!pNodeIds.has(nodeName) && nodeName.startsWith("system")) result.push(nodeName);
@@ -187,7 +187,16 @@ const filterSystemNodeNames = (portNames: string[], patcherNodes: GraphPatcherNo
 	}, [] as string[]);
 };
 
-const getSystemNodeJackNamesFromPortInfo = (jackPortsInfo: OSCQueryRNBOJackPortInfo, patcherNodes: GraphPatcherNodeRecord[]): string[] => {
+const filterControlNodeNames = (portNames: string[], nodes: Array<GraphPatcherNodeRecord | GraphControlNodeRecord>): string[] => {
+	const pNodeIds = new Set(nodes.map(pn => pn.id));
+	return portNames.reduce((result, portName) => {
+		const [nodeName] = portName.split(":");
+		if (!pNodeIds.has(nodeName) && !nodeName.startsWith("system")) result.push(nodeName);
+		return result;
+	}, [] as string[]);
+};
+
+const getSystemNodeJackNamesFromPortInfo = (jackPortsInfo: OSCQueryRNBOJackPortInfo, nodes: Array<GraphPatcherNodeRecord | GraphControlNodeRecord>): string[] => {
 	return filterSystemNodeNames(
 		[
 			...(jackPortsInfo.CONTENTS?.audio?.CONTENTS?.sources?.VALUE || []),
@@ -195,7 +204,19 @@ const getSystemNodeJackNamesFromPortInfo = (jackPortsInfo: OSCQueryRNBOJackPortI
 			...(jackPortsInfo.CONTENTS?.audio?.CONTENTS?.sinks?.VALUE || []),
 			...(jackPortsInfo.CONTENTS?.midi?.CONTENTS?.sinks?.VALUE || [])
 		],
-		patcherNodes
+		nodes
+	);
+};
+
+const getControlNodeJackNamesFromPortInfo = (jackPortsInfo: OSCQueryRNBOJackPortInfo, nodes: Array<GraphPatcherNodeRecord | GraphControlNodeRecord>): string[] => {
+	return filterControlNodeNames(
+		[
+			...(jackPortsInfo.CONTENTS?.audio?.CONTENTS?.sources?.VALUE || []),
+			...(jackPortsInfo.CONTENTS?.midi?.CONTENTS?.sources?.VALUE || []),
+			...(jackPortsInfo.CONTENTS?.audio?.CONTENTS?.sinks?.VALUE || []),
+			...(jackPortsInfo.CONTENTS?.midi?.CONTENTS?.sinks?.VALUE || [])
+		],
+		nodes
 	);
 };
 
@@ -206,7 +227,7 @@ export const initNodes = (jackPortsInfo: OSCQueryRNBOJackPortInfo, instanceInfo:
 		const existingNodes = getNodes(state);
 
 		const instances: InstanceStateRecord[] = [];
-		const patcherNodes: GraphPatcherNodeRecord[] = [];
+		const patcherAndControlNodes: Array<GraphPatcherNodeRecord | GraphControlNodeRecord> = [];
 
 		let meta: OSCQuerySetMeta = { nodes: {} };
 		try {
@@ -223,17 +244,38 @@ export const initNodes = (jackPortsInfo: OSCQueryRNBOJackPortInfo, instanceInfo:
 			if (nodeMeta) {
 				node = node.updatePosition(nodeMeta.position.x, nodeMeta.position.y);
 			} else {
-				const { x, y } = getPatcherNodeCoordinates(node, patcherNodes);
+				const { x, y } = getPatcherOrControlNodeCoordinates(node, patcherAndControlNodes);
 				node = node.updatePosition(x, y);
 			}
 
-			patcherNodes.push(node);
+			patcherAndControlNodes.push(node);
 			instances.push(InstanceStateRecord.fromDescription(info));
 		}
 
 		// Build a list of all Jack generated names that have not been used for PatcherNodes above
+		const controlJackNames = getControlNodeJackNamesFromPortInfo(jackPortsInfo, patcherAndControlNodes);
+		for (const jackName of controlJackNames) {
+			let controlNode = GraphControlNodeRecord.fromDescription(jackName, {
+				audioSinks: jackPortsInfo.CONTENTS.audio.CONTENTS?.sinks?.VALUE?.filter(n => n.startsWith(`${jackName}:`)) || [],
+				audioSources: jackPortsInfo.CONTENTS.audio.CONTENTS?.sources?.VALUE?.filter(n => n.startsWith(`${jackName}:`)) || [],
+				midiSinks: jackPortsInfo.CONTENTS.midi.CONTENTS?.sinks?.VALUE?.filter(n => n.startsWith(`${jackName}:`)) || [],
+				midiSources: jackPortsInfo.CONTENTS.midi.CONTENTS?.sources?.VALUE?.filter(n => n.startsWith(`${jackName}:`)) || []
+			});
+
+			const nodeMeta = meta.nodes[controlNode.id];
+			if (nodeMeta) {
+				controlNode = controlNode.updatePosition(nodeMeta.position.x, nodeMeta.position.y);
+			} else {
+				const { x, y } = getPatcherOrControlNodeCoordinates(controlNode, patcherAndControlNodes);
+				controlNode = controlNode.updatePosition(x, y);
+			}
+
+			patcherAndControlNodes.push(controlNode);
+		}
+
+		// Build a list of all Jack generated names that have not been used for PatcherNodes above
 		// as we assume moving forward that they are SystemNames
-		const systemJackNames = ImmuSet<string>(getSystemNodeJackNamesFromPortInfo(jackPortsInfo, patcherNodes));
+		const systemJackNames = ImmuSet<string>(getSystemNodeJackNamesFromPortInfo(jackPortsInfo, patcherAndControlNodes));
 
 		let systemInputY = -defaultNodeSpacing;
 		let systemOutputY = -defaultNodeSpacing;
@@ -264,8 +306,9 @@ export const initNodes = (jackPortsInfo: OSCQueryRNBOJackPortInfo, instanceInfo:
 				return node;
 			});
 
+
 		dispatch(deleteNodes(existingNodes.valueSeq().toArray()));
-		dispatch(setNodes([...systemNodes, ...patcherNodes]));
+		dispatch(setNodes([...systemNodes, ...patcherAndControlNodes]));
 		dispatch(setInstances(instances));
 	};
 
@@ -563,7 +606,7 @@ export const removeEditorNodeById = (id: GraphNode["id"], updateSetMeta = true):
 				throw new Error(`Node with id ${id} does not exist.`);
 			}
 
-			if (node.type === NodeType.System) {
+			if (node.type === NodeType.System || node.type === NodeType.Control) {
 				throw new Error(`System nodes cannot be removed (id: ${id}).`);
 			}
 
@@ -735,7 +778,7 @@ export const addPatcherNode = (desc: OSCQueryRNBOInstance, metaString: string): 
 			console.warn(`Failed to parse Set Meta when creating new node: ${err.message}`);
 		}
 
-		const { x, y } = nodeMeta?.position || getPatcherNodeCoordinates(node, existingNodes);
+		const { x, y } = nodeMeta?.position || getPatcherOrControlNodeCoordinates(node, existingNodes);
 		node = node.updatePosition(x, y);
 
 		dispatch(setNode(node));

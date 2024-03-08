@@ -11,6 +11,7 @@ import "reactflow/dist/base.css";
 import classes from "./editor.module.css";
 import GraphEdge, { RNBOGraphEdgeType } from "./edge";
 import { useRouter } from "next/router";
+import EditorControlNode from "./controlNode";
 
 export type GraphEditorProps = {
 	connections: RootStateType["graph"]["connections"];
@@ -23,6 +24,7 @@ export type GraphEditorProps = {
 };
 
 const nodeTypes: Record<NodeType, ComponentType<EditorNodeProps>> = {
+	[NodeType.Control]: EditorControlNode,
 	[NodeType.Patcher]: EditorPatcherNode,
 	[NodeType.System]: EditorSystemNode
 };
