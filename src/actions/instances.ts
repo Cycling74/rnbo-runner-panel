@@ -1,8 +1,8 @@
 import Router from "next/router";
 import { ActionBase, AppThunk } from "../lib/store";
 import { OSCQueryRNBOInstance, OSCQueryRNBOInstancePresetEntries, OSCValue } from "../lib/types";
-import { DeviceStateRecord } from "../models/device";
-import { getDeviceByIndex } from "../selectors/instances";
+import { InstanceStateRecord } from "../models/instance";
+import { getInstanceByIndex } from "../selectors/instances";
 import { getAppSettingValue } from "../selectors/settings";
 import { ParameterRecord } from "../models/parameter";
 import { OSCArgument, writePacket } from "osc";
@@ -14,76 +14,76 @@ import { PresetRecord } from "../models/preset";
 import { AppSetting } from "../models/settings";
 
 export enum InstanceActionType {
-	SET_DEVICE = "SET_DEVICE",
-	SET_DEVICES = "SET_DEVICES",
-	DELETE_DEVICE = "DELETE_DEVICE",
-	DELETE_DEVICES = "DELETE_DEVICES"
+	SET_INSTANCE = "SET_INSTANCE",
+	SET_INSTANCES = "SET_INSTANCES",
+	DELETE_INSTANCE = "DELETE_INSTANCE",
+	DELETE_INSTANCES = "DELETE_INSTANCES"
 }
 
-export interface ISetDevice extends ActionBase {
-	type: InstanceActionType.SET_DEVICE;
+export interface ISetInstance extends ActionBase {
+	type: InstanceActionType.SET_INSTANCE;
 	payload: {
-		device: DeviceStateRecord;
+		instance: InstanceStateRecord;
 	};
 }
 
-export interface ISetDevices extends ActionBase {
-	type: InstanceActionType.SET_DEVICES;
+export interface ISetInstances extends ActionBase {
+	type: InstanceActionType.SET_INSTANCES;
 	payload: {
-		devices: DeviceStateRecord[];
+		instances: InstanceStateRecord[];
 	};
 }
 
-export interface IDeleteDevice extends ActionBase {
-	type: InstanceActionType.DELETE_DEVICE;
+export interface IDeleteInstance extends ActionBase {
+	type: InstanceActionType.DELETE_INSTANCE;
 	payload: {
-		device: DeviceStateRecord;
+		instance: InstanceStateRecord;
 	};
 }
 
-export interface IDeleteDevices extends ActionBase {
-	type: InstanceActionType.DELETE_DEVICES;
+export interface IDeleteInstances extends ActionBase {
+	type: InstanceActionType.DELETE_INSTANCES;
 	payload: {
-		devices: DeviceStateRecord[];
+		instances: InstanceStateRecord[];
 	};
 }
 
-export type InstanceAction = ISetDevice | ISetDevices | IDeleteDevice | IDeleteDevices;
+export type InstanceAction = ISetInstance | ISetInstances | IDeleteInstance | IDeleteInstances;
 
-export const setDevice = (device: DeviceStateRecord): ISetDevice => ({
-	type: InstanceActionType.SET_DEVICE,
+export const setInstance = (instance: InstanceStateRecord): ISetInstance => ({
+	type: InstanceActionType.SET_INSTANCE,
 	payload: {
-		device
+		instance
 	}
 });
 
-export const setDevices = (devices: DeviceStateRecord[]): ISetDevices => ({
-	type: InstanceActionType.SET_DEVICES,
+export const setInstances = (instances: InstanceStateRecord[]): ISetInstances => ({
+	type: InstanceActionType.SET_INSTANCES,
 	payload: {
-		devices
+		instances
 	}
 });
 
-export const deleteDevice = (device: DeviceStateRecord): IDeleteDevice => ({
-	type: InstanceActionType.DELETE_DEVICE,
+export const deleteInstance = (instance: InstanceStateRecord): IDeleteInstance => ({
+	type: InstanceActionType.DELETE_INSTANCE,
 	payload: {
-		device
+		instance
 	}
 });
 
-export const deleteDevices = (devices: DeviceStateRecord[]): IDeleteDevices => ({
-	type: InstanceActionType.DELETE_DEVICES,
+export const deleteInstances = (instances: InstanceStateRecord[]): IDeleteInstances => ({
+	type: InstanceActionType.DELETE_INSTANCES,
 	payload: {
-		devices
+		instances
 	}
 });
 
 // Trigger Events on Remote OSCQuery Runner
-export const loadPresetOnRemoteDeviceInstance = (device: DeviceStateRecord, preset: PresetRecord): AppThunk =>
+export const loadPresetOnRemoteInstance = (instance: InstanceStateRecord, preset: PresetRecord): AppThunk =>
 	(dispatch) => {
 		try {
 			const message = {
-				address: `${device.path}/presets/load`,
+				address: `${instance.path}/presets/load`,
 				args: [
 					{ type: "s", value: preset.name }
 				]
@@ -99,11 +99,11 @@ export const loadPresetOnRemoteDeviceInstance = (device: DeviceStateRecord, pres
 		}
 	};
 
-export const savePresetToRemoteDeviceInstance = (device: DeviceStateRecord, name: string): AppThunk =>
+export const savePresetToRemoteInstance = (instance: InstanceStateRecord, name: string): AppThunk =>
 	(dispatch) => {
 		try {
 			const message = {
-				address: `${device.path}/presets/save`,
+				address: `${instance.path}/presets/save`,
 				args: [
 					{ type: "s", value: name }
 				]
@@ -119,11 +119,11 @@ export const savePresetToRemoteDeviceInstance = (device: DeviceStateRecord, name
 		}
 	};
 
-export const destroyPresetOnRemoteDeviceInstance = (device: DeviceStateRecord, preset: PresetRecord): AppThunk =>
+export const destroyPresetOnRemoteInstance = (instance: InstanceStateRecord, preset: PresetRecord): AppThunk =>
 	(dispatch) => {
 		try {
 			const message = {
-				address: `${device.path}/presets/delete`,
+				address: `${instance.path}/presets/delete`,
 				args: [
 					{ type: "s", value: preset.name }
 				]
@@ -139,7 +139,7 @@ export const destroyPresetOnRemoteDeviceInstance = (device: DeviceStateRecord, p
 		}
 	};
 
-export const sendDeviceInstanceMessageToRemote = (device: DeviceStateRecord, inportId: string, value: string): AppThunk =>
+export const sendInstanceMessageToRemote = (instance: InstanceStateRecord, inportId: string, value: string): AppThunk =>
 	(dispatch) => {
 		const values = value.split(" ").reduce((values, v) => {
 			const fv = parseFloat(v.replaceAll(",", ".").trim());
@@ -158,13 +158,13 @@ export const sendDeviceInstanceMessageToRemote = (device: DeviceStateRecord, inp
 
 
 		const message = {
-			address: `/rnbo/inst/${device.index}/messages/in/${inportId}`,
+			address: `/rnbo/inst/${instance.index}/messages/in/${inportId}`,
 			args: values
 		};
 		oscQueryBridge.sendPacket(writePacket(message));
 	};
 
-export const triggerDeviceInstanceMidiNoteOnEventOnRemote = (device: DeviceStateRecord, note: number): AppThunk =>
+export const triggerInstanceMidiNoteOnEventOnRemote = (instance: InstanceStateRecord, note: number): AppThunk =>
 	() => {
 
 		const midiChannel = 0;
@@ -172,14 +172,14 @@ export const triggerDeviceInstanceMidiNoteOnEventOnRemote = (device: DeviceState
 		const velocityByte = 100;
 
 		const message = {
-			address: `${device.path}/midi/in`,
+			address: `${instance.path}/midi/in`,
 			args: [routeByte, note, velocityByte].map(byte => ({ type: "i", value: byte }))
 		};
 
 		oscQueryBridge.sendPacket(writePacket(message));
 	};
 
-export const triggerDeviceInstanceMidiNoteOffEventOnRemote = (device: DeviceStateRecord, note: number): AppThunk =>
+export const triggerInstanceMidiNoteOffEventOnRemote = (instance: InstanceStateRecord, note: number): AppThunk =>
 	() => {
 
 		const midiChannel = 0;
@@ -187,14 +187,14 @@ export const triggerDeviceInstanceMidiNoteOffEventOnRemote = (device: DeviceStat
 		const velocityByte = 0;
 
 		const message = {
-			address: `${device.path}/midi/in`,
+			address: `${instance.path}/midi/in`,
 			args: [routeByte, note, velocityByte].map(byte => ({ type: "i", value: byte }))
 		};
 
 		oscQueryBridge.sendPacket(writePacket(message));
 	};
 
-export const setDeviceInstanceParameterValueNormalizedOnRemote = throttle((device: DeviceStateRecord, param: ParameterRecord, value: number): AppThunk =>
+export const seInstanceParameterValueNormalizedOnRemote = throttle((instance: InstanceStateRecord, param: ParameterRecord, value: number): AppThunk =>
 	(dispatch) => {
 
 		const message = {
@@ -207,44 +207,44 @@ export const setDeviceInstanceParameterValueNormalizedOnRemote = throttle((devic
 		oscQueryBridge.sendPacket(writePacket(message));
 
 		// optimistic local state update
-		dispatch(setDevice(device.setParameterNormalizedValue(param.id, value)));
+		dispatch(setInstance(instance.setParameterNormalizedValue(param.id, value)));
 	}, 100);
 
 
 // Updates in response to remote OSCQuery Updates
-export const updateDeviceInstancePresetEntries = (index: number, entries: OSCQueryRNBOInstancePresetEntries): AppThunk =>
+export const updateInstancePresetEntries = (index: number, entries: OSCQueryRNBOInstancePresetEntries): AppThunk =>
 	(dispatch, getState) => {
 		try {
 			const state = getState();
-			const device = getDeviceByIndex(state, index);
-			if (!device) return;
+			const instance = getInstanceByIndex(state, index);
+			if (!instance) return;
 
-			dispatch(setDevice(device.set("presets", DeviceStateRecord.presetsFromDescription(entries))));
+			dispatch(setInstance(instance.set("presets", InstanceStateRecord.presetsFromDescription(entries))));
 		} catch (e) {
 			console.log(e);
 		}
 	};
 
-export const updateDeviceInstanceMessages = (index: number, desc: OSCQueryRNBOInstance["CONTENTS"]["messages"]): AppThunk =>
+export const updateInstanceMessages = (index: number, desc: OSCQueryRNBOInstance["CONTENTS"]["messages"]): AppThunk =>
 	(dispatch, getState) => {
 		try {
 			if (!desc) return;
 
 			const state = getState();
-			const device = getDeviceByIndex(state, index);
-			if (device) return;
+			const instance = getInstanceByIndex(state, index);
+			if (instance) return;
 
-			dispatch(setDevice(
-				device
-					.set("messageInputs", DeviceStateRecord.messageInputsFromDescription(desc))
-					.set("messageOutputs", DeviceStateRecord.messageOutputsFromDescription(desc))
+			dispatch(setInstance(
+				instance
+					.set("messageInputs", InstanceStateRecord.messageInputsFromDescription(desc))
+					.set("messageOutputs", InstanceStateRecord.messageOutputsFromDescription(desc))
 			));
 		} catch (e) {
 			console.log(e);
 		}
 	};
 
-export const updateDeviceInstanceMessageOutputValue = (index: number, name: string, value: OSCValue | OSCValue[]): AppThunk =>
+export const updateInstanceMessageOutputValue = (index: number, name: string, value: OSCValue | OSCValue[]): AppThunk =>
 	(dispatch, getState) => {
 		try {
 
@@ -254,58 +254,58 @@ export const updateDeviceInstanceMessageOutputValue = (index: number, name: stri
 			const enabled = getAppSettingValue<boolean>(state, AppSetting.debugMessageOutput);
 			if (!enabled) return;
 
-			// Active Device view?!
-			if (Router.asPath !== `/devices/${index}`) return;
+			// Active Instance view?!
+			if (Router.asPath !== `/instances/${index}`) return;
 
-			const device = getDeviceByIndex(state, index);
-			if (!device) return;
+			const instance = getInstanceByIndex(state, index);
+			if (!instance) return;
 
-			dispatch(setDevice(
-				device.setMessageOutportValue(name, Array.isArray(value) ? value.join(", ") : `${value}`)
+			dispatch(setInstance(
+				instance.setMessageOutportValue(name, Array.isArray(value) ? value.join(", ") : `${value}`)
 			));
 		} catch (e) {
 			console.log(e);
 		}
 	};
 
-export const updateDeviceInstanceParameters = (index: number, desc: OSCQueryRNBOInstance["CONTENTS"]["params"]): AppThunk =>
+export const updateInstanceParameters = (index: number, desc: OSCQueryRNBOInstance["CONTENTS"]["params"]): AppThunk =>
 	(dispatch, getState) => {
 		try {
 			if (!desc) return;
 
 			const state = getState();
-			const device = getDeviceByIndex(state, index);
-			if (!device) return;
+			const instance = getInstanceByIndex(state, index);
+			if (!instance) return;
 
-			dispatch(setDevice(
-				device.set("parameters", DeviceStateRecord.parametersFromDescription(desc))
+			dispatch(setInstance(
+				instance.set("parameters", InstanceStateRecord.parametersFromDescription(desc))
 			));
 		} catch (e) {
 			console.log(e);
 		}
 	};
 
-export const updateDeviceInstanceParameterValue = (index: number, id: ParameterRecord["id"], value: number): AppThunk =>
+export const updateInstanceParameterValue = (index: number, id: ParameterRecord["id"], value: number): AppThunk =>
 	(dispatch, getState) => {
 		try {
 			const state = getState();
-			const device = getDeviceByIndex(state, index);
-			if (!device) return;
+			const instance = getInstanceByIndex(state, index);
+			if (!instance) return;
 
-			dispatch(setDevice(device.setParameterValue(id, value)));
+			dispatch(setInstance(instance.setParameterValue(id, value)));
 		} catch (e) {
 			console.log(e);
 		}
 	};
 
-export const updateDeviceInstanceParameterValueNormalized = (index: number, id: ParameterRecord["id"], value: number): AppThunk =>
+export const updateInstanceParameterValueNormalized = (index: number, id: ParameterRecord["id"], value: number): AppThunk =>
 	(dispatch, getState) => {
 		try {
 			const state = getState();
-			const device = getDeviceByIndex(state, index);
-			if (!device) return;
+			const instance = getInstanceByIndex(state, index);
+			if (!instance) return;
 
-			dispatch(setDevice(device.setParameterNormalizedValue(id, value)));
+			dispatch(setInstance(instance.setParameterNormalizedValue(id, value)));
 		} catch (e) {
 			console.log(e);
 		}

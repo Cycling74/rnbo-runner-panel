@@ -31,7 +31,7 @@ const EditorPatcherNode: FunctionComponent<EditorNodeProps> = memo(function Wrap
 				<div>
 					<ActionIcon
 						component={ Link }
-						href={{ pathname: "/devices/[index]", query: { ...query, index: (node as GraphPatcherNodeRecord).index } }}
+						href={{ pathname: "/instances/[index]", query: { ...query, index: (node as GraphPatcherNodeRecord).index } }}
 						size="md"
 						variant="transparent"
 					>

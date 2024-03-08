@@ -5,11 +5,11 @@ import { useElementSize, useViewportSize } from "@mantine/hooks";
 import { Breakpoints } from "../../lib/constants";
 import { clamp } from "../../lib/util";
 import { ParameterRecord } from "../../models/parameter";
-import { DeviceStateRecord } from "../../models/device";
+import { InstanceStateRecord } from "../../models/instance";
 
 export type ParameterListProps = {
 	onSetNormalizedValue: (parameter: ParameterRecord, nValue: number) => any;
-	parameters: DeviceStateRecord["parameters"];
+	parameters: InstanceStateRecord["parameters"];
 }
 
 const ParameterList: FunctionComponent<ParameterListProps> = memo(function WrappedParameterList({

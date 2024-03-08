@@ -3,7 +3,7 @@ import { ParameterRecord } from "./parameter";
 import { PresetRecord } from "./preset";
 import { OSCQueryRNBOInstance, OSCQueryRNBOInstancePresetEntries } from "../lib/types";
 
-export type DeviceStateProps = {
+export type InstanceStateProps = {
 	index: number;
 	patcher: string;
 	path: string;
@@ -16,7 +16,7 @@ export type DeviceStateProps = {
 
 const collator = new Intl.Collator("en-US");
 
-export class DeviceStateRecord extends ImmuRecord<DeviceStateProps>({
+export class InstanceStateRecord extends ImmuRecord<InstanceStateProps>({
 
 	index: 0,
 	name: "",
@@ -34,18 +34,18 @@ export class DeviceStateRecord extends ImmuRecord<DeviceStateProps>({
 		return this.name;
 	}
 
-	public setMessageOutportValue(id: string, value: string): DeviceStateRecord {
+	public setMessageOutportValue(id: string, value: string): InstanceStateRecord {
 		return this.set("messageOutputs", this.messageOutputs.set(id, value));
 	}
 
-	public setParameterValue(id: ParameterRecord["id"], value: number): DeviceStateRecord {
+	public setParameterValue(id: ParameterRecord["id"], value: number): InstanceStateRecord {
 		const param = this.parameters.get(id);
 		if (!param) return this;
 
 		return this.set("parameters", this.parameters.set(param.id, param.setValue(value)));
 	}
 
-	public setParameterNormalizedValue(id: ParameterRecord["id"], value: number): DeviceStateRecord {
+	public setParameterNormalizedValue(id: ParameterRecord["id"], value: number): InstanceStateRecord {
 		const param = this.parameters.get(id);
 		if (!param) return this;
 
@@ -90,9 +90,9 @@ export class DeviceStateRecord extends ImmuRecord<DeviceStateProps>({
 		return desc.CONTENTS.name.VALUE as string;
 	}
 
-	public static fromDescription(desc: OSCQueryRNBOInstance): DeviceStateRecord {
+	public static fromDescription(desc: OSCQueryRNBOInstance): InstanceStateRecord {
 
-		return new DeviceStateRecord({
+		return new InstanceStateRecord({
 			index: parseInt(desc.FULL_PATH.split("/").pop(), 10),
 			name: this.getJackName(desc.CONTENTS.jack),
 			patcher: desc.CONTENTS.name.VALUE,

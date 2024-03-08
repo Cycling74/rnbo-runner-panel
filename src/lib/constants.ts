@@ -15,7 +15,7 @@ export enum AppStatus {
 	Error
 }
 
-export enum DeviceTab {
+export enum InstanceTab {
 	MessagePorts = "msg",
 	MIDI = "midi",
 	Parameters = "params"

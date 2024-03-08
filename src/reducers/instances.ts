@@ -1,55 +1,55 @@
 import { Map as ImmuMap } from "immutable";
-import { DeviceStateRecord } from "../models/device";
+import { InstanceStateRecord } from "../models/instance";
 import { InstanceAction, InstanceActionType } from "../actions/instances";
 
-export interface DeviceInstancesState {
-	devices: ImmuMap<DeviceStateRecord["id"], DeviceStateRecord>;
+export interface InstanceInstancesState {
+	instances: ImmuMap<InstanceStateRecord["id"], InstanceStateRecord>;
 }
 
-export const instances = (state: DeviceInstancesState = {
+export const instances = (state: InstanceInstancesState = {
 
-	devices: ImmuMap<DeviceStateRecord["id"], DeviceStateRecord>()
-}, action: InstanceAction): DeviceInstancesState => {
+	instances: ImmuMap<InstanceStateRecord["id"], InstanceStateRecord>()
+}, action: InstanceAction): InstanceInstancesState => {
 
 	switch(action.type) {
 
-		case InstanceActionType.SET_DEVICE: {
-			const { device } = action.payload;
+		case InstanceActionType.SET_INSTANCE: {
+			const { instance } = action.payload;
 
 			return {
 				...state,
-				devices: state.devices.set(device.id, device)
+				instances: state.instances.set(instance.id, instance)
 			};
 		}
 
-		case InstanceActionType.SET_DEVICES: {
-			const { devices } = action.payload;
+		case InstanceActionType.SET_INSTANCES: {
+			const { instances } = action.payload;
 
 			return {
 				...state,
-				devices: state.devices.withMutations(map => {
-					for (const device of devices) {
-						map.set(device.id, device);
+				instances: state.instances.withMutations(map => {
+					for (const instance of instances) {
+						map.set(instance.id, instance);
 					}
 				})
 			};
 		}
 
-		case InstanceActionType.DELETE_DEVICE: {
-			const { device } = action.payload;
+		case InstanceActionType.DELETE_INSTANCE: {
+			const { instance } = action.payload;
 
 			return {
 				...state,
-				devices: state.devices.delete(device.id)
+				instances: state.instances.delete(instance.id)
 			};
 		}
 
-		case InstanceActionType.DELETE_DEVICES: {
-			const { devices } = action.payload;
+		case InstanceActionType.DELETE_INSTANCES: {
+			const { instances } = action.payload;
 
 			return {
 				...state,
-				devices: state.devices.deleteAll(devices.map(d => d.id))
+				instances: state.instances.deleteAll(instances.map(d => d.id))
 			};
 		}
 

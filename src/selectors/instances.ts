@@ -1,19 +1,19 @@
 import { Map as ImmuMap } from "immutable";
 import { RootStateType } from "../lib/store";
-import { DeviceStateRecord } from "../models/device";
+import { InstanceStateRecord } from "../models/instance";
 
-export const getDevice = (state: RootStateType, id: DeviceStateRecord["id"]): DeviceStateRecord | undefined => state.instances.devices.get(id);
-export const getDevices = (state: RootStateType): ImmuMap<DeviceStateRecord["id"], DeviceStateRecord> => state.instances.devices;
+export const getInstance = (state: RootStateType, id: InstanceStateRecord["id"]): InstanceStateRecord | undefined => state.instances.instances.get(id);
+export const getInstances = (state: RootStateType): ImmuMap<InstanceStateRecord["id"], InstanceStateRecord> => state.instances.instances;
 
-export const getDeviceByIndex = (state: RootStateType, index: DeviceStateRecord["index"]): DeviceStateRecord | undefined => {
+export const getInstanceByIndex = (state: RootStateType, index: InstanceStateRecord["index"]): InstanceStateRecord | undefined => {
 	const id = state.graph.patcherNodeIdByIndex.get(index);
-	return id ? state.instances.devices.get(id) : undefined;
+	return id ? state.instances.instances.get(id) : undefined;
 };
 
-export const getDevicesByIndex = (state: RootStateType): ImmuMap<DeviceStateRecord["index"], DeviceStateRecord> => {
-	return ImmuMap<DeviceStateRecord["index"], DeviceStateRecord>().withMutations(map => {
+export const getInstancesByIndex = (state: RootStateType): ImmuMap<InstanceStateRecord["index"], InstanceStateRecord> => {
+	return ImmuMap<InstanceStateRecord["index"], InstanceStateRecord>().withMutations(map => {
 		state.graph.patcherNodeIdByIndex.forEach((id, index) => {
-			const node = getDevice(state, id);
+			const node = getInstance(state, id);
 			if (node) map.set(index, node);
 		});
 	});

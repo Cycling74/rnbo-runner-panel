@@ -1,10 +1,10 @@
 import { FunctionComponent, memo } from "react";
 import InportEntry from "./inport";
 import classes from "./ports.module.css";
-import { DeviceStateRecord } from "../../models/device";
+import { InstanceStateRecord } from "../../models/instance";
 
 export type MessageInportListProps = {
-	inports: DeviceStateRecord["messageInputs"];
+	inports: InstanceStateRecord["messageInputs"];
 	onSendMessage: (id: string, value: string) => any;
 }
 

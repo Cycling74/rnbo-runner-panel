@@ -58,7 +58,7 @@ const GraphEditor: FunctionComponent<GraphEditorProps> = memo(function WrappedFl
 
 	const onNodeDoubleClick = useCallback((e: React.MouseEvent, node: Node<NodeDataProps>) => {
 		if (node.type !== NodeType.Patcher) return;
-		push({ pathname: "/devices/[index]", query: { ...query, index: (node.data.node as GraphPatcherNodeRecord).index }});
+		push({ pathname: "/instances/[index]", query: { ...query, index: (node.data.node as GraphPatcherNodeRecord).index }});
 	}, [query, push]);
 
 	const flowNodes: Node<NodeDataProps>[] = nodes.valueSeq().toArray().map(node => ({
