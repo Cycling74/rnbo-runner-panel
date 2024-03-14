@@ -13,6 +13,7 @@ export enum PortDirection {
 }
 
 export enum NodeType {
+	Control = "control",
 	Patcher = "patcher",
 	System = "system"
 }
@@ -61,7 +62,6 @@ export type CommonGraphNodeProps = {
 export type GraphSystemNodeProps = CommonGraphNodeProps & {
 	direction: PortDirection;
 	id: string;
-
 }
 
 export type GraphPatcherNodeProps = CommonGraphNodeProps & {
@@ -69,6 +69,8 @@ export type GraphPatcherNodeProps = CommonGraphNodeProps & {
 	patcher: string;
 	path: string;
 }
+
+export type GraphControlNodeProps = CommonGraphNodeProps;
 
 export interface GraphNode extends CommonGraphNodeProps {
 	id: string;
@@ -82,6 +84,10 @@ export interface GraphPatcherNode extends GraphNode {
 
 export interface GraphSystemNode extends GraphNode {
 	type: NodeType.System;
+}
+
+export interface GraphControlNode extends GraphNode {
+	type: NodeType.Control
 }
 
 export class GraphPatcherNodeRecord extends ImmuRecord<GraphPatcherNodeProps>({
@@ -211,8 +217,23 @@ export class GraphPatcherNodeRecord extends ImmuRecord<GraphPatcherNodeProps>({
 			y: 0
 		});
 	}
-
 }
+
+// Common utilities
+export const createNodePorts = (jackName: string, type: ConnectionType, direction: PortDirection, portNames: string[]): Array<GraphPortRecord> => {
+	const portNameReplace = `${jackName}:`;
+	const ports: GraphPortRecord[] = [];
+	for (const portName of portNames) {
+		if (portName.startsWith(portNameReplace)) {
+			ports.push(new GraphPortRecord({
+				id: portName.replace(portNameReplace, ""),
+				direction,
+				type
+			}));
+		}
+	}
+	return ports;
+};
 
 export class GraphSystemNodeRecord extends ImmuRecord<GraphSystemNodeProps>({
 
@@ -245,6 +266,10 @@ export class GraphSystemNodeRecord extends ImmuRecord<GraphSystemNodeProps>({
 		return nodeWidth;
 	}
 
+	public updatePosition(x: number, y: number): GraphSystemNodeRecord {
+		return this.withMutations(record => record.set("x", x).set("y", y));
+	}
+
 	public setPortsByType(type: ConnectionType, direction: PortDirection, newPorts: GraphPortRecord[]): GraphSystemNodeRecord {
 		const portList = this.ports
 			// Filter out existing ports with the same type and direction as we'll reset them below
@@ -259,10 +284,6 @@ export class GraphSystemNodeRecord extends ImmuRecord<GraphSystemNodeProps>({
 		return this
 			.set("ports", portList)
 			.set("contentHeight", calculateNodeContentHeight(portList));
-	}
-
-	public updatePosition(x: number, y: number): GraphSystemNodeRecord {
-		return this.withMutations(record => record.set("x", x).set("y", y));
 	}
 
 	public select(): GraphSystemNodeRecord {
@@ -285,21 +306,6 @@ export class GraphSystemNodeRecord extends ImmuRecord<GraphSystemNodeProps>({
 		return "-out";
 	}
 
-	public static createPorts(jackName: string, type: ConnectionType, direction: PortDirection, portNames: string[]): Array<GraphPortRecord> {
-		const portNameReplace = `${jackName}:`;
-		const ports: GraphPortRecord[] = [];
-		for (const portName of portNames) {
-			if (portName.startsWith(portNameReplace)) {
-				ports.push(new GraphPortRecord({
-					id: portName.replace(portNameReplace, ""),
-					direction,
-					type
-				}));
-			}
-		}
-		return ports;
-	}
-
 	static fromDescription(systemJackNames: ImmuSet<string>, desc: OSCQueryRNBOJackPortInfo): GraphSystemNodeRecord[] {
 
 		// We expect systemJackNames to be a Set of all, non rnbo instances jack assigned names
@@ -310,13 +316,13 @@ export class GraphSystemNodeRecord extends ImmuRecord<GraphSystemNodeProps>({
 		for (const jackName of systemJackNames.valueSeq().toArray()) {
 
 			const inputPorts = [
-				...this.createPorts(
+				...createNodePorts(
 					jackName,
 					ConnectionType.Audio,
 					PortDirection.Source,
 					desc.CONTENTS.audio.CONTENTS.sources.TYPE !== "" && desc.CONTENTS.audio.CONTENTS.sources.VALUE.length ? desc.CONTENTS.audio.CONTENTS.sources.VALUE : []
 				),
-				...this.createPorts(
+				...createNodePorts(
 					jackName,
 					ConnectionType.MIDI,
 					PortDirection.Source,
@@ -325,13 +331,13 @@ export class GraphSystemNodeRecord extends ImmuRecord<GraphSystemNodeProps>({
 			];
 
 			const outputPorts = [
-				...this.createPorts(
+				...createNodePorts(
 					jackName,
 					ConnectionType.Audio,
 					PortDirection.Sink,
 					desc.CONTENTS.audio.CONTENTS.sinks.TYPE !== "" && desc.CONTENTS.audio.CONTENTS.sinks.VALUE.length ? desc.CONTENTS.audio.CONTENTS.sinks.VALUE : []
 				),
-				...this.createPorts(
+				...createNodePorts(
 					jackName,
 					ConnectionType.MIDI,
 					PortDirection.Sink,
@@ -376,7 +382,93 @@ export class GraphSystemNodeRecord extends ImmuRecord<GraphSystemNodeProps>({
 	}
 }
 
-export type GraphNodeRecord = GraphPatcherNodeRecord | GraphSystemNodeRecord;
+export class GraphControlNodeRecord extends ImmuRecord<GraphControlNodeProps>({
+
+	jackName: "",
+	ports: ImmuMap<GraphPortRecord["id"], GraphPortRecord>(),
+
+	// Editor props
+	contentHeight: 0,
+	selected: false,
+	y: 0,
+	x: 0
+
+}) implements GraphControlNode {
+
+
+	public getPort(id: GraphPortRecord["id"]): GraphPortRecord | undefined {
+		return this.ports.get(id);
+	}
+
+	public get id(): string {
+		return this.jackName;
+	}
+
+	public get type(): NodeType.Control {
+		return NodeType.Control;
+	}
+
+	public get height(): number {
+		return this.contentHeight + headerHeight;
+	}
+
+	public get width(): number {
+		return nodeWidth;
+	}
+
+	public setPortsByType(type: ConnectionType, direction: PortDirection, newPorts: GraphPortRecord[]): GraphControlNodeRecord {
+		const portList = this.ports
+			// Filter out existing ports with the same type and direction as we'll reset them below
+			.filterNot(port => port.type === type && port.direction === direction)
+			// Add new ports
+			.withMutations(map => {
+				for (const port of newPorts) {
+					map.set(port.id, port);
+				}
+			});
+
+		return this
+			.set("ports", portList)
+			.set("contentHeight", calculateNodeContentHeight(portList));
+	}
+
+	public updatePosition(x: number, y: number): GraphControlNodeRecord {
+		return this.withMutations(record => record.set("x", x).set("y", y));
+	}
+
+	public select(): GraphControlNodeRecord {
+		return this.set("selected", true);
+	}
+
+	public unselect(): GraphControlNodeRecord {
+		return this.set("selected", false);
+	}
+
+	public toggleSelect(): GraphControlNodeRecord {
+		return this.set("selected", !this.selected);
+	}
+
+	public static fromDescription(jackName: string, portNames: { audioSinks?: string[], audioSources?: string[], midiSinks?: string[], midiSources?: string[] } ): GraphControlNodeRecord {
+		const portList = [
+			...createNodePorts(jackName, ConnectionType.Audio, PortDirection.Sink, portNames.audioSinks || []),
+			...createNodePorts(jackName, ConnectionType.Audio, PortDirection.Source, portNames.audioSources || []),
+			...createNodePorts(jackName, ConnectionType.MIDI, PortDirection.Sink, portNames.midiSinks || []),
+			...createNodePorts(jackName, ConnectionType.MIDI, PortDirection.Source, portNames.midiSources || [])
+		];
+
+		const ports = ImmuMap<GraphPortRecord["id"], GraphPortRecord>(portList.map(p => [p.id, p]));
+		return new GraphControlNodeRecord({
+			jackName,
+			ports,
+			contentHeight: calculateNodeContentHeight(ports),
+			selected: false,
+			x: 0,
+			y: 0
+		});
+	}
+}
+
+export type GraphNodeRecord = GraphPatcherNodeRecord | GraphSystemNodeRecord | GraphControlNodeRecord;
 
 export type GraphConnectionProps = {
 	sourceNodeId: string;
