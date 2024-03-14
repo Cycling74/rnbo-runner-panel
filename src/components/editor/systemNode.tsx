@@ -21,7 +21,7 @@ const EditorSystemNode: FunctionComponent<EditorNodeProps> = memo(function Wrapp
 	return (
 		<Paper className={ classes.node }  shadow="sm" withBorder data-selected={ selected } >
 			<div className={ classes.nodeHeader } >
-				{ node.id }
+				{ node.jackName }
 			</div>
 			<div className={ classes.nodeContent } style={{ height: `${contentHeight}px` }} >
 				{
