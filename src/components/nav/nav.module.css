@@ -20,12 +20,11 @@
   justify-content: center;
 	width: 100%;
 
-	@media (min-width: 62em) {
+	@media (min-width: $mantine-breakpoint-md) {
 		border-radius: var(--mantine-radius-md);
 		padding: 0;
 		width: rem(50px);
   }
-
 
 	&:hover {
 		background-color: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-5));

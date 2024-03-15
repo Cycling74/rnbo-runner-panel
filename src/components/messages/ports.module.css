@@ -12,7 +12,7 @@
 	grid-template-columns: 1fr;
 	gap: var(--mantine-spacing-md);
 
-	@media (min-width: 62em) {
+	@media (min-width: $mantine-breakpoint-md) {
 		grid-template-columns: 1fr 1fr;
   }
 }
