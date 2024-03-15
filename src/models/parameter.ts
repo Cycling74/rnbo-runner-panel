@@ -56,10 +56,10 @@ export class ParameterRecord extends ImmuRecord<ParameterRecordProps>({
 		return this.enumVals.length >= 1;
 	}
 
-	public getDisplayValueForNormalizedValue(nv: number): string | number {
+	public getValueForNormalizedValue(nv: number): string | number {
 		if (this.isEnum) return this.enumVals[Math.round((this.enumVals.length - 1 ) * nv)];
 
-		return typeof this.value !== "number" ? this.value : this.value.toFixed(2);
+		return typeof this.value !== "number" ? this.value : this.value;
 	}
 
 	public setValue(v: number): ParameterRecord {

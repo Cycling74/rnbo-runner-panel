@@ -3,7 +3,11 @@ import { ParameterRecord } from "../../models/parameter";
 import classes from "./parameters.module.css";
 import { Group, Slider } from "@mantine/core";
 
-export const parameterBoxHeight = 58;
+export const parameterBoxHeight = 70;
+const formatParamValueForDisplay = (value: number | string) => {
+	if (typeof value === "number") return Number.isInteger(value) ? value : value.toFixed(2);
+	return value;
+};
 
 interface ParameterProps {
 	param: ParameterRecord;
@@ -27,7 +31,7 @@ const Parameter = memo(function WrappedParameter({ param, onSetNormalizedValue }
 	}, [setUseLocalValue, onSetNormalizedValue, param]);
 
 	const currentValue = useLocalValue ? localValue : param.normalizedValue;
-	const displayValue = param.getDisplayValueForNormalizedValue(currentValue);
+	const value = param.getValueForNormalizedValue(currentValue);
 	const stepSize = param.isEnum ? 1 / (param.enumVals.length - 1) : 0.001;
 
 	return (
@@ -36,7 +40,8 @@ const Parameter = memo(function WrappedParameter({ param, onSetNormalizedValue }
 				<label htmlFor={ param.name } className={ classes.parameterItemLabel } >{ param.name }</label>
 			</Group>
 			<Slider
-				label={ displayValue }
+				label={ formatParamValueForDisplay(value) }
+				classNames={{ markWrapper: classes.markWrapper, markLabel: classes.markLabel }}
 				max={ 1 }
 				min={ 0 }
 				name={ param.name }
@@ -48,7 +53,7 @@ const Parameter = memo(function WrappedParameter({ param, onSetNormalizedValue }
 				marks={
 					param.isEnum
 						? param.enumVals.map((v, i) => ({ label: `${v}`, value: stepSize * i }))
-						: [{ label: `${param.min}`, value: 0 }, { label: `${param.max}`, value: 1 }]
+						: [{ label: `${formatParamValueForDisplay(param.min)}`, value: 0 }, { label: `${formatParamValueForDisplay(param.max)}`, value: 1 }]
 				}
 			/>
 		</div>
