@@ -10,7 +10,7 @@ export enum ConfigKey {
 
 	// Instance
 	AutoConnectAudio = "auto_connect_audio",
-	AutoConnectAudioIndexed = "auto_connect_audio_ndexed",
+	AutoConnectAudioIndexed = "auto_connect_audio_indexed",
 	AutoConnectMIDI = "auto_connect_midi",
 	AutoStartLast = "auto_start_last",
 	AudioFadeIn = "audio_fade_in",
@@ -202,8 +202,10 @@ export class ConfigRecord extends ImmuRecord<ConfigRecordProps>({
 		const result: Array<ConfigRecord> = [];
 
 		const instConfig: Partial<OSCQueryRNBOInstanceConfig["CONTENTS"]> = desc.CONTENTS.inst.CONTENTS.config?.CONTENTS || {};
-		for (const [key, value] of Object.entries(instConfig)) {
-			if (!instanceConfigDetails[key as ConfigKey]) continue;
+		for (const key of Object.keys(instanceConfigDetails) as Array<keyof OSCQueryRNBOInstanceConfig["CONTENTS"]>) {
+
+			const value = instConfig[key];
+			if (!value) continue;
 
 			result.push(new ConfigRecord({
 				id: key as ConfigKey,
@@ -216,8 +218,9 @@ export class ConfigRecord extends ImmuRecord<ConfigRecordProps>({
 		}
 
 		const controlConfig: Partial<OSCQueryRNBOConfigState["CONTENTS"]> = desc.CONTENTS.config.CONTENTS || {};
-		for (const [key, value] of Object.entries(controlConfig)) {
-			if (!controlConfigDetails[key as ConfigKey]) continue;
+		for (const key of Object.keys(controlConfigDetails) as Array<keyof OSCQueryRNBOConfigState["CONTENTS"]>) {
+			const value = controlConfig[key];
+			if (!value) continue;
 
 			result.push(new ConfigRecord({
 				id: key as ConfigKey,
@@ -234,8 +237,10 @@ export class ConfigRecord extends ImmuRecord<ConfigRecordProps>({
 		if (ownServer) {
 			const jackConfig: Partial<OSCQueryRNBOJackConfig["CONTENTS"]> = desc.CONTENTS.jack.CONTENTS.config?.CONTENTS || {};
 
-			for (const [key, value] of Object.entries(jackConfig)) {
-				if (!jackConfigDetails[key as ConfigKey]) continue;
+			for (const key of Object.keys(jackConfigDetails) as Array<keyof OSCQueryRNBOJackConfig["CONTENTS"]>) {
+				const value = jackConfig[key];
+				if (!value) continue;
+
 				result.push(new ConfigRecord({
 					id: key as ConfigKey,
 					...jackConfigDetails[key as ConfigKey],

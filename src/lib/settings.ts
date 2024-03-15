@@ -1,11 +1,11 @@
-import { Map as ImmuMap } from "immutable";
+import { OrderedMap as ImmuOrderedMap } from "immutable";
 import { AppSetting } from "../models/settings";
 import { AppSettingRecord, AppSettingValue, appSettingDefaults } from "../models/settings";
 
 const LS_KEY = "@@rnbo_runner_settings@@";
 const LS_VERSION = 2;
 
-export const loadSettingsState = (): ImmuMap<AppSetting, AppSettingRecord> => {
+export const loadSettingsState = (): ImmuOrderedMap<AppSetting, AppSettingRecord> => {
 	let storedData: Partial<Record<AppSetting, AppSettingValue>> = {};
 	try {
 		if (typeof window  == "undefined") throw new Error("Not in Browser");
@@ -19,7 +19,7 @@ export const loadSettingsState = (): ImmuMap<AppSetting, AppSettingRecord> => {
 	} catch (err) {
 		storedData = {};
 	}
-	return ImmuMap<AppSetting, AppSettingRecord>().withMutations(map => {
+	return ImmuOrderedMap<AppSetting, AppSettingRecord>().withMutations(map => {
 		for (const id of Object.values(AppSetting)) {
 			map.set(id, new AppSettingRecord({
 				id,
@@ -30,7 +30,7 @@ export const loadSettingsState = (): ImmuMap<AppSetting, AppSettingRecord> => {
 	});
 };
 
-export const storeSettingsState = (settings: ImmuMap<AppSetting, AppSettingRecord>) => {
+export const storeSettingsState = (settings: ImmuOrderedMap<AppSetting, AppSettingRecord>) => {
 	if (typeof window == "undefined") return;
 	try {
 		const data = Object.values(AppSetting).reduce((result, id) => {
