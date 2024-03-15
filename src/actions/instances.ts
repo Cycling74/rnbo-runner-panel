@@ -255,7 +255,7 @@ export const updateInstanceMessageOutputValue = (index: number, name: string, va
 			if (!enabled) return;
 
 			// Active Instance view?!
-			if (Router.asPath !== `/instances/${index}`) return;
+			if (Router.pathname !== "/instances/[index]" || Router.query.index !== `${index}`) return;
 
 			const instance = getInstanceByIndex(state, index);
 			if (!instance) return;
