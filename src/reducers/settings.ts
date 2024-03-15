@@ -1,4 +1,4 @@
-import { Map as ImmuMap } from "immutable";
+import { OrderedMap as ImmuOrderedMap } from "immutable";
 import { SettingsAction, SettingsActionType } from "../actions/settings";
 import { AppSetting } from "../models/settings";
 import { ConfigKey, ConfigRecord } from "../models/config";
@@ -15,8 +15,8 @@ export type SettingsState = {
 	show: boolean;
 	ownsJackServer: boolean;
 
-	appSettings: ImmuMap<AppSetting, AppSettingRecord>;
-	runnerConfig: ImmuMap<ConfigKey, ConfigRecord>;
+	appSettings: ImmuOrderedMap<AppSetting, AppSettingRecord>;
+	runnerConfig: ImmuOrderedMap<ConfigKey, ConfigRecord>;
 }
 
 const defaultState: SettingsState = {
@@ -25,7 +25,7 @@ const defaultState: SettingsState = {
 	ownsJackServer: false,
 
 	appSettings: loadSettingsState(),
-	runnerConfig: ImmuMap<ConfigKey, ConfigRecord>()
+	runnerConfig: ImmuOrderedMap<ConfigKey, ConfigRecord>()
 };
 
 
@@ -74,7 +74,7 @@ export const settings = (state: SettingsState = defaultState, action: SettingsAc
 			return {
 				...state,
 				ownsJackServer,
-				runnerConfig: ImmuMap<ConfigKey, ConfigRecord>(records.map(r => [r.id, r]))
+				runnerConfig: ImmuOrderedMap<ConfigKey, ConfigRecord>(records.map(r => [r.id, r]))
 			};
 		}
 
