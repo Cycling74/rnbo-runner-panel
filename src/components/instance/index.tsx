@@ -19,11 +19,13 @@ const tabs = [
 export type InstanceProps = {
 	instance: InstanceStateRecord;
 	enabledMessageOuput: boolean;
+	enabledMIDIKeyboard: boolean;
 }
 
 const Instance: FunctionComponent<InstanceProps> = memo(function WrappedInstance({
 	instance,
-	enabledMessageOuput
+	enabledMessageOuput,
+	enabledMIDIKeyboard
 }) {
 
 	const [activeTab, setActiveTab] = useState<InstanceTab>(InstanceTab.Parameters);
@@ -34,6 +36,7 @@ const Instance: FunctionComponent<InstanceProps> = memo(function WrappedInstance
 			className={ classes.instanceTabWrap }
 			value={ activeTab }
 			onChange={ t => setActiveTab(t as InstanceTab) }
+			keepMounted={ false }
 		>
 			<Tabs.List grow={ isMobile } >
 				{
@@ -47,7 +50,7 @@ const Instance: FunctionComponent<InstanceProps> = memo(function WrappedInstance
 			<div className={ classes.instanceTabContentWrap } >
 				<InstanceParameterTab instance={ instance } />
 				<InstanceMessagesTab instance={ instance } outputEnabled={ enabledMessageOuput } />
-				<InstanceMIDITab instance={ instance } />
+				<InstanceMIDITab instance={ instance } keyboardEnabled={ enabledMIDIKeyboard } />
 			</div>
 		</Tabs>
 	);

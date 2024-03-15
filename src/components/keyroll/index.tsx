@@ -1,4 +1,4 @@
-import { CSSProperties, FunctionComponent, memo, useCallback, useState } from "react";
+import { CSSProperties, FunctionComponent, memo, useCallback, useEffect, useState } from "react";
 import { Set as ImmuSet } from "immutable";
 import { clamp } from "../../lib/util";
 import Octave from "./octave";
@@ -11,17 +11,38 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronDown, faChevronUp } from "@fortawesome/free-solid-svg-icons";
 
 const baseOctave = 4;
+const ignoredKeyboardTargets = new Set(["A", "INPUT", "TEXTAREA", "BUTTON"]);
+
+const noteByKeyCode: Record<string, number> = {
+	KeyA: 0,
+	KeyW: 1,
+	KeyS: 2,
+	KeyE: 3,
+	KeyD: 4,
+	KeyF: 5,
+	KeyT: 6,
+	KeyG: 7,
+	KeyY: 8,
+	KeyH: 9,
+	KeyU: 10,
+	KeyJ: 11,
+	KeyK: 12,
+	KeyO: 13,
+	KeyL: 14
+};
 
 export type KeyRollProps = {
 	onTriggerNoteOn: (note: number) => any;
 	onTriggerNoteOff: (note: number) => any;
+	keyboardEnabled: boolean;
 };
 
-const calcOctaveCount = (size: number, minWidth: number): number => Math.floor(size / (minWidth * 7));
+const calcOctaveCount = (size: number, minWidth: number): number => clamp(Math.floor(size / (minWidth * 7)), 1, 4);
 
 export const KeyRoll: FunctionComponent<KeyRollProps> = memo(function WrappedKeyRoll({
 	onTriggerNoteOn,
-	onTriggerNoteOff
+	onTriggerNoteOff,
+	keyboardEnabled
 }) {
 
 	const [activeNotes, setActiveNotes] = useState(ImmuSet<number>());
@@ -38,11 +59,13 @@ export const KeyRoll: FunctionComponent<KeyRollProps> = memo(function WrappedKey
 	octaveCount = octave + octaveCount  > 9 ? 9 - octave : octaveCount;
 
 	const onNoteOn = useCallback((p: number) => {
+		if (p > 127) return;
 		onTriggerNoteOn(p);
 		setActiveNotes((notes: ImmuSet<number>) => notes.add(p));
 	}, [onTriggerNoteOn]);
 
 	const onNoteOff = useCallback((p: number) => {
+		if (p > 127) return;
 		onTriggerNoteOff(p);
 		setActiveNotes((notes: ImmuSet<number>) => notes.delete(p));
 	}, [onTriggerNoteOff]);
@@ -70,6 +93,39 @@ export const KeyRoll: FunctionComponent<KeyRollProps> = memo(function WrappedKey
 			onNoteOff={ onNoteOff }
 		/>);
 	}
+
+	useEffect(() => {
+		if (!keyboardEnabled) return () => {};
+
+		const onKeyDown = (evt: KeyboardEvent): void => {
+			if (evt.target instanceof HTMLElement && ignoredKeyboardTargets.has(evt.target.nodeName)) return;
+
+			if (evt.code === "KeyZ") return void onDecrementOctave();
+			if (evt.code === "KeyX") return void onIncrementOctave();
+
+			const note = noteByKeyCode[evt.code];
+			if (note === undefined) return;
+
+			return void onNoteOn(octave * 12 + note);
+		};
+
+		const onKeyUp = (evt: KeyboardEvent): void => {
+			if (evt.target instanceof HTMLElement && ignoredKeyboardTargets.has(evt.target.nodeName)) return;
+
+			const note = noteByKeyCode[evt.code];
+			if (note === undefined) return;
+
+			return void onNoteOff(octave * 12 + note);
+		};
+
+		document.addEventListener("keydown", onKeyDown);
+		document.addEventListener("keyup", onKeyUp);
+
+		return () => {
+			document.removeEventListener("keydown", onKeyDown);
+			document.removeEventListener("keyup", onKeyUp);
+		};
+	}, [keyboardEnabled, octave, onNoteOn, onNoteOff, onIncrementOctave, onDecrementOctave]);
 
 	return (
 		<div className={ classes.wrapper } >

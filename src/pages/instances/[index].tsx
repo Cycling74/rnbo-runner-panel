@@ -33,15 +33,16 @@ export default function Instance() {
 		currentInstance,
 		appStatus,
 		instances,
-		enabledMessageOuput
+		enabledMessageOuput,
+		enabledMIDIKeyboard
 	] = useAppSelector((state: RootStateType) => {
 		const currentInstance = getInstanceByIndex(state, instanceIndex);
-		const enabledMessageOuput = getAppSettingValue<boolean>(state, AppSetting.debugMessageOutput);
 		return [
 			currentInstance,
 			getAppStatus(state),
 			getInstances(state),
-			enabledMessageOuput
+			getAppSettingValue<boolean>(state, AppSetting.debugMessageOutput),
+			getAppSettingValue<boolean>(state, AppSetting.keyboardMIDIInput)
 		];
 	});
 
@@ -107,6 +108,7 @@ export default function Instance() {
 			<InstanceComponent
 				instance={ currentInstance }
 				enabledMessageOuput={ enabledMessageOuput }
+				enabledMIDIKeyboard={ enabledMIDIKeyboard }
 			/>
 			<InstancePresetDrawer
 				open={ presetDrawerIsOpen }
