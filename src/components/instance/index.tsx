@@ -12,7 +12,7 @@ import { InstanceStateRecord } from "../../models/instance";
 
 const tabs = [
 	{ icon: faSliders, value: InstanceTab.Parameters, label: "Parameters" },
-	{ icon: faArrowRightArrowLeft, value: InstanceTab.MessagePorts, label: "Messages" },
+	{ icon: faArrowRightArrowLeft, value: InstanceTab.MessagePorts, label: "Ports" },
 	{ icon: faMusic, value: InstanceTab.MIDI, label: "MIDI" }
 ];
 

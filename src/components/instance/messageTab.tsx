@@ -26,23 +26,23 @@ const InstanceMessagesTab: FunctionComponent<InstanceMessageTabProps> = memo(fun
 
 	return (
 		<Tabs.Panel value={ InstanceTab.MessagePorts } >
-			<SectionTitle>Inputs</SectionTitle>
+			<SectionTitle>Input Ports</SectionTitle>
 			{
 				instance.messageInputs.size ? <MessageInportList inports={ instance.messageInputs } onSendMessage={ onSendInportMessage } /> : (
 					<div className={ classes.emptySection }>
-						This patcher instance has no message inputs
+						This patcher instance has no message input ports.
 					</div>
 				)
 			}
-			<SectionTitle>Outputs</SectionTitle>
+			<SectionTitle>Output Ports</SectionTitle>
 			{
 				!instance.messageOutputs.size ? (
 					<div className={ classes.emptySection }>
-						This patcher instance has no message outputs
+						This patcher instance has no output ports.
 					</div>
 				) : !outputEnabled ? (
 					<div className={ classes.disabledMessageOutput } >
-						Message output monitoring is currently disabled. Enable it in the settings in order to display the output values.
+						Output port monitoring is currently disabled. Enable it in the settings in order to display the output values.
 					</div>
 				) : <MessageOutportList outports={ instance.messageOutputs } />
 			}
