@@ -89,14 +89,17 @@ export default function Instance() {
 
 	return (
 		<Stack className={ classes.instanceWrap } >
-			<Group justify="space-between" align="flex-end">
-				<NativeSelect
-					data={ instances.valueSeq().sortBy(n => n.index).toArray().map(d => ({ value: `${d.index}`, label: `${d.index}: ${d.patcher}` })) }
-					leftSection={ <FontAwesomeIcon icon={ faVectorSquare } /> }
-					onChange={ onChangeInstance }
-					value={ currentInstance.index }
-				/>
-				<Group>
+			<Group justify="space-between" wrap="nowrap">
+				<div style={{ flex: "1 2 50%" }} >
+					<NativeSelect
+						data={ instances.valueSeq().sortBy(n => n.index).toArray().map(d => ({ value: `${d.index}`, label: `${d.index}: ${d.patcher}` })) }
+						leftSection={ <FontAwesomeIcon icon={ faVectorSquare } /> }
+						onChange={ onChangeInstance }
+						value={ currentInstance.index }
+						style={{ maxWidth: 300, width: "100%" }}
+					/>
+				</div>
+				<Group style={{ flex: "0" }} wrap="nowrap" gap="xs" >
 					<Button variant="outline" color="red" onClick={ onUnloadInstance } >
 						<FontAwesomeIcon icon={ faTrash } />
 					</Button>
