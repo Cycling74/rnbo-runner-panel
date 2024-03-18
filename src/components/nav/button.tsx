@@ -20,7 +20,7 @@ export const NavButton: FunctionComponent<NavLinkProps> = ({ isActive, icon, lab
 				className={ classes.navLink }
 			>
 				<FontAwesomeIcon icon={ icon } />
-				<Text ml="sm" hiddenFrom="md">{ label }</Text>
+				<Text ml="sm" hiddenFrom="sm">{ label }</Text>
 			</UnstyledButton>
 		</Tooltip>
 	);

@@ -1,12 +1,12 @@
 .parameterList {
-	gap: var(--mantine-spacing-lg);
+	gap: var(--mantine-spacing-xl);
 	min-height: 100%;
 }
 
 .parameterItem {
 	break-inside: avoid-column;
-	page-break-inside:a void;
-	padding-bottom: var(--mantine-spacing-lg);
+	page-break-inside: avoid;
+	padding-bottom: var(--mantine-spacing-xl);
 }
 
 .parameterItemLabel {
@@ -14,4 +14,19 @@
 	font-weight: 500;
 	overflow: hidden;
 	text-overflow: ellipsis;
+}
+
+.markWrapper {
+
+	&:first-child {
+		.markLabel {
+			transform: translate(calc(-50% + var(--slider-size)), calc(var(--mantine-spacing-xs)/2));
+		}
+	}
+
+	&:last-child {
+		.markLabel {
+			transform: translate(calc(-100% + var(--slider-size)), calc(var(--mantine-spacing-xs)/2));
+		}
+	}
 }

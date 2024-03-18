@@ -19,21 +19,15 @@ const ParameterList: FunctionComponent<ParameterListProps> = memo(function Wrapp
 	const { ref, height: elHeight } = useElementSize();
 	const { width } = useViewportSize();
 
-	// const onSetNormalizedValue = useCallback((param: ParameterRecord, nValue: number) => {
-	// 	onSetNormalizedValue(param, nValue);
-	// 	// Send Value to remote
-	// 	// const ev = setRemoteParameterValueNormalized(name, value);
-	// 	// ev && dispatch(ev);
-	// }, [onSetNormalizedValue] );
-
 	const paramOverflow = elHeight === 0 || isNaN(elHeight) ? 1 : Math.ceil((parameters.size * parameterBoxHeight) / elHeight);
+
 	let columnCount = 1;
-	if (width >= Breakpoints.md) {
-		columnCount = clamp(paramOverflow, 1, 2);
+	if (width >= Breakpoints.xl) {
+		columnCount = clamp(paramOverflow, 1, 4);
 	} else if (width >= Breakpoints.lg) {
 		columnCount = clamp(paramOverflow, 1, 3);
-	} else if (width >= Breakpoints.xl) {
-		columnCount = clamp(paramOverflow, 1, 4);
+	} else if (width >= Breakpoints.sm) { // treat SM and MD equal
+		columnCount = clamp(paramOverflow, 1, 2);
 	}
 
 	return (

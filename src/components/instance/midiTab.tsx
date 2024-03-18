@@ -8,10 +8,12 @@ import { triggerInstanceMidiNoteOffEventOnRemote, triggerInstanceMidiNoteOnEvent
 
 export type InstanceMIDITabProps = {
 	instance: InstanceStateRecord;
+	keyboardEnabled: boolean;
 }
 
 const InstanceMIDITab: FunctionComponent<InstanceMIDITabProps> = memo(function WrappedInstanceMIDITab({
-	instance
+	instance,
+	keyboardEnabled
 }) {
 
 	const dispatch = useAppDispatch();
@@ -26,7 +28,7 @@ const InstanceMIDITab: FunctionComponent<InstanceMIDITabProps> = memo(function W
 
 	return (
 		<Tabs.Panel value={ InstanceTab.MIDI } >
-			<KeyRoll onTriggerNoteOn={ triggerMIDINoteOn } onTriggerNoteOff={ triggerMIDINoteOff } />
+			<KeyRoll onTriggerNoteOn={ triggerMIDINoteOn } onTriggerNoteOff={ triggerMIDINoteOff } keyboardEnabled={ keyboardEnabled } />
 		</Tabs.Panel>
 	);
 });

@@ -1,5 +1,5 @@
 .main {
-	height: 100vh;
+	height: 100dvh;
 	overflow: hidden;
 }
 
@@ -9,7 +9,8 @@
 	gap: var(--mantine-spacing-md);
 	padding: var(--mantine-spacing-md);
 	height: 100%;
-	overflow: scroll;
+	overflow-y: scroll;
+	overflow-x: hidden;
 
 	& > :nth-child(2) {
 		padding-top: var(--mantine-spacing-md);
