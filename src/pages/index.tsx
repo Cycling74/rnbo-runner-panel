@@ -78,7 +78,7 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 	return (
 		<>
 			<Stack style={{ height: "100%" }} >
-				<Group justify="flex-end">
+				<Group justify="space-between">
 					<Menu position="bottom-end">
 						<Menu.Target>
 							<Button variant="default" leftSection={ <FontAwesomeIcon icon={ faPlus } /> } >
