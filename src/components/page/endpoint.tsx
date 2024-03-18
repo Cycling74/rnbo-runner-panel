@@ -1,5 +1,5 @@
 import { ActionIcon, Button, Group, Modal, Stack, TextInput } from "@mantine/core";
-import { ChangeEvent, FormEvent, FunctionComponent, MouseEvent, memo, useCallback, useEffect, useState } from "react";
+import { ChangeEvent, FormEvent, FunctionComponent, MouseEvent, memo, useCallback, useEffect, useRef, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../../hooks/useAppDispatch";
 import { RootStateType } from "../../lib/store";
 import { useIsMobileDevice } from "../../hooks/useIsMobileDevice";
@@ -22,8 +22,14 @@ const EndpointInfo: FunctionComponent = memo(function WrappedSettings() {
 	const [{ hostname, port }, setEndpoint] = useState<{ hostname: string; port: string; }>({ ...appEndpoint });
 	const [isEditing, setIsEditing] = useState<boolean>(false);
 	const showFullScreen = useIsMobileDevice();
+	const formRef = useRef<HTMLFormElement>();
 
 	const onCloseModal = useCallback(() => dispatch(hideEndpointInfo()), [dispatch]);
+	const selectInput = useCallback((name: string) => {
+		if (!formRef.current) return;
+		const el = formRef.current.querySelector<HTMLInputElement>(`input[name="${name}"]`);
+		el?.select();
+	}, [formRef]);
 
 	const onToggleEdit = useCallback((e: MouseEvent<HTMLButtonElement>) => {
 		if (isEditing) {
@@ -31,7 +37,14 @@ const EndpointInfo: FunctionComponent = memo(function WrappedSettings() {
 			setEndpoint({ ...appEndpoint });
 		}
 		setIsEditing(!isEditing);
-	}, [appEndpoint, isEditing, setIsEditing]);
+		selectInput(e.currentTarget.name);
+	}, [appEndpoint, isEditing, setIsEditing, selectInput]);
+
+	const onEnableEdit = useCallback((e: MouseEvent<HTMLInputElement>) => {
+		if (isEditing) return;
+		setIsEditing(true);
+		selectInput(e.currentTarget.name);
+	}, [isEditing, setIsEditing, selectInput]);
 
 
 	const onChangeConfig = useCallback((e: ChangeEvent<HTMLInputElement>) => {
@@ -59,7 +72,7 @@ const EndpointInfo: FunctionComponent = memo(function WrappedSettings() {
 			size="lg"
 			title="OSCQuery Runner Endpoint"
 		>
-			<form onSubmit={ onSubmit } >
+			<form onSubmit={ onSubmit } ref={ formRef } >
 				<Stack gap="md">
 					<TextInput
 						readOnly={ !isEditing }
@@ -68,7 +81,8 @@ const EndpointInfo: FunctionComponent = memo(function WrappedSettings() {
 						label="Hostname"
 						description="The hostname or IP address of the device that runs the OSCQuery Runner"
 						value={ hostname }
-						rightSection={ isEditing ? null : <ActionIcon variant="subtle" color="gray" onClick={ onToggleEdit }><FontAwesomeIcon icon={ faPencil } /></ActionIcon> }
+						onDoubleClick={ onEnableEdit }
+						rightSection={ isEditing ? null : <ActionIcon name="hostname" variant="subtle" color="gray" onClick={ onToggleEdit }><FontAwesomeIcon icon={ faPencil } /></ActionIcon> }
 					/>
 					<TextInput
 						readOnly={ !isEditing }
@@ -79,7 +93,8 @@ const EndpointInfo: FunctionComponent = memo(function WrappedSettings() {
 						pattern="[0-9]*"
 						description="The port of the OSCQuery Runner Websocket"
 						value={ port }
-						rightSection={ isEditing ? null : <ActionIcon variant="subtle" color="gray" onClick={ onToggleEdit }><FontAwesomeIcon icon={ faPencil } /></ActionIcon> }
+						onDoubleClick={ onEnableEdit }
+						rightSection={ isEditing ? null : <ActionIcon name="port" variant="subtle" color="gray" onClick={ onToggleEdit }><FontAwesomeIcon icon={ faPencil } /></ActionIcon> }
 					/>
 					<Group justify="flex-end">
 						{
