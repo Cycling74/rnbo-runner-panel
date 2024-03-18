@@ -35,9 +35,9 @@ export const appSettingDefaults: Record<AppSetting, Omit<AppSettingRecordProps, 
 		value: "light"
 	},
 	[AppSetting.debugMessageOutput]: {
-		description: "",
+		description: "Activate this setting to monitor data sent out of [outport] objects on the port control tab of an instance.",
 		tab: SettingsTab.UI,
-		title: "Debug Message Output",
+		title: "Monitor Output Ports",
 		type: AppSettingType.Boolean,
 		value: true
 	}
