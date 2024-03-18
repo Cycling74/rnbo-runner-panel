@@ -80,6 +80,7 @@
 	border-width: 1px;
 	position: absolute;
 	top: 0;
+	user-select: none;
 	width: calc(100% / 7);
 
 }
