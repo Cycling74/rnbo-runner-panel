@@ -41,7 +41,7 @@ const AppStatusWrapper: FunctionComponent<PropsWithChildren> = memo(function Wra
 			icon = faCircleNotch;
 			break;
 		case AppStatus.Closed:
-			title = "Connection Failed";
+			title = "Connection Lost";
 			icon = faPlugCircleXmark;
 			break;
 		case AppStatus.Error:
