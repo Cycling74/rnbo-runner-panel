@@ -1,7 +1,7 @@
 import { FunctionComponent, MouseEvent, memo, useCallback } from "react";
 import { ActionIcon, Group, TextInput } from "@mantine/core";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faRotateRight, faTrash } from "@fortawesome/free-solid-svg-icons";
+import { faTrash, faUpload } from "@fortawesome/free-solid-svg-icons";
 import classes from "./presets.module.css";
 import { PresetRecord } from "../../models/preset";
 
@@ -33,7 +33,7 @@ export const PresetItem: FunctionComponent<PresetItemProps> = memo(function Wrap
 					<FontAwesomeIcon icon={ faTrash } />
 				</ActionIcon>
 				<ActionIcon variant="subtle" size="md" onClick={ onLoadPreset } >
-					<FontAwesomeIcon icon={ faRotateRight } />
+					<FontAwesomeIcon icon={ faUpload } />
 				</ActionIcon>
 			</ActionIcon.Group>
 		</Group>
