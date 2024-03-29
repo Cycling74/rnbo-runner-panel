@@ -1,7 +1,10 @@
-.intro {
-	color: var(--mantine-color-dimmed);
-	font-size: var(--mantine-font-size-sm);
+.tabDescription {
+	font-size: var(--mantine-font-size-xs);
+	font-style: italic;
+	padding: 0;
+	margin: 0;
 }
+
 
 .item {
 	padding: 0 0 var(--mantine-spacing-xs) 0;
@@ -32,15 +35,11 @@
 }
 
 .itemTitle {
-	font-weight: 500;
+	font-weight: 700;
 	font-size: var(--mantine-font-size-sm);
 }
 
 .itemDescription {
 	color: var(--mantine-color-dimmed);
 	font-size: var(--mantine-font-size-xs);
-}
-
-.tabPanel {
-	margin-top: 10px;
 }

@@ -6,11 +6,11 @@ import { RootStateType } from "../../lib/store";
 import { getAppSettingValue } from "../../selectors/settings";
 import { AppSetting } from "../../models/settings";
 
-export const PageTheme: FunctionComponent<PropsWithChildren> = ({ children }) => {
+export const PageTheme: FunctionComponent<PropsWithChildren & { fontFamily: string; } > = ({ children, fontFamily }) => {
 
 	const colorScheme = useAppSelector((state: RootStateType) => getAppSettingValue<"light" | "dark">(state, AppSetting.colorScheme));
 	return (
-		<MantineProvider theme={ rnboTheme } forceColorScheme={ colorScheme } >
+		<MantineProvider theme={{ ...rnboTheme, fontFamily }} forceColorScheme={ colorScheme } >
 			{ children }
 		</MantineProvider>
 	);

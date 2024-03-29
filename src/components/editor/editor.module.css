@@ -12,7 +12,7 @@
 		justify-content: space-between;
 		border-bottom: 1px solid var(--mantine-color-default-border);
 		font-size: var(--mantine-font-size-md);
-		font-weight: 500;
+		font-weight: 700;
 		padding: var(--mantine-spacing-sm) var(--mantine-spacing-sm);
 
 		a {
