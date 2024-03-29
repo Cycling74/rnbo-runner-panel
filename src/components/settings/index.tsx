@@ -1,4 +1,4 @@
-import { Anchor, Button, Group, Modal, Stack, Tabs, Text } from "@mantine/core";
+import { Anchor, Button, Group, Modal, Stack, Tabs } from "@mantine/core";
 import SettingsList from "./list";
 import { FunctionComponent, memo, useCallback, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../../hooks/useAppDispatch";
@@ -14,6 +14,7 @@ import { ConfigKey, ConfigRecord } from "../../models/config";
 import { OSCQueryValueType } from "../../lib/types";
 import AboutInfo from "../page/about";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import classes from "./settings.module.css";
 
 type TabConfig = {
 	actions?: Array<SettingActionProps>;
@@ -74,7 +75,7 @@ const SettingsTabPanel: FunctionComponent<SettingsTabPanelProps> = memo(function
 			<Stack gap="sm">
 				{
 					description?.length ? (
-						<Text fz="xs" fs="italic">{ description }</Text>
+						<p className={ classes.tabDescription } >{ description }</p>
 					) : null
 				}
 				<SettingsList

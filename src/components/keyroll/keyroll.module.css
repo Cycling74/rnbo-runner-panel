@@ -55,7 +55,7 @@
 		bottom: calc(var(--mantine-spacing-xs) / 2);
 		color: var(--mantine-color-dark-7);
 		font-size: var(--mantine-font-size-sm);
-		font-weight: bold;
+		font-weight: 700;
 		position: absolute;
 		z-index: 3;
 	}

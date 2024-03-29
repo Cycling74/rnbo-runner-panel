@@ -34,13 +34,17 @@
 	&[data-status="error"] {
 		color: var(--mantine-color-red-7);
 	}
+
+	h2 {
+		font-weight: 900;
+	}
 }
 
 
 .drawerSectionTitle {
 	margin: var(--mantine-spacing-md) 0;
 	font-size: var(--input-label-size, var(--mantine-font-size-sm));
-	font-weight: 500;
+	font-weight: 700;
 }
 
 .transportTempoControl {

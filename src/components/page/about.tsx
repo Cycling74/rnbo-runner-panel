@@ -3,8 +3,11 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faGithub } from "@fortawesome/free-brands-svg-icons";
 import { ActionIcon, Anchor, Group, Pill } from "@mantine/core";
 import classes from "./page.module.css";
+import { useThemeColorScheme } from "../../hooks/useTheme";
 
 const AboutInfo: FunctionComponent = () => {
+
+	const scheme = useThemeColorScheme();
 
 	return (
 		<section>
@@ -15,7 +18,10 @@ const AboutInfo: FunctionComponent = () => {
 				The code for this app is available on Github and <Anchor fz="inherit" href="https://github.com/Cycling74/rnbo-runner-panel/blob/main/LICENSE.txt" target="_blank" rel="noreferrer noopener" >MIT licensed</Anchor>.
 				<br/>
 				<br/>
-				2023 Cycling &apos;74
+				<img src={ scheme === "light" ? "/c74-dark.svg" : "/c74-light.svg" } />
+				<br/>
+				<br/>
+				2024 Cycling &apos;74
 			</p>
 			<Group gap="xs">
 				<ActionIcon
