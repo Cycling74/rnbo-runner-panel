@@ -14,6 +14,7 @@ import { PatcherRecord } from "../models/patcher";
 import { Connection, EdgeChange, NodeChange } from "reactflow";
 import { isValidConnection } from "../lib/editorUtils";
 import throttle from "lodash.throttle";
+import { getPatchers } from "../selectors/patchers";
 
 const defaultNodeSpacing = 150;
 const getPatcherOrControlNodeCoordinates = (node: GraphPatcherNodeRecord | GraphControlNodeRecord, nodes: GraphNodeRecord[]): { x: number, y: number } => {
@@ -479,7 +480,11 @@ export const updateSystemOrControlPortInfo = (type: ConnectionType, direction: P
 		let systemInputY = -defaultNodeSpacing;
 		let systemOutputY = -defaultNodeSpacing;
 
-		for (const jackName of Array.from(systemOrControlJackNames.values())) {
+		const patchers = getPatchers(state).valueSeq();
+		const missingSystemOrControlJackName = Array.from(systemOrControlJackNames.values())
+			.filter(name => !patchers.find(patcher => name.startsWith(patcher.name)));
+
+		for (const jackName of missingSystemOrControlJackName) {
 
 			const ports = ImmuMap<GraphPortRecord["id"], GraphPortRecord>(createNodePorts(jackName, type, direction, names).map(p => [p.id, p]));
 			const contentHeight = calculateNodeContentHeight(ports);
@@ -814,7 +819,6 @@ export const updateSourcePortConnections = (source: string, sinks: string[]): Ap
 
 export const addPatcherNode = (desc: OSCQueryRNBOInstance, metaString: string): AppThunk =>
 	(dispatch, getState) => {
-
 		const state = getState();
 		const existingNodes = getNodes(state).valueSeq().toArray();
 
