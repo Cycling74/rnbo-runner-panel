@@ -482,7 +482,7 @@ export const updateSystemOrControlPortInfo = (type: ConnectionType, direction: P
 
 		const patchers = getPatchers(state).valueSeq();
 		const missingSystemOrControlJackName = Array.from(systemOrControlJackNames.values())
-			.filter(name => !patchers.find(patcher => name.startsWith(patcher.name)));
+			.filter(name => !patchers.find(patcher => name.startsWith(`${patcher.name}-`)));
 
 		for (const jackName of missingSystemOrControlJackName) {
 
