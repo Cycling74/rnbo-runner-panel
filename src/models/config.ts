@@ -44,6 +44,11 @@ export type ConfigRecordProps = {
 }
 
 const instanceConfigDetails: Partial<Record<ConfigKey, Omit<ConfigRecordProps, "id" | "oscValue" | "oscType" >>> = {
+	[ConfigKey.AutoStartLast]: {
+		path: `/rnbo/inst/config/${ConfigKey.AutoStartLast}`,
+		tab: SettingsTab.Instance,
+		title: "Startup: Auto Start Last Set"
+	},
 	[ConfigKey.AutoConnectAudio]: {
 		path: `/rnbo/inst/config/${ConfigKey.AutoConnectAudio}`,
 		tab: SettingsTab.Instance,
@@ -57,12 +62,7 @@ const instanceConfigDetails: Partial<Record<ConfigKey, Omit<ConfigRecordProps, "
 	[ConfigKey.AutoConnectMIDI]: {
 		path: `/rnbo/inst/config/${ConfigKey.AutoConnectMIDI}`,
 		tab: SettingsTab.Instance,
-		title: "RNBO Control: Auto Connect MIDI"
-	},
-	[ConfigKey.AutoStartLast]: {
-		path: `/rnbo/inst/config/${ConfigKey.AutoStartLast}`,
-		tab: SettingsTab.Instance,
-		title: "Startup: Auto Start Last Set"
+		title: "Instance: Auto Connect MIDI"
 	},
 	[ConfigKey.AudioFadeIn]: {
 		min: 0,
