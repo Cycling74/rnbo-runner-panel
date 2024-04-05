@@ -4,10 +4,10 @@ import classes from "./nav.module.css";
 import { NavButton } from "./button";
 import { useAppDispatch, useAppSelector } from "../../hooks/useAppDispatch";
 import { toggleShowSettings } from "../../actions/settings";
-import { faDiagramProject, faGear, faVectorSquare } from "@fortawesome/free-solid-svg-icons";
+import { faDiagramProject, faGear, faQuestionCircle, faVectorSquare } from "@fortawesome/free-solid-svg-icons";
 import { RootStateType } from "../../lib/store";
 import { getShowSettingsModal } from "../../selectors/settings";
-import { NavLink } from "./link";
+import { ExternalNavLink, NavLink } from "./link";
 import { useRouter } from "next/router";
 import { getFirstPatcherNodeIndex } from "../../selectors/graph";
 
@@ -47,6 +47,11 @@ const AppNav: FunctionComponent = memo(function WrappedNav() {
 					/>
 				</Stack>
 				<Stack className={ classes.navMenu } >
+					<ExternalNavLink
+						icon={ faQuestionCircle }
+						label="Help & Documentation"
+						href="https://rnbo.cycling74.com/learn/raspberry-pi-target-overview"
+					/>
 					<NavButton onClick={ onToggleSettings } label="Settings" icon={ faGear } isActive={ settingsAreShown } />
 				</Stack>
 			</Stack>
