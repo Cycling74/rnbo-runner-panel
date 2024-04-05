@@ -1,6 +1,6 @@
 import { Map as ImmuMap, Seq, Set as ImmuSet } from "immutable";
 import { RootStateType } from "../lib/store";
-import { GraphConnectionRecord, GraphControlNodeRecord, GraphNodeRecord, GraphPatcherNodeRecord, GraphSystemNodeRecord, NodeType, PortDirection } from "../models/graph";
+import { GraphConnectionRecord, GraphControlNodeRecord, GraphNodeRecord, GraphPatcherNodeRecord, GraphPortRecord, GraphSystemNodeRecord, NodeType, PortDirection } from "../models/graph";
 
 export const getNode = (state: RootStateType, id: GraphNodeRecord["id"]): GraphNodeRecord | undefined => state.graph.nodes.get(id);
 export const getNodes = (state: RootStateType): ImmuMap<GraphNodeRecord["id"], GraphNodeRecord> => state.graph.nodes;
@@ -79,4 +79,28 @@ export const getConnectionsForSinkNodeAndPort = (
 	{ sinkNodeId, sinkPortId }: {  sinkNodeId: string; sinkPortId: string; }
 ): Seq.Indexed<GraphConnectionRecord> => {
 	return state.graph.connections.filter(conn => conn.sinkNodeId === sinkNodeId && conn.sinkPortId === sinkPortId).valueSeq();
+};
+
+export const getPortAlias = (
+	state: RootStateType,
+	portName: GraphPortRecord["portName"]
+): string | undefined => {
+	// For now we only alias system node ports
+	return portName.startsWith("system")
+		? state.graph.portAliases.get(portName)?.[0] || undefined
+		: undefined;
+};
+
+export const getPortAliasesForNode = (
+	state: RootStateType,
+	node: GraphNodeRecord
+): ImmuMap<GraphPortRecord["portName"], string> => {
+	return ImmuMap<GraphPortRecord["portName"], string>().withMutations(map => {
+		node.ports.valueSeq().forEach(port => {
+			const alias = state.graph.portAliases.get(port.portName);
+			if (alias?.length) {
+				map.set(port.portName, alias[0]);
+			}
+		});
+	});
 };

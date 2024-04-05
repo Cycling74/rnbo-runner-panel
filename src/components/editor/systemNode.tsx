@@ -4,6 +4,9 @@ import { GraphPortRecord, PortDirection } from "../../models/graph";
 import EditorPort from "./port";
 import classes from "./editor.module.css";
 import { Paper } from "@mantine/core";
+import { useAppSelector } from "../../hooks/useAppDispatch";
+import { RootStateType } from "../../lib/store";
+import { getPortAliasesForNode } from "../../selectors/graph";
 
 const EditorSystemNode: FunctionComponent<EditorNodeProps> = memo(function WrappedGraphPatcherNode({
 	data: {
@@ -18,17 +21,22 @@ const EditorSystemNode: FunctionComponent<EditorNodeProps> = memo(function Wrapp
 		return result;
 	}, { sinks: [], sources: [] } as { sinks: GraphPortRecord[]; sources: GraphPortRecord[]; });
 
+	const aliases = useAppSelector((state: RootStateType) => getPortAliasesForNode(state, node));
+	const longestAliasCharCount = aliases.valueSeq().reduce((result, alias) => {
+		return alias.length > result ? alias.length : result;
+	}, 0);
+
 	return (
 		<Paper className={ classes.node }  shadow="sm" withBorder data-selected={ selected } >
 			<div className={ classes.nodeHeader } >
 				{ node.jackName }
 			</div>
-			<div className={ classes.nodeContent } style={{ height: `${contentHeight}px` }} >
+			<div className={ classes.nodeContent } style={{ height: `${contentHeight}px`, minWidth: `${300 + Math.max(0, (longestAliasCharCount - 10) * 5)}px` }} >
 				{
-					sinks.map((port, i) => <EditorPort key={ port.id} port={ port } offset={ calcPortOffset(sinks.length, i) } />)
+					sinks.map((port, i) => <EditorPort key={ port.id }  port={ port } offset={ calcPortOffset(sinks.length, i) } alias={ aliases.get(port.portName) } />)
 				}
 				{
-					sources.map((port, i) => <EditorPort key={ port.id } port={ port } offset={ calcPortOffset(sources.length, i) } />)
+					sources.map((port, i) => <EditorPort key={ port.id } port={ port } offset={ calcPortOffset(sources.length, i) } alias={ aliases.get(port.portName) } />)
 				}
 			</div>
 		</Paper>
