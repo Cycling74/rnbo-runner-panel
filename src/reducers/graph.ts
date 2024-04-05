@@ -1,12 +1,13 @@
 import { Map as ImmuMap } from "immutable";
 import { GraphAction, GraphActionType } from "../actions/graph";
-import { GraphConnectionRecord, GraphNodeRecord, GraphPatcherNodeRecord, NodeType } from "../models/graph";
+import { GraphConnectionRecord, GraphNodeRecord, GraphPatcherNodeRecord, GraphPortRecord, NodeType } from "../models/graph";
 
 export interface GraphState {
 
 	connections: ImmuMap<GraphConnectionRecord["id"], GraphConnectionRecord>;
 	nodes: ImmuMap<GraphNodeRecord["id"], GraphNodeRecord>;
 	patcherNodeIdByIndex: ImmuMap<GraphPatcherNodeRecord["index"], GraphPatcherNodeRecord["id"]>;
+	portAliases: ImmuMap<GraphPortRecord["portName"], string[]>;
 
 }
 
@@ -14,7 +15,8 @@ export const graph = (state: GraphState = {
 
 	connections: ImmuMap<GraphConnectionRecord["id"], GraphConnectionRecord>(),
 	nodes: ImmuMap<GraphNodeRecord["id"], GraphNodeRecord>(),
-	patcherNodeIdByIndex: ImmuMap<GraphPatcherNodeRecord["index"], GraphPatcherNodeRecord["id"]>()
+	patcherNodeIdByIndex: ImmuMap<GraphPatcherNodeRecord["index"], GraphPatcherNodeRecord["id"]>(),
+	portAliases: ImmuMap<GraphPortRecord["portName"], string[]>()
 
 }, action: GraphAction): GraphState => {
 
@@ -117,6 +119,46 @@ export const graph = (state: GraphState = {
 			return {
 				...state,
 				connections: newConns
+			};
+		}
+
+		case GraphActionType.SET_PORT_ALIASES_LIST: {
+			const { portName, aliases } = action.payload;
+			return {
+				...state,
+				portAliases: state.portAliases.set(portName, aliases)
+			};
+		}
+
+		case GraphActionType.SET_PORTS_ALIASES_LIST: {
+			const { aliases } = action.payload;
+			return {
+				...state,
+				portAliases: state.portAliases.withMutations(map => {
+					for (const { portName, aliases: portAliases } of aliases) {
+						map.set(portName, portAliases);
+					}
+				})
+			};
+		}
+
+		case GraphActionType.DELETE_PORT_ALIASES_LIST: {
+			const { portName } = action.payload;
+			return {
+				...state,
+				portAliases: state.portAliases.delete(portName)
+			};
+		}
+
+		case GraphActionType.DELETE_PORTS_ALIASES_LIST: {
+			const { portNames } = action.payload;
+			return {
+				...state,
+				portAliases: state.portAliases.withMutations(map => {
+					for (const portName of portNames) {
+						map.delete(portName);
+					}
+				})
 			};
 		}
 

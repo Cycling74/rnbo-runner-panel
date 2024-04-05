@@ -21,6 +21,7 @@ export enum NodeType {
 export type GraphPortProps = {
 	id: string;
 	direction: PortDirection;
+	portName: string;
 	type: ConnectionType;
 }
 
@@ -28,6 +29,7 @@ export class GraphPortRecord extends ImmuRecord<GraphPortProps> ({
 
 	id: "",
 	direction: PortDirection.Source,
+	portName: "",
 	type: ConnectionType.Audio
 
 }) {}
@@ -158,6 +160,7 @@ export class GraphPatcherNodeRecord extends ImmuRecord<GraphPatcherNodeProps>({
 				for (const portName of desc.CONTENTS.audio_ins.VALUE) {
 					const pr = new GraphPortRecord({
 						id: portName.replace(portNameReplace, ""),
+						portName,
 						direction: PortDirection.Sink,
 						type: ConnectionType.Audio
 					});
@@ -171,6 +174,7 @@ export class GraphPatcherNodeRecord extends ImmuRecord<GraphPatcherNodeProps>({
 					const pr = new GraphPortRecord({
 						id: portName.replace(portNameReplace, ""),
 						direction: PortDirection.Source,
+						portName,
 						type: ConnectionType.Audio
 					});
 
@@ -182,6 +186,7 @@ export class GraphPatcherNodeRecord extends ImmuRecord<GraphPatcherNodeProps>({
 					const pr = new GraphPortRecord({
 						id: portName.replace(portNameReplace, ""),
 						direction: PortDirection.Sink,
+						portName,
 						type: ConnectionType.MIDI
 					});
 
@@ -194,6 +199,7 @@ export class GraphPatcherNodeRecord extends ImmuRecord<GraphPatcherNodeProps>({
 					const pr = new GraphPortRecord({
 						id: portName.replace(portNameReplace, ""),
 						direction: PortDirection.Source,
+						portName,
 						type: ConnectionType.MIDI
 					});
 					ports.set(pr.id, pr);
@@ -228,6 +234,7 @@ export const createNodePorts = (jackName: string, type: ConnectionType, directio
 			ports.push(new GraphPortRecord({
 				id: portName.replace(portNameReplace, ""),
 				direction,
+				portName,
 				type
 			}));
 		}
