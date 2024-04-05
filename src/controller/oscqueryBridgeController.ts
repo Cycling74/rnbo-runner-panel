@@ -4,8 +4,8 @@ import { setAppStatus, setConnectionEndpoint } from "../actions/appStatus";
 import { AppDispatch, store } from "../lib/store";
 import { ReconnectingWebsocket } from "../lib/reconnectingWs";
 import { AppStatus } from "../lib/constants";
-import { OSCQueryRNBOState, OSCQueryRNBOInstance, OSCQueryRNBOJackConnections, OSCQueryRNBOPatchersState, OSCValue, OSCQueryRNBOInstancesMetaState } from "../lib/types";
-import { addPatcherNode, initConnections, initNodes, removePatcherNode, updateSetMetaFromRemote, updateSourcePortConnections, updateSystemOrControlPortInfo } from "../actions/graph";
+import { OSCQueryRNBOState, OSCQueryRNBOInstance, OSCQueryRNBOJackConnections, OSCQueryRNBOPatchersState, OSCValue, OSCQueryRNBOInstancesMetaState, OSCQueryListValue } from "../lib/types";
+import { addPatcherNode, deletePortAliases, initConnections, initNodes, removePatcherNode, setPortAliases, updateSetMetaFromRemote, updateSourcePortConnections, updateSystemOrControlPortInfo } from "../actions/graph";
 import { initPatchers } from "../actions/patchers";
 import { initRunnerConfig, updateRunnerConfig } from "../actions/settings";
 import { initSets } from "../actions/sets";
@@ -26,6 +26,7 @@ enum OSCQueryCommand {
 }
 
 const portIOPathMatcher = /^\/rnbo\/jack\/info\/ports\/(?<type>audio|midi)\/(?<direction>sources|sinks)$/;
+const portAliasPathMatcher = /^\/rnbo\/jack\/info\/ports\/aliases\/(?<port>.+)$/;
 const patchersPathMatcher = /^\/rnbo\/patchers/;
 const instancePathMatcher = /^\/rnbo\/inst\/(?<index>\d+)$/;
 const instanceStatePathMatcher = /^\/rnbo\/inst\/(?<index>\d+)\/(?<content>params|messages\/in|messages\/out|presets)\/(?<rest>\S+)/;
@@ -174,6 +175,13 @@ export class OSCQueryBridgeControllerPrivate {
 			return void dispatch(initPatchers(patcherInfo));
 		}
 
+		// Handle Alias Additions
+		const aliasMatch = path.match(portAliasPathMatcher);
+		if (aliasMatch?.groups?.port) {
+			const portAliases = await this._requestState<OSCQueryListValue<string, string[]>>(`/rnbo/jack/info/ports/aliases/${aliasMatch.groups.port}`);
+			return void dispatch(setPortAliases(aliasMatch?.groups?.port, portAliases.VALUE));
+		}
+
 		// Parse out if instance path?
 		const instInfoMatch = path.match(instanceStatePathMatcher);
 		if (!instInfoMatch?.groups?.index) return;
@@ -219,6 +227,12 @@ export class OSCQueryBridgeControllerPrivate {
 		if (patchersPathMatcher.test(path)) {
 			const patcherInfo = await this._requestState<OSCQueryRNBOPatchersState>("/rnbo/patchers");
 			return void dispatch(initPatchers(patcherInfo));
+		}
+
+		// Handle Alias Removals
+		const aliasMatch = path.match(portAliasPathMatcher);
+		if (aliasMatch?.groups?.port) {
+			return void dispatch(deletePortAliases(aliasMatch?.groups?.port));
 		}
 
 		// Parse out if instance path?
