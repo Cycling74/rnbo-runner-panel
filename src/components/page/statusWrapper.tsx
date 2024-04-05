@@ -1,4 +1,4 @@
-import { FunctionComponent, PropsWithChildren, memo } from "react";
+import { FunctionComponent, PropsWithChildren, ReactNode, memo } from "react";
 import { IconDefinition } from "@fortawesome/free-solid-svg-icons";
 import { faCircleNotch, faPlugCircleXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -17,6 +17,7 @@ const AppStatusWrapper: FunctionComponent<PropsWithChildren> = memo(function Wra
 
 	let icon: IconDefinition;
 	let title: string;
+	let helpText: ReactNode | undefined;
 	switch (status) {
 
 		// Return nested children when all ready and good to go
@@ -47,6 +48,15 @@ const AppStatusWrapper: FunctionComponent<PropsWithChildren> = memo(function Wra
 		case AppStatus.Error:
 			title = "Failed to establish Connection";
 			icon = faPlugCircleXmark;
+			helpText = (
+				<>
+					Need help or further documentation?
+					<br/>
+					Please refer to the
+					<br/>
+					<a href="https://rnbo.cycling74.com/learn/raspberry-pi-target-overview" target="_blank" rel="noreferrer noopener" >Raspberry Pi Target Documentation</a>.
+				</>
+			);
 			break;
 		default: {
 			// eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -59,6 +69,13 @@ const AppStatusWrapper: FunctionComponent<PropsWithChildren> = memo(function Wra
 		<div className={ classes.appStatus } data-status={ AppStatus[status].toLowerCase() } >
 			<FontAwesomeIcon icon={ icon } size="3x" spin={ icon === faCircleNotch } />
 			<h2>{ title }</h2>
+			{
+				helpText ? (
+					<p>
+						{ helpText }
+					</p>
+				) : null
+			}
 		</div>
 	);
 });

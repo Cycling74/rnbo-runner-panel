@@ -38,6 +38,11 @@
 	h2 {
 		font-weight: 900;
 	}
+
+	p {
+		text-align: center;
+		padding: 0 var(--mantine-spacing-md);
+	}
 }
 
 
