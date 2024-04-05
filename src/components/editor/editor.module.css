@@ -104,9 +104,10 @@
 			transform: translate(25%, -50%);
 
 			&:before {
-				content: attr(data-c74-id);
+				content: attr(data-c74-name);
 				padding-right: 25px;
 				right: 0;
+				white-space: nowrap;
 			}
 		}
 
@@ -115,9 +116,10 @@
 			transform: translate(-25%, -50%);
 
 			&:after {
-				content: attr(data-c74-id);
+				content: attr(data-c74-name);
 				padding-left: 25px;
 				left: 0;
+				white-space: nowrap;
 			}
 		}
 

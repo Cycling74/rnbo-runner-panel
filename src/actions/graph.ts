@@ -54,7 +54,11 @@ export enum GraphActionType {
 	DELETE_CONNECTION = "DELETE_CONNECTION",
 	DELETE_CONNECTIONS = "DELETE_CONNECTIONS",
 	SET_CONNECTION = "SET_CONNECTION",
-	SET_CONNECTIONS = "SET_CONNECTIONS"
+	SET_CONNECTIONS = "SET_CONNECTIONS",
+	SET_PORT_ALIASES_LIST = "SET_PORT_ALIASES_LIST",
+	SET_PORTS_ALIASES_LIST = "SET_PORTS_ALIASES_LIST",
+	DELETE_PORT_ALIASES_LIST = "DELETE_PORT_ALIASES_LIST",
+	DELETE_PORTS_ALIASES_LIST = "DELETE_PORTS_ALIASES_LIST"
 }
 
 export interface ISetGraphNode extends ActionBase {
@@ -113,8 +117,39 @@ export interface IDeleteGraphConnections extends ActionBase {
 	};
 }
 
+export interface ISetGraphPortAliasesList extends ActionBase {
+	type: GraphActionType.SET_PORT_ALIASES_LIST;
+	payload: {
+		portName: GraphPortRecord["portName"];
+		aliases: string[];
+	};
+}
+
+export interface ISetGraphPortsAliasesList extends ActionBase {
+	type: GraphActionType.SET_PORTS_ALIASES_LIST;
+	payload: {
+		aliases: Array<{ portName: GraphPortRecord["portName"]; aliases: string[]; }>;
+	};
+}
+
+export interface IDeleteGraphPortAliasesList extends ActionBase {
+	type: GraphActionType.DELETE_PORT_ALIASES_LIST;
+	payload: {
+		portName: GraphPortRecord["portName"];
+	};
+}
+
+export interface IDeleteGraphPortsAliasesList extends ActionBase {
+	type: GraphActionType.DELETE_PORTS_ALIASES_LIST;
+	payload: {
+		portNames: Array<GraphPortRecord["portName"]>;
+	};
+}
+
 export type GraphAction = ISetGraphNode | ISetGraphNodes | IDeleteGraphNode | IDeleteGraphNodes
-| ISetGraphConnection  | IDeleteGraphConnection | ISetGraphConnections  | IDeleteGraphConnections;
+| ISetGraphConnection  | IDeleteGraphConnection | ISetGraphConnections  | IDeleteGraphConnections
+| ISetGraphPortAliasesList | ISetGraphPortsAliasesList | IDeleteGraphPortAliasesList | IDeleteGraphPortsAliasesList;
+
 
 export const setNode = (node: GraphNodeRecord): GraphAction => {
 	return {
@@ -184,6 +219,43 @@ export const deleteConnections = (connections: GraphConnectionRecord[]): GraphAc
 		type: GraphActionType.DELETE_CONNECTIONS,
 		payload: {
 			connections
+		}
+	};
+};
+
+export const setPortAliases = (portName: GraphPortRecord["portName"], aliases: string []): GraphAction => {
+	return {
+		type: GraphActionType.SET_PORT_ALIASES_LIST,
+		payload: {
+			portName,
+			aliases
+		}
+	};
+};
+
+export const setPortsAliases = (aliases: Array<{ portName: GraphPortRecord["portName"], aliases: string []; }>): GraphAction => {
+	return {
+		type: GraphActionType.SET_PORTS_ALIASES_LIST,
+		payload: {
+			aliases
+		}
+	};
+};
+
+export const deletePortAliases = (portName: GraphPortRecord["portName"]): GraphAction => {
+	return {
+		type: GraphActionType.DELETE_PORT_ALIASES_LIST,
+		payload: {
+			portName
+		}
+	};
+};
+
+export const deletePortsAliases = (portNames: Array<GraphPortRecord["portName"]>): GraphAction => {
+	return {
+		type: GraphActionType.DELETE_PORTS_ALIASES_LIST,
+		payload: {
+			portNames
 		}
 	};
 };
@@ -368,10 +440,15 @@ export const initNodes = (jackPortsInfo: OSCQueryRNBOJackPortInfo, instanceInfo:
 				return node;
 			});
 
+		const portAliases: Array<{ portName: GraphPortRecord["portName"]; aliases: string []; }> = [];
+		for (const [portName, aliasInfo] of Object.entries(jackPortsInfo.CONTENTS.aliases.CONTENTS)) {
+			portAliases.push({ portName, aliases: aliasInfo.VALUE });
+		}
 
 		dispatch(deleteNodes(existingNodes.valueSeq().toArray()));
 		dispatch(setNodes([...systemNodes, ...patcherAndControlNodes]));
 		dispatch(setInstances(instances));
+		dispatch(setPortsAliases(portAliases));
 	};
 
 
