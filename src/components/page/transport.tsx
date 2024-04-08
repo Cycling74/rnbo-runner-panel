@@ -51,6 +51,7 @@ const TransportControl: FunctionComponent = memo(function WrappedTransport() {
 			return;
 		}
 		e.preventDefault();
+		e.currentTarget.focus();
 		setActivePointer({ id: e.pointerId, startY: e.clientY, startValue: controlState.bpm });
 		setDisplayValue(controlState.bpm);
 		inputRef.current.setPointerCapture(e.pointerId);
