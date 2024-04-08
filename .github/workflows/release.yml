@@ -34,7 +34,6 @@ jobs:
       - name: Build and Export Next Application
         run: |
           npm run build
-          npm run export
 
       - name: Build Debian Package
         run: npm run package-debian
