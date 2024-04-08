@@ -3,6 +3,7 @@ import { oscQueryBridge } from "../controller/oscqueryBridgeController";
 import { ActionBase, AppThunk } from "../lib/store";
 import { OSCQueryRNBOJackTransport, OSCQueryValueType } from "../lib/types";
 import { getShowTransportControl, getTransportControlState } from "../selectors/transport";
+import { clamp } from "../lib/util";
 
 export enum TransportActionType {
 	INIT = "INIT_TRANSPORT",
@@ -118,18 +119,18 @@ export const setTransportBPMOnRemote = (bpm: number): AppThunk =>
 		}));
 	};
 
-export const incrementTransportBPMOnRemote = (): AppThunk =>
+export const incrementTransportBPMOnRemote = (scale: number = 1): AppThunk =>
 	(dispatch, getState) => {
 		const state = getState();
-		const bpm = getTransportControlState(state).bpm + 1;
+		const bpm = clamp(getTransportControlState(state).bpm + (1 * scale), 1, 2000);
 		dispatch(setTransportBPMOnRemote(bpm));
 	};
 
-export const decrementTransportBPMOnRemote = (): AppThunk =>
+export const decrementTransportBPMOnRemote = (scale: number = 1): AppThunk =>
 	(dispatch, getState) => {
 		const state = getState();
-		const bpm = getTransportControlState(state).bpm - 1;
-		if (bpm > 0) dispatch(setTransportBPMOnRemote(bpm));
+		const bpm = clamp(getTransportControlState(state).bpm - (1 * scale), 1, 2000);
+		dispatch(setTransportBPMOnRemote(bpm));
 	};
 
 export const updateTransportStatus = (status: Partial<{ bpm: number; rolling: boolean; sync: boolean; }>): TransportAction => {

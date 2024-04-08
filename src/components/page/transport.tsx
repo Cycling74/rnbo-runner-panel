@@ -28,9 +28,9 @@ const TransportControl: FunctionComponent = memo(function WrappedTransport() {
 	const onDecrementTempo = useCallback(() => dispatch(decrementTransportBPMOnRemote()), [dispatch]);
 	const onTempoKeyDown = useCallback((e: KeyboardEvent<HTMLInputElement>) => {
 		if (e.key === "ArrowDown") {
-			dispatch(decrementTransportBPMOnRemote());
+			dispatch(decrementTransportBPMOnRemote(e.shiftKey ? 10 : 1));
 		} else if (e.key === "ArrowUp") {
-			dispatch(incrementTransportBPMOnRemote());
+			dispatch(incrementTransportBPMOnRemote(e.shiftKey ? 10 : 1));
 		}
 	}, [dispatch]);
 
