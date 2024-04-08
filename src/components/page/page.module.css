@@ -52,6 +52,11 @@
 	font-weight: 700;
 }
 
+.transportTempoInput {
+	cursor: pointer;
+	user-select: none;
+}
+
 .transportTempoControl {
 	display: flex;
 	flex-direction: column;
