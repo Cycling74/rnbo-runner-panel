@@ -1,4 +1,4 @@
-import { CSSProperties, FunctionComponent, memo, useCallback, useEffect, useState } from "react";
+import { CSSProperties, FunctionComponent, MouseEvent, memo, useCallback, useEffect, useState } from "react";
 import { Set as ImmuSet } from "immutable";
 import { clamp } from "../../lib/util";
 import Octave from "./octave";
@@ -70,16 +70,22 @@ export const KeyRoll: FunctionComponent<KeyRollProps> = memo(function WrappedKey
 		setActiveNotes((notes: ImmuSet<number>) => notes.delete(p));
 	}, [onTriggerNoteOff]);
 
-	const onIncrementOctave = useCallback(() => {
+	const onIncrementOctave = useCallback((e?: MouseEvent<HTMLButtonElement>) => {
 		setCurrentOctave(clamp(octave + 1, 1, 7));
 		activeNotes.forEach((p) => onTriggerNoteOff(p));
 		setActiveNotes(ImmuSet<number>());
+		if (e?.currentTarget) {
+			e.currentTarget.blur();
+		}
 	}, [activeNotes, octave, setCurrentOctave, setActiveNotes, onTriggerNoteOff]);
 
-	const onDecrementOctave = useCallback(() => {
+	const onDecrementOctave = useCallback((e?: MouseEvent<HTMLButtonElement>) => {
 		setCurrentOctave(clamp(octave - 1, 1, 7));
 		activeNotes.forEach((p) => onTriggerNoteOff(p));
 		setActiveNotes(ImmuSet<number>());
+		if (e?.currentTarget) {
+			e.currentTarget.blur();
+		}
 	}, [activeNotes, octave, setCurrentOctave, setActiveNotes, onTriggerNoteOff]);
 
 	const octs: JSX.Element[] = [];
