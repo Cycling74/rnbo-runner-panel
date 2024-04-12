@@ -66,6 +66,6 @@ jobs:
       - name: Add to aptly and publish
         shell: bash
         run: |
-          aptly repo add bullseye-rpi *.deb
-          aptly publish update -batch -passphrase=${{ secrets.APTLY_GPG_PASSWORD }} bullseye s3:c74:
+          aptly repo add bookworm-rpi *.deb
+          aptly publish update -batch -passphrase=${{ secrets.APTLY_GPG_PASSWORD }} bookworm s3:c74:
 
