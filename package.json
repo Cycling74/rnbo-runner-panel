@@ -10,7 +10,6 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "export": "next export",
     "prepackage-debian": "npm run build",
     "package-debian": "node scripts/package-debian.mjs"
   },
