@@ -1,5 +1,5 @@
 import { Tabs } from "@mantine/core";
-import { FunctionComponent, memo, useState } from "react";
+import { FunctionComponent, memo, useEffect, useState } from "react";
 import { faArrowRightArrowLeft, faMusic, faSliders } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import classes from "./instance.module.css";
@@ -30,6 +30,12 @@ const Instance: FunctionComponent<InstanceProps> = memo(function WrappedInstance
 
 	const [activeTab, setActiveTab] = useState<InstanceTab>(InstanceTab.Parameters);
 	const isMobile = useIsMobileDevice();
+
+	useEffect(() => {
+		if (document.activeElement && document.activeElement instanceof HTMLElement) {
+			document.activeElement.blur();
+		}
+	}, [activeTab]);
 
 	return (
 		<Tabs
