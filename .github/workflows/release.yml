@@ -18,7 +18,7 @@ jobs:
         id: vstep
         run: |
           PACKAGE_VERSION=$(cat ./package.json | grep version | head -1 | awk -F: '{ print $2 }' | sed 's/[",]//g' | tr -d '[[:space:]]')
-          echo "::set-output name=version::$PACKAGE_VERSION"
+          echo "version=$PACKAGE_VERSION" >> $GITHUB_OUTPUT
 
   build_and_export:
     runs-on: ubuntu-latest
@@ -26,7 +26,7 @@ jobs:
     needs: getversion
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - uses: actions/setup-node@v3
         with:
@@ -60,7 +60,7 @@ jobs:
 
   publsh_apt:
     runs-on: [self-hosted, Linux, x64, digitalocean]
-    needs: build_and_export
+    needs: [build_and_export, getversion]
     steps:
       - name: Download deb file
         uses: actions/download-artifact@v4
@@ -69,6 +69,6 @@ jobs:
       - name: Add to aptly and publish
         shell: bash
         run: |
-          aptly repo add bookworm-rpi *.deb
+          aptly repo add bookworm-rpi rnbo-runner-panel_${{ needs.getversion.outputs.version }}.deb
           aptly publish update -batch -passphrase=${{ secrets.APTLY_GPG_PASSWORD }} bookworm s3:c74:
 
