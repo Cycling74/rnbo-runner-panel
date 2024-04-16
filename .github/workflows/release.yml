@@ -55,7 +55,7 @@ jobs:
           path: "*.deb"
 
   publsh_apt:
-    runs-on: [self-hosted, macOS, x64, rnbo]
+    runs-on: [self-hosted, Linux, x64, digitalocean]
     needs: build_and_export
     steps:
       - name: Download deb file
