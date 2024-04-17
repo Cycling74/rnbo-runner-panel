@@ -69,6 +69,6 @@ jobs:
       - name: Add to aptly and publish
         shell: bash
         run: |
-          aptly repo add bookworm-rpi rnbo-runner-panel_${{ needs.getversion.outputs.version }}.deb
+          aptly repo add bookworm-rpi-beta rnbo-runner-panel_${{ needs.getversion.outputs.version }}.deb
           aptly publish update -batch -passphrase=${{ secrets.APTLY_GPG_PASSWORD }} bookworm s3:c74:
 
