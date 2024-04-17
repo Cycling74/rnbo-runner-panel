@@ -48,5 +48,10 @@ export enum Orientation {
 	Vertical = "vertical"
 }
 
+export enum BPMRange {
+	Min = 1,
+	Max = 2000
+}
+
 export const DEFAULT_MIDI_RANGE = ["none", "omni", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16"];
 export const DEFAULT_SAMPLE_RATES = [22500, 44100, 48000];

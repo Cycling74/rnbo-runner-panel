@@ -1,17 +1,28 @@
 import { ActionIcon, Group, Modal, NumberInput, Switch, Text } from "@mantine/core";
-import { ChangeEvent, FunctionComponent, KeyboardEvent, MouseEvent, memo, useCallback } from "react";
+import { ChangeEvent, FunctionComponent, KeyboardEvent, MouseEvent, PointerEvent, memo, useCallback, useEffect, useRef, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../../hooks/useAppDispatch";
 import { RootStateType } from "../../lib/store";
 import { getShowTransportControl, getTransportControlState } from "../../selectors/transport";
-import { decrementTransportBPMOnRemote, hideTransportControl, incrementTransportBPMOnRemote, toggleTransportRollingOnRemote, toggleTransportSyncOnRemote } from "../../actions/transport";
+import { decrementTransportBPMOnRemote, hideTransportControl, incrementTransportBPMOnRemote, setTransportBPMOnRemote, toggleTransportRollingOnRemote, toggleTransportSyncOnRemote } from "../../actions/transport";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronDown, faChevronUp, faPlay } from "@fortawesome/free-solid-svg-icons";
 import classes from "./page.module.css";
+import { clamp } from "../../lib/util";
+import { BPMRange } from "../../lib/constants";
+
+type ActivePointer = {
+	id: number;
+	startY: number;
+	startValue: number;
+};
 
 const TransportControl: FunctionComponent = memo(function WrappedTransport() {
 
 	const dispatch = useAppDispatch();
 	const onClose = useCallback(() => dispatch(hideTransportControl()), [dispatch]);
+	const [activePointer, setActivePointer] = useState<ActivePointer | undefined>(undefined);
+	const inputRef = useRef<HTMLDivElement>();
+	const [displayValue, setDisplayValue] = useState<number>(0);
 
 	const [
 		doShow,
@@ -26,13 +37,55 @@ const TransportControl: FunctionComponent = memo(function WrappedTransport() {
 
 	const onIncrementTempo = useCallback(() => dispatch(incrementTransportBPMOnRemote()), [dispatch]);
 	const onDecrementTempo = useCallback(() => dispatch(decrementTransportBPMOnRemote()), [dispatch]);
+
 	const onTempoKeyDown = useCallback((e: KeyboardEvent<HTMLInputElement>) => {
 		if (e.key === "ArrowDown") {
-			dispatch(decrementTransportBPMOnRemote());
+			dispatch(decrementTransportBPMOnRemote(e.shiftKey ? 10 : 1));
 		} else if (e.key === "ArrowUp") {
-			dispatch(incrementTransportBPMOnRemote());
+			dispatch(incrementTransportBPMOnRemote(e.shiftKey ? 10 : 1));
 		}
 	}, [dispatch]);
+
+	const onPointerDown = useCallback((e: PointerEvent<HTMLInputElement>) => {
+		if (activePointer !== undefined || !inputRef.current) {
+			return;
+		}
+		e.preventDefault();
+		e.currentTarget.focus();
+		setActivePointer({ id: e.pointerId, startY: e.clientY, startValue: controlState.bpm });
+		setDisplayValue(controlState.bpm);
+		inputRef.current.setPointerCapture(e.pointerId);
+	}, [activePointer, inputRef, setDisplayValue, controlState.bpm]);
+
+	const onPointerMove = useCallback((e: PointerEvent<HTMLInputElement>) => {
+		if (activePointer?.id !== e.pointerId) {
+			return;
+		}
+		e.preventDefault();
+		const delta = activePointer.startY - e.clientY;
+		const bpm = clamp(activePointer.startValue + Math.floor(delta * 0.15), BPMRange.Min, BPMRange.Max);
+		setDisplayValue(bpm);
+	}, [activePointer, setDisplayValue]);
+
+	const onPointerUp = useCallback((e: PointerEvent<HTMLInputElement>) => {
+		if (activePointer?.id !== e.pointerId) {
+			return;
+		}
+		inputRef.current.releasePointerCapture(e.pointerId);
+		setActivePointer(undefined);
+		dispatch(setTransportBPMOnRemote(displayValue));
+	}, [activePointer, dispatch, displayValue]);
+
+	const onUpdateBPM = useCallback(() => {
+		if (controlState.bpm !== displayValue) {
+			dispatch(setTransportBPMOnRemote(displayValue));
+		}
+	}, [displayValue, controlState.bpm, dispatch]);
+
+	useEffect(() => {
+		const iv = activePointer ? setInterval(onUpdateBPM, 100) : null;
+		return () => iv ? clearInterval(iv) : null;
+	}, [activePointer, onUpdateBPM]);
 
 	return (
 		<Modal
@@ -52,8 +105,17 @@ const TransportControl: FunctionComponent = memo(function WrappedTransport() {
 					onKeyDown={ onTempoKeyDown }
 					allowNegative={ false }
 					flex={ 1 }
-					value={ controlState.bpm }
+					value={ activePointer !== undefined ? displayValue : controlState.bpm }
 					hideControls
+					pointer={ false }
+					onPointerDown={ onPointerDown }
+					onPointerMove={ onPointerMove }
+					onPointerUp={ onPointerUp }
+					onPointerCancel={ onPointerUp}
+					ref={ inputRef }
+					classNames={{
+						input: classes.transportTempoInput
+					}}
 					rightSection={
 						<div className={ classes.transportTempoControl } >
 							<button onClick={ onIncrementTempo } >
