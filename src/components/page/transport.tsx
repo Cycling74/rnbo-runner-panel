@@ -1,4 +1,4 @@
-import { ActionIcon, Group, Modal, NumberInput, Switch, Text } from "@mantine/core";
+import { ActionIcon, Group, Modal, NumberInput, Switch, Text, Tooltip } from "@mantine/core";
 import { ChangeEvent, FunctionComponent, KeyboardEvent, MouseEvent, PointerEvent, memo, useCallback, useEffect, useRef, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../../hooks/useAppDispatch";
 import { RootStateType } from "../../lib/store";
@@ -94,9 +94,11 @@ const TransportControl: FunctionComponent = memo(function WrappedTransport() {
 			withCloseButton={ false }
 		>
 			<Group gap="md" align="center">
-				<ActionIcon onClick={ onRollToggle } size="lg" variant="transparent" color={ controlState.rolling ? undefined : "gray" } >
-					<FontAwesomeIcon icon={ faPlay } />
-				</ActionIcon>
+				<Tooltip label={ controlState.rolling ? "Click to pause the transport" : "Click to resume the transport" } >
+					<ActionIcon onClick={ onRollToggle } size="lg" variant="transparent" color={ controlState.rolling ? undefined : "gray" } >
+						<FontAwesomeIcon icon={ faPlay } />
+					</ActionIcon>
+				</Tooltip>
 				<NumberInput
 					name="bpm"
 					size="sm"
@@ -127,7 +129,9 @@ const TransportControl: FunctionComponent = memo(function WrappedTransport() {
 						</div>
 					}
 				/>
-				<Switch onChange={ onSyncToggle } name="sync" checked={ controlState.sync } onLabel="Sync" offLabel="Off" size="md"/>
+				<Tooltip label="Toggle runner sync to Jack's transport" refProp="rootRef">
+					<Switch onChange={ onSyncToggle } name="sync" checked={ controlState.sync } onLabel="Sync" offLabel="Off" size="md"/>
+				</Tooltip>
 			</Group>
 		</Modal>
 	);
