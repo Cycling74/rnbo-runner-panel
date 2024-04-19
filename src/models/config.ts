@@ -15,6 +15,7 @@ export enum ConfigKey {
 	AutoStartLast = "auto_start_last",
 	AudioFadeIn = "audio_fade_in",
 	AudioFadeOut = "audio_fade_out",
+	PortToOsc = "port_to_osc",
 	PresetMIDIProgramChangeChannel = "preset_midi_program_change_channel",
 
 	// Jack
@@ -77,6 +78,11 @@ const instanceConfigDetails: Partial<Record<ConfigKey, Omit<ConfigRecordProps, "
 		path: `/rnbo/inst/config/${ConfigKey.AudioFadeOut}`,
 		tab: SettingsTab.Instance,
 		title: "Instance: Fade Out Milliseconds"
+	},
+	[ConfigKey.PortToOsc]: {
+		path: `/rnbo/inst/config/${ConfigKey.PortToOsc}`,
+		tab: SettingsTab.Instance,
+		title: "Instance: Port To OSC"
 	},
 	[ConfigKey.PresetMIDIProgramChangeChannel]: {
 		options: DEFAULT_MIDI_RANGE,
