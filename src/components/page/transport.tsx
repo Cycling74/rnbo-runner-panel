@@ -18,7 +18,7 @@ type ActivePointer = {
 
 const formatBPMValue = (value: number): number => {
 	return Number.isInteger(value)	? value : Math.round(value * 10) / 10;
-}
+};
 
 const TransportControl: FunctionComponent = memo(function WrappedTransport() {
 
