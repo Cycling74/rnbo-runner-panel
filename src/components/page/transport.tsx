@@ -16,6 +16,10 @@ type ActivePointer = {
 	startValue: number;
 };
 
+const formatBPMValue = (value: number): number => {
+	return Number.isInteger(value)	? value : Math.round(value * 10) / 10;
+};
+
 const TransportControl: FunctionComponent = memo(function WrappedTransport() {
 
 	const dispatch = useAppDispatch();
@@ -107,7 +111,7 @@ const TransportControl: FunctionComponent = memo(function WrappedTransport() {
 					onKeyDown={ onTempoKeyDown }
 					allowNegative={ false }
 					flex={ 1 }
-					value={ activePointer !== undefined ? displayValue : controlState.bpm }
+					value={ formatBPMValue(activePointer !== undefined ? displayValue : controlState.bpm) }
 					hideControls
 					pointer={ false }
 					onPointerDown={ onPointerDown }
