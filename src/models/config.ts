@@ -12,6 +12,7 @@ export enum ConfigKey {
 	AutoConnectAudio = "auto_connect_audio",
 	AutoConnectAudioIndexed = "auto_connect_audio_indexed",
 	AutoConnectMIDI = "auto_connect_midi",
+	AutoConnectMIDIHardware = "auto_connect_midi_hardware",
 	AutoStartLast = "auto_start_last",
 	AudioFadeIn = "audio_fade_in",
 	AudioFadeOut = "audio_fade_out",
@@ -64,6 +65,11 @@ const instanceConfigDetails: Partial<Record<ConfigKey, Omit<ConfigRecordProps, "
 		path: `/rnbo/inst/config/${ConfigKey.AutoConnectMIDI}`,
 		tab: SettingsTab.Instance,
 		title: "Instance: Auto Connect MIDI"
+	},
+	[ConfigKey.AutoConnectMIDIHardware]: {
+		path: `/rnbo/inst/config/${ConfigKey.AutoConnectMIDIHardware}`,
+		tab: SettingsTab.Instance,
+		title: "Instance: Auto Connect MIDI Hardware"
 	},
 	[ConfigKey.AudioFadeIn]: {
 		min: 0,
