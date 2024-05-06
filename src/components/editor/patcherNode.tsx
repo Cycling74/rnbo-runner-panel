@@ -26,7 +26,7 @@ const EditorPatcherNode: FunctionComponent<EditorNodeProps> = memo(function Wrap
 		<Paper className={ classes.node } shadow="sm" withBorder data-selected={ selected } >
 			<div className={ classes.nodeHeader } >
 				<div>
-					{ (node as GraphPatcherNodeRecord).patcher }
+					{ (node as GraphPatcherNodeRecord).index }: { (node as GraphPatcherNodeRecord).patcher }
 				</div>
 				<div>
 					<ActionIcon
