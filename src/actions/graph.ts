@@ -644,7 +644,7 @@ export const loadPatcherNodeOnRemote = (patcher: PatcherRecord): AppThunk =>
 			const message = {
 				address: "/rnbo/inst/control/load",
 				args: [
-					{ type: "i", value: -1 },
+					{ type: "i", value: -2 }, //allocate new index AND don't auto connect
 					{ type: "s", value: patcher.name }
 				]
 			};
