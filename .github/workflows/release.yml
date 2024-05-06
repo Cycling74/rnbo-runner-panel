@@ -10,6 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Read package.json version
     outputs:
+      is_release: ${{ steps.vstep.outputs.is_release }}
       version: ${{ steps.vstep.outputs.version }}
     steps:
       - uses: actions/checkout@v3
@@ -18,7 +19,9 @@ jobs:
         id: vstep
         run: |
           PACKAGE_VERSION=$(cat ./package.json | grep version | head -1 | awk -F: '{ print $2 }' | sed 's/[",]//g' | tr -d '[[:space:]]')
+          IS_RELEASE=$([[ $PACKAGE_VERSION =~ ^([0-9]+).([0-9]+).([0-9]+)$ ]] && echo 'true' || echo 'false')
           echo "version=$PACKAGE_VERSION" >> $GITHUB_OUTPUT
+          echo "is_release=$IS_RELEASE" >> $GITHUB_OUTPUT
 
   build_and_export:
     runs-on: ubuntu-latest
@@ -58,7 +61,7 @@ jobs:
           name: deb
           path: "*.deb"
 
-  publsh_apt:
+  publish_apt:
     runs-on: [self-hosted, Linux, x64, digitalocean]
     needs: [build_and_export, getversion]
     steps:
@@ -66,7 +69,16 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: deb
-      - name: Add to aptly and publish
+
+      - name: Add to RELEASE aptly and publish
+        if: ${{ needs.getversion.outputs.is_release == 'true' }}
+        shell: bash
+        run: |
+          aptly repo add bookworm-rpi rnbo-runner-panel_${{ needs.getversion.outputs.version }}.deb
+          aptly publish update -batch -passphrase=${{ secrets.APTLY_GPG_PASSWORD }} bookworm s3:c74:
+
+      - name: Add to BETA aptly and publish
+        if: ${{ needs.getversion.outputs.is_release == 'false' }}
         shell: bash
         run: |
           aptly repo add bookworm-rpi-beta rnbo-runner-panel_${{ needs.getversion.outputs.version }}.deb
