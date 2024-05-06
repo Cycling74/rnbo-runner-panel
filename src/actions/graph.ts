@@ -26,7 +26,7 @@ const getPatcherOrControlNodeCoordinates = (node: GraphPatcherNodeRecord | Graph
 	}, undefined as GraphNodeRecord | undefined);
 
 	const y = bottomNode ? bottomNode.y + bottomNode.height + defaultNodeSpacing : 0;
-	return { x: 300 + defaultNodeSpacing, y };
+	return { x: 435 + defaultNodeSpacing, y };
 };
 
 const serializeSetMeta = (nodes: GraphNodeRecord[]): string => {
@@ -431,7 +431,7 @@ export const initNodes = (jackPortsInfo: OSCQueryRNBOJackPortInfo, instanceInfo:
 					systemInputY = node.y + node.contentHeight;
 				} else {
 					node = node.updatePosition(
-						(node.width + defaultNodeSpacing ) * 2,
+						node.width + 300 + defaultNodeSpacing * 2,
 						systemOutputY + defaultNodeSpacing
 					);
 					systemOutputY = node.y + node.contentHeight;
@@ -588,7 +588,7 @@ export const updateSystemOrControlPortInfo = (type: ConnectionType, direction: P
 					systemInputY = node.y + node.contentHeight;
 				} else {
 					node = node.updatePosition(
-						(node.width + defaultNodeSpacing ) * 2,
+						node.width + 300 + defaultNodeSpacing * 2,
 						systemOutputY + defaultNodeSpacing
 					);
 					systemOutputY = node.y + node.contentHeight;

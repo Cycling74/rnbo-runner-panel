@@ -37,7 +37,7 @@ export class GraphPortRecord extends ImmuRecord<GraphPortProps> ({
 const headerHeight = 50;
 const portHeight = 20;
 const portSpacing = 30;
-const nodeWidth = 300;
+const nodeWidth = 435;
 
 export const calculateNodeContentHeight = (ports: ImmuMap<GraphPortRecord["id"], GraphPortRecord>): number => {
 	const { sinkCount, sourceCount } = ports.valueSeq().reduce((result, port) => {
