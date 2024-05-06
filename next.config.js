@@ -4,7 +4,8 @@ const { join } = require("path");
 const pkgInfo = JSON.parse(readFileSync(join(__dirname, "package.json"), "utf8"));
 
 module.exports = {
-	reactStrictMode: true,
+	output: "export",
+	reactStrictMode: false,
 	webpack: (config, { isServer }) => {
 		// Fixes npm packages that depend on `child_process` module
 		if (!isServer) {

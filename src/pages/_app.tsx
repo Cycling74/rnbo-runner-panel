@@ -3,6 +3,10 @@ import Head from "next/head";
 import React, { useEffect } from "react";
 import { Provider } from "react-redux";
 
+import { Lato as lato } from "next/font/google";
+const latoFont = lato({ subsets: ["latin-ext"], weight: ["300", "400", "700", "900"], style: ["normal", "italic"] });
+
+
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faAngleDown, faAngleUp, faBars, faTimes } from "@fortawesome/free-solid-svg-icons";
 library.add(faAngleDown, faAngleUp, faBars, faTimes);
@@ -20,6 +24,10 @@ import { AppLayout } from "../layouts/app";
 import { PageSettings } from "../components/page/settings";
 import { PageTheme } from "../components/page/theme";
 import Notifications from "../components/notifications";
+import Settings from "../components/settings";
+import EndpointInfo from "../components/page/endpoint";
+import { ModalsProvider } from "@mantine/modals";
+import TransportControl from "../components/page/transport";
 
 function App({ Component, pageProps }: AppProps) {
 
@@ -31,19 +39,33 @@ function App({ Component, pageProps }: AppProps) {
 	}, []);
 
 	return (
-		<Provider store={store}>
-			<PageSettings>
-				<PageTheme>
-					<Head>
-						<title>RNBO</title>
-					</Head>
-					<Notifications />
-					<AppLayout>
-						<Component {...pageProps} />
-					</AppLayout>
-				</PageTheme>
-			</PageSettings>
-		</Provider>
+		<>
+			<style jsx global>
+				{`
+					html {
+						font-family: ${latoFont.style.fontFamily};
+					}
+				`}
+			</style>
+			<Provider store={store}>
+				<PageSettings>
+					<PageTheme fontFamily={ latoFont.style.fontFamily } >
+						<ModalsProvider>
+							<Head>
+								<title>RNBO</title>
+							</Head>
+							<Notifications />
+							<Settings />
+							<EndpointInfo />
+							<TransportControl />
+							<AppLayout >
+								<Component {...pageProps} />
+							</AppLayout>
+						</ModalsProvider>
+					</PageTheme>
+				</PageSettings>
+			</Provider>
+		</>
 	);
 }
 

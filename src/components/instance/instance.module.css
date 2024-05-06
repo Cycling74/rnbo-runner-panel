@@ -1,0 +1,44 @@
+.instanceNotFound {
+	align-items: center;
+	color: var(--mantine-color-dimmed);
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	height: 100%;
+}
+
+.instanceWrap {
+	height: 100%;
+	gap: var(--mantine-spacing-md);
+}
+
+.instanceTabWrap {
+	display: flex;
+	flex: 1;
+	flex-direction: column;
+}
+
+.instanceTabContentWrap {
+	flex: 1;
+	padding-top: var(--mantine-spacing-lg);
+
+	> div {
+		height: 100%;
+	}
+}
+
+.emptySection {
+	color: var(--mantine-color-dimmed);
+	font-size: var(--mantine-font-size-sm);
+}
+
+.disabledMessageOutput {
+	color: var(--mantine-color-dimmed);
+	font-size: var(--mantine-font-size-sm);
+}
+
+
+.paramSectionWrap {
+	height: 100%;
+}
+

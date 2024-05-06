@@ -10,15 +10,18 @@ jobs:
     runs-on: ubuntu-latest
     name: Read package.json version
     outputs:
+      is_release: ${{ steps.vstep.outputs.is_release }}
       version: ${{ steps.vstep.outputs.version }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Read version
         id: vstep
         run: |
           PACKAGE_VERSION=$(cat ./package.json | grep version | head -1 | awk -F: '{ print $2 }' | sed 's/[",]//g' | tr -d '[[:space:]]')
-          echo "::set-output name=version::$PACKAGE_VERSION"
+          IS_RELEASE=$([[ $PACKAGE_VERSION =~ ^([0-9]+).([0-9]+).([0-9]+)$ ]] && echo 'true' || echo 'false')
+          echo "version=$PACKAGE_VERSION" >> $GITHUB_OUTPUT
+          echo "is_release=$IS_RELEASE" >> $GITHUB_OUTPUT
 
   build_and_export:
     runs-on: ubuntu-latest
@@ -26,7 +29,11 @@ jobs:
     needs: getversion
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 20
 
       - name: Install dependencies
         run: npm ci
@@ -34,7 +41,6 @@ jobs:
       - name: Build and Export Next Application
         run: |
           npm run build
-          npm run export
 
       - name: Build Debian Package
         run: npm run package-debian
@@ -50,22 +56,31 @@ jobs:
           artifacts: "*.deb"
 
       - name: Upload deb file
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: deb
           path: "*.deb"
 
-  publsh_apt:
-    runs-on: [self-hosted, macOS, x64, rnbo]
-    needs: build_and_export
+  publish_apt:
+    runs-on: [self-hosted, Linux, x64, digitalocean]
+    needs: [build_and_export, getversion]
     steps:
       - name: Download deb file
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           name: deb
-      - name: Add to aptly and publish
+
+      - name: Add to RELEASE aptly and publish
+        if: ${{ needs.getversion.outputs.is_release == 'true' }}
         shell: bash
         run: |
-          aptly repo add buster-rpi *.deb
-          aptly publish update -batch -passphrase=${{ secrets.APTLY_GPG_PASSWORD }} buster s3:c74:
+          aptly repo add bookworm-rpi rnbo-runner-panel_${{ needs.getversion.outputs.version }}.deb
+          aptly publish update -batch -passphrase=${{ secrets.APTLY_GPG_PASSWORD }} bookworm s3:c74:
+
+      - name: Add to BETA aptly and publish
+        if: ${{ needs.getversion.outputs.is_release == 'false' }}
+        shell: bash
+        run: |
+          aptly repo add bookworm-rpi-beta rnbo-runner-panel_${{ needs.getversion.outputs.version }}.deb
+          aptly publish update -batch -passphrase=${{ secrets.APTLY_GPG_PASSWORD }} bookworm s3:c74:
 

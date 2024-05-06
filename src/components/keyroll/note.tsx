@@ -1,7 +1,8 @@
 import { PointerEvent, FunctionComponent, memo } from "react";
 import classes from "./keyroll.module.css";
 
-export const keyWidth = 30;
+const oneSeventh = 100 / 7;
+const oneFourteenth = 100 / 14;
 
 interface NoteProps {
 	index: number;
@@ -45,7 +46,9 @@ const Note: FunctionComponent<NoteProps> = memo(({
 	return (
 		<div
 			className={ [classes.key, isWhiteKey ? classes.whiteKey : classes.blackKey].join(" ") }
-			style={{ left: isWhiteKey ? index * keyWidth : index * keyWidth + 0.5 * keyWidth, width: keyWidth }}
+			style={{
+				left: isWhiteKey ? `${index * oneSeventh}%` : `${index * oneSeventh + oneFourteenth}%`
+			}}
 			data-active={ isActive }
 			onPointerEnter={ onPointerEnter }
 			onPointerDown={ onPointerDown}

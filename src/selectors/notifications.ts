@@ -6,6 +6,6 @@ export const getNotification = (state: RootStateType, id: string): NotificationR
 	return state.nofitications.items.get(id);
 };
 
-export const getNotifications = (state: RootStateType): ImmuMap<string, NotificationRecord> => {
+export const getNotifications = (state: RootStateType): ImmuMap<NotificationRecord["id"], NotificationRecord> => {
 	return state.nofitications.items;
 };

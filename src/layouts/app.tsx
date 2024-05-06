@@ -1,17 +1,18 @@
 import React, { PropsWithChildren, useEffect } from "react";
 import { AppShell } from "@mantine/core";
-import { useDisclosure } from "@mantine/hooks";
 import { useTheme } from "../hooks/useTheme";
 import { Header } from "../components/header";
-import Navbar from "../components/navBar";
-import { useRouter } from "next/router";
 import classes from "./app.module.css";
+import { useDisclosure } from "@mantine/hooks";
+import AppNav from "../components/nav";
+import { useRouter } from "next/router";
+import AppStatusWrapper from "../components/page/statusWrapper";
 
 export const AppLayout: React.FC<PropsWithChildren> = ({ children }) => {
 
-	const [openNav, { close: closeNav, toggle: toggleNav }] = useDisclosure();
 	const { other } = useTheme();
 	const { events } = useRouter();
+	const [navOpen, { close: closeNav, toggle: toggleNav }] = useDisclosure();
 
 	useEffect(() => {
 		events.on("routeChangeStart", closeNav);
@@ -21,14 +22,16 @@ export const AppLayout: React.FC<PropsWithChildren> = ({ children }) => {
 	return (
 		<AppShell
 			header={{ height: other.headerHeight }}
-			navbar={{ width: other.navWidth, breakpoint: "md", collapsed: { mobile: !openNav } }}
+			navbar={{ width: other.navWidth, breakpoint: "sm", collapsed: { mobile: !navOpen } }}
 		>
-			<Header navOpen={ openNav } onToggleNav={ toggleNav } />
-			<Navbar />
+			<Header navOpen={ navOpen } onToggleNav={ toggleNav } />
+			<AppNav />
 			<AppShell.Main className={ classes.main } >
-				<div className={ classes.wrapper } >
-					{ children }
-				</div>
+				<AppStatusWrapper>
+					<div className={ classes.wrapper } >
+						{ children }
+					</div>
+				</AppStatusWrapper>
 			</AppShell.Main>
 		</AppShell>
 	);

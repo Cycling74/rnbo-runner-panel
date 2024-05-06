@@ -1,3 +1,76 @@
+.wrapper {
+	display: flex;
+	height: 100%;
+	flex-direction: column;
+	gap: var(--mantine-spacing-md);
+}
+
+.octaveLabel {
+	font-size: var(--mantine-font-size-sm);
+	touch-action: none;
+	user-select: none;
+}
+
+.keyroll {
+	flex: 1;
+	touch-action: none;
+	user-select: none;
+}
+
+.octaveWrap {
+	display: flex;
+	justify-content: flex-start;
+	position: relative;
+	touch-action: none;
+	transform: none;
+	transform-origin: top left;
+	user-select: none;
+
+	&[data-orientation="horizontal"] {
+		height: 350px;
+		max-height: var(--keyroll-height);
+		width: var(--keyroll-width);
+	}
+
+	&[data-orientation="vertical"] {
+		height: var(--keyroll-width);
+		width: var(--keyroll-height);
+		transform: rotate(90deg) translateY(-100%);
+	}
+}
+
+.octave {
+	height: 100%;
+	width: calc(100% / var(--octave-count));
+	max-width: 500px;
+	position: relative;
+	user-select: none;
+
+	&:not(:last-child) {
+		border-right: none;
+	}
+
+	> .octaveLabel {
+		left: var(--mantine-spacing-xs);
+		bottom: calc(var(--mantine-spacing-xs) / 2);
+		color: var(--mantine-color-dark-7);
+		font-size: var(--mantine-font-size-sm);
+		font-weight: 700;
+		position: absolute;
+		z-index: 3;
+	}
+
+	> .octaveKeys {
+		height: 100%;
+		left: 0;
+		position: absolute;
+		top: 0;
+		width: 100%;
+	}
+}
+
+
+
 .key {
 
 	border-bottom-left-radius: var(--mantine-radius-xs);
@@ -7,6 +80,8 @@
 	border-width: 1px;
 	position: absolute;
 	top: 0;
+	user-select: none;
+	width: calc(100% / 7);
 
 }
 
@@ -16,7 +91,7 @@
 	z-index: 2;
 
 	@mixin dark {
-		background-color: var(--mantine-color-gray-6);
+		background-color: var(--mantine-color-text);
 	}
 
 	&[data-active="true"] {
@@ -36,29 +111,4 @@
 	&[data-active="true"] {
 		background-color: var(--mantine-primary-color-filled);
 	}
-}
-
-.octave {
-	height: 150px;
-	position: relative;
-	user-select: none;
-
-	&:not(:last-child) {
-		border-right: none;
-	}
-
-	> div {
-		height: 100%;
-		left: 0;
-		position: absolute;
-		top: 0;
-		width: 100%;
-	}
-}
-
-.keyroll {
-	display: flex;
-	justify-content: flex-start;
-	touch-action: none;
-	user-select: none;
 }

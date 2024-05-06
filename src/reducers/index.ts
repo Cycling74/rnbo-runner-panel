@@ -1,15 +1,23 @@
 import { combineReducers } from "redux";
 
-import { entities } from "./entities";
-import { network } from "./network";
+import { appStatus } from "./appStatus";
+import { instances } from "./instances";
+import { graph } from "./graph";
 import { nofitications } from "./notifications";
+import { patchers } from "./patchers";
 import { settings } from "./settings";
+import { sets } from "./sets";
+import { transport } from "./transport";
 
 export const rootReducer = combineReducers({
-	entities,
-	network,
+	appStatus,
+	instances,
+	graph,
 	nofitications,
-	settings
+	patchers,
+	settings,
+	sets,
+	transport
 });
 
 export type RootReducerType = typeof rootReducer;

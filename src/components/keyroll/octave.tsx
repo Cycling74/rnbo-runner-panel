@@ -1,9 +1,7 @@
 import { FunctionComponent, memo } from "react";
 import { Set as ImmuSet } from "immutable";
-import Note, { keyWidth } from "./note";
+import Note from "./note";
 import classes from "./keyroll.module.css";
-
-export const octaveWidth = keyWidth * 7;
 
 const Octave: FunctionComponent<{
 	octave: number;
@@ -53,8 +51,11 @@ const Octave: FunctionComponent<{
 	}
 
 	return (
-		<div className={ classes.octave } style={{ width: octaveWidth }}>
-			<div>
+		<div className={ classes.octave } >
+			<div className={ classes.octaveLabel } >
+				C{octave}
+			</div>
+			<div className={ classes.octaveKeys } >
 				{ blackNotes }
 				{ whiteNotes }
 			</div>

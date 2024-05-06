@@ -3,47 +3,58 @@ import { ParameterRecord } from "../../models/parameter";
 import classes from "./parameters.module.css";
 import { Group, Slider } from "@mantine/core";
 
-export const parameterBoxHeight = 58;
+export const parameterBoxHeight = 70;
+const formatParamValueForDisplay = (value: number | string) => {
+	if (typeof value === "number") return Number.isInteger(value) ? value : value.toFixed(2);
+	return value;
+};
 
 interface ParameterProps {
-	record: ParameterRecord;
-	onSetValue: (name: string, value: number) => void;
+	param: ParameterRecord;
+	onSetNormalizedValue: (param: ParameterRecord, nValue: number) => void;
 }
 
-const Parameter = memo(function WrappedParameter({ record, onSetValue }: ParameterProps) {
+const Parameter = memo(function WrappedParameter({ param, onSetNormalizedValue }: ParameterProps) {
 
-	const [localValue, setLocalValue] = useState(record.normalizedValue);
+	const [localValue, setLocalValue] = useState(param.normalizedValue);
 	const [useLocalValue, setUseLocalValue] = useState(false);
 
 	const onChange = useCallback((nVal: number) => {
 		if (!useLocalValue) setUseLocalValue(true);
 		setLocalValue(nVal);
-		onSetValue(record.name, nVal);
-	}, [useLocalValue, setUseLocalValue, setLocalValue, onSetValue, record]);
+		onSetNormalizedValue(param, nVal);
+	}, [useLocalValue, setUseLocalValue, setLocalValue, onSetNormalizedValue, param]);
 
 	const onChangeEnd = useCallback((nVal: number) => {
 		setUseLocalValue(false);
-		onSetValue(record.name, nVal);
-	}, [setUseLocalValue, onSetValue, record]);
+		onSetNormalizedValue(param, nVal);
+	}, [setUseLocalValue, onSetNormalizedValue, param]);
 
-	const currentValue = useLocalValue ? localValue : record.normalizedValue;
-	const displayValue = typeof record.value === "number" ? record.value.toFixed(2) : record.value;
+	const currentValue = useLocalValue ? localValue : param.normalizedValue;
+	const value = param.getValueForNormalizedValue(currentValue);
+	const stepSize = param.isEnum ? 1 / (param.enumVals.length - 1) : 0.001;
 
 	return (
 		<div className={ classes.parameterItem } >
 			<Group justify="space-between">
-				<label htmlFor={ record.name } className={ classes.parameterItemLabel } >{ record.name }</label>
+				<label htmlFor={ param.name } className={ classes.parameterItemLabel } >{ param.name }</label>
 			</Group>
 			<Slider
-				label={ displayValue }
+				label={ formatParamValueForDisplay(value) }
+				classNames={{ markWrapper: classes.markWrapper, markLabel: classes.markLabel }}
 				max={ 1 }
 				min={ 0 }
-				name={ record.name }
+				name={ param.name }
 				onChange={ onChange }
 				onChangeEnd={ onChangeEnd }
-				precision={ 2 }
-				step={ 0.001 }
+				precision={ 3 }
+				step={ stepSize }
 				value={ currentValue }
+				marks={
+					param.isEnum
+						? param.enumVals.map((v, i) => ({ label: `${v}`, value: stepSize * i }))
+						: [{ label: `${formatParamValueForDisplay(param.min)}`, value: 0 }, { label: `${formatParamValueForDisplay(param.max)}`, value: 1 }]
+				}
 			/>
 		</div>
 	);

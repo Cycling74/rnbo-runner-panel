@@ -1,32 +1,41 @@
 import { Record as ImmuRecord } from "immutable";
-import { JsonMap } from "../lib/types";
+import { OSCQueryRNBOPatcher } from "../lib/types";
 
 export const UNLOAD_PATCHER_NAME = "<none>";
 
-export class PatcherRecord extends ImmuRecord({
+export type PatcherRecordProps = {
+	name: string;
+	io: [number, number, number, number];
+}
+
+export class PatcherRecord extends ImmuRecord<PatcherRecordProps>({
 
 	name: "",
-	loaded: false
+	io: [0, 0, 0, 0]
 
 }) {
 
-	/**
-	 *
-	 * @param desc - JSON device description returned from OscQuery, rooted at /rnbo/patchers
-	 * @returns An Immutable List of PatcherRecord record objects
-	 */
-	static arrayFromDescription(desc: JsonMap, loadedName?: string): PatcherRecord[] {
+	static fromDescription(name: string, desc: OSCQueryRNBOPatcher): PatcherRecord {
+		return new PatcherRecord({
+			name,
+			io: desc.CONTENTS.io.VALUE
+		});
+	}
 
-		const entries = Object.keys(desc);
+	get audioInCount(): number {
+		return this.io[0] || 0;
+	}
 
-		let records: PatcherRecord[] = [new PatcherRecord({ name: UNLOAD_PATCHER_NAME, loaded: true })];
+	get audioOutCount(): number {
+		return this.io[1] || 0;
+	}
 
-		if (Array.isArray(entries)) {
-			records = records.concat(entries.map(name => {
-				return new PatcherRecord({name, loaded: loadedName === name });
-			}));
-		}
-		return records;
+	get midiInCount(): number {
+		return this.io[2] || 0;
+	}
+
+	get midiOutCount(): number {
+		return this.io[3] || 0;
 	}
 
 	get id(): string {

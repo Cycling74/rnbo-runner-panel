@@ -1,43 +1,126 @@
 import { parse as parseQuery } from "querystring";
-import { readPacket } from "osc";
-import {
-	initializeDevice, initializePatchers,
-	setSelectedPatcher, setParameterValue, setParameterValueNormalized,
-	updatePresets
-} from "../actions/device";
-import { clearEntities, deleteEntity, setEntity } from "../actions/entities";
-import { setConnectionStatus } from "../actions/network";
+import { OSCBundle, OSCMessage, readPacket } from "osc";
+import { setAppStatus, setConnectionEndpoint } from "../actions/appStatus";
 import { AppDispatch, store } from "../lib/store";
-import { InportRecord } from "../models/inport";
-import { ParameterRecord } from "../models/parameter";
-import { EntityType } from "../reducers/entities";
 import { ReconnectingWebsocket } from "../lib/reconnectingWs";
-import { WebSocketState } from "../lib/constants";
-import { UNLOAD_PATCHER_NAME } from "../models/patcher";
+import { AppStatus } from "../lib/constants";
+import { OSCQueryRNBOState, OSCQueryRNBOInstance, OSCQueryRNBOJackConnections, OSCQueryRNBOPatchersState, OSCValue, OSCQueryRNBOInstancesMetaState, OSCQueryListValue } from "../lib/types";
+import { addPatcherNode, deletePortAliases, initConnections, initNodes, removePatcherNode, setPortAliases, updateSetMetaFromRemote, updateSourcePortConnections, updateSystemOrControlPortInfo } from "../actions/graph";
+import { initPatchers } from "../actions/patchers";
+import { initRunnerConfig, updateRunnerConfig } from "../actions/settings";
+import { initSets } from "../actions/sets";
+import { sleep } from "../lib/util";
+import { getPatcherNodeByIndex } from "../selectors/graph";
+import { updateInstanceMessageOutputValue, updateInstanceMessages, updateInstanceParameterValue, updateInstanceParameterValueNormalized, updateInstanceParameters, updateInstancePresetEntries } from "../actions/instances";
+import { ConnectionType, PortDirection } from "../models/graph";
+import { showNotification } from "../actions/notifications";
+import { NotificationLevel } from "../models/notification";
+import { initTransport, updateTransportStatus } from "../actions/transport";
 
 const dispatch = store.dispatch as AppDispatch;
+
+enum OSCQueryCommand {
+	PATH_ADDED = "PATH_ADDED",
+	PATH_REMOVED = "PATH_REMOVED",
+	ATTRIBUTES_CHANGED = "ATTRIBUTES_CHANGED"
+}
+
+const portIOPathMatcher = /^\/rnbo\/jack\/info\/ports\/(?<type>audio|midi)\/(?<direction>sources|sinks)$/;
+const portAliasPathMatcher = /^\/rnbo\/jack\/info\/ports\/aliases\/(?<port>.+)$/;
+const patchersPathMatcher = /^\/rnbo\/patchers/;
+const instancePathMatcher = /^\/rnbo\/inst\/(?<index>\d+)$/;
+const instanceStatePathMatcher = /^\/rnbo\/inst\/(?<index>\d+)\/(?<content>params|messages\/in|messages\/out|presets)\/(?<rest>\S+)/;
+const connectionsPathMatcher = /^\/rnbo\/jack\/connections\/(?<type>audio|midi)\/(?<name>.+)$/;
+const setMetaPathMatcher = /^\/rnbo\/inst\/control\/sets\/meta/;
+
+const configPathMatcher = /^\/rnbo\/config\/(?<name>.+)$/;
+const jackConfigPathMatcher = /^\/rnbo\/jack\/config\/(?<name>.+)$/;
+const instanceConfigPathMatcher = /^\/rnbo\/inst\/config\/(?<name>.+)$/;
+
 export class OSCQueryBridgeControllerPrivate {
+
+	private static instanceExists(index: number): boolean {
+		return !!getPatcherNodeByIndex(store.getState(), index);
+	}
 
 	private _ws: ReconnectingWebsocket | null = null;
 
-	private get readyState(): WebSocketState {
-		return this._ws?.readyState || WebSocketState.CLOSED;
+	private _requestState<T>(path: string): Promise<T> {
+		return new Promise<T>((resolve, reject) => {
+			let resolved = false;
+			const callback = (evt: MessageEvent): void => {
+				try {
+					if (resolved) return;
+					if (typeof evt.data !== "string") return;
+					const data = JSON.parse(evt.data);
+
+					if (data?.FULL_PATH === path) {
+						resolved = true;
+						this._ws.off("message", callback);
+						return void resolve(data as T);
+					}
+				} catch (err) {
+					resolved = true;
+					this._ws.off("message", callback);
+					return void reject(err);
+				}
+			};
+			this._ws.on("message", callback);
+			this._ws.send(path);
+		});
+	}
+
+	public async getMetaState(): Promise<OSCQueryRNBOInstancesMetaState> {
+		const state = await this._requestState<OSCQueryRNBOInstancesMetaState>("/rnbo/inst/control/sets/meta");
+		return state;
+	}
+
+	private async _initConnections() {
+		const connectionsInfo = await this._requestState<OSCQueryRNBOJackConnections>("/rnbo/jack/connections");
+		dispatch(initConnections(connectionsInfo));
+	}
+
+	private async _init() {
+
+		const state = await this._requestState<OSCQueryRNBOState>("/rnbo");
+
+		// Init Config
+		dispatch(initRunnerConfig(state));
+
+		// Init Transport
+		dispatch(initTransport(state.CONTENTS.jack.CONTENTS.transport));
+
+		// Init Patcher Info
+		dispatch(initPatchers(state.CONTENTS.patchers));
+
+		// get sets info
+		dispatch(initSets(state.CONTENTS.inst?.CONTENTS?.control?.CONTENTS?.sets?.CONTENTS?.load?.RANGE?.[0]?.VALS || []));
+
+		// Initialize RNBO Graph Nodes
+		dispatch(initNodes(state.CONTENTS.jack.CONTENTS.info.CONTENTS.ports, state.CONTENTS.inst));
+
+		// Fetch Connections Info
+		await this._initConnections();
+
+		// Set Init App Status
+		dispatch(setAppStatus(AppStatus.Ready));
 	}
 
 	private _onClose = (evt: ErrorEvent) => {
-		dispatch(setConnectionStatus(this.readyState));
+		dispatch(setAppStatus(AppStatus.Closed, new Error("The connection to the RNBO Runner was closed")));
 	};
 
 	private _onError = (evt: ErrorEvent) => {
-		dispatch(setConnectionStatus(this.readyState));
+		dispatch(setAppStatus(AppStatus.Error, new Error(`The connection to the RNBO Runner encountered an error ${evt.error.message}`)));
 	};
 
 	private _onReconnecting = () => {
-		dispatch(setConnectionStatus(this.readyState));
+		dispatch(setAppStatus(AppStatus.Reconnecting));
 	};
 
 	private _onReconnected = () => {
-		dispatch(setConnectionStatus(this.readyState));
+		dispatch(setAppStatus(AppStatus.ResyncingState));
+		this._init();
 	};
 
 	private _onMessage = async (evt: MessageEvent): Promise<void> => {
@@ -45,117 +128,249 @@ export class OSCQueryBridgeControllerPrivate {
 
 			if (typeof evt.data === "string") {
 				const data = JSON.parse(evt.data);
+				const isCommand = typeof data.COMMAND === "string" && ["string", "object"].includes(typeof data.DATA);
 
-				const pathisstring = typeof data.FULL_PATH === "string";
-				if (pathisstring && data.FULL_PATH === "/rnbo/inst/0" && (typeof data.CONTENTS !== "undefined")) {
-					// brand new device
-					dispatch(initializeDevice(data));
-				} else if (pathisstring && data.FULL_PATH === "/rnbo/patchers" && (typeof data.CONTENTS !== "undefined")) {
-					dispatch(initializePatchers(data));
-				} else if (pathisstring && data.FULL_PATH === "/rnbo/inst/0/name") {
-					dispatch(setSelectedPatcher(data.VALUE));
-				} else if (pathisstring && data.FULL_PATH.startsWith("/rnbo/inst/0/params")) {
+				// console.log("command", data);
 
-					// individual parameter
-					const paramMatcher = /\/rnbo\/inst\/0\/params\/(\S+)/;
-					const matches = data.FULL_PATH.match(paramMatcher);
-
-					// If it's a new parameter, fetch its data
-					if (matches) {
-						const paramPath = matches[1];
-						const params = ParameterRecord.arrayFromDescription(data, paramPath);
-						if (params.length) dispatch(setEntity(EntityType.ParameterRecord, params[0]));
-					}
-				// need to add cond to check for preset and then set entity
-				} else if (pathisstring && data.FULL_PATH === "/rnbo/inst/0/presets/entries") {
-					dispatch(updatePresets(data.VALUE));
-				} else if (typeof data.COMMAND === "string" && data.COMMAND === "PATH_ADDED") {
-					this._onPathAdded(data.DATA);
-				} else if (typeof data.COMMAND === "string" && data.COMMAND === "PATH_REMOVED") {
-					this._onPathRemoved(data.DATA);
-				} else {
-					// unhandled message
-					// console.log("unhandled", { data });
+				if (isCommand && data.COMMAND === OSCQueryCommand.PATH_ADDED) {
+					await this._onPathAdded(data.DATA as string);
+				} else if (isCommand && data.COMMAND === OSCQueryCommand.PATH_REMOVED) {
+					await this._onPathRemoved(data.DATA as string);
+				} else if (isCommand && data.COMMAND === OSCQueryCommand.ATTRIBUTES_CHANGED) {
+					await this._onAttributesChanged(data.DATA as object);
 				}
 			} else {
 				const buf: Uint8Array = await evt.data.arrayBuffer();
-				const message = readPacket(buf, {});
-				this._processOSCMessage(message);
+				const data = readPacket(buf, {});
+
+				if (data.hasOwnProperty("address")) {
+					await this._processOSCMessage(data as OSCMessage);
+				} else {
+					await this._processOSCBundle(data as OSCBundle);
+				}
+
 			}
 		} catch (e) {
 			console.error(e);
 		}
 	};
 
-	private _onPathAdded(path: string): void {
-		// console.log("path added", { path });
-		// request data from new paths
-		if (path.startsWith("/rnbo/patchers")) {
-			this._ws.send("/rnbo/patchers");
-			return;
-		} else if (path === "/rnbo/inst/0/name") {
-			this._ws.send(path);
-			return;
+	private async _onPathAdded(path: string): Promise<void> {
+
+		// Handle Instances and Patcher Nodes first
+		if (instancePathMatcher.test(path)) {
+			// New Instance Added - slight timeout to let the graph build on the runner first
+			await sleep(500);
+			const info = await this._requestState<OSCQueryRNBOInstance>(path);
+			const meta = await this.getMetaState();
+			dispatch(addPatcherNode(info, meta.VALUE as string));
+
+			// Refresh Connections Info to include node
+			return void await this._initConnections();
 		}
 
-		const matcher = /\/rnbo\/inst\/0\/(params|messages\/in|presets)\/(\S+)/;
-		const matches = path.match(matcher);
-		if (!matches) return;
+		// Handle changes to patchers list - request updated list
+		if (patchersPathMatcher.test(path)) {
+			const patcherInfo = await this._requestState<OSCQueryRNBOPatchersState>("/rnbo/patchers");
+			return void dispatch(initPatchers(patcherInfo));
+		}
 
-		// Fetch new parameters
-		if (matches[1] === "params" && !matches[2].endsWith("/normalized")) {
-			this._ws.send(path);
-		} else if (matches[1] === "messages/in") {
-			// Inports can be declared with just a name
-			dispatch(setEntity(EntityType.InportRecord, new InportRecord({ name: matches[2] })));
-		} else if (matches[1] === "presets" && matches[2] === "entries") {
-			// request them
-			this._ws.send(path);
+		// Handle Alias Additions
+		const aliasMatch = path.match(portAliasPathMatcher);
+		if (aliasMatch?.groups?.port) {
+			const portAliases = await this._requestState<OSCQueryListValue<string, string[]>>(`/rnbo/jack/info/ports/aliases/${aliasMatch.groups.port}`);
+			return void dispatch(setPortAliases(aliasMatch?.groups?.port, portAliases.VALUE));
+		}
+
+		// Parse out if instance path?
+		const instInfoMatch = path.match(instanceStatePathMatcher);
+		if (!instInfoMatch?.groups?.index) return;
+
+		// Known Instance?
+		const index = parseInt(instInfoMatch.groups.index, 10);
+		if (isNaN(index) || !OSCQueryBridgeControllerPrivate.instanceExists(index)) return;
+
+		if (
+			instInfoMatch.groups.content === "presets" &&
+			instInfoMatch.groups.rest === "entries"
+		) {
+			// Updated Preset Entries
+			const presetInfo = await this._requestState< OSCQueryRNBOInstance["CONTENTS"]["presets"]>(`/rnbo/inst/${index}/presets`);
+			return void dispatch(updateInstancePresetEntries(index, presetInfo.CONTENTS.entries));
+		} else if (
+			instInfoMatch.groups.content === "params" &&
+			!instInfoMatch.groups.rest.endsWith("/normalized")
+		) {
+			// Add Parameter
+			const paramInfo = await this._requestState< OSCQueryRNBOInstance["CONTENTS"]["params"]>(`/rnbo/inst/${index}/params`);
+			return void dispatch(updateInstanceParameters(index, paramInfo));
+		} else if (
+			instInfoMatch.groups.content === "messages/in" || instInfoMatch.groups.content === "messages/out"
+		) {
+			// Add Message Inputs & Outputs
+			const messagesInfo = await this._requestState<OSCQueryRNBOInstance["CONTENTS"]["messages"]>(`/rnbo/inst/${index}/messages`);
+			return void dispatch(updateInstanceMessages(index, messagesInfo));
 		}
 	}
 
-	private _onPathRemoved(path: string): void {
-		// if we remove the instance, patcher is gone
-		if (path === "/rnbo/inst/0") {
-			dispatch(setSelectedPatcher(UNLOAD_PATCHER_NAME));
-			return;
-		}
-		const matcher = /\/rnbo\/inst\/0\/(params|messages\/in|presets)\/(\S+)/;
-		const matches = path.match(matcher);
-		if (!matches) return;
+	private async _onPathRemoved(path: string): Promise<void> {
 
-		if (matches[1] === "params") {
-			const paramPath = matches[2];
-			if (!paramPath.endsWith("/normalized")) {
-				dispatch(deleteEntity(EntityType.ParameterRecord, paramPath));
-			}
-		} else if (matches[1] === "messages/in") {
-			const inPath = matches[2];
-			dispatch(deleteEntity(EntityType.InportRecord, inPath));
-		} else if (matches[1] === "presets" && matches[2] === "entries") {
-			// clear all presets
-			dispatch(clearEntities(EntityType.PresetRecord));
+		// Removed Instance
+		const instMatch = path.match(instancePathMatcher);
+		if (instMatch?.groups?.index) {
+			const index = parseInt(instMatch.groups.index, 10);
+			if (isNaN(index)) return;
+			return void dispatch(removePatcherNode(index));
+		}
+
+		// Removed Patcher
+		if (patchersPathMatcher.test(path)) {
+			const patcherInfo = await this._requestState<OSCQueryRNBOPatchersState>("/rnbo/patchers");
+			return void dispatch(initPatchers(patcherInfo));
+		}
+
+		// Handle Alias Removals
+		const aliasMatch = path.match(portAliasPathMatcher);
+		if (aliasMatch?.groups?.port) {
+			return void dispatch(deletePortAliases(aliasMatch?.groups?.port));
+		}
+
+		// Parse out if instance path?
+		const instInfoMatch = path.match(instanceStatePathMatcher);
+		if (!instInfoMatch?.groups?.index) return;
+
+		// Known Instance?
+		const index = parseInt(instInfoMatch.groups.index, 10);
+		if (isNaN(index) || !OSCQueryBridgeControllerPrivate.instanceExists(index)) return;
+
+		// Updated Preset Entries
+		if (
+			instInfoMatch.groups.content === "presets" &&
+			instInfoMatch.groups.rest === "entries"
+		) {
+			const presetInfo = await this._requestState< OSCQueryRNBOInstance["CONTENTS"]["presets"]>(`/rnbo/inst/${index}/presets`);
+			return void dispatch(updateInstancePresetEntries(index, presetInfo.CONTENTS.entries));
+		}
+
+		// Removed Parameter
+		if (
+			instInfoMatch.groups.content === "params" &&
+			!instInfoMatch.groups.rest.endsWith("/normalized")
+		) {
+			const paramInfo = await this._requestState< OSCQueryRNBOInstance["CONTENTS"]["params"]>(`/rnbo/inst/${index}/params`);
+			return void dispatch(updateInstanceParameters(index, paramInfo));
+		}
+
+		// Removed Message Inport
+		if (
+			instInfoMatch.groups.content === "messages/in" || instInfoMatch.groups.content === "messages/out"
+		) {
+			const messagesInfo = await this._requestState<OSCQueryRNBOInstance["CONTENTS"]["messages"]>(`/rnbo/inst/${index}/messages`);
+			return void dispatch(updateInstanceMessages(index, messagesInfo));
 		}
 	}
 
-	private _processOSCMessage(packet: any): void {
-		const address: string = packet.address;
+	private async _onAttributesChanged(data: any): Promise<void> {
+		// console.log("ATTRIBUTES_CHANGED", data);
+		if (data.FULL_PATH === "/rnbo/inst/control/sets/load" && data.RANGE !== undefined) {
+			const sets: Array<string> = data.RANGE?.[0]?.VALS || [];
+			dispatch(initSets(sets));
+		}
+	}
 
-		const matcher = /\/rnbo\/inst\/0\/(params|presets)\/(\S+)/;
-		const matches = address.match(matcher);
-		if (!matches) return;
-
-		if (matches[1] === "params") {
-			const paramPath = matches[2];
-			const paramValue = packet.args[0];
-			if (paramPath.endsWith("/normalized")) {
-				const paramName = paramPath.slice(0, -("/normalized").length);
-				dispatch(setParameterValueNormalized(paramName, paramValue));
+	private async _processOSCBundle(bundle: OSCBundle): Promise<void> {
+		for (const packet of bundle.packets) {
+			if (packet.hasOwnProperty("address")) {
+				await this._processOSCMessage(packet as OSCMessage);
 			} else {
-				dispatch(setParameterValue(paramPath, paramValue));
+				await this._processOSCBundle(packet as OSCBundle);
 			}
-		} else if (matches[1] === "presets" && matches[2] === "entries") {
-			dispatch(updatePresets(packet.args));
+		}
+	}
+
+	private async _processOSCMessage(packet: OSCMessage): Promise<void> {
+
+		if (packet.address === "/rnbo/jack/restart") {
+			return void dispatch(showNotification({ title: "Restarting Jack", message: "Please wait while the Jack server is being restarted with the updated audio configuration settings.", level: NotificationLevel.info }));
+		}
+
+		// Transport Control Control
+		if (packet.address === "/rnbo/jack/transport/bpm") {
+			if (packet.args?.length) return void dispatch(updateTransportStatus({ bpm: (packet.args as unknown as [number])?.[0] }));
+		}
+
+		if (packet.address === "/rnbo/jack/transport/rolling") {
+			if (packet.args?.length) return void dispatch(updateTransportStatus({ rolling: (packet.args as unknown as [boolean])?.[0] }));
+		}
+
+		if (packet.address === "/rnbo/jack/transport/sync") {
+			if (packet.args?.length) return void dispatch(updateTransportStatus({ sync: (packet.args as unknown as [boolean])?.[0] }));
+		}
+
+
+		const metaMatch = packet.address.match(setMetaPathMatcher);
+		if (metaMatch) {
+			return void dispatch(updateSetMetaFromRemote(packet.args as unknown as string));
+		}
+
+		const portIOMatch = packet.address.match(portIOPathMatcher);
+		if (portIOMatch) {
+			const type: ConnectionType = portIOMatch.groups.type === "midi" ? ConnectionType.MIDI : ConnectionType.Audio;
+			const direction: PortDirection = portIOMatch.groups.direction === "sinks" ? PortDirection.Sink : PortDirection.Source;
+			return void dispatch(updateSystemOrControlPortInfo(type, direction, packet.args as unknown as string[]));
+		}
+
+
+		const connectionMatch = packet.address.match(connectionsPathMatcher);
+		if (connectionMatch?.groups?.name) {
+			return void dispatch(updateSourcePortConnections(connectionMatch.groups.name, packet.args as unknown as string[]));
+		}
+
+		// update configs
+		if (
+			configPathMatcher.test(packet.address) ||
+			jackConfigPathMatcher.test(packet.address) ||
+			instanceConfigPathMatcher.test(packet.address)
+		) {
+			if (packet.args.length) {
+				return void dispatch(updateRunnerConfig(packet.address, packet.args[0] as unknown as string | number | boolean));
+			}
+		}
+
+		const packetMatch = packet.address.match(instanceStatePathMatcher);
+		if (!packetMatch?.groups?.index) return;
+
+		const index = parseInt(packetMatch.groups.index, 10);
+		if (isNaN(index)) return;
+
+		// Parameter Changes
+		if (packetMatch.groups.content === "params") {
+			const isNormalized = packetMatch.groups.rest.endsWith("/normalized");
+			const name = isNormalized ? packetMatch.groups.rest.split("/").slice(0, -1).join("/") : packetMatch.groups.rest;
+			if (!name || !packet.args.length || typeof packet.args[0] !== "number") return;
+
+			isNormalized
+				? dispatch(updateInstanceParameterValueNormalized(index, name, packet.args[0]))
+				: dispatch(updateInstanceParameterValue(index, name, packet.args[0]));
+
+			return;
+		}
+
+		// Preset changes
+		if (
+			packetMatch.groups.content === "presets" &&
+			packetMatch.groups.rest === "entries"
+		) {
+			const presetInfo = await this._requestState< OSCQueryRNBOInstance["CONTENTS"]["presets"]>(`/rnbo/inst/${index}/presets`);
+			return void dispatch(updateInstancePresetEntries(index, presetInfo.CONTENTS.entries));
+		}
+
+		// Output Messages
+		if (
+			packetMatch.groups.content === "messages/out" &&
+			packetMatch.groups.rest?.length
+		) {
+			return void dispatch(updateInstanceMessageOutputValue(index, packetMatch.groups.rest, packet.args as any as OSCValue | OSCValue[]));
 		}
 
 	}
@@ -171,9 +386,10 @@ export class OSCQueryBridgeControllerPrivate {
 	public async connect({ hostname, port }: { hostname: string; port: string }): Promise<void> {
 
 		this._ws = new ReconnectingWebsocket({ hostname, port });
-
 		try {
+			dispatch(setConnectionEndpoint(hostname, port));
 			await this._ws.connect();
+			dispatch(setAppStatus(AppStatus.InitializingState));
 
 			this._ws.on("close", this._onClose);
 			this._ws.on("error", this._onError);
@@ -182,16 +398,10 @@ export class OSCQueryBridgeControllerPrivate {
 			this._ws.on("reconnect_failed", this._onClose);
 			this._ws.on("message", this._onMessage);
 
-			// Update Connection Status
-			dispatch(setConnectionStatus(this.readyState));
-
-			// Fetch the instrument description and patchers list
-			this._ws.send("/rnbo/patchers");
-			this._ws.send("/rnbo/inst/0");
+			await this._init();
 		} catch (err) {
-			// Update Connection Status
-			dispatch(setConnectionStatus(this.readyState));
-
+			dispatch(setAppStatus(AppStatus.Error, new Error(`Failed to connect to start up: ${err.message}`)));
+			console.log(err);
 			// Rethrow error
 			throw err;
 		}
