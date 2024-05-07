@@ -37,12 +37,17 @@ const serializeSetMeta = (nodes: GraphNodeRecord[]): string => {
 	return JSON.stringify(result);
 };
 
+const defaultMeta = { nodes: {} };
+
 const deserializeSetMeta = (metaString: string): OSCQuerySetMeta => {
 	try {
-		return JSON.parse(metaString || '{ "nodes": {} }') as OSCQuerySetMeta;
+		if (!metaString?.length) {
+			return { ...defaultMeta };
+		}
+		return JSON.parse(metaString) as OSCQuerySetMeta;
 	} catch (err) {
 		console.warn(`Failed to parse Set Meta when creating new node: ${err.message}`);
-		return { nodes: {} };
+		return { ...defaultMeta };
 	}
 };
 
