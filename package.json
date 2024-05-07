@@ -11,7 +11,8 @@
     "start": "next start",
     "lint": "next lint",
     "prepackage-debian": "npm run build",
-    "package-debian": "node scripts/package-debian.mjs"
+    "package-debian": "node scripts/package-debian.mjs",
+    "preversion": "next lint"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^6.4.2",
