@@ -38,12 +38,15 @@ const serializeSetMeta = (nodes: GraphNodeRecord[]): string => {
 };
 
 const deserializeSetMeta = (metaString: string): OSCQuerySetMeta => {
-	try {
-		return JSON.parse(metaString || '{ "nodes": {} }') as OSCQuerySetMeta;
-	} catch (err) {
-		console.warn(`Failed to parse Set Meta when creating new node: ${err.message}`);
-		return { nodes: {} };
+	// I don't know why we're getting strings of length 1 but, they can't be valid JSON anyway
+	if (metaString && metaString.length > 1) {
+		try {
+			return JSON.parse(metaString) as OSCQuerySetMeta;
+		} catch (err) {
+			console.warn(`Failed to parse Set Meta when creating new node: ${err.message}`);
+		}
 	}
+	return { nodes: {} };
 };
 
 export enum GraphActionType {
