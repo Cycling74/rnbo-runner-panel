@@ -88,7 +88,7 @@ export class OSCQueryBridgeControllerPrivate {
 		dispatch(initRunnerConfig(state));
 
 		// Init Transport
-		dispatch(initTransport(state.CONTENTS.jack.CONTENTS.transport));
+		dispatch(initTransport(state.CONTENTS.jack.CONTENTS?.transport));
 
 		// Init Patcher Info
 		dispatch(initPatchers(state.CONTENTS.patchers));

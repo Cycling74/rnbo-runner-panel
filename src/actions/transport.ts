@@ -6,6 +6,8 @@ import { getShowTransportControl, getTransportControlState } from "../selectors/
 import { clamp } from "../lib/util";
 import { BPMRange } from "../lib/constants";
 
+export type PartialTransportStatus = Partial<{ bpm: number; rolling: boolean; sync: boolean; }>;
+
 export enum TransportActionType {
 	INIT = "INIT_TRANSPORT",
 	SET_SHOW_TRANSPORT_CONTROL = "SET_SHOW_TRANSPORT_CONTROL",
@@ -14,11 +16,7 @@ export enum TransportActionType {
 
 export interface IInitTransport extends ActionBase {
 	type: TransportActionType.INIT;
-	payload: {
-		bpm: number;
-		rolling: boolean;
-		sync: boolean;
-	};
+	payload: PartialTransportStatus;
 }
 
 export interface ISetShowTransportControl extends ActionBase {
@@ -30,7 +28,7 @@ export interface ISetShowTransportControl extends ActionBase {
 
 export interface IUpdateTransport extends ActionBase {
 	type: TransportActionType.UPDATE_TRANSPORT,
-	payload: Partial<IInitTransport["payload"]>;
+	payload: PartialTransportStatus;
 }
 
 export type TransportAction = IInitTransport | ISetShowTransportControl | IUpdateTransport;
@@ -61,13 +59,13 @@ export const toggleTransportControl = () : AppThunk =>
 		dispatch({ type: TransportActionType.SET_SHOW_TRANSPORT_CONTROL, payload: { show: !isShown } });
 	};
 
-export const initTransport = (info: OSCQueryRNBOJackTransport) => {
+export const initTransport = (info?: OSCQueryRNBOJackTransport) => {
 	return {
 		type: TransportActionType.INIT,
 		payload: {
-			bpm: info.CONTENTS?.bpm?.VALUE || 100,
-			rolling: info.CONTENTS?.rolling?.TYPE === OSCQueryValueType.True || false,
-			sync: info.CONTENTS?.sync?.TYPE === OSCQueryValueType.True || false
+			bpm: info?.CONTENTS?.bpm?.VALUE,
+			rolling: info?.CONTENTS?.rolling?.TYPE === OSCQueryValueType.True || false,
+			sync: info?.CONTENTS?.sync?.TYPE === OSCQueryValueType.True || false
 		}
 	};
 };
@@ -134,7 +132,7 @@ export const decrementTransportBPMOnRemote = (scale: number = 1): AppThunk =>
 		dispatch(setTransportBPMOnRemote(bpm));
 	};
 
-export const updateTransportStatus = (status: Partial<{ bpm: number; rolling: boolean; sync: boolean; }>): TransportAction => {
+export const updateTransportStatus = (status: PartialTransportStatus): TransportAction => {
 	return {
 		type: TransportActionType.UPDATE_TRANSPORT,
 		payload: status
