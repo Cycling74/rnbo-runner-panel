@@ -2,12 +2,14 @@ import { writePacket } from "osc";
 import { oscQueryBridge } from "../controller/oscqueryBridgeController";
 import { ActionBase, AppThunk } from "../lib/store";
 import { GraphSetRecord } from "../models/set";
+import { PresetRecord } from "../models/preset";
 import { getShowGraphSetsDrawer } from "../selectors/sets";
 import { showNotification } from "./notifications";
 import { NotificationLevel } from "../models/notification";
 
 export enum GraphSetActionType {
 	INIT = "INIT_SETS",
+	INIT_PRESETS = "INIT_PRESETS",
 	SET_SHOW_GRAPH_SETS = "SET_SHOW_GRAPH_SET"
 }
 
@@ -25,14 +27,29 @@ export interface IShowGraphSets extends ActionBase {
 	};
 }
 
-export type GraphSetAction = IInitGraphSets | IShowGraphSets;
+export interface IInitGraphSetPresets extends ActionBase {
+	type: GraphSetActionType.INIT_PRESETS;
+	payload: {
+		presets: PresetRecord[]
+	}
+}
+
+export type GraphSetAction = IInitGraphSets | IShowGraphSets | IInitGraphSetPresets;
 
 export const initSets = (names: string[]): GraphSetAction => {
-
 	return {
 		type: GraphSetActionType.INIT,
 		payload: {
 			sets: names.map(n => GraphSetRecord.fromDescription(n))
+		}
+	};
+};
+
+export const initSetPresets = (names: string[]): GraphSetAction => {
+	return {
+		type: GraphSetActionType.INIT_PRESETS,
+		payload: {
+			presets: names.map(n => PresetRecord.fromDescription(n))
 		}
 	};
 };
