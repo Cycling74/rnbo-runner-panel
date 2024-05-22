@@ -19,10 +19,20 @@ export const getGraphSetsSortedByName = (state: RootStateType) => {
 		.sort((left: GraphSetRecord, right: GraphSetRecord): number => collator.compare(left.name, right.name));
 };
 
+//sort initial first
 export const getGraphSetPrsetsSortedByName = (state: RootStateType) => {
 	return state.sets.presets
 		.valueSeq()
-		.sort((left: PresetRecord, right: PresetRecord): number => collator.compare(left.name, right.name));
+		.sort((left: PresetRecord, right: PresetRecord): number => {
+			if (left.name === right.name) {
+				return 0;
+			} else if (left.name === "initial") {
+				return -1;
+			} else if (right.name === "initial") {
+				return 1;
+			}
+			return collator.compare(left.name, right.name);
+		});
 };
 
 export const getShowGraphSetsDrawer = (state: RootStateType): boolean => state.sets.show;
