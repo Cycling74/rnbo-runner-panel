@@ -166,7 +166,7 @@ export const loadSetPresetOnRemote = (preset: PresetRecord): AppThunk =>
 	(dispatch) => {
 		try {
 			const message = {
-				address: `/rnbo/inst/control/sets/presets/load`,
+				address: "/rnbo/inst/control/sets/presets/load",
 				args: [
 					{ type: "s", value: preset.name }
 				]
@@ -186,7 +186,7 @@ export const saveSetPresetToRemote = (name: string): AppThunk =>
 	(dispatch) => {
 		try {
 			const message = {
-				address: `/rnbo/inst/control/sets/presets/save`,
+				address: "/rnbo/inst/control/sets/presets/save",
 				args: [
 					{ type: "s", value: name }
 				]
@@ -206,7 +206,7 @@ export const destroySetPresetOnRemote = (preset: PresetRecord): AppThunk =>
 	(dispatch) => {
 		try {
 			const message = {
-				address: `/rnbo/inst/control/sets/presets/destroy`,
+				address: "/rnbo/inst/control/sets/presets/destroy",
 				args: [
 					{ type: "s", value: preset.name }
 				]
@@ -226,10 +226,10 @@ export const renameSetPresetOnRemote = (preset: PresetRecord, newname: string): 
 	(dispatch) => {
 		try {
 			const message = {
-				address: `/rnbo/inst/control/sets/presets/rename`,
+				address: "/rnbo/inst/control/sets/presets/rename",
 				args: [
 					{ type: "s", value: preset.name },
-					{ type: "s", value: newname },
+					{ type: "s", value: newname }
 				]
 			};
 			oscQueryBridge.sendPacket(writePacket(message));

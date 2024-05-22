@@ -146,7 +146,7 @@ export const renamePresetOnRemoteInstance = (instance: InstanceStateRecord, pres
 				address: `${instance.path}/presets/rename`,
 				args: [
 					{ type: "s", value: preset.name },
-					{ type: "s", value: name },
+					{ type: "s", value: name }
 				]
 			};
 			oscQueryBridge.sendPacket(writePacket(message));

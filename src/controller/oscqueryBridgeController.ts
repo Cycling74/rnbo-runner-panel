@@ -4,7 +4,7 @@ import { setAppStatus, setConnectionEndpoint } from "../actions/appStatus";
 import { AppDispatch, store } from "../lib/store";
 import { ReconnectingWebsocket } from "../lib/reconnectingWs";
 import { AppStatus } from "../lib/constants";
-import { OSCQueryRNBOState, OSCQueryRNBOInstance, OSCQueryRNBOJackConnections, OSCQueryRNBOPatchersState, OSCValue, OSCQueryRNBOInstancesMetaState, OSCQueryListValue, OSCQueryStringValue, OSCQueryBooleanValue, OSCQueryValueRange } from "../lib/types";
+import { OSCQueryRNBOState, OSCQueryRNBOInstance, OSCQueryRNBOJackConnections, OSCQueryRNBOPatchersState, OSCValue, OSCQueryRNBOInstancesMetaState, OSCQueryListValue } from "../lib/types";
 import { addPatcherNode, deletePortAliases, initConnections, initNodes, removePatcherNode, setPortAliases, updateSetMetaFromRemote, updateSourcePortConnections, updateSystemOrControlPortInfo } from "../actions/graph";
 import { initPatchers } from "../actions/patchers";
 import { initRunnerConfig, updateRunnerConfig } from "../actions/settings";
@@ -33,8 +33,8 @@ const instanceStatePathMatcher = /^\/rnbo\/inst\/(?<index>\d+)\/(?<content>param
 const connectionsPathMatcher = /^\/rnbo\/jack\/connections\/(?<type>audio|midi)\/(?<name>.+)$/;
 const setMetaPathMatcher = /^\/rnbo\/inst\/control\/sets\/meta/;
 
-const setsPresetsCurrentNamePath = "/rnbo/inst/control/sets/current/name";
-const setsPresetsCurrentDirtyPath = "/rnbo/inst/control/sets/current/dirty";
+// TODO const setsPresetsCurrentNamePath = "/rnbo/inst/control/sets/current/name";
+// TODO const setsPresetsCurrentDirtyPath = "/rnbo/inst/control/sets/current/dirty";
 const setsPresetsLoadPath = "/rnbo/inst/control/sets/presets/load";
 
 const configPathMatcher = /^\/rnbo\/config\/(?<name>.+)$/;

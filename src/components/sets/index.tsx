@@ -16,7 +16,7 @@ const SetsDrawer: FunctionComponent = memo(function WrappedSetsDrawer() {
 	const dispatch = useAppDispatch();
 	const [
 		open,
-		sets,
+		sets
 	] = useAppSelector(state => [
 		getShowGraphSetsDrawer(state),
 		getGraphSetsSortedByName(state)
