@@ -102,7 +102,7 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 	return (
 		<>
 			<Stack style={{ height: "100%" }} >
-				<Group justify="space-between">
+				<Group justify="space-between" wrap="nowrap">
 					<Menu position="bottom-end">
 						<Menu.Target>
 							<Button variant="default" leftSection={ <FontAwesomeIcon icon={ faPlus } /> } >
@@ -123,12 +123,14 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 								))
 							}
 						</Menu.Dropdown>
-						<Button variant="default" leftSection={ <FontAwesomeIcon icon={ faObjectGroup } /> } onClick={ onToggleSetsDrawer } >
-							Sets
-						</Button>
-						<Button variant="default" leftSection={ <FontAwesomeIcon icon={ faCamera } /> } onClick={ togglePresetDrawer } >
-							Presets
-						</Button>
+						<Group style={{ flex: "0" }} wrap="nowrap" gap="xs" >
+							<Button variant="default" leftSection={ <FontAwesomeIcon icon={ faObjectGroup } /> } onClick={ onToggleSetsDrawer } >
+								Sets
+							</Button>
+							<Button variant="default" leftSection={ <FontAwesomeIcon icon={ faCamera } /> } onClick={ togglePresetDrawer } >
+								Presets
+							</Button>
+						</Group>
 					</Menu>
 				</Group>
 				<GraphEditor
