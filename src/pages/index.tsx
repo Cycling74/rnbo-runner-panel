@@ -4,9 +4,10 @@ import { useAppDispatch, useAppSelector } from "../hooks/useAppDispatch";
 import { RootStateType } from "../lib/store";
 import { getPatchers } from "../selectors/patchers";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faObjectGroup, faPlus } from "@fortawesome/free-solid-svg-icons";
+import { faObjectGroup, faPlus, faCamera } from "@fortawesome/free-solid-svg-icons";
 import { getConnections, getNodes } from "../selectors/graph";
 import GraphEditor from "../components/editor";
+import InstancePresetDrawer from "../components/presets";
 import { Connection, Edge, EdgeChange, Node, NodeChange } from "reactflow";
 import {
 	applyEditorEdgeChanges, applyEditorNodeChanges, createEditorConnection,
@@ -14,7 +15,10 @@ import {
 	loadPatcherNodeOnRemote
 } from "../actions/graph";
 import SetsDrawer from "../components/sets";
-import { toggleShowGraphSets } from "../actions/sets";
+import { destroySetPresetOnRemote, loadSetPresetOnRemote, saveSetPresetToRemote, toggleShowGraphSets } from "../actions/sets";
+import { PresetRecord } from "../models/preset";
+import { getGraphSetPrsetsSortedByName } from "../selectors/sets";
+import { useDisclosure } from "@mantine/hooks";
 
 const NoPatcherInfo = forwardRef<HTMLDivElement, MenuItemProps>(function ForwardedNoPatcherInfo(props, ref) {
 	return (
@@ -34,12 +38,16 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 	const [
 		patchers,
 		nodes,
-		connections
+		connections,
+		presets
 	] = useAppSelector((state: RootStateType) => [
 		getPatchers(state),
 		getNodes(state),
-		getConnections(state)
+		getConnections(state),
+		getGraphSetPrsetsSortedByName(state)
 	]);
+
+	const [presetDrawerIsOpen, { close: closePresetDrawer, toggle: togglePresetDrawer }] = useDisclosure();
 
 	const onAddInstance = useCallback((e: MouseEvent<HTMLButtonElement>) => {
 		const id = e.currentTarget.dataset.patcherId;
@@ -75,6 +83,18 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 		dispatch(toggleShowGraphSets());
 	}, [dispatch]);
 
+	const onLoadPreset = useCallback((preset: PresetRecord) => {
+		dispatch(loadSetPresetOnRemote(preset));
+	}, [dispatch]);
+
+	const onSavePreset = useCallback((name: string) => {
+		dispatch(saveSetPresetToRemote(name));
+	}, [dispatch]);
+
+	const onDeletePreset = useCallback((preset: PresetRecord) => {
+		dispatch(destroySetPresetOnRemote(preset));
+	}, [dispatch]);
+
 	return (
 		<>
 			<Stack style={{ height: "100%" }} >
@@ -102,6 +122,9 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 						<Button variant="default" leftSection={ <FontAwesomeIcon icon={ faObjectGroup } /> } onClick={ onToggleSetsDrawer } >
 							Sets
 						</Button>
+						<Button variant="default" leftSection={ <FontAwesomeIcon icon={ faCamera } /> } onClick={ togglePresetDrawer } >
+							Presets
+						</Button>
 					</Menu>
 				</Group>
 				<GraphEditor
@@ -115,6 +138,14 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 				/>
 			</Stack>
 			<SetsDrawer />
+			<InstancePresetDrawer
+				open={ presetDrawerIsOpen }
+				onClose={ closePresetDrawer }
+				onDeletePreset={ onDeletePreset }
+				onLoadPreset={ onLoadPreset }
+				onSavePreset={ onSavePreset }
+				presets={ presets }
+			/>
 		</>
 	);
 };

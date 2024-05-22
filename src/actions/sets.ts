@@ -161,3 +161,84 @@ export const renameGraphSetOnRemote = (set: GraphSetRecord, newName: string): Ap
 			console.error(err);
 		}
 	};
+
+export const loadSetPresetOnRemote = (preset: PresetRecord): AppThunk =>
+	(dispatch) => {
+		try {
+			const message = {
+				address: `/rnbo/inst/control/sets/presets/load`,
+				args: [
+					{ type: "s", value: preset.name }
+				]
+			};
+			oscQueryBridge.sendPacket(writePacket(message));
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: `Error while trying to load preset ${preset.name}`,
+				message: "Please check the consolor for further details."
+			}));
+			console.log(err);
+		}
+	};
+
+export const saveSetPresetToRemote = (name: string): AppThunk =>
+	(dispatch) => {
+		try {
+			const message = {
+				address: `/rnbo/inst/control/sets/presets/save`,
+				args: [
+					{ type: "s", value: name }
+				]
+			};
+			oscQueryBridge.sendPacket(writePacket(message));
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: `Error while trying to save preset ${name}`,
+				message: "Please check the consolor for further details."
+			}));
+			console.log(err);
+		}
+	};
+
+export const destroySetPresetOnRemote = (preset: PresetRecord): AppThunk =>
+	(dispatch) => {
+		try {
+			const message = {
+				address: `/rnbo/inst/control/sets/presets/destroy`,
+				args: [
+					{ type: "s", value: preset.name }
+				]
+			};
+			oscQueryBridge.sendPacket(writePacket(message));
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: `Error while trying to delete preset ${preset.name}`,
+				message: "Please check the consolor for further details."
+			}));
+			console.log(err);
+		}
+	};
+
+export const renameSetPresetOnRemote = (preset: PresetRecord, newname: string): AppThunk =>
+	(dispatch) => {
+		try {
+			const message = {
+				address: `/rnbo/inst/control/sets/presets/rename`,
+				args: [
+					{ type: "s", value: preset.name },
+					{ type: "s", value: newname },
+				]
+			};
+			oscQueryBridge.sendPacket(writePacket(message));
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: `Error while trying to rename preset ${preset.name} to ${newname}`,
+				message: "Please check the consolor for further details."
+			}));
+			console.log(err);
+		}
+	};
