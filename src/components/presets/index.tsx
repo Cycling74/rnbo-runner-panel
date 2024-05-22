@@ -15,6 +15,7 @@ export type PresetDrawerProps = {
 	onDeletePreset: (preset: PresetRecord) => any;
 	onLoadPreset: (preset: PresetRecord) => any;
 	onSavePreset: (name: string) => any;
+	onRenamePreset: (preset: PresetRecord, name: string) => any;
 	presets: Seq.Indexed<PresetRecord>;
 };
 
@@ -24,6 +25,7 @@ const PresetDrawer: FunctionComponent<PresetDrawerProps> = memo(function Wrapped
 	onDeletePreset,
 	onLoadPreset,
 	onSavePreset,
+	onRenamePreset,
 	presets
 }: PresetDrawerProps) {
 
@@ -54,7 +56,7 @@ const PresetDrawer: FunctionComponent<PresetDrawerProps> = memo(function Wrapped
 			<DrawerSectionTitle>Presets</DrawerSectionTitle>
 			<Stack gap="sm">
 				{
-					presets.map(preset => <PresetItem key={ preset.id } preset={ preset } onLoad={ onLoadPreset } onDelete={ onTriggerDeletePreset }/> )
+					presets.map(preset => <PresetItem key={ preset.id } preset={ preset } onLoad={ onLoadPreset } onDelete={ onTriggerDeletePreset } onRename = { onRenamePreset }/> )
 				}
 			</Stack>
 		</Drawer>

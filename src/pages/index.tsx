@@ -15,7 +15,7 @@ import {
 	loadPatcherNodeOnRemote
 } from "../actions/graph";
 import SetsDrawer from "../components/sets";
-import { destroySetPresetOnRemote, loadSetPresetOnRemote, saveSetPresetToRemote, toggleShowGraphSets } from "../actions/sets";
+import { destroySetPresetOnRemote, loadSetPresetOnRemote, saveSetPresetToRemote, renameSetPresetOnRemote, toggleShowGraphSets } from "../actions/sets";
 import { PresetRecord } from "../models/preset";
 import { getGraphSetPrsetsSortedByName } from "../selectors/sets";
 import { useDisclosure } from "@mantine/hooks";
@@ -95,6 +95,10 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 		dispatch(destroySetPresetOnRemote(preset));
 	}, [dispatch]);
 
+	const onRenamePreset = useCallback((preset: PresetRecord, name: string) => {
+		dispatch(renameSetPresetOnRemote(preset, name));
+	}, [dispatch]);
+
 	return (
 		<>
 			<Stack style={{ height: "100%" }} >
@@ -144,6 +148,7 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 				onDeletePreset={ onDeletePreset }
 				onLoadPreset={ onLoadPreset }
 				onSavePreset={ onSavePreset }
+				onRenamePreset={ onRenamePreset }
 				presets={ presets }
 			/>
 		</>
