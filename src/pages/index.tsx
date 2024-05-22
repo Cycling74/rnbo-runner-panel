@@ -7,7 +7,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faObjectGroup, faPlus, faCamera } from "@fortawesome/free-solid-svg-icons";
 import { getConnections, getNodes } from "../selectors/graph";
 import GraphEditor from "../components/editor";
-import InstancePresetDrawer from "../components/presets";
+import PresetDrawer from "../components/presets";
 import { Connection, Edge, EdgeChange, Node, NodeChange } from "reactflow";
 import {
 	applyEditorEdgeChanges, applyEditorNodeChanges, createEditorConnection,
@@ -138,7 +138,7 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 				/>
 			</Stack>
 			<SetsDrawer />
-			<InstancePresetDrawer
+			<PresetDrawer
 				open={ presetDrawerIsOpen }
 				onClose={ closePresetDrawer }
 				onDeletePreset={ onDeletePreset }
