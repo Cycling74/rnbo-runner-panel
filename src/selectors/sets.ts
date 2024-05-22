@@ -19,7 +19,7 @@ export const getGraphSetsSortedByName = (state: RootStateType) => {
 		.sort((left: GraphSetRecord, right: GraphSetRecord): number => collator.compare(left.name, right.name));
 };
 
-//sort initial first
+// sort initial first
 export const getGraphSetPrsetsSortedByName = (state: RootStateType) => {
 	return state.sets.presets
 		.valueSeq()
