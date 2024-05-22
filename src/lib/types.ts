@@ -315,7 +315,6 @@ export type OSCQueryRNBOInstancesControlState = OSCQueryBaseNode & {
 				current?: OSCQueryBaseNode & {
 					CONTENTS: {
 						name: OSCQuerySingleValue<OSCQueryValueType.String, string>;
-						dirty: OSCQueryBooleanValue;
 					}
 				};
 			}

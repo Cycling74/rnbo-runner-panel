@@ -34,7 +34,6 @@ const connectionsPathMatcher = /^\/rnbo\/jack\/connections\/(?<type>audio|midi)\
 const setMetaPathMatcher = /^\/rnbo\/inst\/control\/sets\/meta/;
 
 // TODO const setsPresetsCurrentNamePath = "/rnbo/inst/control/sets/current/name";
-// TODO const setsPresetsCurrentDirtyPath = "/rnbo/inst/control/sets/current/dirty";
 const setsPresetsLoadPath = "/rnbo/inst/control/sets/presets/load";
 
 const configPathMatcher = /^\/rnbo\/config\/(?<name>.+)$/;
