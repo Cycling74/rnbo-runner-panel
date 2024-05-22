@@ -80,6 +80,25 @@ export const toggleShowGraphSets = () : AppThunk =>
 		dispatch({ type: GraphSetActionType.SET_SHOW_GRAPH_SETS, payload: { show: !isShown } });
 	};
 
+export const clearGraphSetOnRemote = (): AppThunk =>
+	(dispatch) => {
+		try {
+			const message = {
+				address: "/rnbo/inst/control/unload",
+				args: [
+					{ type: "i", value: -1 }
+				]
+			};
+			oscQueryBridge.sendPacket(writePacket(message));
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: "Error while trying to clear the set",
+				message: "Please check the consolor for further details."
+			}));
+			console.error(err);
+		}
+	};
 
 export const loadGraphSetOnRemote = (set: GraphSetRecord): AppThunk =>
 	(dispatch) => {

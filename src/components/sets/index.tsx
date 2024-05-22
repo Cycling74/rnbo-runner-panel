@@ -1,12 +1,12 @@
-import { Divider, Drawer, Stack, Text } from "@mantine/core";
-import { FunctionComponent, memo, useCallback } from "react";
+import { Button, Divider, Drawer, Stack, Text } from "@mantine/core";
+import { FunctionComponent, MouseEvent, memo, useCallback } from "react";
 import { useAppDispatch, useAppSelector } from "../../hooks/useAppDispatch";
 import { getGraphSetsSortedByName, getShowGraphSetsDrawer } from "../../selectors/sets";
-import { destroyGraphSetOnRemote, hideGraphSets, loadGraphSetOnRemote, renameGraphSetOnRemote, saveGraphSetOnRemote } from "../../actions/sets";
+import { destroyGraphSetOnRemote, hideGraphSets, loadGraphSetOnRemote, renameGraphSetOnRemote, saveGraphSetOnRemote, clearGraphSetOnRemote } from "../../actions/sets";
 import { GraphSetItem } from "./item";
 import { SaveGraphSetForm } from "./save";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faObjectGroup } from "@fortawesome/free-solid-svg-icons";
+import { faObjectGroup, faEraser } from "@fortawesome/free-solid-svg-icons";
 import { DrawerSectionTitle } from "../page/drawer";
 import { GraphSetRecord } from "../../models/set";
 import { modals } from "@mantine/modals";
@@ -51,6 +51,24 @@ const SetsDrawer: FunctionComponent = memo(function WrappedSetsDrawer() {
 		});
 	}, [dispatch]);
 
+	const onClearSet = useCallback((_e: MouseEvent<HTMLButtonElement>) => {
+		modals.openConfirmModal({
+			title: "Clear Set",
+			centered: true,
+			children: (
+				<Text size="sm">
+					Are you sure you want to clear the working set? Any unsaved changes will be lost.
+				</Text>
+			),
+			labels: { confirm: "Ok", cancel: "Cancel" },
+			confirmProps: { color: "red" },
+			onConfirm: () => {
+				dispatch(clearGraphSetOnRemote());
+				dispatch(hideGraphSets());
+			}
+		});
+	}, [dispatch]);
+
 	return (
 		<Drawer
 			opened={ open }
@@ -58,7 +76,12 @@ const SetsDrawer: FunctionComponent = memo(function WrappedSetsDrawer() {
 			position="right"
 			title={ <span><FontAwesomeIcon icon={ faObjectGroup }/> Graph Sets</span> }
 		>
-			<SaveGraphSetForm onSave={ onSaveSet } />
+			<Stack gap="sm">
+				<SaveGraphSetForm onSave={ onSaveSet } />
+				<Button variant="default" fullWidth={true} leftSection={ <FontAwesomeIcon icon={ faEraser } /> } onClick={ onClearSet } >
+					Clear Set
+				</Button>
+			</Stack>
 			<Divider mt="lg" />
 			<DrawerSectionTitle>Saved Sets</DrawerSectionTitle>
 			<Stack gap="sm">
