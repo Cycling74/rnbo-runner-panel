@@ -13,4 +13,8 @@ export class DataRefRecord extends ImmuRecord<DataRefRecordProps>({
 	public static fromDescription(id: string, value: string): DataRefRecord {
 		return new DataRefRecord({ id, value });
 	}
+
+	public setValue(v: string) : DataRefRecord {
+		return this.set("value", v);
+	}
 }

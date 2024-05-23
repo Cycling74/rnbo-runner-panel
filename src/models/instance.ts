@@ -41,6 +41,13 @@ export class InstanceStateRecord extends ImmuRecord<InstanceStateProps>({
 		return this.set("messageOutputs", this.messageOutputs.set(id, value));
 	}
 
+	public setDataRefValue(id: string, value: string): InstanceStateRecord {
+		const dataref = this.datarefs.get(id);
+		if (!dataref) return this;
+
+		return this.set("datarefs", this.datarefs.set(dataref.id, dataref.setValue(value)));
+	}
+
 	public setParameterValue(id: ParameterRecord["id"], value: number): InstanceStateRecord {
 		const param = this.parameters.get(id);
 		if (!param) return this;
