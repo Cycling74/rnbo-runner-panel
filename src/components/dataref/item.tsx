@@ -1,18 +1,20 @@
 import { ChangeEvent, FormEvent, FunctionComponent, KeyboardEvent, MouseEvent, memo, useCallback, useEffect, useRef, useState } from "react";
 import { DataRefRecord } from "../../models/dataref";
 import classes from "./datarefs.module.css";
-import { ActionIcon, Group, TextInput } from "@mantine/core";
+import { ActionIcon, Autocomplete, Group, TextInput } from "@mantine/core";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheck, faClose, faPen, faEraser, faUpload } from "@fortawesome/free-solid-svg-icons";
 
 interface DataRefEntryProps {
 	dataref: DataRefRecord;
+	options: string[];
 	onClear: (dataref: DataRefRecord) => any;
 	onUpdate: (dataref: DataRefRecord, fileName: string) => any;
 }
 
 const DataRefEntry: FunctionComponent<DataRefEntryProps> = memo(function WrappedDataRefEntry({
 	dataref,
+	options,
 	onClear,
 	onUpdate
 }: DataRefEntryProps) {
@@ -35,10 +37,6 @@ const DataRefEntry: FunctionComponent<DataRefEntryProps> = memo(function Wrapped
 	const onClearDataRef = useCallback((e: MouseEvent<HTMLButtonElement>) => {
 		onClear(dataref);
 	}, [onClear, dataref]);
-
-	const onChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-		setFileName(e.target.value);
-	}, [setFileName]);
 
 	const onKeyDown = useCallback((e: KeyboardEvent<HTMLInputElement>) => {
 		if (e.key === "Escape") {
@@ -63,9 +61,10 @@ const DataRefEntry: FunctionComponent<DataRefEntryProps> = memo(function Wrapped
 		<form onSubmit={ onUpdateFileName } >
 			<Group align="flex-start">
 				<label htmlFor={ dataref.id } className={ classes.datarefItemLabel } >{ dataref.id }</label>
-				<TextInput
+				<Autocomplete
 					className={ classes.datarefItemFileName }
-					onChange={ onChange }
+					data={options}
+					onChange={ setFileName }
 					onKeyDown={ onKeyDown }
 					ref={ inputRef }
 					size="sm"

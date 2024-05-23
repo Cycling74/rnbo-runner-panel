@@ -8,18 +8,19 @@ export type DataRefListProps = {
 	onClearDataRef: (dataref: DataRefRecord) => any;
 	onSetDataRef: (dataref: DataRefRecord, fileName: string) => any;
 	datarefs: InstanceStateRecord["datarefs"];
-	//XXX todo soundfile list
+	options: string[]; // soundfile list
 }
 
 const DataRefList: FunctionComponent<DataRefListProps> = memo(function WrappedDataRefList({
 	onClearDataRef,
 	onSetDataRef,
-	datarefs
+	datarefs,
+	options
 }) {
 	return (
 		<div className={ classes.datarefList }>
 			{
-				datarefs.valueSeq().map(dataref => <DataRefEntry key={ dataref.id } dataref={ dataref } onClear={ onClearDataRef } onUpdate={ onSetDataRef }  />)
+				datarefs.valueSeq().map(dataref => <DataRefEntry key={ dataref.id } dataref={ dataref } options={ options } onClear={ onClearDataRef } onUpdate={ onSetDataRef } />)
 			}
 		</div>
 	);

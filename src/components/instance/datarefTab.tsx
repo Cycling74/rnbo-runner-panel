@@ -38,6 +38,9 @@ const InstanceDataRefsTab: FunctionComponent<InstanceDataRefTabProps> = memo(fun
 		});
 	}, [dispatch, instance]);
 
+  // TODO get from runner
+	const options = ["anton.aif", "cherokee.aif", "jongly.aif"];
+
 	return (
 		<Tabs.Panel value={ InstanceTab.DataRefs } >
 			<SectionTitle>Data Refs</SectionTitle>
@@ -46,7 +49,7 @@ const InstanceDataRefsTab: FunctionComponent<InstanceDataRefTabProps> = memo(fun
 					<div className={ classes.emptySection }>
 						This patcher instance has no datarefs.
 					</div>
-				) : <DataRefList datarefs={ instance.datarefs } onSetDataRef={ onSetDataRef } onClearDataRef={ onClearDataRef } />
+				) : <DataRefList datarefs={ instance.datarefs } options= { options } onSetDataRef={ onSetDataRef } onClearDataRef={ onClearDataRef } />
 			}
 		</Tabs.Panel>
 	);
