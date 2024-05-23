@@ -105,9 +105,9 @@ export class OSCQueryBridgeControllerPrivate {
 		});
 	}
 
-	private async _sendCmd(cmd: RunnerCmd): Promise<any[]> {
+	private _sendCmd(cmd: RunnerCmd): Promise<any[]> {
 		// TODO add timeout
-		return await new Promise<any[]>(async (resolve, reject) => {
+		return new Promise<any[]>((resolve, reject) => {
 			const responces: any[] = [];
 			let resolved = false;
 			const callback = async (evt: MessageEvent): void => {
@@ -122,15 +122,17 @@ export class OSCQueryBridgeControllerPrivate {
 							} else if (resp.result) {
 								if (resp.id === cmd.id) {
 									responces.push(resp.result);
-									const p = parseInt(resp.result.progress);
+									const p = parseInt(resp.result.progress, 10);
 									if (p === 100) {
 										resolved = true;
 										this._ws.off("message", callback);
-										return resolve(responces);
+										resolve(responces);
+										return;
 									}
 								}
 							} else {
-								return reject(new Error("unknown response packet: " + msg.args[0].value));
+								reject(new Error("unknown response packet: " + msg.args[0].value));
+								return;
 							}
 						}
 					}
@@ -160,8 +162,8 @@ export class OSCQueryBridgeControllerPrivate {
 		const files: string[] = JSON.parse((await this._sendCmd(new RunnerCmd("file_read", {
 			filetype: "datafile",
 			size: FILE_READ_CHUNK_SIZE
-		}))).sort((a, b) => parseInt(a.seq) - parseInt(b.seq)).map(v => {
-			if (v.seq === undefined || parseInt(v.seq) != seq) {
+		}))).sort((a, b) => parseInt(a.seq, 10) - parseInt(b.seq, 10)).map(v => {
+			if (v.seq === undefined || parseInt(v.seq, 10) !== seq) {
 				throw new Error(`unexpected sequence number ${v.seq}`);
 			}
 			seq++;

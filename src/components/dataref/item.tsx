@@ -1,9 +1,9 @@
-import { ChangeEvent, FormEvent, FunctionComponent, KeyboardEvent, MouseEvent, memo, useCallback, useEffect, useRef, useState } from "react";
+import { FormEvent, FunctionComponent, KeyboardEvent, MouseEvent, memo, useCallback, useEffect, useRef, useState } from "react";
 import { DataRefRecord } from "../../models/dataref";
 import classes from "./datarefs.module.css";
 import { ActionIcon, Autocomplete, Group, TextInput } from "@mantine/core";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCheck, faClose, faPen, faEraser, faUpload } from "@fortawesome/free-solid-svg-icons";
+import { faCheck, faClose, faPen, faEraser } from "@fortawesome/free-solid-svg-icons";
 
 interface DataRefEntryProps {
 	dataref: DataRefRecord;

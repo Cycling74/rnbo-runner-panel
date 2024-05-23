@@ -1,4 +1,4 @@
-import { FunctionComponent, memo, useCallback } from "react";
+import { FunctionComponent, memo } from "react";
 import classes from "./datarefs.module.css";
 import DataRefEntry from "./item";
 import { InstanceStateRecord } from "../../models/instance";
