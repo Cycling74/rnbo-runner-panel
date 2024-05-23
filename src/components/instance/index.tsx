@@ -1,18 +1,20 @@
 import { Tabs } from "@mantine/core";
 import { FunctionComponent, memo, useEffect, useState } from "react";
-import { faArrowRightArrowLeft, faMusic, faSliders } from "@fortawesome/free-solid-svg-icons";
+import { faArrowRightArrowLeft, faMusic, faSliders, faFile } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import classes from "./instance.module.css";
 import { InstanceTab } from "../../lib/constants";
 import InstanceParameterTab from "./paramTab";
 import InstanceMessagesTab from "./messageTab";
 import InstanceMIDITab from "./midiTab";
+import InstanceDataRefsTab from "./datarefTab";
 import { useIsMobileDevice } from "../../hooks/useIsMobileDevice";
 import { InstanceStateRecord } from "../../models/instance";
 
 const tabs = [
 	{ icon: faSliders, value: InstanceTab.Parameters, label: "Parameters" },
 	{ icon: faArrowRightArrowLeft, value: InstanceTab.MessagePorts, label: "Ports" },
+	{ icon: faFile, value: InstanceTab.DataRefs, label: "Data Refs" },
 	{ icon: faMusic, value: InstanceTab.MIDI, label: "MIDI" }
 ];
 
@@ -56,6 +58,7 @@ const Instance: FunctionComponent<InstanceProps> = memo(function WrappedInstance
 			<div className={ classes.instanceTabContentWrap } >
 				<InstanceParameterTab instance={ instance } />
 				<InstanceMessagesTab instance={ instance } outputEnabled={ enabledMessageOuput } />
+				<InstanceDataRefsTab instance={ instance } />
 				<InstanceMIDITab instance={ instance } keyboardEnabled={ enabledMIDIKeyboard } />
 			</div>
 		</Tabs>

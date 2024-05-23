@@ -1,0 +1,13 @@
+.dataref {
+	width: 100%;
+}
+
+.datarefList {
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: var(--mantine-spacing-md);
+
+	@media (min-width: $mantine-breakpoint-md) {
+		grid-template-columns: 1fr 1fr;
+  }
+}
