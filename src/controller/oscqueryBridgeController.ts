@@ -11,7 +11,7 @@ import { initRunnerConfig, updateRunnerConfig } from "../actions/settings";
 import { initSets, initSetPresets } from "../actions/sets";
 import { sleep } from "../lib/util";
 import { getPatcherNodeByIndex } from "../selectors/graph";
-import { updateInstanceMessageOutputValue, updateInstanceMessages, updateInstanceParameterValue, updateInstanceParameterValueNormalized, updateInstanceParameters, updateInstancePresetEntries } from "../actions/instances";
+import { updateInstanceDataRefValue, updateInstanceMessageOutputValue, updateInstanceMessages, updateInstanceParameterValue, updateInstanceParameterValueNormalized, updateInstanceParameters, updateInstancePresetEntries } from "../actions/instances";
 import { ConnectionType, PortDirection } from "../models/graph";
 import { showNotification } from "../actions/notifications";
 import { NotificationLevel } from "../models/notification";
@@ -29,7 +29,7 @@ const portIOPathMatcher = /^\/rnbo\/jack\/info\/ports\/(?<type>audio|midi)\/(?<d
 const portAliasPathMatcher = /^\/rnbo\/jack\/info\/ports\/aliases\/(?<port>.+)$/;
 const patchersPathMatcher = /^\/rnbo\/patchers/;
 const instancePathMatcher = /^\/rnbo\/inst\/(?<index>\d+)$/;
-const instanceStatePathMatcher = /^\/rnbo\/inst\/(?<index>\d+)\/(?<content>params|messages\/in|messages\/out|presets)\/(?<rest>\S+)/;
+const instanceStatePathMatcher = /^\/rnbo\/inst\/(?<index>\d+)\/(?<content>params|messages\/in|messages\/out|presets|data_refs)\/(?<rest>\S+)/;
 const connectionsPathMatcher = /^\/rnbo\/jack\/connections\/(?<type>audio|midi)\/(?<name>.+)$/;
 const setMetaPathMatcher = /^\/rnbo\/inst\/control\/sets\/meta/;
 
@@ -379,6 +379,18 @@ export class OSCQueryBridgeControllerPrivate {
 			packetMatch.groups.rest?.length
 		) {
 			return void dispatch(updateInstanceMessageOutputValue(index, packetMatch.groups.rest, packet.args as any as OSCValue | OSCValue[]));
+		}
+
+		if (
+			packetMatch.groups.content === "data_refs" &&
+			packetMatch.groups.rest?.length
+		) {
+
+			if (packet.args.length >= 1 && typeof packet.args[0] === "string") {
+				return void dispatch(updateInstanceDataRefValue(index, packetMatch.groups.rest, packet.args[0] as string));
+			} else {
+				console.log("unexpected dataref OSC packet format", { packet });
+			}
 		}
 
 	}

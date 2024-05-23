@@ -306,6 +306,22 @@ export const updateInstanceParameters = (index: number, desc: OSCQueryRNBOInstan
 		}
 	};
 
+export const updateInstanceDataRefValue = (index: number, name: string, value: string): AppThunk =>
+	(dispatch, getState) => {
+		try {
+			const state = getState();
+
+			const instance = getInstanceByIndex(state, index);
+			if (!instance) return;
+
+			dispatch(setInstance(
+				instance.setDataRefValue(name, value)
+			));
+		} catch (e) {
+			console.log(e);
+		}
+	};
+
 export const updateInstanceParameterValue = (index: number, id: ParameterRecord["id"], value: number): AppThunk =>
 	(dispatch, getState) => {
 		try {
