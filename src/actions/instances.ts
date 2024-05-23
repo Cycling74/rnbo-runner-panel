@@ -215,7 +215,7 @@ export const triggerInstanceMidiNoteOffEventOnRemote = (instance: InstanceStateR
 		oscQueryBridge.sendPacket(writePacket(message));
 	};
 
-export const seInstanceParameterValueNormalizedOnRemote = throttle((instance: InstanceStateRecord, param: ParameterRecord, value: number): AppThunk =>
+export const setInstanceParameterValueNormalizedOnRemote = throttle((instance: InstanceStateRecord, param: ParameterRecord, value: number): AppThunk =>
 	(dispatch) => {
 
 		const message = {

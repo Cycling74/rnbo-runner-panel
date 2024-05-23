@@ -6,7 +6,7 @@ import { ParameterRecord } from "../../models/parameter";
 import classes from "./instance.module.css";
 import { useAppDispatch } from "../../hooks/useAppDispatch";
 import { InstanceStateRecord } from "../../models/instance";
-import { seInstanceParameterValueNormalizedOnRemote } from "../../actions/instances";
+import { setInstanceParameterValueNormalizedOnRemote } from "../../actions/instances";
 
 export type InstanceParameterTabProps = {
 	instance: InstanceStateRecord;
@@ -18,7 +18,7 @@ const InstanceParameterTab: FunctionComponent<InstanceParameterTabProps> = memo(
 
 	const dispatch = useAppDispatch();
 	const onSetNormalizedParamValue = useCallback((param: ParameterRecord, val: number) => {
-		dispatch(seInstanceParameterValueNormalizedOnRemote(instance, param, val));
+		dispatch(setInstanceParameterValueNormalizedOnRemote(instance, param, val));
 	}, [dispatch, instance]);
 
 	return (
