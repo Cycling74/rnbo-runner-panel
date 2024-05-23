@@ -1,6 +1,7 @@
 import { Map as ImmuMap, Record as ImmuRecord, OrderedMap as ImmuOrderedMap } from "immutable";
 import { ParameterRecord } from "./parameter";
 import { PresetRecord } from "./preset";
+import { DataRefRecord } from "./dataref";
 import { OSCQueryRNBOInstance, OSCQueryRNBOInstancePresetEntries } from "../lib/types";
 
 export type InstanceStateProps = {
@@ -12,6 +13,7 @@ export type InstanceStateProps = {
 	messageOutputs: ImmuMap<string, string>;
 	parameters: ImmuMap<ParameterRecord["id"], ParameterRecord>;
 	presets: ImmuOrderedMap<PresetRecord["id"], PresetRecord>;
+	datarefs: ImmuOrderedMap<DataRefRecord["id"], DataRefRecord>;
 }
 
 const collator = new Intl.Collator("en-US");
@@ -26,7 +28,8 @@ export class InstanceStateRecord extends ImmuRecord<InstanceStateProps>({
 	messageInputs: ImmuMap<string, string>(),
 	messageOutputs: ImmuMap<string, string>(),
 	parameters: ImmuMap<ParameterRecord["id"], ParameterRecord>(),
-	presets: ImmuMap<PresetRecord["id"], PresetRecord>()
+	presets: ImmuMap<PresetRecord["id"], PresetRecord>(),
+	datarefs: ImmuMap<DataRefRecord["id"], DataRefRecord>()
 
 }) {
 
@@ -86,6 +89,15 @@ export class InstanceStateRecord extends ImmuRecord<InstanceStateProps>({
 		});
 	}
 
+	public static datarefsFromDescription(datarefsDesc: OSCQueryRNBOInstance["CONTENTS"]["data_refs"]): ImmuMap<DataRefRecord["id"], DataRefRecord> {
+		return ImmuMap<DataRefRecord["id"], DataRefRecord>().withMutations((map) => {
+			for (const [name, desc] of Object.entries(datarefsDesc.CONTENTS || {})) {
+				const dataref = DataRefRecord.fromDescription(name, desc.VALUE);
+				map.set(dataref.id, dataref);
+			}
+		});
+	}
+
 	public static getJackName(desc: OSCQueryRNBOInstance["CONTENTS"]["jack"]): string {
 		return desc.CONTENTS.name.VALUE as string;
 	}
@@ -100,7 +112,8 @@ export class InstanceStateRecord extends ImmuRecord<InstanceStateProps>({
 			messageInputs: this.messageInputsFromDescription(desc.CONTENTS.messages),
 			messageOutputs: this.messageOutputsFromDescription(desc.CONTENTS.messages),
 			parameters: this.parametersFromDescription(desc.CONTENTS.params),
-			presets: this.presetsFromDescription(desc.CONTENTS.presets.CONTENTS.entries)
+			presets: this.presetsFromDescription(desc.CONTENTS.presets.CONTENTS.entries),
+			datarefs: this.datarefsFromDescription(desc.CONTENTS.data_refs)
 		});
 	}
 }
