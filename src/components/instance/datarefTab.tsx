@@ -1,7 +1,7 @@
 import { Tabs, Text } from "@mantine/core";
 import { FunctionComponent, memo, useCallback } from "react";
 import { InstanceTab } from "../../lib/constants";
-import { useAppDispatch } from "../../hooks/useAppDispatch";
+import { useAppDispatch, useAppSelector } from "../../hooks/useAppDispatch";
 import { SectionTitle } from "../page/sectionTitle";
 import DataRefList from "../dataref/list";
 import classes from "./instance.module.css";
@@ -9,6 +9,7 @@ import { InstanceStateRecord } from "../../models/instance";
 import { setInstanceDataRefValueOnRemote } from "../../actions/instances";
 import { DataRefRecord } from "../../models/dataref";
 import { modals } from "@mantine/modals";
+import { getDataFiles } from "../../selectors/datafiles";
 
 export type InstanceDataRefTabProps = {
 	instance: InstanceStateRecord;
@@ -19,6 +20,8 @@ const InstanceDataRefsTab: FunctionComponent<InstanceDataRefTabProps> = memo(fun
 }) {
 
 	const dispatch = useAppDispatch();
+	const datafiles = useAppSelector((state: RootStateType) => getDataFiles(state).toArray());
+
 	const onSetDataRef = useCallback((dataref: DataRefRecord, fileName: string) => {
 		dispatch(setInstanceDataRefValueOnRemote(instance, dataref, fileName.trim()));
 	}, [dispatch, instance]);
@@ -38,9 +41,6 @@ const InstanceDataRefsTab: FunctionComponent<InstanceDataRefTabProps> = memo(fun
 		});
 	}, [dispatch, instance]);
 
-  // TODO get from runner
-	const options = ["anton.aif", "cherokee.aif", "jongly.aif"];
-
 	return (
 		<Tabs.Panel value={ InstanceTab.DataRefs } >
 			<SectionTitle>Data Refs</SectionTitle>
@@ -49,7 +49,7 @@ const InstanceDataRefsTab: FunctionComponent<InstanceDataRefTabProps> = memo(fun
 					<div className={ classes.emptySection }>
 						This patcher instance has no datarefs.
 					</div>
-				) : <DataRefList datarefs={ instance.datarefs } options= { options } onSetDataRef={ onSetDataRef } onClearDataRef={ onClearDataRef } />
+				) : <DataRefList datarefs={ instance.datarefs } options={ datafiles } onSetDataRef={ onSetDataRef } onClearDataRef={ onClearDataRef } />
 			}
 		</Tabs.Panel>
 	);
