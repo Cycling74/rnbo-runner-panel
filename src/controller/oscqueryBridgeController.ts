@@ -388,9 +388,9 @@ export class OSCQueryBridgeControllerPrivate {
 
 			if (packet.args.length >= 1 && typeof packet.args[0] === "string") {
 				return void dispatch(updateInstanceDataRefValue(index, packetMatch.groups.rest, packet.args[0] as string));
-			} else {
-				console.log("unexpected dataref OSC packet format", { packet });
 			}
+			console.log("unexpected dataref OSC packet format", { packet });
+
 		}
 
 	}

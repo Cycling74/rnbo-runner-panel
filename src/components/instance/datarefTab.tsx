@@ -16,9 +16,8 @@ const InstanceDataRefsTab: FunctionComponent<InstanceDataRefTabProps> = memo(fun
 }) {
 
 	const dispatch = useAppDispatch();
-
-	const onSendInportDataRef = useCallback((id: string, value: string) => {
-		//TODO dispatch(sendInstanceDataRefToRemote(instance, id, value));
+	const onSendDataRef = useCallback((id: string, value: string) => {
+		// TODO dispatch(sendInstanceDataRefToRemote(instance, id, value));
 	}, [dispatch, instance]);
 
 	return (

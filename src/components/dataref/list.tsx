@@ -5,7 +5,7 @@ import { InstanceStateRecord } from "../../models/instance";
 
 export type DataRefListProps = {
 	datarefs: InstanceStateRecord["datarefs"];
-	//XXX todo soundfile list
+	// XXX todo soundfile list
 }
 
 const DataRefList: FunctionComponent<DataRefListProps> = memo(function WrappedDataRefList({
