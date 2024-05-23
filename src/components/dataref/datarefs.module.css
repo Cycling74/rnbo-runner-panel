@@ -2,6 +2,18 @@
 	width: 100%;
 }
 
+.datarefItemFileName {
+	flex: 1;
+}
+
+.datarefItemLabel {
+	font-size: var(--mantine-font-size-sm);
+	font-weight: 700;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	vertical-align: middle;
+}
+
 .datarefList {
 	display: grid;
 	grid-template-columns: 1fr;

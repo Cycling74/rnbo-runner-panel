@@ -2,19 +2,19 @@ import { Record as ImmuRecord } from "immutable";
 
 export type DataRefRecordProps = {
 	id: string;
-	value: string;
+	fileName: string;
 };
 
 export class DataRefRecord extends ImmuRecord<DataRefRecordProps>({
 	id: "",
-	value: ""
+	fileName: ""
 }) {
 
-	public static fromDescription(id: string, value: string): DataRefRecord {
-		return new DataRefRecord({ id, value });
+	public static fromDescription(id: string, fileName: string): DataRefRecord {
+		return new DataRefRecord({ id, fileName });
 	}
 
-	public setValue(v: string) : DataRefRecord {
-		return this.set("value", v);
+	public setFileName(v: string) : DataRefRecord {
+		return this.set("fileName", v);
 	}
 }

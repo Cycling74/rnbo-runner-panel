@@ -12,6 +12,7 @@ import { oscQueryBridge } from "../controller/oscqueryBridgeController";
 import throttle from "lodash.throttle";
 import { PresetRecord } from "../models/preset";
 import { AppSetting } from "../models/settings";
+import { DataRefRecord } from "../models/dataref";
 
 export enum InstanceActionType {
 	SET_INSTANCE = "SET_INSTANCE",
@@ -229,6 +230,22 @@ export const setInstanceParameterValueNormalizedOnRemote = throttle((instance: I
 
 		// optimistic local state update
 		dispatch(setInstance(instance.setParameterNormalizedValue(param.id, value)));
+	}, 100);
+
+export const setInstanceDataRefValueOnRemote = throttle((instance: InstanceStateRecord, dataref: DataRefRecord, fileName: string): AppThunk =>
+	(dispatch) => {
+
+		const message = {
+			address: `${instance.path}/data_refs/${dataref.id}`,
+			args: [
+				{ type: "s", value: fileName }
+			]
+		};
+
+		oscQueryBridge.sendPacket(writePacket(message));
+
+		// optimistic local state update
+		//dispatch(setInstance(instance.setParameterNormalizedValue(param.id, value)));
 	}, 100);
 
 

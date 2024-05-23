@@ -1,4 +1,4 @@
-import { Tabs } from "@mantine/core";
+import { Tabs, Text } from "@mantine/core";
 import { FunctionComponent, memo, useCallback } from "react";
 import { InstanceTab } from "../../lib/constants";
 import { useAppDispatch } from "../../hooks/useAppDispatch";
@@ -6,6 +6,9 @@ import { SectionTitle } from "../page/sectionTitle";
 import DataRefList from "../dataref/list";
 import classes from "./instance.module.css";
 import { InstanceStateRecord } from "../../models/instance";
+import { setInstanceDataRefValueOnRemote } from "../../actions/instances";
+import { DataRefRecord } from "../../models/dataref";
+import { modals } from "@mantine/modals";
 
 export type InstanceDataRefTabProps = {
 	instance: InstanceStateRecord;
@@ -16,8 +19,23 @@ const InstanceDataRefsTab: FunctionComponent<InstanceDataRefTabProps> = memo(fun
 }) {
 
 	const dispatch = useAppDispatch();
-	const onSendDataRef = useCallback((id: string, value: string) => {
-		// TODO dispatch(sendInstanceDataRefToRemote(instance, id, value));
+	const onSetDataRef = useCallback((dataref: DataRefRecord, fileName: string) => {
+		dispatch(setInstanceDataRefValueOnRemote(instance, dataref, fileName.trim()));
+	}, [dispatch, instance]);
+
+	const onClearDataRef = useCallback((dataref: DataRefRecord) => {
+		modals.openConfirmModal({
+			title: "Clear Data Ref Mapping",
+			centered: true,
+			children: (
+				<Text size="sm">
+					Are you sure you want to clear the Data Ref Mapping for { `"${dataref.id}"` }?
+				</Text>
+			),
+			labels: { confirm: "Clear", cancel: "Cancel" },
+			confirmProps: { color: "red" },
+			onConfirm: () => dispatch(setInstanceDataRefValueOnRemote(instance, dataref, ""))
+		});
 	}, [dispatch, instance]);
 
 	return (
@@ -28,7 +46,7 @@ const InstanceDataRefsTab: FunctionComponent<InstanceDataRefTabProps> = memo(fun
 					<div className={ classes.emptySection }>
 						This patcher instance has no datarefs.
 					</div>
-				) : <DataRefList datarefs={ instance.datarefs } />
+				) : <DataRefList datarefs={ instance.datarefs } onSetDataRef={ onSetDataRef } onClearDataRef={ onClearDataRef } />
 			}
 		</Tabs.Panel>
 	);
