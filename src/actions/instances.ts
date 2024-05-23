@@ -233,7 +233,7 @@ export const setInstanceParameterValueNormalizedOnRemote = throttle((instance: I
 	}, 100);
 
 export const setInstanceDataRefValueOnRemote = throttle((instance: InstanceStateRecord, dataref: DataRefRecord, fileName: string): AppThunk =>
-	(dispatch) => {
+	() => {
 
 		const message = {
 			address: `${instance.path}/data_refs/${dataref.id}`,
@@ -243,9 +243,6 @@ export const setInstanceDataRefValueOnRemote = throttle((instance: InstanceState
 		};
 
 		oscQueryBridge.sendPacket(writePacket(message));
-
-		// optimistic local state update
-		//dispatch(setInstance(instance.setParameterNormalizedValue(param.id, value)));
 	}, 100);
 
 

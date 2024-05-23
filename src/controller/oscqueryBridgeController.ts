@@ -63,7 +63,7 @@ class RunnerCmd {
 						id: this.id,
 						jsonrpc: "2.0",
 						method: this.method,
-						params: this.params,
+						params: this.params
 					})
 				}
 			]
@@ -106,7 +106,7 @@ export class OSCQueryBridgeControllerPrivate {
 	}
 
 	private async _sendCmd(cmd: RunnerCmd): Promise<any[]> {
-		//TODO add timeout
+		// TODO add timeout
 		return await new Promise<any[]>(async (resolve, reject) => {
 			const responces: any[] = [];
 			let resolved = false;
@@ -115,14 +115,14 @@ export class OSCQueryBridgeControllerPrivate {
 					if (resolved) return;
 					if (typeof evt !== "string") {
 						const msg = readPacket(await evt.data.arrayBuffer(), {metadata: true});
-						if (msg.address === '/rnbo/resp') {
+						if (msg.address === "/rnbo/resp") {
 							const resp = JSON.parse(msg.args[0].value);
 							if (resp.error) {
 								throw new Error(resp.error);
 							} else if (resp.result) {
-								if (resp['id'] === cmd.id) {
+								if (resp.id === cmd.id) {
 									responces.push(resp.result);
-									let p = parseInt(resp.result.progress);
+									const p = parseInt(resp.result.progress);
 									if (p === 100) {
 										resolved = true;
 										this._ws.off("message", callback);
@@ -130,7 +130,7 @@ export class OSCQueryBridgeControllerPrivate {
 									}
 								}
 							} else {
-								return reject(new Error('unknown response packet: ' + msg.args[0].value));
+								return reject(new Error("unknown response packet: " + msg.args[0].value));
 							}
 						}
 					}
