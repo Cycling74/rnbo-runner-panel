@@ -1,6 +1,6 @@
 import { Tabs } from "@mantine/core";
 import { FunctionComponent, memo, useEffect, useState } from "react";
-import { faArrowRightArrowLeft, faMusic, faSliders, faFile } from "@fortawesome/free-solid-svg-icons";
+import { faArrowRightArrowLeft, faMusic, faSliders, faFileAudio } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import classes from "./instance.module.css";
 import { InstanceTab } from "../../lib/constants";
@@ -14,7 +14,7 @@ import { InstanceStateRecord } from "../../models/instance";
 const tabs = [
 	{ icon: faSliders, value: InstanceTab.Parameters, label: "Parameters" },
 	{ icon: faArrowRightArrowLeft, value: InstanceTab.MessagePorts, label: "Ports" },
-	{ icon: faFile, value: InstanceTab.DataRefs, label: "Buffers" },
+	{ icon: faFileAudio, value: InstanceTab.DataRefs, label: "Buffers" },
 	{ icon: faMusic, value: InstanceTab.MIDI, label: "MIDI" }
 ];
 
