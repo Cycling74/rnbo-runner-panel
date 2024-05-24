@@ -28,11 +28,11 @@ const InstanceDataRefsTab: FunctionComponent<InstanceDataRefTabProps> = memo(fun
 
 	const onClearDataRef = useCallback((dataref: DataRefRecord) => {
 		modals.openConfirmModal({
-			title: "Clear Data Ref Mapping",
+			title: "Clear Buffer Mapping",
 			centered: true,
 			children: (
 				<Text size="sm">
-					Are you sure you want to clear the Data Ref Mapping for { `"${dataref.id}"` }?
+					Are you sure you want to clear the Buffer Mapping for { `"${dataref.id}"` }?
 				</Text>
 			),
 			labels: { confirm: "Clear", cancel: "Cancel" },
@@ -43,11 +43,11 @@ const InstanceDataRefsTab: FunctionComponent<InstanceDataRefTabProps> = memo(fun
 
 	return (
 		<Tabs.Panel value={ InstanceTab.DataRefs } >
-			<SectionTitle>Data Refs</SectionTitle>
+			<SectionTitle>Buffer Mappings</SectionTitle>
 			{
 				!instance.datarefs.size ? (
 					<div className={ classes.emptySection }>
-						This patcher instance has no datarefs.
+						This patcher instance has no buffers.
 					</div>
 				) : <DataRefList datarefs={ instance.datarefs } options={ datafiles } onSetDataRef={ onSetDataRef } onClearDataRef={ onClearDataRef } />
 			}
