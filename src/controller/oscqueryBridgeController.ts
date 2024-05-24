@@ -157,7 +157,7 @@ export class OSCQueryBridgeControllerPrivate {
 		dispatch(initConnections(connectionsInfo));
 	}
 
-	private async _getDataRefList(): Promise<string[]> {
+	private async _getDataFileList(): Promise<string[]> {
 		let seq = 0;
 		const files: string[] = JSON.parse((await this._sendCmd(new RunnerCmd("file_read", {
 			filetype: "datafile",
@@ -197,7 +197,7 @@ export class OSCQueryBridgeControllerPrivate {
 
 		// TODO could take a bit?
 		try {
-			dispatch(initDataFiles(await this._getDataRefList()));
+			dispatch(initDataFiles(await this._getDataFileList()));
 		} catch(e) {
 			console.error("error getting datafiles", { e });
 		}
@@ -411,6 +411,10 @@ export class OSCQueryBridgeControllerPrivate {
 			if (packet.args?.length) return void dispatch(updateTransportStatus({ sync: (packet.args as unknown as [boolean])?.[0] }));
 		}
 
+		// only sent when it changes so we don't care what the value, just read the list again
+		if (packet.address === "/rnbo/info/datafile_dir_mtime") {
+			return void dispatch(initDataFiles(await this._getDataFileList()));
+		}
 
 		const metaMatch = packet.address.match(setMetaPathMatcher);
 		if (metaMatch) {
