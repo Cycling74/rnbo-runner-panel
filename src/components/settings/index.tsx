@@ -35,7 +35,7 @@ const getSettingUITypeForConfig = (config: ConfigRecord): SettingsItemType => {
 
 	switch (config.oscType) {
 		case OSCQueryValueType.String:
-			return SettingsItemType.Select;
+			return config.options ? SettingsItemType.Select : SettingsItemType.Text;
 		case OSCQueryValueType.True:
 		case OSCQueryValueType.False:
 			return SettingsItemType.OnOff;
