@@ -37,7 +37,7 @@ export interface SettingsNumericProps extends BaseSettingsItemProps {
 
 export interface SettingsTextProps extends BaseSettingsItemProps {
 	type: SettingsItemType.Text;
-	value: number;
+	value: string;
 }
 
 export interface SettingsOnOffProps extends BaseSettingsItemProps {
