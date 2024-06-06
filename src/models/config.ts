@@ -28,7 +28,10 @@ export enum ConfigKey {
 
 	// Control Config
 	PatcherMIDIProgramChangeChannel = "patcher_midi_program_change_channel",
+	SetMIDIProgramChangeChannel = "set_midi_program_change_channel",
+	SetPresetMIDIProgramChangeChannel = "set_preset_midi_program_change_channel",
 	ControlAutoConnectMIDI = "control_auto_connect_midi"
+
 }
 
 export type ConfigRecordProps = {
@@ -131,6 +134,18 @@ const jackConfigDetails: Partial<Record<ConfigKey, Omit<ConfigRecordProps, "id" 
 };
 
 const controlConfigDetails: Partial<Record<ConfigKey, Omit<ConfigRecordProps, "id" | "oscValue" | "oscType" >>> = {
+	[ConfigKey.SetMIDIProgramChangeChannel]: {
+		options: DEFAULT_MIDI_RANGE,
+		path: `/rnbo/config/${ConfigKey.SetMIDIProgramChangeChannel}`,
+		tab: SettingsTab.Control,
+		title: "Set Select: MIDI Program Change Channel"
+	},
+	[ConfigKey.SetPresetMIDIProgramChangeChannel]: {
+		options: DEFAULT_MIDI_RANGE,
+		path: `/rnbo/config/${ConfigKey.SetPresetMIDIProgramChangeChannel}`,
+		tab: SettingsTab.Control,
+		title: "Set Preset Select: MIDI Program Change Channel"
+	},
 	[ConfigKey.PatcherMIDIProgramChangeChannel]: {
 		options: DEFAULT_MIDI_RANGE,
 		path: `/rnbo/config/${ConfigKey.PatcherMIDIProgramChangeChannel}`,
