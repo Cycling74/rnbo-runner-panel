@@ -25,6 +25,7 @@ export enum ConfigKey {
 	NumPeriods = "num_periods",
 	Card = "card",
 	MIDISystem = "midi_system",
+	JackExtraArgs = "extra",
 
 	// Control Config
 	PatcherMIDIProgramChangeChannel = "patcher_midi_program_change_channel",
@@ -130,6 +131,11 @@ const jackConfigDetails: Partial<Record<ConfigKey, Omit<ConfigRecordProps, "id" 
 		path: `/rnbo/jack/config/${ConfigKey.MIDISystem}`,
 		tab: SettingsTab.Audio,
 		title: "Audio: MIDI System"
+	},
+	[ConfigKey.JackExtraArgs]: {
+		path: `/rnbo/jack/config/${ConfigKey.JackExtraArgs}`,
+		tab: SettingsTab.Audio,
+		title: "Audio: Extra Args"
 	}
 };
 
