@@ -110,30 +110,33 @@ export class OSCQueryBridgeControllerPrivate {
 		return new Promise<any[]>((resolve, reject) => {
 			const responces: any[] = [];
 			let resolved = false;
-			const callback = async (evt: MessageEvent): void => {
+			const callback = async (evt: MessageEvent): Promise<void> => {
 				try {
 					if (resolved) return;
 					if (typeof evt !== "string") {
 						const msg = readPacket(await evt.data.arrayBuffer(), {metadata: true});
-						if (msg.address === "/rnbo/resp") {
-							const resp = JSON.parse(msg.args[0].value);
-							if (resp.error) {
-								throw new Error(resp.error);
-							} else if (resp.result) {
-								if (resp.id === cmd.id) {
-									responces.push(resp.result);
-									const p = parseInt(resp.result.progress, 10);
-									if (p === 100) {
-										resolved = true;
-										this._ws.off("message", callback);
-										resolve(responces);
-										return;
+						if ("address" in msg) {
+							if (msg.address === "/rnbo/resp") {
+								const resp = JSON.parse(msg.args[0].value as string);
+								if (resp.error) {
+									throw new Error(resp.error);
+								} else if (resp.result) {
+									if (resp.id === cmd.id) {
+										responces.push(resp.result);
+										const p = parseInt(resp.result.progress, 10);
+										if (p === 100) {
+											resolved = true;
+											this._ws.off("message", callback);
+											resolve(responces);
+											return;
+										}
 									}
+								} else {
+									reject(new Error("unknown response packet: " + msg.args[0].value));
+									return;
 								}
-							} else {
-								reject(new Error("unknown response packet: " + msg.args[0].value));
-								return;
-							}
+						}
+
 						}
 					}
 				} catch (err) {
