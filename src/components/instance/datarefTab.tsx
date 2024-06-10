@@ -10,6 +10,7 @@ import { setInstanceDataRefValueOnRemote } from "../../actions/instances";
 import { DataRefRecord } from "../../models/dataref";
 import { modals } from "@mantine/modals";
 import { getDataFiles } from "../../selectors/datafiles";
+import { RootStateType } from "../../lib/store";
 
 export type InstanceDataRefTabProps = {
 	instance: InstanceStateRecord;
