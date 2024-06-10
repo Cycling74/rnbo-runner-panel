@@ -9,23 +9,25 @@ import { modals } from "@mantine/modals";
 import { PresetRecord } from "../../models/preset";
 import { Seq } from "immutable";
 
-export type InstancePresetDrawerProps = {
+export type PresetDrawerProps = {
 	open: boolean;
 	onClose: () => any;
 	onDeletePreset: (preset: PresetRecord) => any;
 	onLoadPreset: (preset: PresetRecord) => any;
 	onSavePreset: (name: string) => any;
+	onRenamePreset: (preset: PresetRecord, name: string) => any;
 	presets: Seq.Indexed<PresetRecord>;
 };
 
-const InstancePresetDrawer: FunctionComponent<InstancePresetDrawerProps> = memo(function WrappedInstancePresetDrawer({
+const PresetDrawer: FunctionComponent<PresetDrawerProps> = memo(function WrappedPresetDrawer({
 	open,
 	onClose,
 	onDeletePreset,
 	onLoadPreset,
 	onSavePreset,
+	onRenamePreset,
 	presets
-}: InstancePresetDrawerProps) {
+}: PresetDrawerProps) {
 
 	const onTriggerDeletePreset = useCallback((preset: PresetRecord) => {
 		modals.openConfirmModal({
@@ -54,11 +56,11 @@ const InstancePresetDrawer: FunctionComponent<InstancePresetDrawerProps> = memo(
 			<DrawerSectionTitle>Presets</DrawerSectionTitle>
 			<Stack gap="sm">
 				{
-					presets.map(preset => <PresetItem key={ preset.id } preset={ preset } onLoad={ onLoadPreset } onDelete={ onTriggerDeletePreset }/> )
+					presets.map(preset => <PresetItem key={ preset.id } preset={ preset } onLoad={ onLoadPreset } onDelete={ onTriggerDeletePreset } onRename = { onRenamePreset }/> )
 				}
 			</Stack>
 		</Drawer>
 	);
 });
 
-export default InstancePresetDrawer;
+export default PresetDrawer;

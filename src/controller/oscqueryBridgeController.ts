@@ -8,7 +8,7 @@ import { OSCQueryRNBOState, OSCQueryRNBOInstance, OSCQueryRNBOJackConnections, O
 import { addPatcherNode, deletePortAliases, initConnections, initNodes, removePatcherNode, setPortAliases, updateSetMetaFromRemote, updateSourcePortConnections, updateSystemOrControlPortInfo } from "../actions/graph";
 import { initPatchers } from "../actions/patchers";
 import { initRunnerConfig, updateRunnerConfig } from "../actions/settings";
-import { initSets } from "../actions/sets";
+import { initSets, initSetPresets } from "../actions/sets";
 import { sleep } from "../lib/util";
 import { getPatcherNodeByIndex } from "../selectors/graph";
 import { updateInstanceMessageOutputValue, updateInstanceMessages, updateInstanceParameterValue, updateInstanceParameterValueNormalized, updateInstanceParameters, updateInstancePresetEntries } from "../actions/instances";
@@ -32,6 +32,9 @@ const instancePathMatcher = /^\/rnbo\/inst\/(?<index>\d+)$/;
 const instanceStatePathMatcher = /^\/rnbo\/inst\/(?<index>\d+)\/(?<content>params|messages\/in|messages\/out|presets)\/(?<rest>\S+)/;
 const connectionsPathMatcher = /^\/rnbo\/jack\/connections\/(?<type>audio|midi)\/(?<name>.+)$/;
 const setMetaPathMatcher = /^\/rnbo\/inst\/control\/sets\/meta/;
+
+// TODO const setsPresetsCurrentNamePath = "/rnbo/inst/control/sets/current/name";
+const setsPresetsLoadPath = "/rnbo/inst/control/sets/presets/load";
 
 const configPathMatcher = /^\/rnbo\/config\/(?<name>.+)$/;
 const jackConfigPathMatcher = /^\/rnbo\/jack\/config\/(?<name>.+)$/;
@@ -95,6 +98,7 @@ export class OSCQueryBridgeControllerPrivate {
 
 		// get sets info
 		dispatch(initSets(state.CONTENTS.inst?.CONTENTS?.control?.CONTENTS?.sets?.CONTENTS?.load?.RANGE?.[0]?.VALS || []));
+		dispatch(initSetPresets(state.CONTENTS.inst?.CONTENTS?.control?.CONTENTS?.sets?.CONTENTS?.presets?.CONTENTS?.load?.RANGE?.[0]?.VALS || []));
 
 		// Initialize RNBO Graph Nodes
 		dispatch(initNodes(state.CONTENTS.jack.CONTENTS.info.CONTENTS.ports, state.CONTENTS.inst));
@@ -275,6 +279,10 @@ export class OSCQueryBridgeControllerPrivate {
 		if (data.FULL_PATH === "/rnbo/inst/control/sets/load" && data.RANGE !== undefined) {
 			const sets: Array<string> = data.RANGE?.[0]?.VALS || [];
 			dispatch(initSets(sets));
+		}
+		if (data.FULL_PATH === setsPresetsLoadPath) {
+			const names: Array<string> = data.RANGE?.[0]?.VALS || [];
+			dispatch(initSetPresets(names));
 		}
 	}
 

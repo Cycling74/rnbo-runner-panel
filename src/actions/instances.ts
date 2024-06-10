@@ -139,6 +139,27 @@ export const destroyPresetOnRemoteInstance = (instance: InstanceStateRecord, pre
 		}
 	};
 
+export const renamePresetOnRemoteInstance = (instance: InstanceStateRecord, preset: PresetRecord, name: string): AppThunk =>
+	(dispatch) => {
+		try {
+			const message = {
+				address: `${instance.path}/presets/rename`,
+				args: [
+					{ type: "s", value: preset.name },
+					{ type: "s", value: name }
+				]
+			};
+			oscQueryBridge.sendPacket(writePacket(message));
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: `Error while trying to rename preset ${preset.name} to ${name}`,
+				message: "Please check the consolor for further details."
+			}));
+			console.log(err);
+		}
+	};
+
 export const sendInstanceMessageToRemote = (instance: InstanceStateRecord, inportId: string, value: string): AppThunk =>
 	(dispatch) => {
 		const values = value.split(" ").reduce((values, v) => {

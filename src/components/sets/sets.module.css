@@ -1,3 +1,7 @@
 .setItemName {
 	flex: 1;
 }
+
+.setListWrapper {
+	flex: 1;
+}

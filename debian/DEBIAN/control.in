@@ -5,4 +5,4 @@ Description: Web-based control panel for the RNBO OSCQuery Runner
 Homepage: https://rnbo.cycling74.com/
 Depends: python3
 Recommends: rnbooscquery
-Breaks: rnbooscquery (<< 1.3.0)
+Breaks: rnbooscquery (<< 1.3.2)

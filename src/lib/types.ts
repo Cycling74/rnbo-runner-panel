@@ -303,7 +303,20 @@ export type OSCQueryRNBOInstancesControlState = OSCQueryBaseNode & {
 				save: OSCQuerySingleValue<OSCQueryValueType.String, string>;
 				load: OSCQuerySingleValue<OSCQueryValueType.String, string> & {
 					RANGE: Array<{ VALS: string[]; }>;
-				}
+				};
+				presets?: OSCQueryBaseNode & {
+					CONTENTS: {
+						save: OSCQuerySingleValue<OSCQueryValueType.String, string>;
+						load: OSCQuerySingleValue<OSCQueryValueType.String, string> & {
+							RANGE: Array<{ VALS: string[]; }>;
+						};
+					}
+				};
+				current?: OSCQueryBaseNode & {
+					CONTENTS: {
+						name: OSCQuerySingleValue<OSCQueryValueType.String, string>;
+					}
+				};
 			}
 		};
 	};

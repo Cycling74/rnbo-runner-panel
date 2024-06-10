@@ -14,9 +14,9 @@ import { getInstanceByIndex, getInstances } from "../../selectors/instances";
 import { unloadPatcherNodeByIndexOnRemote } from "../../actions/graph";
 import { getAppSettingValue } from "../../selectors/settings";
 import { AppSetting } from "../../models/settings";
-import InstancePresetDrawer from "../../components/presets";
+import PresetDrawer from "../../components/presets";
 import { PresetRecord } from "../../models/preset";
-import { destroyPresetOnRemoteInstance, loadPresetOnRemoteInstance, savePresetToRemoteInstance } from "../../actions/instances";
+import { destroyPresetOnRemoteInstance, renamePresetOnRemoteInstance, loadPresetOnRemoteInstance, savePresetToRemoteInstance } from "../../actions/instances";
 import { useDisclosure } from "@mantine/hooks";
 
 export default function Instance() {
@@ -67,6 +67,10 @@ export default function Instance() {
 		dispatch(destroyPresetOnRemoteInstance(currentInstance, preset));
 	}, [dispatch, currentInstance]);
 
+	const onRenamePreset = useCallback((preset: PresetRecord, name: string) => {
+		dispatch(renamePresetOnRemoteInstance(currentInstance, preset, name));
+	}, [dispatch, currentInstance]);
+
 	if (!isReady || appStatus !== AppStatus.Ready) return null;
 
 	if (!currentInstance) {
@@ -113,12 +117,13 @@ export default function Instance() {
 				enabledMessageOuput={ enabledMessageOuput }
 				enabledMIDIKeyboard={ enabledMIDIKeyboard }
 			/>
-			<InstancePresetDrawer
+			<PresetDrawer
 				open={ presetDrawerIsOpen }
 				onClose={ closePresetDrawer }
 				onDeletePreset={ onDeletePreset }
 				onLoadPreset={ onLoadPreset }
 				onSavePreset={ onSavePreset }
+				onRenamePreset={ onRenamePreset }
 				presets={ currentInstance.presets.valueSeq() }
 			/>
 		</Stack>
