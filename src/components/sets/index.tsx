@@ -1,4 +1,4 @@
-import { Button, Divider, Drawer, Stack, Text } from "@mantine/core";
+import { Button, Divider, Drawer, Flex, Stack, Text } from "@mantine/core";
 import { FunctionComponent, MouseEvent, memo, useCallback } from "react";
 import { useAppDispatch, useAppSelector } from "../../hooks/useAppDispatch";
 import { getGraphSetsSortedByName, getShowGraphSetsDrawer } from "../../selectors/sets";
@@ -10,6 +10,7 @@ import { faObjectGroup, faEraser } from "@fortawesome/free-solid-svg-icons";
 import { DrawerSectionTitle } from "../page/drawer";
 import { GraphSetRecord } from "../../models/set";
 import { modals } from "@mantine/modals";
+import classes from "./sets.module.css";
 
 const SetsDrawer: FunctionComponent = memo(function WrappedSetsDrawer() {
 
@@ -70,26 +71,37 @@ const SetsDrawer: FunctionComponent = memo(function WrappedSetsDrawer() {
 	}, [dispatch]);
 
 	return (
-		<Drawer
-			opened={ open }
-			onClose={ onCloseDrawer }
-			position="right"
-			title={ <span><FontAwesomeIcon icon={ faObjectGroup }/> Graph Sets</span> }
-		>
-			<Stack gap="sm">
-				<SaveGraphSetForm onSave={ onSaveSet } />
-				<Button variant="default" fullWidth={true} leftSection={ <FontAwesomeIcon icon={ faEraser } /> } onClick={ onClearSet } >
-					Clear Set
-				</Button>
-			</Stack>
-			<Divider mt="lg" />
-			<DrawerSectionTitle>Saved Sets</DrawerSectionTitle>
-			<Stack gap="sm">
-				{
-					sets.map(set => <GraphSetItem key={ set.id } set={ set } onRename={ onRenameSet } onLoad={ onLoadSet } onDelete={ onDeleteSet }/> )
-				}
-			</Stack>
-		</Drawer>
+		<Drawer.Root opened={ open } onClose={ onCloseDrawer } position="right">
+			<Drawer.Overlay />
+			<Drawer.Content>
+				<Flex direction="column" style={{ height: "100%" }}>
+					<Drawer.Header>
+						<Drawer.Title>
+							<FontAwesomeIcon icon={ faObjectGroup }/> Graph Sets
+						</Drawer.Title>
+						<Drawer.CloseButton />
+					</Drawer.Header>
+					<Drawer.Body style={{ flex: 1 }} >
+						<Flex direction="column" style={{ height: "100%" }} gap="lg" >
+							<SaveGraphSetForm onSave={ onSaveSet } />
+							<Divider />
+							<Flex className={ classes.setListWrapper } direction="column">
+								<DrawerSectionTitle>Saved Sets</DrawerSectionTitle>
+								<Stack gap="sm" >
+									{
+										sets.map(set => <GraphSetItem key={ set.id } set={ set } onRename={ onRenameSet } onLoad={ onLoadSet } onDelete={ onDeleteSet }/> )
+									}
+								</Stack>
+							</Flex>
+							<Divider />
+							<Button variant="outline" fullWidth={true} leftSection={ <FontAwesomeIcon icon={ faEraser } /> } onClick={ onClearSet } color="red" >
+								Clear Set
+							</Button>
+						</Flex>
+					</Drawer.Body>
+				</Flex>
+			</Drawer.Content>
+		</Drawer.Root>
 	);
 });
 
