@@ -1,4 +1,4 @@
-import { Group, SegmentedControl, Switch, NumberInput, Select, ActionIcon } from "@mantine/core";
+import { Group, SegmentedControl, Switch, NumberInput, TextInput, Select, ActionIcon } from "@mantine/core";
 import { ChangeEvent, FunctionComponent, ReactNode, memo } from "react";
 import classes from "./settings.module.css";
 import { SettingTarget } from "../../lib/constants";
@@ -10,7 +10,8 @@ export enum SettingsItemType {
 	OnOff,
 	Select,
 	Switch,
-	Numeric
+	Numeric,
+	Text
 }
 
 export type SettingsItemValue = string | number | boolean;
@@ -34,6 +35,11 @@ export interface SettingsNumericProps extends BaseSettingsItemProps {
 	value: number;
 }
 
+export interface SettingsTextProps extends BaseSettingsItemProps {
+	type: SettingsItemType.Text;
+	value: string;
+}
+
 export interface SettingsOnOffProps extends BaseSettingsItemProps {
 	type: SettingsItemType.OnOff,
 	value: boolean;
@@ -51,7 +57,7 @@ export interface SettingsToggleProps extends BaseSettingsItemProps {
 	value: string;
 }
 
-export type SettingsItemProps = SettingsNumericProps | SettingsOnOffProps | SettingsSelectProps | SettingsToggleProps;
+export type SettingsItemProps = SettingsNumericProps | SettingsTextProps | SettingsOnOffProps | SettingsSelectProps | SettingsToggleProps;
 
 const SettingsNumericInput = ({ onChange, min, max, name, target, value }: Pick<SettingsNumericProps, "max" | "min" | "name" | "onChange" | "target" | "value">) => {
 	return (
@@ -59,6 +65,16 @@ const SettingsNumericInput = ({ onChange, min, max, name, target, value }: Pick<
 			min ={ min }
 			max={ max }
 			onChange={ (v: number) => onChange(target, name, v) }
+			name={ name }
+			value={ value }
+		/>
+	);
+};
+
+const SettingsTextInput = ({ onChange, name, target, value }: Pick<SettingsTextProps, "name" | "onChange" | "target" | "value">) => {
+	return (
+		<TextInput
+			onChange={ (ev: ChangeEvent<HTMLInputElement>) => onChange(target, name, ev.currentTarget.value) }
 			name={ name }
 			value={ value }
 		/>
@@ -108,6 +124,11 @@ export const SettingsItem: FunctionComponent<BaseSettingsItemProps> = memo(funct
 		case SettingsItemType.Numeric: {
 			const compProps = props as SettingsNumericProps;
 			el = <SettingsNumericInput { ...commonProps } max={ compProps.max } min={ compProps.min } value={ compProps.value } />;
+			break;
+		}
+		case SettingsItemType.Text: {
+			const compProps = props as SettingsTextProps;
+			el = <SettingsTextInput { ...commonProps } value={ compProps.value } />;
 			break;
 		}
 		case SettingsItemType.OnOff: {

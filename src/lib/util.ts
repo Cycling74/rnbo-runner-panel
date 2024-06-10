@@ -11,8 +11,8 @@ export const scale = (x: number, inLow: number, inHigh: number, outLow: number, 
 	return (x - inLow) * (outHigh - outLow) / (inHigh - inLow) + outLow;
 };
 
-export const getStringValueOptions = (range?: OSCQueryStringValueRange): string[] => {
-	return range?.RANGE?.[0]?.VALS || [];
+export const getStringValueOptions = (range?: OSCQueryStringValueRange): string[] | undefined => {
+	return range?.RANGE?.[0]?.VALS;
 };
 
 export const getNumberValueOptions = (range?: OSCQueryValueRange): number[] => {

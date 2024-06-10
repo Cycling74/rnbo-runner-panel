@@ -169,6 +169,7 @@ export type OSCQueryRNBOJackConfig = OSCQueryBaseNode & {
 		num_periods?: OSCQueryIntValue & OSCQueryValueRange;
 		card?: OSCQueryStringValue & OSCQueryStringValueRange;
 		midi_system?: OSCQueryStringValue & OSCQueryStringValueRange;
+		extra?: OSCQueryStringValue;
 	};
 };
 
