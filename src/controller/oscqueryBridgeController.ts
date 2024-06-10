@@ -135,7 +135,7 @@ export class OSCQueryBridgeControllerPrivate {
 									reject(new Error("unknown response packet: " + msg.args[0].value));
 									return;
 								}
-						}
+							}
 
 						}
 					}
