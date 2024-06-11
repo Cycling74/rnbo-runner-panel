@@ -1,7 +1,7 @@
 import { FunctionComponent, ChangeEvent, KeyboardEvent, MouseEvent, FormEvent, memo, useCallback, useState, useRef, useEffect } from "react";
-import { ActionIcon, Group, TextInput } from "@mantine/core";
+import { ActionIcon, Button, Group, Menu, TextInput } from "@mantine/core";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCheck, faClose, faPen, faTrash, faUpload } from "@fortawesome/free-solid-svg-icons";
+import { faCheck, faClose, faEllipsisVertical, faPen, faTrash, faUpload } from "@fortawesome/free-solid-svg-icons";
 import classes from "./presets.module.css";
 import { PresetRecord } from "../../models/preset";
 import { keyEventIsValidForName, replaceInvalidNameChars } from "../../lib/util";
@@ -75,7 +75,7 @@ export const PresetItem: FunctionComponent<PresetItemProps> = memo(function Wrap
 		<form onSubmit={ onRenamePreset } >
 			<Group align="flex-start">
 				<TextInput
-					className={ classes.presetItemName }
+					className={ classes.presetNameInput }
 					onChange={ onChange }
 					onKeyDown={ onKeyDown }
 					ref={ inputRef }
@@ -95,19 +95,29 @@ export const PresetItem: FunctionComponent<PresetItemProps> = memo(function Wrap
 			</Group>
 		</form>
 	) : (
-		<Group>
-			<TextInput className={ classes.presetItemName } readOnly variant="unstyled" value={ preset.name } size="sm" />
-			<ActionIcon.Group>
-				<ActionIcon variant="subtle" color="red" size="md" onClick={ onDeletePreset } >
-					<FontAwesomeIcon icon={ faTrash } />
-				</ActionIcon>
-				<ActionIcon variant="subtle" size="md" color="gray" onClick={ toggleEditing } >
-					<FontAwesomeIcon icon={ faPen } />
-				</ActionIcon>
-				<ActionIcon variant="subtle" size="md" onClick={ onLoadPreset } >
-					<FontAwesomeIcon icon={ faUpload } />
-				</ActionIcon>
-			</ActionIcon.Group>
+		<Group gap="xs">
+			<Button
+				className={ classes.presetButton }
+				justify="flex-start"
+				size="sm"
+				variant="default"
+				leftSection={ <FontAwesomeIcon icon={ faUpload } /> }
+				onClick={ onLoadPreset }
+			>
+				{ preset.name }
+			</Button>
+			<Menu position="bottom-end" >
+				<Menu.Target>
+					<ActionIcon variant="subtle" color="gray">
+						<FontAwesomeIcon icon={ faEllipsisVertical } />
+					</ActionIcon>
+				</Menu.Target>
+				<Menu.Dropdown>
+					<Menu.Label>Actions</Menu.Label>
+					<Menu.Item leftSection={ <FontAwesomeIcon icon={ faPen } /> } onClick={ toggleEditing } >Rename</Menu.Item>
+					<Menu.Item color="red" leftSection={ <FontAwesomeIcon icon={ faTrash } /> } onClick={ onDeletePreset } >Delete</Menu.Item>
+				</Menu.Dropdown>
+			</Menu>
 		</Group>
 	);
 });

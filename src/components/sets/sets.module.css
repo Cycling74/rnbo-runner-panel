@@ -1,4 +1,8 @@
-.setItemName {
+.setItemButton {
+	flex: 1;
+}
+
+.setItemNameInput {
 	flex: 1;
 }
 

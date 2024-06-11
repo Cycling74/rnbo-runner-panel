@@ -37,6 +37,28 @@
 .editor {
 	flex: 1;
 
+	&[data-color-scheme="light"] {
+		.node {
+			background-color: var(--mantine-color-default-hover);
+			border-color: var(--mantine-color-gray-4);
+		}
+
+		.nodeHeader {
+			color: var(--mantine-color-default-color);
+		}
+	}
+
+	&[data-color-scheme="dark"] {
+		.node {
+			background-color: var(--mantine-color-default);
+			border-color: var(--mantine-color-gray-7);
+		}
+
+		.nodeHeader {
+			color: var(--mantine-color-default-color);
+		}
+	}
+
 	:global {
 
 		.react-flow__attribution {
@@ -89,7 +111,6 @@
 
 			&:before,
 			&:after {
-				color: var(--mantine-color-dimmed);
 				font-size: var(--mantine-font-size-sm);
 				overflow: hidden;
 				position: absolute;

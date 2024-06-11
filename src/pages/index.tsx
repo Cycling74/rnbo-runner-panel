@@ -2,7 +2,7 @@ import { Alert, Button, Group, Menu, MenuItemProps, Stack, Text } from "@mantine
 import { FunctionComponent, MouseEvent, forwardRef, useCallback } from "react";
 import { useAppDispatch, useAppSelector } from "../hooks/useAppDispatch";
 import { RootStateType } from "../lib/store";
-import { getPatchers } from "../selectors/patchers";
+import { getPatchersSortedByName } from "../selectors/patchers";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faObjectGroup, faPlus, faCamera } from "@fortawesome/free-solid-svg-icons";
 import { getConnections, getNodes } from "../selectors/graph";
@@ -41,7 +41,7 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 		connections,
 		presets
 	] = useAppSelector((state: RootStateType) => [
-		getPatchers(state),
+		getPatchersSortedByName(state),
 		getNodes(state),
 		getConnections(state),
 		getGraphSetPrsetsSortedByName(state)
