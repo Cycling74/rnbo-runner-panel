@@ -171,7 +171,7 @@ export class OSCQueryBridgeControllerPrivate {
 			}
 			seq++;
 			return v.content;
-		}).join("")).map(p => basename(p));
+		}).join("")).map((p: string) => basename(p));
 		return files;
 	}
 
