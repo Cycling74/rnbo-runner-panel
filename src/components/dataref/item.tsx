@@ -33,8 +33,12 @@ const DataRefEntry: FunctionComponent<DataRefEntryProps> = memo(function Wrapped
 
 	const onUpdateFileName = useCallback((e: FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
-		onUpdate(dataref, fileName);
-	}, [fileName, dataref, onUpdate]);
+		if (fileName === dataref.fileName) {
+			setIsEditing(false);
+		} else {
+			onUpdate(dataref, fileName);
+		}
+	}, [fileName, dataref, onUpdate, setIsEditing]);
 
 	const onClearDataRef = useCallback((e: MouseEvent<HTMLButtonElement>) => {
 		onClear(dataref);
