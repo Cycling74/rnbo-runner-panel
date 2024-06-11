@@ -92,7 +92,7 @@ const DataRefEntry: FunctionComponent<DataRefEntryProps> = memo(function Wrapped
 						</form>
 					) : (
 						<Group className={ classes.datarefFileLabel } wrap="nowrap" >
-							<TextInput flex={ 1 } pointer variant="unstyled" size="sm" readOnly value={ fileName } onClick={ toggleEditing } />
+							<TextInput flex={ 1 } pointer variant="unstyled" size="sm" readOnly value={ fileName || "<none>" } onClick={ toggleEditing } />
 							<ActionIcon onClick={ toggleEditing } variant="transparent" size="xs">
 								<FontAwesomeIcon icon={ faPen } />
 							</ActionIcon>
