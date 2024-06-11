@@ -1,8 +1,8 @@
 import { ChangeEvent, FormEvent, FunctionComponent, KeyboardEvent, MouseEvent, memo, useCallback, useEffect, useRef, useState } from "react";
 import { GraphSetRecord } from "../../models/set";
-import { ActionIcon, Group, TextInput } from "@mantine/core";
+import { ActionIcon, Button, Group, Menu, TextInput } from "@mantine/core";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCheck, faClose, faPen, faTrash, faUpload } from "@fortawesome/free-solid-svg-icons";
+import { faCheck, faClose, faEllipsisVertical, faPen, faTrash, faUpload } from "@fortawesome/free-solid-svg-icons";
 import classes from "./sets.module.css";
 import { keyEventIsValidForName, replaceInvalidNameChars } from "../../lib/util";
 
@@ -84,7 +84,7 @@ export const GraphSetItem: FunctionComponent<GraphSetItemProps> = memo(function 
 		<form onSubmit={ onRenameSet } >
 			<Group align="flex-start">
 				<TextInput
-					className={ classes.setItemName }
+					className={ classes.setItemNameInput }
 					onChange={ onChange }
 					onKeyDown={ onKeyDown }
 					ref={ inputRef }
@@ -104,19 +104,31 @@ export const GraphSetItem: FunctionComponent<GraphSetItemProps> = memo(function 
 			</Group>
 		</form>
 	) : (
-		<Group>
-			<TextInput className={ classes.setItemName } readOnly variant="unstyled" value={ name } size="sm" />
-			<ActionIcon.Group>
-				<ActionIcon variant="subtle" color="red" size="md" onClick={ onDeleteSet } >
-					<FontAwesomeIcon icon={ faTrash } />
-				</ActionIcon>
-				<ActionIcon variant="subtle" size="md" color="gray" onClick={ toggleEditing } >
-					<FontAwesomeIcon icon={ faPen } />
-				</ActionIcon>
-				<ActionIcon variant="subtle" size="md" onClick={ onLoadSet } >
-					<FontAwesomeIcon icon={ faUpload } />
-				</ActionIcon>
-			</ActionIcon.Group>
+
+		<Group gap="xs">
+			<Button
+				className={ classes.setItemButton }
+				color="gray"
+				justify="flex-start"
+				size="sm"
+				variant="outline"
+				leftSection={ <FontAwesomeIcon icon={ faUpload } /> }
+				onClick={ onLoadSet }
+			>
+				{ name }
+			</Button>
+			<Menu position="bottom-end" >
+				<Menu.Target>
+					<ActionIcon variant="subtle" color="gray">
+						<FontAwesomeIcon icon={ faEllipsisVertical } />
+					</ActionIcon>
+				</Menu.Target>
+				<Menu.Dropdown>
+					<Menu.Label>Actions</Menu.Label>
+					<Menu.Item leftSection={ <FontAwesomeIcon icon={ faPen } /> } onClick={ toggleEditing } >Rename</Menu.Item>
+					<Menu.Item color="red" leftSection={ <FontAwesomeIcon icon={ faTrash } /> } onClick={ onDeleteSet } >Delete</Menu.Item>
+				</Menu.Dropdown>
+			</Menu>
 		</Group>
 	);
 });
