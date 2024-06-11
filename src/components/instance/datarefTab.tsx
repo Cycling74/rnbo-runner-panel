@@ -2,7 +2,6 @@ import { Tabs, Text } from "@mantine/core";
 import { FunctionComponent, memo, useCallback } from "react";
 import { InstanceTab } from "../../lib/constants";
 import { useAppDispatch, useAppSelector } from "../../hooks/useAppDispatch";
-import { SectionTitle } from "../page/sectionTitle";
 import DataRefList from "../dataref/list";
 import classes from "./instance.module.css";
 import { InstanceStateRecord } from "../../models/instance";
@@ -21,7 +20,7 @@ const InstanceDataRefsTab: FunctionComponent<InstanceDataRefTabProps> = memo(fun
 }) {
 
 	const dispatch = useAppDispatch();
-	const datafiles = useAppSelector((state: RootStateType) => getDataFiles(state).toArray());
+	const datafiles = useAppSelector((state: RootStateType) => getDataFiles(state));
 
 	const onSetDataRef = useCallback((dataref: DataRefRecord, fileName: string) => {
 		dispatch(setInstanceDataRefValueOnRemote(instance, dataref, fileName.trim()));
@@ -44,7 +43,6 @@ const InstanceDataRefsTab: FunctionComponent<InstanceDataRefTabProps> = memo(fun
 
 	return (
 		<Tabs.Panel value={ InstanceTab.DataRefs } >
-			<SectionTitle>Buffer Mappings</SectionTitle>
 			{
 				!instance.datarefs.size ? (
 					<div className={ classes.emptySection }>

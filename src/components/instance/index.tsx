@@ -1,4 +1,4 @@
-import { Tabs } from "@mantine/core";
+import { Tabs, Text } from "@mantine/core";
 import { FunctionComponent, memo, useEffect, useState } from "react";
 import { faArrowRightArrowLeft, faMusic, faSliders, faFileAudio } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -50,7 +50,7 @@ const Instance: FunctionComponent<InstanceProps> = memo(function WrappedInstance
 				{
 					tabs.map(({ icon, label, value }) => (
 						<Tabs.Tab key={ value } value={ value } leftSection={ <FontAwesomeIcon icon={ icon } /> } >
-							{ label }
+							<Text fz="sm" className={ classes.tabLabel } >{ label }</Text>
 						</Tabs.Tab>
 					))
 				}

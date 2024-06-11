@@ -42,3 +42,12 @@
 	height: 100%;
 }
 
+.tabLabel {
+	display: none;
+}
+
+@media (min-width: $mantine-breakpoint-sm) {
+	.tabLabel {
+		display: block;
+	}
+}

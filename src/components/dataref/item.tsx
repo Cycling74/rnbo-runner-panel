@@ -1,13 +1,14 @@
-import { FormEvent, FunctionComponent, KeyboardEvent, MouseEvent, memo, useCallback, useEffect, useRef, useState } from "react";
+import { FormEvent, FunctionComponent, MouseEvent, memo, useCallback, useEffect, useState } from "react";
 import { DataRefRecord } from "../../models/dataref";
 import classes from "./datarefs.module.css";
-import { ActionIcon, Autocomplete, Group, TextInput } from "@mantine/core";
+import { ActionIcon, Group, Menu, Select, Table, Text, TextInput } from "@mantine/core";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCheck, faClose, faPen, faEraser } from "@fortawesome/free-solid-svg-icons";
+import { faCheck, faClose, faPen, faEraser, faEllipsisVertical } from "@fortawesome/free-solid-svg-icons";
+import { Seq } from "immutable";
 
 interface DataRefEntryProps {
 	dataref: DataRefRecord;
-	options: string[];
+	options: Seq.Indexed<string>;
 	onClear: (dataref: DataRefRecord) => any;
 	onUpdate: (dataref: DataRefRecord, fileName: string) => any;
 }
@@ -18,9 +19,10 @@ const DataRefEntry: FunctionComponent<DataRefEntryProps> = memo(function Wrapped
 	onClear,
 	onUpdate
 }: DataRefEntryProps) {
+
 	const [isEditing, setIsEditing] = useState<boolean>(false);
 	const [fileName, setFileName] = useState<string>(dataref.fileName);
-	const inputRef = useRef<HTMLInputElement>();
+	const [showDropDown, setShowDropDown] = useState<boolean>(true);
 
 	const toggleEditing = useCallback(() => {
 		if (isEditing) { // reset name upon blur
@@ -38,62 +40,82 @@ const DataRefEntry: FunctionComponent<DataRefEntryProps> = memo(function Wrapped
 		onClear(dataref);
 	}, [onClear, dataref]);
 
-	const onKeyDown = useCallback((e: KeyboardEvent<HTMLInputElement>) => {
-		if (e.key === "Escape") {
-			e.preventDefault();
-			e.stopPropagation();
-			return void toggleEditing();
-		}
-	}, [toggleEditing]);
+	const onBlur = useCallback(() => setShowDropDown(false), [setShowDropDown]);
+	const onFocus = useCallback(() => setShowDropDown(true), [setShowDropDown]);
+	const onKeyDown = useCallback(() => setIsEditing(false), [setIsEditing]);
 
-	useEffect(() => {
-		if (isEditing && inputRef.current) {
-			inputRef.current.focus();
-		}
-	}, [isEditing, inputRef]);
+	const onChange = useCallback((value: string) => {
+		setFileName(value);
+	}, [setFileName]);
 
 	useEffect(() => {
 		setFileName(dataref.fileName);
 		setIsEditing(false);
 	}, [dataref, setFileName, setIsEditing]);
 
-	return isEditing ? (
-		<form onSubmit={ onUpdateFileName } >
-			<Group align="flex-start">
-				<label htmlFor={ dataref.id } className={ classes.datarefItemLabel } >{ dataref.id }</label>
-				<Autocomplete
-					className={ classes.datarefItemFileName }
-					data={options}
-					onChange={ setFileName }
-					onKeyDown={ onKeyDown }
-					ref={ inputRef }
-					size="sm"
-					value={ fileName }
-					variant="default"
-				/>
-				<ActionIcon.Group>
-					<ActionIcon variant="subtle" size="md" color="gray" onClick={ toggleEditing } >
-						<FontAwesomeIcon icon={ faClose } />
-					</ActionIcon>
-					<ActionIcon variant="subtle" size="md" type="submit">
-						<FontAwesomeIcon icon={ faCheck } />
-					</ActionIcon>
-				</ActionIcon.Group>
-			</Group>
-		</form>
-	) : (
-		<Group>
-			<label htmlFor={ dataref.id } className={ classes.datarefItemLabel } >{ dataref.id }</label>
-			<TextInput className={ classes.datarefItemFileName } readOnly variant="unstyled" value={ fileName } size="sm" />
-			<ActionIcon.Group>
-				<ActionIcon variant="subtle" color="red" size="md" onClick={ onClearDataRef } >
-					<FontAwesomeIcon icon={ faEraser } />
-				</ActionIcon>
-				<ActionIcon variant="subtle" size="md" color="gray" onClick={ toggleEditing } >
-					<FontAwesomeIcon icon={ faPen } />
-				</ActionIcon>
-			</ActionIcon.Group>
-		</Group>
+	return (
+		<Table.Tr>
+			<Table.Td>
+				<Text fz="sm">
+					{ dataref.id }
+				</Text>
+			</Table.Td>
+			<Table.Td>
+				{
+					isEditing ? (
+						<form onSubmit={ onUpdateFileName } >
+							<Group gap="xs" wrap="nowrap" >
+								<Select
+									comboboxProps={{ width: "max-content", position: "bottom-start" }}
+									allowDeselect={ false }
+									flex={ 1 }
+									autoFocus
+									onBlur={ onBlur }
+									onFocus={ onFocus}
+									onChange={ onChange }
+									data={ options.toArray() }
+									placeholder="No file selected"
+									size="sm"
+									value={ fileName }
+									dropdownOpened={ showDropDown }
+									onKeyDown={ onKeyDown }
+								/>
+								<ActionIcon.Group>
+									<ActionIcon variant="subtle" size="md" color="gray" onClick={ toggleEditing } >
+										<FontAwesomeIcon icon={ faClose } />
+									</ActionIcon>
+									<ActionIcon variant="subtle" size="md" type="submit">
+										<FontAwesomeIcon icon={ faCheck } />
+									</ActionIcon>
+								</ActionIcon.Group>
+							</Group>
+						</form>
+					) : (
+						<Group className={ classes.datarefFileLabel } wrap="nowrap" >
+							<TextInput flex={ 1 } pointer variant="unstyled" size="sm" readOnly value={ fileName } onClick={ toggleEditing } />
+							<ActionIcon onClick={ toggleEditing } variant="transparent" size="xs">
+								<FontAwesomeIcon icon={ faPen } />
+							</ActionIcon>
+						</Group>
+					)
+				}
+			</Table.Td>
+			<Table.Td>
+				<Group justify="flex-end">
+					<Menu position="bottom-end">
+						<Menu.Target>
+							<ActionIcon variant="subtle" color="gray" >
+								<FontAwesomeIcon icon={ faEllipsisVertical } />
+							</ActionIcon>
+						</Menu.Target>
+						<Menu.Dropdown>
+							<Menu.Label>Actions</Menu.Label>
+							<Menu.Item color="red" leftSection={ <FontAwesomeIcon icon={ faEraser } /> } onClick={ onClearDataRef } >Clear Buffer</Menu.Item>
+						</Menu.Dropdown>
+					</Menu>
+				</Group>
+			</Table.Td>
+		</Table.Tr>
 	);
 });
 
