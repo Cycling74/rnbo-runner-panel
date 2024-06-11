@@ -12,6 +12,7 @@ import { oscQueryBridge } from "../controller/oscqueryBridgeController";
 import throttle from "lodash.throttle";
 import { PresetRecord } from "../models/preset";
 import { AppSetting } from "../models/settings";
+import { DataRefRecord } from "../models/dataref";
 
 export enum InstanceActionType {
 	SET_INSTANCE = "SET_INSTANCE",
@@ -215,7 +216,7 @@ export const triggerInstanceMidiNoteOffEventOnRemote = (instance: InstanceStateR
 		oscQueryBridge.sendPacket(writePacket(message));
 	};
 
-export const seInstanceParameterValueNormalizedOnRemote = throttle((instance: InstanceStateRecord, param: ParameterRecord, value: number): AppThunk =>
+export const setInstanceParameterValueNormalizedOnRemote = throttle((instance: InstanceStateRecord, param: ParameterRecord, value: number): AppThunk =>
 	(dispatch) => {
 
 		const message = {
@@ -229,6 +230,19 @@ export const seInstanceParameterValueNormalizedOnRemote = throttle((instance: In
 
 		// optimistic local state update
 		dispatch(setInstance(instance.setParameterNormalizedValue(param.id, value)));
+	}, 100);
+
+export const setInstanceDataRefValueOnRemote = throttle((instance: InstanceStateRecord, dataref: DataRefRecord, fileName: string): AppThunk =>
+	() => {
+
+		const message = {
+			address: `${instance.path}/data_refs/${dataref.id}`,
+			args: [
+				{ type: "s", value: fileName }
+			]
+		};
+
+		oscQueryBridge.sendPacket(writePacket(message));
 	}, 100);
 
 
@@ -300,6 +314,22 @@ export const updateInstanceParameters = (index: number, desc: OSCQueryRNBOInstan
 
 			dispatch(setInstance(
 				instance.set("parameters", InstanceStateRecord.parametersFromDescription(desc))
+			));
+		} catch (e) {
+			console.log(e);
+		}
+	};
+
+export const updateInstanceDataRefValue = (index: number, name: string, value: string): AppThunk =>
+	(dispatch, getState) => {
+		try {
+			const state = getState();
+
+			const instance = getInstanceByIndex(state, index);
+			if (!instance) return;
+
+			dispatch(setInstance(
+				instance.setDataRefValue(name, value)
 			));
 		} catch (e) {
 			console.log(e);

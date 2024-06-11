@@ -18,7 +18,8 @@ export enum AppStatus {
 export enum InstanceTab {
 	MessagePorts = "msg",
 	MIDI = "midi",
-	Parameters = "params"
+	Parameters = "params",
+	DataRefs = "datarefs",
 }
 
 export const bodyFontSize = 16;

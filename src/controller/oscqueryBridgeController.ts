@@ -1,5 +1,5 @@
 import { parse as parseQuery } from "querystring";
-import { OSCBundle, OSCMessage, readPacket } from "osc";
+import { OSCBundle, OSCMessage, readPacket, writePacket } from "osc";
 import { setAppStatus, setConnectionEndpoint } from "../actions/appStatus";
 import { AppDispatch, store } from "../lib/store";
 import { ReconnectingWebsocket } from "../lib/reconnectingWs";
@@ -9,15 +9,20 @@ import { addPatcherNode, deletePortAliases, initConnections, initNodes, removePa
 import { initPatchers } from "../actions/patchers";
 import { initRunnerConfig, updateRunnerConfig } from "../actions/settings";
 import { initSets, initSetPresets } from "../actions/sets";
+import { initDataFiles } from "../actions/datafiles";
 import { sleep } from "../lib/util";
 import { getPatcherNodeByIndex } from "../selectors/graph";
-import { updateInstanceMessageOutputValue, updateInstanceMessages, updateInstanceParameterValue, updateInstanceParameterValueNormalized, updateInstanceParameters, updateInstancePresetEntries } from "../actions/instances";
+import { updateInstanceDataRefValue, updateInstanceMessageOutputValue, updateInstanceMessages, updateInstanceParameterValue, updateInstanceParameterValueNormalized, updateInstanceParameters, updateInstancePresetEntries } from "../actions/instances";
 import { ConnectionType, PortDirection } from "../models/graph";
 import { showNotification } from "../actions/notifications";
 import { NotificationLevel } from "../models/notification";
 import { initTransport, updateTransportStatus } from "../actions/transport";
+import { v4 as uuidv4 } from "uuid";
+import { basename } from "path";
 
 const dispatch = store.dispatch as AppDispatch;
+
+const FILE_READ_CHUNK_SIZE = 1024;
 
 enum OSCQueryCommand {
 	PATH_ADDED = "PATH_ADDED",
@@ -29,7 +34,7 @@ const portIOPathMatcher = /^\/rnbo\/jack\/info\/ports\/(?<type>audio|midi)\/(?<d
 const portAliasPathMatcher = /^\/rnbo\/jack\/info\/ports\/aliases\/(?<port>.+)$/;
 const patchersPathMatcher = /^\/rnbo\/patchers/;
 const instancePathMatcher = /^\/rnbo\/inst\/(?<index>\d+)$/;
-const instanceStatePathMatcher = /^\/rnbo\/inst\/(?<index>\d+)\/(?<content>params|messages\/in|messages\/out|presets)\/(?<rest>\S+)/;
+const instanceStatePathMatcher = /^\/rnbo\/inst\/(?<index>\d+)\/(?<content>params|messages\/in|messages\/out|presets|data_refs)\/(?<rest>\S+)/;
 const connectionsPathMatcher = /^\/rnbo\/jack\/connections\/(?<type>audio|midi)\/(?<name>.+)$/;
 const setMetaPathMatcher = /^\/rnbo\/inst\/control\/sets\/meta/;
 
@@ -39,6 +44,33 @@ const setsPresetsLoadPath = "/rnbo/inst/control/sets/presets/load";
 const configPathMatcher = /^\/rnbo\/config\/(?<name>.+)$/;
 const jackConfigPathMatcher = /^\/rnbo\/jack\/config\/(?<name>.+)$/;
 const instanceConfigPathMatcher = /^\/rnbo\/inst\/config\/(?<name>.+)$/;
+
+class RunnerCmd {
+	readonly id = uuidv4();
+	constructor(
+		readonly method: string,
+		readonly params: any
+	) {
+	}
+
+	packet() : Uint8Array {
+		return writePacket({
+			address: "/rnbo/cmd",
+			args: [
+				{
+					type: "s",
+					value: JSON.stringify({
+						id: this.id,
+						jsonrpc: "2.0",
+						method: this.method,
+						params: this.params
+					})
+				}
+			]
+		},
+		{ metadata: true });
+	}
+}
 
 export class OSCQueryBridgeControllerPrivate {
 
@@ -73,6 +105,51 @@ export class OSCQueryBridgeControllerPrivate {
 		});
 	}
 
+	private _sendCmd(cmd: RunnerCmd): Promise<any[]> {
+		// TODO add timeout
+		return new Promise<any[]>((resolve, reject) => {
+			const responces: any[] = [];
+			let resolved = false;
+			const callback = async (evt: MessageEvent): Promise<void> => {
+				try {
+					if (resolved) return;
+					if (typeof evt !== "string") {
+						const msg = readPacket(await evt.data.arrayBuffer(), {metadata: true});
+						if ("address" in msg) {
+							if (msg.address === "/rnbo/resp") {
+								const resp = JSON.parse(msg.args[0].value as string);
+								if (resp.error) {
+									throw new Error(resp.error);
+								} else if (resp.result) {
+									if (resp.id === cmd.id) {
+										responces.push(resp.result);
+										const p = parseInt(resp.result.progress, 10);
+										if (p === 100) {
+											resolved = true;
+											this._ws.off("message", callback);
+											resolve(responces);
+											return;
+										}
+									}
+								} else {
+									reject(new Error("unknown response packet: " + msg.args[0].value));
+									return;
+								}
+							}
+
+						}
+					}
+				} catch (err) {
+					resolved = true;
+					this._ws.off("message", callback);
+					return void reject(err);
+				}
+			};
+			this._ws.on("message", callback);
+			this._ws.sendPacket(Buffer.from(cmd.packet()));
+		});
+	}
+
 	public async getMetaState(): Promise<OSCQueryRNBOInstancesMetaState> {
 		const state = await this._requestState<OSCQueryRNBOInstancesMetaState>("/rnbo/inst/control/sets/meta");
 		return state;
@@ -81,6 +158,21 @@ export class OSCQueryBridgeControllerPrivate {
 	private async _initConnections() {
 		const connectionsInfo = await this._requestState<OSCQueryRNBOJackConnections>("/rnbo/jack/connections");
 		dispatch(initConnections(connectionsInfo));
+	}
+
+	private async _getDataFileList(): Promise<string[]> {
+		let seq = 0;
+		const files: string[] = JSON.parse((await this._sendCmd(new RunnerCmd("file_read", {
+			filetype: "datafile",
+			size: FILE_READ_CHUNK_SIZE
+		}))).sort((a, b) => parseInt(a.seq, 10) - parseInt(b.seq, 10)).map(v => {
+			if (v.seq === undefined || parseInt(v.seq, 10) !== seq) {
+				throw new Error(`unexpected sequence number ${v.seq}`);
+			}
+			seq++;
+			return v.content;
+		}).join("")).map((p: string) => basename(p));
+		return files;
 	}
 
 	private async _init() {
@@ -105,6 +197,13 @@ export class OSCQueryBridgeControllerPrivate {
 
 		// Fetch Connections Info
 		await this._initConnections();
+
+		// TODO could take a bit?
+		try {
+			dispatch(initDataFiles(await this._getDataFileList()));
+		} catch(e) {
+			console.error("error getting datafiles", { e });
+		}
 
 		// Set Init App Status
 		dispatch(setAppStatus(AppStatus.Ready));
@@ -315,6 +414,10 @@ export class OSCQueryBridgeControllerPrivate {
 			if (packet.args?.length) return void dispatch(updateTransportStatus({ sync: (packet.args as unknown as [boolean])?.[0] }));
 		}
 
+		// only sent when it changes so we don't care what the value, just read the list again
+		if (packet.address === "/rnbo/info/datafile_dir_mtime") {
+			return void dispatch(initDataFiles(await this._getDataFileList()));
+		}
 
 		const metaMatch = packet.address.match(setMetaPathMatcher);
 		if (metaMatch) {
@@ -379,6 +482,18 @@ export class OSCQueryBridgeControllerPrivate {
 			packetMatch.groups.rest?.length
 		) {
 			return void dispatch(updateInstanceMessageOutputValue(index, packetMatch.groups.rest, packet.args as any as OSCValue | OSCValue[]));
+		}
+
+		if (
+			packetMatch.groups.content === "data_refs" &&
+			packetMatch.groups.rest?.length
+		) {
+
+			if (packet.args.length >= 1 && typeof packet.args[0] === "string") {
+				return void dispatch(updateInstanceDataRefValue(index, packetMatch.groups.rest, packet.args[0] as string));
+			}
+			console.log("unexpected dataref OSC packet format", { packet });
+
 		}
 
 	}
