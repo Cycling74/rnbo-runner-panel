@@ -146,7 +146,7 @@ export class OSCQueryBridgeControllerPrivate {
 				}
 			};
 			this._ws.on("message", callback);
-			this._ws.send(cmd.packet());
+			this._ws.sendPacket(Buffer.from(cmd.packet()));
 		});
 	}
 
