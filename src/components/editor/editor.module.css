@@ -39,15 +39,23 @@
 
 	&[data-color-scheme="light"] {
 		.node {
-			background-color: var(--mantine-color-gray-1);
-			border-color: var(--mantine-color-gray-5);
+			background-color: var(--mantine-color-default-hover);
+			border-color: var(--mantine-color-gray-4);
+		}
+
+		.nodeHeader {
+			color: var(--mantine-color-default-color);
 		}
 	}
 
 	&[data-color-scheme="dark"] {
 		.node {
-			background-color: var(--mantine-color-gray-8);
-			border-color: var(--mantine-color-gray-6);
+			background-color: var(--mantine-color-default);
+			border-color: var(--mantine-color-gray-7);
+		}
+
+		.nodeHeader {
+			color: var(--mantine-color-default-color);
 		}
 	}
 
