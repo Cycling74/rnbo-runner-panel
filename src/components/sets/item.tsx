@@ -108,10 +108,9 @@ export const GraphSetItem: FunctionComponent<GraphSetItemProps> = memo(function 
 		<Group gap="xs">
 			<Button
 				className={ classes.setItemButton }
-				color="gray"
 				justify="flex-start"
 				size="sm"
-				variant="outline"
+				variant="default"
 				leftSection={ <FontAwesomeIcon icon={ faUpload } /> }
 				onClick={ onLoadSet }
 			>

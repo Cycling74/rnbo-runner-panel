@@ -98,10 +98,9 @@ export const PresetItem: FunctionComponent<PresetItemProps> = memo(function Wrap
 		<Group gap="xs">
 			<Button
 				className={ classes.presetButton }
-				color="gray"
 				justify="flex-start"
 				size="sm"
-				variant="outline"
+				variant="default"
 				leftSection={ <FontAwesomeIcon icon={ faUpload } /> }
 				onClick={ onLoadPreset }
 			>
