@@ -268,6 +268,7 @@ export type OSCQueryRNBOInstance = OSCQueryBaseNode & {
 				delete: OSCQueryStringValue;
 				initial: OSCQueryStringValue;
 				load: OSCQueryStringValue;
+				loaded: OSCQueryStringValue;
 				save: OSCQueryStringValue;
 			};
 		};
@@ -311,6 +312,7 @@ export type OSCQueryRNBOInstancesControlState = OSCQueryBaseNode & {
 						load: OSCQuerySingleValue<OSCQueryValueType.String, string> & {
 							RANGE: Array<{ VALS: string[]; }>;
 						};
+						loaded?: OSCQueryStringValue;
 					}
 				};
 				current?: OSCQueryBaseNode & {
