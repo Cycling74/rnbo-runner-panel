@@ -161,6 +161,26 @@ export const renamePresetOnRemoteInstance = (instance: InstanceStateRecord, pres
 		}
 	};
 
+export const setInitialPresetOnRemoteInstance = (instance: InstanceStateRecord, preset: PresetRecord): AppThunk =>
+	(dispatch) => {
+		try {
+			const message = {
+				address: `${instance.path}/presets/initial`,
+				args: [
+					{ type: "s", value: preset.name }
+				]
+			};
+			oscQueryBridge.sendPacket(writePacket(message));
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: `Error while trying to set initial preset to ${preset.name}`,
+				message: "Please check the consolor for further details."
+			}));
+			console.log(err);
+		}
+	};
+
 export const sendInstanceMessageToRemote = (instance: InstanceStateRecord, inportId: string, value: string): AppThunk =>
 	(dispatch) => {
 		const values = value.split(" ").reduce((values, v) => {
