@@ -8,11 +8,11 @@ import { OSCQueryRNBOState, OSCQueryRNBOInstance, OSCQueryRNBOJackConnections, O
 import { addPatcherNode, deletePortAliases, initConnections, initNodes, removePatcherNode, setPortAliases, updateSetMetaFromRemote, updateSourcePortConnections, updateSystemOrControlPortInfo } from "../actions/graph";
 import { initPatchers } from "../actions/patchers";
 import { initRunnerConfig, updateRunnerConfig } from "../actions/settings";
-import { initSets, initSetPresets } from "../actions/sets";
+import { initSets, initSetPresets, setGraphSetPresetLatest } from "../actions/sets";
 import { initDataFiles } from "../actions/datafiles";
 import { sleep } from "../lib/util";
 import { getPatcherNodeByIndex } from "../selectors/graph";
-import { updateInstanceDataRefValue, updateInstanceMessageOutputValue, updateInstanceMessages, updateInstanceParameterValue, updateInstanceParameterValueNormalized, updateInstanceParameters, updateInstancePresetEntries } from "../actions/instances";
+import { updateInstanceDataRefValue, updateInstanceMessageOutputValue, updateInstanceMessages, updateInstanceParameterValue, updateInstanceParameterValueNormalized, updateInstanceParameters, updateInstancePresetEntries, updateInstancePresetLatest, updateInstancePresetInitial } from "../actions/instances";
 import { ConnectionType, PortDirection } from "../models/graph";
 import { showNotification } from "../actions/notifications";
 import { NotificationLevel } from "../models/notification";
@@ -35,6 +35,7 @@ const portAliasPathMatcher = /^\/rnbo\/jack\/info\/ports\/aliases\/(?<port>.+)$/
 const patchersPathMatcher = /^\/rnbo\/patchers/;
 const instancePathMatcher = /^\/rnbo\/inst\/(?<index>\d+)$/;
 const instanceStatePathMatcher = /^\/rnbo\/inst\/(?<index>\d+)\/(?<content>params|messages\/in|messages\/out|presets|data_refs)\/(?<rest>\S+)/;
+const instancePresetPathMatcher = /^\/rnbo\/inst\/(?<index>\d+)\/presets\/(?<property>loaded|initial)$/;
 const connectionsPathMatcher = /^\/rnbo\/jack\/connections\/(?<type>audio|midi)\/(?<name>.+)$/;
 const setMetaPathMatcher = /^\/rnbo\/inst\/control\/sets\/meta/;
 
@@ -191,6 +192,7 @@ export class OSCQueryBridgeControllerPrivate {
 		// get sets info
 		dispatch(initSets(state.CONTENTS.inst?.CONTENTS?.control?.CONTENTS?.sets?.CONTENTS?.load?.RANGE?.[0]?.VALS || []));
 		dispatch(initSetPresets(state.CONTENTS.inst?.CONTENTS?.control?.CONTENTS?.sets?.CONTENTS?.presets?.CONTENTS?.load?.RANGE?.[0]?.VALS || []));
+		dispatch(setGraphSetPresetLatest(state.CONTENTS.inst?.CONTENTS?.control?.CONTENTS?.sets?.CONTENTS?.presets?.CONTENTS?.loaded?.VALUE || ""));
 
 		// Initialize RNBO Graph Nodes
 		dispatch(initNodes(state.CONTENTS.jack.CONTENTS.info.CONTENTS.ports, state.CONTENTS.inst));
@@ -419,9 +421,30 @@ export class OSCQueryBridgeControllerPrivate {
 			return void dispatch(initDataFiles(await this._getDataFileList()));
 		}
 
+		if (packet.address === "/rnbo/inst/control/sets/presets/loaded") {
+			return void dispatch(setGraphSetPresetLatest((packet.args as unknown as [string])?.[0] || ""));
+		}
+
 		const metaMatch = packet.address.match(setMetaPathMatcher);
 		if (metaMatch) {
 			return void dispatch(updateSetMetaFromRemote(packet.args as unknown as string));
+		}
+
+		const instancePresetMatch = packet.address.match(instancePresetPathMatcher);
+		if (instancePresetMatch) {
+			if (packet.args.length === 1) {
+				const name: string = packet.args[0] as unknown as string;
+				const index: number = parseInt(instancePresetMatch.groups.index, 10);
+				switch (instancePresetMatch.groups.property) {
+					case "initial":
+						return void dispatch(updateInstancePresetInitial(index, name));
+					case "loaded":
+						return void dispatch(updateInstancePresetLatest(index, name));
+					default:
+						break;
+				}
+			}
+			return;
 		}
 
 		const portIOMatch = packet.address.match(portIOPathMatcher);
