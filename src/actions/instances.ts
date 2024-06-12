@@ -274,7 +274,33 @@ export const updateInstancePresetEntries = (index: number, entries: OSCQueryRNBO
 			const instance = getInstanceByIndex(state, index);
 			if (!instance) return;
 
-			dispatch(setInstance(instance.set("presets", InstanceStateRecord.presetsFromDescription(entries))));
+			dispatch(setInstance(instance.updatePresets(entries)));
+		} catch (e) {
+			console.log(e);
+		}
+	};
+
+export const updateInstancePresetLatest = (index: number, name: string): AppThunk =>
+	(dispatch, getState) => {
+		try {
+			const state = getState();
+			const instance = getInstanceByIndex(state, index);
+			if (!instance) return;
+
+			dispatch(setInstance(instance.setPresetLatest(name)));
+		} catch (e) {
+			console.log(e);
+		}
+	};
+
+export const updateInstancePresetInitial = (index: number, name: string): AppThunk =>
+	(dispatch, getState) => {
+		try {
+			const state = getState();
+			const instance = getInstanceByIndex(state, index);
+			if (!instance) return;
+
+			dispatch(setInstance(instance.setPresetInitial(name)));
 		} catch (e) {
 			console.log(e);
 		}
