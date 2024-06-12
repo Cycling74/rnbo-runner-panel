@@ -44,6 +44,14 @@ export const sets = (state: SetState = {
 			};
 		}
 
+		case GraphSetActionType.SET_SET_PRESET_LATEST: {
+			const { name } = action.payload;
+			return {
+				...state,
+				presets: state.presets.map(preset => { return preset.setLatest(preset.name === name); })
+			};
+		}
+
 		default:
 			return state;
 	}
