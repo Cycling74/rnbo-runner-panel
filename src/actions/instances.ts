@@ -94,7 +94,7 @@ export const loadPresetOnRemoteInstance = (instance: InstanceStateRecord, preset
 			dispatch(showNotification({
 				level: NotificationLevel.error,
 				title: `Error while trying to load preset ${preset.name}`,
-				message: "Please check the consolor for further details."
+				message: "Please check the console for further details."
 			}));
 			console.log(err);
 		}
@@ -114,7 +114,7 @@ export const savePresetToRemoteInstance = (instance: InstanceStateRecord, name: 
 			dispatch(showNotification({
 				level: NotificationLevel.error,
 				title: `Error while trying to save preset ${name}`,
-				message: "Please check the consolor for further details."
+				message: "Please check the console for further details."
 			}));
 			console.log(err);
 		}
@@ -134,7 +134,7 @@ export const destroyPresetOnRemoteInstance = (instance: InstanceStateRecord, pre
 			dispatch(showNotification({
 				level: NotificationLevel.error,
 				title: `Error while trying to delete preset ${preset.name}`,
-				message: "Please check the consolor for further details."
+				message: "Please check the console for further details."
 			}));
 			console.log(err);
 		}
@@ -155,7 +155,7 @@ export const renamePresetOnRemoteInstance = (instance: InstanceStateRecord, pres
 			dispatch(showNotification({
 				level: NotificationLevel.error,
 				title: `Error while trying to rename preset ${preset.name} to ${name}`,
-				message: "Please check the consolor for further details."
+				message: "Please check the console for further details."
 			}));
 			console.log(err);
 		}
@@ -175,7 +175,7 @@ export const setInitialPresetOnRemoteInstance = (instance: InstanceStateRecord, 
 			dispatch(showNotification({
 				level: NotificationLevel.error,
 				title: `Error while trying to set initial preset to ${preset.name}`,
-				message: "Please check the consolor for further details."
+				message: "Please check the console for further details."
 			}));
 			console.log(err);
 		}
