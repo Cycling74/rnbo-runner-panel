@@ -16,7 +16,7 @@ import { getAppSettingValue } from "../../selectors/settings";
 import { AppSetting } from "../../models/settings";
 import PresetDrawer from "../../components/presets";
 import { PresetRecord } from "../../models/preset";
-import { destroyPresetOnRemoteInstance, renamePresetOnRemoteInstance, loadPresetOnRemoteInstance, savePresetToRemoteInstance } from "../../actions/instances";
+import { destroyPresetOnRemoteInstance, renamePresetOnRemoteInstance, setInitialPresetOnRemoteInstance, loadPresetOnRemoteInstance, savePresetToRemoteInstance } from "../../actions/instances";
 import { useDisclosure } from "@mantine/hooks";
 
 export default function Instance() {
@@ -69,6 +69,10 @@ export default function Instance() {
 
 	const onRenamePreset = useCallback((preset: PresetRecord, name: string) => {
 		dispatch(renamePresetOnRemoteInstance(currentInstance, preset, name));
+	}, [dispatch, currentInstance]);
+
+	const onSetInitialPreset = useCallback((preset: PresetRecord) => {
+		dispatch(setInitialPresetOnRemoteInstance(currentInstance, preset));
 	}, [dispatch, currentInstance]);
 
 	if (!isReady || appStatus !== AppStatus.Ready) return null;
@@ -124,6 +128,7 @@ export default function Instance() {
 				onLoadPreset={ onLoadPreset }
 				onSavePreset={ onSavePreset }
 				onRenamePreset={ onRenamePreset }
+				onSetInitialPreset={ onSetInitialPreset }
 				presets={ currentInstance.presets.valueSeq() }
 			/>
 		</Stack>
