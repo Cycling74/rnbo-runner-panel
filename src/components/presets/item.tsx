@@ -1,7 +1,7 @@
 import { FunctionComponent, ChangeEvent, KeyboardEvent, MouseEvent, FormEvent, memo, useCallback, useState, useRef, useEffect } from "react";
 import { ActionIcon, Button, Group, Menu, TextInput } from "@mantine/core";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCheck, faClose, faEllipsisVertical, faPen, faTrash, faUpload } from "@fortawesome/free-solid-svg-icons";
+import { faCheck, faClose, faEllipsisVertical, faPen, faTrash, faUpload, faStar, faClock } from "@fortawesome/free-solid-svg-icons";
 import classes from "./presets.module.css";
 import { PresetRecord } from "../../models/preset";
 import { keyEventIsValidForName, replaceInvalidNameChars } from "../../lib/util";
@@ -11,13 +11,15 @@ export type PresetItemProps = {
 	onDelete: (set: PresetRecord) => any;
 	onLoad: (set: PresetRecord) => any;
 	onRename: (set: PresetRecord, name: string) => any;
+	onSetInitial?: (set: PresetRecord) => any;
 };
 
 export const PresetItem: FunctionComponent<PresetItemProps> = memo(function WrappedPresetItem({
 	preset,
 	onDelete,
 	onLoad,
-	onRename
+	onRename,
+	onSetInitial
 }: PresetItemProps) {
 
 	const [isEditing, setIsEditing] = useState<boolean>(false);
@@ -31,6 +33,10 @@ export const PresetItem: FunctionComponent<PresetItemProps> = memo(function Wrap
 		}
 		setIsEditing(!isEditing);
 	}, [setIsEditing, isEditing, preset, setName]);
+
+	const onSetInitialPreset = useCallback(() => {
+		onSetInitial(preset);
+	}, [preset, onSetInitial]);
 
 	const onLoadPreset = useCallback((_e: MouseEvent<HTMLButtonElement>) => {
 		onLoad(preset);
@@ -98,13 +104,16 @@ export const PresetItem: FunctionComponent<PresetItemProps> = memo(function Wrap
 		<Group gap="xs">
 			<Button
 				className={ classes.presetButton }
+				fullWidth
 				justify="flex-start"
 				size="sm"
 				variant="default"
 				leftSection={ <FontAwesomeIcon icon={ faUpload } /> }
+				rightSection={ preset.latest && <FontAwesomeIcon icon={ faClock } /> }
 				onClick={ onLoadPreset }
 			>
 				{ preset.name }
+				{ preset.initial && <FontAwesomeIcon icon={ faStar } /> }
 			</Button>
 			<Menu position="bottom-end" >
 				<Menu.Target>
@@ -115,6 +124,7 @@ export const PresetItem: FunctionComponent<PresetItemProps> = memo(function Wrap
 				<Menu.Dropdown>
 					<Menu.Label>Actions</Menu.Label>
 					<Menu.Item leftSection={ <FontAwesomeIcon icon={ faPen } /> } onClick={ toggleEditing } >Rename</Menu.Item>
+					{ onSetInitial && <Menu.Item leftSection={ <FontAwesomeIcon icon={ faStar } /> } onClick={ onSetInitialPreset } >Make Initial</Menu.Item> }
 					<Menu.Item color="red" leftSection={ <FontAwesomeIcon icon={ faTrash } /> } onClick={ onDeletePreset } >Delete</Menu.Item>
 				</Menu.Dropdown>
 			</Menu>
