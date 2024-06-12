@@ -1,7 +1,7 @@
 import { ActionBase } from "../lib/store";
 
 export enum DataFilesActionType {
-	INIT = "INIT",
+	INIT = "INIT_DATAFILES",
 }
 
 export interface IInitDataFiles extends ActionBase {
