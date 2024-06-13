@@ -1,7 +1,7 @@
 import { FunctionComponent, ChangeEvent, KeyboardEvent, MouseEvent, FormEvent, memo, useCallback, useState, useRef, useEffect } from "react";
-import { ActionIcon, Button, Group, Menu, TextInput } from "@mantine/core";
+import { ActionIcon, Button, Group, Indicator, Menu, TextInput, Tooltip } from "@mantine/core";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCheck, faClose, faEllipsisVertical, faPen, faTrash, faUpload, faStar, faClock } from "@fortawesome/free-solid-svg-icons";
+import { faCheck, faClose, faEllipsisVertical, faPen, faTrash, faStar, faClock } from "@fortawesome/free-solid-svg-icons";
 import classes from "./presets.module.css";
 import { PresetRecord } from "../../models/preset";
 import { keyEventIsValidForName, replaceInvalidNameChars } from "../../lib/util";
@@ -102,19 +102,34 @@ export const PresetItem: FunctionComponent<PresetItemProps> = memo(function Wrap
 		</form>
 	) : (
 		<Group gap="xs">
-			<Button
+			<Indicator
+				position="top-end"
 				className={ classes.presetButton }
-				fullWidth
-				justify="flex-start"
-				size="sm"
-				variant="default"
-				leftSection={ <FontAwesomeIcon icon={ faUpload } /> }
-				rightSection={ preset.latest && <FontAwesomeIcon icon={ faClock } /> }
-				onClick={ onLoadPreset }
+				color="yellow"
+				disabled={ !preset.initial }
+				label={(
+					<Tooltip label="This preset loads on startup" openDelay={ 500 } >
+						<FontAwesomeIcon icon={ faStar } size="xs" />
+					</Tooltip>
+				)}
+				size={ 18 }
+				withBorder
 			>
-				{ preset.name }
-				{ preset.initial && <FontAwesomeIcon icon={ faStar } /> }
-			</Button>
+				<Button
+					fullWidth
+					justify="flex-start"
+					size="sm"
+					leftSection={ preset?.latest ? (
+						<Tooltip label="This preset was loaded last" openDelay={ 500 }>
+							<FontAwesomeIcon icon={ faClock } size="xs" />
+						</Tooltip>
+					) : null }
+					variant="default"
+					onClick={ onLoadPreset }
+				>
+					{ preset.name }
+				</Button>
+			</Indicator>
 			<Menu position="bottom-end" >
 				<Menu.Target>
 					<ActionIcon variant="subtle" color="gray">
@@ -124,7 +139,7 @@ export const PresetItem: FunctionComponent<PresetItemProps> = memo(function Wrap
 				<Menu.Dropdown>
 					<Menu.Label>Actions</Menu.Label>
 					<Menu.Item leftSection={ <FontAwesomeIcon icon={ faPen } /> } onClick={ toggleEditing } >Rename</Menu.Item>
-					{ onSetInitial && <Menu.Item leftSection={ <FontAwesomeIcon icon={ faStar } /> } onClick={ onSetInitialPreset } >Make Initial</Menu.Item> }
+					{ onSetInitial && <Menu.Item leftSection={ <FontAwesomeIcon icon={ faStar } /> } onClick={ onSetInitialPreset } >Load on Startup</Menu.Item> }
 					<Menu.Item color="red" leftSection={ <FontAwesomeIcon icon={ faTrash } /> } onClick={ onDeletePreset } >Delete</Menu.Item>
 				</Menu.Dropdown>
 			</Menu>
