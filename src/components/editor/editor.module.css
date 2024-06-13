@@ -2,10 +2,6 @@
 
 	border-width: 2px;
 
-	&[data-selected="true"] {
-		border-color: var(--mantine-primary-color-filled);
-	}
-
 	.nodeHeader {
 		align-items: center;
 		display: flex;
@@ -41,6 +37,10 @@
 		.node {
 			background-color: var(--mantine-color-default-hover);
 			border-color: var(--mantine-color-gray-4);
+
+			&[data-selected="true"] {
+				border-color: var(--mantine-primary-color-filled);
+			}
 		}
 
 		.nodeHeader {
@@ -52,6 +52,10 @@
 		.node {
 			background-color: var(--mantine-color-default);
 			border-color: var(--mantine-color-gray-7);
+
+			&[data-selected="true"] {
+				border-color: var(--mantine-primary-color-filled);
+			}
 		}
 
 		.nodeHeader {
