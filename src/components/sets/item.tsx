@@ -1,8 +1,8 @@
 import { ChangeEvent, FormEvent, FunctionComponent, KeyboardEvent, MouseEvent, memo, useCallback, useEffect, useRef, useState } from "react";
 import { GraphSetRecord } from "../../models/set";
-import { ActionIcon, Button, Group, Menu, TextInput } from "@mantine/core";
+import { ActionIcon, Button, Group, Menu, TextInput, Tooltip } from "@mantine/core";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCheck, faClose, faEllipsisVertical, faPen, faTrash, faUpload } from "@fortawesome/free-solid-svg-icons";
+import { faCheck, faClose, faEllipsisVertical, faPen, faTrash, faClock } from "@fortawesome/free-solid-svg-icons";
 import classes from "./sets.module.css";
 import { keyEventIsValidForName, replaceInvalidNameChars } from "../../lib/util";
 
@@ -111,7 +111,11 @@ export const GraphSetItem: FunctionComponent<GraphSetItemProps> = memo(function 
 				justify="flex-start"
 				size="sm"
 				variant="default"
-				leftSection={ <FontAwesomeIcon icon={ faUpload } /> }
+				leftSection={ set?.latest ? (
+					<Tooltip label="This set was loaded last" openDelay={ 500 }>
+						<FontAwesomeIcon icon={ faClock } size="xs" />
+					</Tooltip>
+				) : null }
 				onClick={ onLoadSet }
 			>
 				{ name }
