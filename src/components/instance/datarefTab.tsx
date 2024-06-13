@@ -8,8 +8,9 @@ import { InstanceStateRecord } from "../../models/instance";
 import { setInstanceDataRefValueOnRemote } from "../../actions/instances";
 import { DataRefRecord } from "../../models/dataref";
 import { modals } from "@mantine/modals";
-import { getDataFiles } from "../../selectors/datafiles";
+import { getDataFilesSortedByName } from "../../selectors/datafiles";
 import { RootStateType } from "../../lib/store";
+import { DataFileRecord } from "../../models/datafile";
 
 export type InstanceDataRefTabProps = {
 	instance: InstanceStateRecord;
@@ -20,10 +21,10 @@ const InstanceDataRefsTab: FunctionComponent<InstanceDataRefTabProps> = memo(fun
 }) {
 
 	const dispatch = useAppDispatch();
-	const datafiles = useAppSelector((state: RootStateType) => getDataFiles(state));
+	const datafiles = useAppSelector((state: RootStateType) => getDataFilesSortedByName(state));
 
-	const onSetDataRef = useCallback((dataref: DataRefRecord, fileName: string) => {
-		dispatch(setInstanceDataRefValueOnRemote(instance, dataref, fileName.trim()));
+	const onSetDataRef = useCallback((dataref: DataRefRecord, file: DataFileRecord) => {
+		dispatch(setInstanceDataRefValueOnRemote(instance, dataref, file));
 	}, [dispatch, instance]);
 
 	const onClearDataRef = useCallback((dataref: DataRefRecord) => {
@@ -37,7 +38,7 @@ const InstanceDataRefsTab: FunctionComponent<InstanceDataRefTabProps> = memo(fun
 			),
 			labels: { confirm: "Clear", cancel: "Cancel" },
 			confirmProps: { color: "red" },
-			onConfirm: () => dispatch(setInstanceDataRefValueOnRemote(instance, dataref, ""))
+			onConfirm: () => dispatch(setInstanceDataRefValueOnRemote(instance, dataref))
 		});
 	}, [dispatch, instance]);
 

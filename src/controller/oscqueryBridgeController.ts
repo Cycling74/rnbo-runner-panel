@@ -18,7 +18,6 @@ import { showNotification } from "../actions/notifications";
 import { NotificationLevel } from "../models/notification";
 import { initTransport, updateTransportStatus } from "../actions/transport";
 import { v4 as uuidv4 } from "uuid";
-import { basename } from "path";
 
 const dispatch = store.dispatch as AppDispatch;
 
@@ -165,7 +164,7 @@ export class OSCQueryBridgeControllerPrivate {
 
 	private async _getDataFileList(): Promise<string[]> {
 		let seq = 0;
-		const files: string[] = JSON.parse((await this._sendCmd(new RunnerCmd("file_read", {
+		const filePaths: string[] = JSON.parse((await this._sendCmd(new RunnerCmd("file_read", {
 			filetype: "datafile",
 			size: FILE_READ_CHUNK_SIZE
 		}))).sort((a, b) => parseInt(a.seq, 10) - parseInt(b.seq, 10)).map(v => {
@@ -174,8 +173,8 @@ export class OSCQueryBridgeControllerPrivate {
 			}
 			seq++;
 			return v.content;
-		}).join("")).map((p: string) => basename(p));
-		return files;
+		}).join(""));
+		return filePaths;
 	}
 
 	private async _initAudio(state: OSCQueryRNBOState) {

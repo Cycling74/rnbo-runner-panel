@@ -13,6 +13,7 @@ import throttle from "lodash.throttle";
 import { PresetRecord } from "../models/preset";
 import { AppSetting } from "../models/settings";
 import { DataRefRecord } from "../models/dataref";
+import { DataFileRecord } from "../models/datafile";
 
 export enum InstanceActionType {
 	SET_INSTANCE = "SET_INSTANCE",
@@ -252,13 +253,13 @@ export const setInstanceParameterValueNormalizedOnRemote = throttle((instance: I
 		dispatch(setInstance(instance.setParameterNormalizedValue(param.id, value)));
 	}, 100);
 
-export const setInstanceDataRefValueOnRemote = throttle((instance: InstanceStateRecord, dataref: DataRefRecord, fileName: string): AppThunk =>
+export const setInstanceDataRefValueOnRemote = throttle((instance: InstanceStateRecord, dataref: DataRefRecord, file?: DataFileRecord): AppThunk =>
 	() => {
 
 		const message = {
 			address: `${instance.path}/data_refs/${dataref.id}`,
 			args: [
-				{ type: "s", value: fileName }
+				{ type: "s", value: file?.fileName || "" } // no files unsets
 			]
 		};
 

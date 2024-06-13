@@ -1,4 +1,5 @@
 import { ActionBase } from "../lib/store";
+import { DataFileRecord } from "../models/datafile";
 
 export enum DataFilesActionType {
 	INIT = "INIT_DATAFILES",
@@ -7,17 +8,17 @@ export enum DataFilesActionType {
 export interface IInitDataFiles extends ActionBase {
 	type: DataFilesActionType.INIT;
 	payload: {
-		files: string[]
+		files: Array<DataFileRecord>;
 	}
 }
 
 export type DataFileAction = IInitDataFiles;
 
-export const initDataFiles = (files: string[]): DataFileAction => {
+export const initDataFiles = (paths: string[]): DataFileAction => {
 	return {
 		type: DataFilesActionType.INIT,
 		payload: {
-			files: files.sort()
+			files: paths.map(p => DataFileRecord.fromDescription(p))
 		}
 	};
 };
