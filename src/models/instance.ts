@@ -9,6 +9,10 @@ export type InstanceStateProps = {
 	patcher: string;
 	path: string;
 	name: string;
+
+	presetInitial: string;
+	presetLatest: string;
+
 	messageInputs: ImmuMap<string, string>;
 	messageOutputs: ImmuMap<string, string>;
 	parameters: ImmuMap<ParameterRecord["id"], ParameterRecord>;
@@ -24,6 +28,8 @@ export class InstanceStateRecord extends ImmuRecord<InstanceStateProps>({
 	name: "",
 	patcher: "",
 	path: "",
+	presetInitial: "",
+	presetLatest: "",
 
 	messageInputs: ImmuMap<string, string>(),
 	messageOutputs: ImmuMap<string, string>(),
@@ -78,25 +84,15 @@ export class InstanceStateRecord extends ImmuRecord<InstanceStateProps>({
 	}
 
 	public setPresetLatest(latest: string): InstanceStateRecord {
-		return this.set("presets", this.presets.map(preset => preset.setLatest(preset.name === latest)));
+		return this.set("presets", this.presets.map(preset => preset.setLatest(preset.name === latest))).set("presetLatest", latest);
 	}
 
 	public setPresetInitial(initial: string): InstanceStateRecord {
-		return this.set("presets", this.presets.map(preset => preset.setInitial(preset.name === initial)));
+		return this.set("presets", this.presets.map(preset => preset.setInitial(preset.name === initial))).set("presetInitial", initial);
 	}
 
 	public updatePresets(entries: OSCQueryRNBOInstancePresetEntries): InstanceStateRecord {
-		let latest = "";
-		let initial = "";
-		this.presets.forEach(preset => {
-			if (preset.initial) {
-				initial = preset.name;
-			}
-			if (preset.latest) {
-				latest = preset.name;
-			}
-		});
-		return this.set("presets", InstanceStateRecord.presetsFromDescription(entries, latest, initial));
+		return this.set("presets", InstanceStateRecord.presetsFromDescription(entries, this.presetLatest, this.presetInitial));
 	}
 
 	public static messageInputsFromDescription(messagesDesc: OSCQueryRNBOInstance["CONTENTS"]["messages"]): ImmuMap<string, string> {
