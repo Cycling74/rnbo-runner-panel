@@ -7,13 +7,15 @@ export type SetState = {
 	show: boolean;
 	sets: ImmuMap<GraphSetRecord["id"], GraphSetRecord>;
 	presets: ImmuMap<PresetRecord["id"], PresetRecord>;
+	presetLatest: string;
 };
 
 export const sets = (state: SetState = {
 
 	show: false,
 	sets: ImmuMap<GraphSetRecord["id"], GraphSetRecord>(),
-	presets: ImmuMap<GraphSetRecord["id"], PresetRecord>()
+	presets: ImmuMap<GraphSetRecord["id"], PresetRecord>(),
+	presetLatest: ""
 }, action: GraphSetAction): SetState => {
 
 	switch (action.type) {
@@ -40,7 +42,16 @@ export const sets = (state: SetState = {
 
 			return {
 				...state,
-				presets: ImmuMap<PresetRecord["id"], PresetRecord>(presets.map(p => [p.id, p]))
+				presets: ImmuMap<PresetRecord["id"], PresetRecord>(presets.map(p => [p.id, p.setLatest(p.name === state.presetLatest)]))
+			};
+		}
+
+		case GraphSetActionType.SET_SET_PRESET_LATEST: {
+			const { name } = action.payload;
+			return {
+				...state,
+				presetLatest: name,
+				presets: state.presets.map(preset => { return preset.setLatest(preset.name === name); })
 			};
 		}
 

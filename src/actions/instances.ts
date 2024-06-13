@@ -94,7 +94,7 @@ export const loadPresetOnRemoteInstance = (instance: InstanceStateRecord, preset
 			dispatch(showNotification({
 				level: NotificationLevel.error,
 				title: `Error while trying to load preset ${preset.name}`,
-				message: "Please check the consolor for further details."
+				message: "Please check the console for further details."
 			}));
 			console.log(err);
 		}
@@ -114,7 +114,7 @@ export const savePresetToRemoteInstance = (instance: InstanceStateRecord, name: 
 			dispatch(showNotification({
 				level: NotificationLevel.error,
 				title: `Error while trying to save preset ${name}`,
-				message: "Please check the consolor for further details."
+				message: "Please check the console for further details."
 			}));
 			console.log(err);
 		}
@@ -134,7 +134,7 @@ export const destroyPresetOnRemoteInstance = (instance: InstanceStateRecord, pre
 			dispatch(showNotification({
 				level: NotificationLevel.error,
 				title: `Error while trying to delete preset ${preset.name}`,
-				message: "Please check the consolor for further details."
+				message: "Please check the console for further details."
 			}));
 			console.log(err);
 		}
@@ -155,7 +155,27 @@ export const renamePresetOnRemoteInstance = (instance: InstanceStateRecord, pres
 			dispatch(showNotification({
 				level: NotificationLevel.error,
 				title: `Error while trying to rename preset ${preset.name} to ${name}`,
-				message: "Please check the consolor for further details."
+				message: "Please check the console for further details."
+			}));
+			console.log(err);
+		}
+	};
+
+export const setInitialPresetOnRemoteInstance = (instance: InstanceStateRecord, preset: PresetRecord): AppThunk =>
+	(dispatch) => {
+		try {
+			const message = {
+				address: `${instance.path}/presets/initial`,
+				args: [
+					{ type: "s", value: preset.name }
+				]
+			};
+			oscQueryBridge.sendPacket(writePacket(message));
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: `Error while trying to set initial preset to ${preset.name}`,
+				message: "Please check the console for further details."
 			}));
 			console.log(err);
 		}
@@ -254,7 +274,33 @@ export const updateInstancePresetEntries = (index: number, entries: OSCQueryRNBO
 			const instance = getInstanceByIndex(state, index);
 			if (!instance) return;
 
-			dispatch(setInstance(instance.set("presets", InstanceStateRecord.presetsFromDescription(entries))));
+			dispatch(setInstance(instance.updatePresets(entries)));
+		} catch (e) {
+			console.log(e);
+		}
+	};
+
+export const updateInstancePresetLatest = (index: number, name: string): AppThunk =>
+	(dispatch, getState) => {
+		try {
+			const state = getState();
+			const instance = getInstanceByIndex(state, index);
+			if (!instance) return;
+
+			dispatch(setInstance(instance.setPresetLatest(name)));
+		} catch (e) {
+			console.log(e);
+		}
+	};
+
+export const updateInstancePresetInitial = (index: number, name: string): AppThunk =>
+	(dispatch, getState) => {
+		try {
+			const state = getState();
+			const instance = getInstanceByIndex(state, index);
+			if (!instance) return;
+
+			dispatch(setInstance(instance.setPresetInitial(name)));
 		} catch (e) {
 			console.log(e);
 		}
