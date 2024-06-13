@@ -9,8 +9,9 @@ import { NotificationLevel } from "../models/notification";
 
 export enum GraphSetActionType {
 	INIT = "INIT_SETS",
-	INIT_PRESETS = "INIT_PRESETS",
 	SET_SET_PRESET_LATEST = "SET_SET_PRESET_LATEST",
+	INIT_PRESETS = "INIT_PRESETS",
+	SET_SET_LATEST = "SET_PRESET_LATEST",
 	SET_SHOW_GRAPH_SETS = "SET_SHOW_GRAPH_SET"
 }
 
@@ -18,6 +19,13 @@ export interface IInitGraphSets extends ActionBase {
 	type: GraphSetActionType.INIT;
 	payload: {
 		sets: GraphSetRecord[]
+	}
+}
+
+export interface ISetGraphSetsLatest extends ActionBase {
+	type: GraphSetActionType.SET_SET_LATEST;
+	payload: {
+		name: string
 	}
 }
 
@@ -42,13 +50,22 @@ export interface ISetGraphSetPresetsLatest extends ActionBase {
 	}
 }
 
-export type GraphSetAction = IInitGraphSets | IShowGraphSets | IInitGraphSetPresets | ISetGraphSetPresetsLatest;
+export type GraphSetAction = IInitGraphSets | ISetGraphSetsLatest | IShowGraphSets | IInitGraphSetPresets | ISetGraphSetPresetsLatest;
 
 export const initSets = (names: string[]): GraphSetAction => {
 	return {
 		type: GraphSetActionType.INIT,
 		payload: {
 			sets: names.map(n => GraphSetRecord.fromDescription(n))
+		}
+	};
+};
+
+export const setGraphSetLatest = (name: string): GraphSetAction => {
+	return {
+		type: GraphSetActionType.SET_SET_LATEST,
+		payload: {
+			name
 		}
 	};
 };
