@@ -1,4 +1,4 @@
-import { Button, Center, Group, Modal, RingProgress, Stack, Table, Text } from "@mantine/core";
+import { ActionIcon, Button, Center, Group, Modal, RingProgress, Stack, Table, Text } from "@mantine/core";
 import { FC, memo, useCallback, useState } from "react";
 import { useIsMobileDevice } from "../../hooks/useIsMobileDevice";
 import { Dropzone, FileWithPath } from "@mantine/dropzone";
@@ -46,6 +46,51 @@ const FileDropZone: FC<{ maxFiles: number; setFiles: (files: FileWithPath[]) => 
 	);
 });
 
+type FileUploadRowProps = {
+	file: FileWithPath;
+	isUploading: boolean;
+	onRemove: (file: FileWithPath) => any;
+};
+
+export const FileUploadRow: FC<FileUploadRowProps> = ({
+	file,
+	isUploading,
+	onRemove
+}) => {
+	return (
+		<Table.Tr key={ file.name } >
+			<Table.Td>
+				<Text fz="sm" truncate="end">
+					{ file.name }
+				</Text>
+			</Table.Td>
+			<Table.Td>
+				<Text fz="sm" truncate="end">
+					{ formatFileSize(file.size) }
+				</Text>
+			</Table.Td>
+			<Table.Td>
+				<Group justify="flex-end">
+					<ActionIcon variant="default" size="sm" onClick={ () => onRemove(file) } >
+						<FontAwesomeIcon icon={ faXmark } />
+					</ActionIcon>
+					<RingProgress
+						hidden={ !isUploading }
+						sections={ [{ value: 0, color: "primary" }] }
+						size={ 30 }
+						thickness={ 2 }
+						label={ (
+							<Center>
+								<FontAwesomeIcon icon={ faHourglass } size="xs" />
+							</Center>
+						)}
+					/>
+				</Group>
+			</Table.Td>
+		</Table.Tr>
+	);
+};
+
 export const DataFileUploadModal: FC<DataFileUploadModalProps> = memo(function WrappedDataFileUploadModal({
 	onClose,
 	maxFileCount = 1
@@ -68,6 +113,10 @@ export const DataFileUploadModal: FC<DataFileUploadModalProps> = memo(function W
 		if (isUploading) return;
 		onClose();
 	}, [onClose, isUploading]);
+
+	const onRemoveFile = useCallback((file: FileWithPath) => {
+		setFiles(files.filter(f => f !== file));
+	}, [files, setFiles]);
 
 	return (
 		<Modal
@@ -93,38 +142,7 @@ export const DataFileUploadModal: FC<DataFileUploadModalProps> = memo(function W
 							</Table.Thead>
 							<Table.Tbody>
 								{
-									files.map(f => (
-										<Table.Tr key={ f.name } >
-											<Table.Td>
-												<Text fz="sm" truncate="end">
-													{ f.name }
-												</Text>
-											</Table.Td>
-											<Table.Td>
-												<Text fz="sm" truncate="end">
-													{ formatFileSize(f.size) }
-												</Text>
-											</Table.Td>
-											<Table.Td>
-												{
-													isUploading ? (
-														<Group justify="flex-end">
-															<RingProgress
-																sections={ [{ value: 0, color: "primary" }] }
-																size={ 30 }
-																thickness={ 2 }
-																label={ (
-																	<Center>
-																		<FontAwesomeIcon icon={ faHourglass } size="xs" />
-																	</Center>
-																)}
-															/>
-														</Group>
-													) : null
-												}
-											</Table.Td>
-										</Table.Tr>
-									))
+									files.map(f => <FileUploadRow key={ f.name } file={ f } isUploading={ isUploading } onRemove={ onRemoveFile } />)
 								}
 							</Table.Tbody>
 						</Table>
