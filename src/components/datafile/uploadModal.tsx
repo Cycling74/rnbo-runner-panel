@@ -3,7 +3,7 @@ import { FC, memo, useCallback, useState } from "react";
 import { useIsMobileDevice } from "../../hooks/useIsMobileDevice";
 import { Dropzone, FileWithPath } from "@mantine/dropzone";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faFileAudio, faHourglass, faUpload, faXmark } from "@fortawesome/free-solid-svg-icons";
+import { faCheck, faFileAudio, faHourglass, faHourglassHalf, faUpload, faXmark } from "@fortawesome/free-solid-svg-icons";
 import classes from "./datafile.module.css";
 import { formatFileSize } from "../../lib/util";
 
@@ -50,13 +50,18 @@ type FileUploadRowProps = {
 	file: FileWithPath;
 	isUploading: boolean;
 	onRemove: (file: FileWithPath) => any;
+	progress: number;
 };
 
 export const FileUploadRow: FC<FileUploadRowProps> = ({
 	file,
 	isUploading,
-	onRemove
+	onRemove,
+	progress
 }) => {
+
+	const color = progress >= 100 ? "teal" : progress === 0 ? "gray" : "blue.6";
+	const icon = progress >= 100 ? faCheck : progress === 0 ? faHourglass : faHourglassHalf;
 	return (
 		<Table.Tr key={ file.name } >
 			<Table.Td>
@@ -71,17 +76,19 @@ export const FileUploadRow: FC<FileUploadRowProps> = ({
 			</Table.Td>
 			<Table.Td>
 				<Group justify="flex-end">
-					<ActionIcon variant="default" size="sm" onClick={ () => onRemove(file) } >
+					<ActionIcon variant="default" size="sm" onClick={ () => onRemove(file) } hidden={ isUploading } >
 						<FontAwesomeIcon icon={ faXmark } />
 					</ActionIcon>
 					<RingProgress
 						hidden={ !isUploading }
-						sections={ [{ value: 0, color: "primary" }] }
-						size={ 30 }
+						sections={ [{ value: progress, color: "blue.6" }] }
+						size={ 40 }
 						thickness={ 2 }
 						label={ (
 							<Center>
-								<FontAwesomeIcon icon={ faHourglass } size="xs" />
+								<Text c={ color } >
+									<FontAwesomeIcon icon={ icon } size="xs" color="inherit" />
+								</Text>
 							</Center>
 						)}
 					/>
@@ -142,7 +149,7 @@ export const DataFileUploadModal: FC<DataFileUploadModalProps> = memo(function W
 							</Table.Thead>
 							<Table.Tbody>
 								{
-									files.map(f => <FileUploadRow key={ f.name } file={ f } isUploading={ isUploading } onRemove={ onRemoveFile } />)
+									files.map(f => <FileUploadRow key={ f.name } file={ f } isUploading={ isUploading } onRemove={ onRemoveFile } progress={ 0 } />)
 								}
 							</Table.Tbody>
 						</Table>
