@@ -50,7 +50,7 @@ const SampleDependencies = () => {
 					Upload Files
 				</Button>
 			</Group>
-			{ showUploadModal ? <DataFileUploadModal onClose={ uploadModalHandlers.close } /> : null }
+			{ showUploadModal ? <DataFileUploadModal maxFileCount={ 10 } onClose={ uploadModalHandlers.close } /> : null }
 			<Table verticalSpacing="sm" maw="100%" layout="fixed">
 				<Table.Thead>
 					<Table.Tr>
