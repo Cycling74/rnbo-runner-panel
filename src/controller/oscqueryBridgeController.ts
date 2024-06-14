@@ -75,6 +75,8 @@ class RunnerCmd {
 
 export class OSCQueryBridgeControllerPrivate {
 
+	private _hasIsActive: boolean = false;
+
 	private static instanceExists(index: number): boolean {
 		return !!getPatcherNodeByIndex(store.getState(), index);
 	}
@@ -213,8 +215,10 @@ export class OSCQueryBridgeControllerPrivate {
 			console.error("error getting datafiles", { e });
 		}
 
+		this._hasIsActive  = state.CONTENTS.jack?.CONTENTS?.info?.CONTENTS?.is_active !== undefined;
+
 		// don't init audio if jack isn't active
-		if (state.CONTENTS.jack?.CONTENTS?.active?.TYPE === "T") {
+		if ((!this._hasIsActive && state.CONTENTS.jack?.CONTENTS?.active?.TYPE === "T") || state.CONTENTS.jack?.CONTENTS?.info?.CONTENTS?.is_active?.TYPE === "T") {
 			await this._initAudio(state);
 		} else {
 			dispatch(setAppStatus(AppStatus.AudioOff));
@@ -408,20 +412,32 @@ export class OSCQueryBridgeControllerPrivate {
 		}
 	}
 
+	private async _handleActive(active: boolean, delay: boolean) {
+		if (active) {
+			if (delay) {
+				await sleep(500);
+			}
+			const state = await this._requestState<OSCQueryRNBOState>("/rnbo");
+			await this._initAudio(state);
+		} else {
+			dispatch(setAppStatus(AppStatus.AudioOff));
+		}
+	}
+
 	private async _processOSCMessage(packet: OSCMessage): Promise<void> {
 
 		if (packet.address === "/rnbo/jack/restart") {
 			return void dispatch(showNotification({ title: "Restarting Jack", message: "Please wait while the Jack server is being restarted with the updated audio configuration settings.", level: NotificationLevel.info }));
 		}
 
-		if (packet.address === "/rnbo/jack/active") {
-			if ((packet.args as unknown as [boolean])?.[0]) {
-				await sleep(500); // TODO can we get a better message that actually indicates that jack is fully activated?
-				const state = await this._requestState<OSCQueryRNBOState>("/rnbo");
-				await this._initAudio(state);
-			} else {
-				dispatch(setAppStatus(AppStatus.AudioOff));
-			}
+		if (packet.address === "/rnbo/jack/info/is_active") {
+			this._hasIsActive = true;
+			await this._handleActive((packet.args as unknown as [boolean])?.[0], false);
+			return;
+		}
+
+		if (!this._hasIsActive && packet.address === "/rnbo/jack/active") {
+			await this._handleActive((packet.args as unknown as [boolean])?.[0], true);
 			return;
 		}
 
