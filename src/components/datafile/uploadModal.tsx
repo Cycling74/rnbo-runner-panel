@@ -126,58 +126,61 @@ export const DataFileUploadModal: FC<DataFileUploadModalProps> = memo(function W
 	}, [files, setFiles]);
 
 	return (
-		<Modal
-			onClose={ onTriggerClose }
-			opened={ true }
-			fullScreen={ showFullScreen }
-			size="lg"
-			title="Upload Sample Dependencies"
-		>
-			<Stack gap="xl">
-				{
-					!files.length ? <FileDropZone maxFiles={ maxFileCount } setFiles={ setFiles} /> : null
-				}
-				{
-					files.length ? (
-						<Table verticalSpacing="sm">
-							<Table.Thead>
-								<Table.Tr>
-									<Table.Th>Filename</Table.Th>
-									<Table.Th>Size</Table.Th>
-									<Table.Th></Table.Th>
-								</Table.Tr>
-							</Table.Thead>
-							<Table.Tbody>
-								{
-									files.map(f => <FileUploadRow key={ f.name } file={ f } isUploading={ isUploading } onRemove={ onRemoveFile } progress={ 0 } />)
-								}
-							</Table.Tbody>
-						</Table>
-					) : null
-				}
-				{
-					!files.length || isUploading ? null : (
-						<Group justify="flex-end">
-							<Button.Group>
-								<Button
-									variant="light"
-									color="gray"
-									onClick={ onCancel }
-									leftSection={ <FontAwesomeIcon icon={ faXmark } /> }
-								>
-									Cancel
-								</Button>
-								<Button
-									onClick={ onSubmit }
-									leftSection={ <FontAwesomeIcon icon={ faUpload } /> }
-								>
-									Upload
-								</Button>
-							</Button.Group>
-						</Group>
-					)
-				}
-			</Stack>
-		</Modal>
+		<Modal.Root opened onClose={ onTriggerClose } fullScreen={ showFullScreen } size="lg">
+			<Modal.Overlay />
+			<Modal.Content>
+				<Modal.Header>
+					<Modal.Title>Modal title</Modal.Title>
+					{ isUploading ? null : <Modal.CloseButton /> }
+				</Modal.Header>
+				<Modal.Body>
+					<Stack gap="xl">
+						{
+							!files.length ? <FileDropZone maxFiles={ maxFileCount } setFiles={ setFiles} /> : null
+						}
+						{
+							files.length ? (
+								<Table verticalSpacing="sm">
+									<Table.Thead>
+										<Table.Tr>
+											<Table.Th>Filename</Table.Th>
+											<Table.Th>Size</Table.Th>
+											<Table.Th></Table.Th>
+										</Table.Tr>
+									</Table.Thead>
+									<Table.Tbody>
+										{
+											files.map(f => <FileUploadRow key={ f.name } file={ f } isUploading={ isUploading } onRemove={ onRemoveFile } progress={ 0 } />)
+										}
+									</Table.Tbody>
+								</Table>
+							) : null
+						}
+						{
+							!files.length || isUploading ? null : (
+								<Group justify="flex-end">
+									<Button.Group>
+										<Button
+											variant="light"
+											color="gray"
+											onClick={ onCancel }
+											leftSection={ <FontAwesomeIcon icon={ faXmark } /> }
+										>
+											Cancel
+										</Button>
+										<Button
+											onClick={ onSubmit }
+											leftSection={ <FontAwesomeIcon icon={ faUpload } /> }
+										>
+											Upload
+										</Button>
+									</Button.Group>
+								</Group>
+							)
+						}
+					</Stack>
+				</Modal.Body>
+			</Modal.Content>
+		</Modal.Root>
 	);
 });
