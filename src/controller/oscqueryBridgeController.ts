@@ -176,6 +176,20 @@ export class OSCQueryBridgeControllerPrivate {
 		return files;
 	}
 
+	private async _initAudio(state: OSCQueryRNBOState) {
+		// Init Transport
+		dispatch(initTransport(state.CONTENTS.jack?.CONTENTS?.transport));
+
+		// Initialize RNBO Graph Nodes
+		dispatch(initNodes(state.CONTENTS.jack?.CONTENTS.info.CONTENTS.ports, state.CONTENTS.inst));
+
+		// Fetch Connections Info
+		await this._initConnections();
+
+		// Set Init App Status
+		dispatch(setAppStatus(AppStatus.Ready));
+	}
+
 	private async _init() {
 
 		const state = await this._requestState<OSCQueryRNBOState>("/rnbo");
@@ -183,8 +197,6 @@ export class OSCQueryBridgeControllerPrivate {
 		// Init Config
 		dispatch(initRunnerConfig(state));
 
-		// Init Transport
-		dispatch(initTransport(state.CONTENTS.jack.CONTENTS?.transport));
 
 		// Init Patcher Info
 		dispatch(initPatchers(state.CONTENTS.patchers));
@@ -194,12 +206,6 @@ export class OSCQueryBridgeControllerPrivate {
 		dispatch(initSetPresets(state.CONTENTS.inst?.CONTENTS?.control?.CONTENTS?.sets?.CONTENTS?.presets?.CONTENTS?.load?.RANGE?.[0]?.VALS || []));
 		dispatch(setGraphSetPresetLatest(state.CONTENTS.inst?.CONTENTS?.control?.CONTENTS?.sets?.CONTENTS?.presets?.CONTENTS?.loaded?.VALUE || ""));
 
-		// Initialize RNBO Graph Nodes
-		dispatch(initNodes(state.CONTENTS.jack.CONTENTS.info.CONTENTS.ports, state.CONTENTS.inst));
-
-		// Fetch Connections Info
-		await this._initConnections();
-
 		// TODO could take a bit?
 		try {
 			dispatch(initDataFiles(await this._getDataFileList()));
@@ -207,8 +213,13 @@ export class OSCQueryBridgeControllerPrivate {
 			console.error("error getting datafiles", { e });
 		}
 
-		// Set Init App Status
-		dispatch(setAppStatus(AppStatus.Ready));
+		// don't init audio if jack isn't active
+		if (state.CONTENTS.jack?.CONTENTS?.active?.TYPE === "T") {
+			await this._initAudio(state);
+		} else {
+			dispatch(setAppStatus(AppStatus.AudioOff));
+		}
+
 	}
 
 	private _onClose = (evt: ErrorEvent) => {
@@ -401,6 +412,17 @@ export class OSCQueryBridgeControllerPrivate {
 
 		if (packet.address === "/rnbo/jack/restart") {
 			return void dispatch(showNotification({ title: "Restarting Jack", message: "Please wait while the Jack server is being restarted with the updated audio configuration settings.", level: NotificationLevel.info }));
+		}
+
+		if (packet.address === "/rnbo/jack/active") {
+			if ((packet.args as unknown as [boolean])?.[0]) {
+				await sleep(500); // TODO can we get a better message that actually indicates that jack is fully activated?
+				const state = await this._requestState<OSCQueryRNBOState>("/rnbo");
+				await this._initAudio(state);
+			} else {
+				dispatch(setAppStatus(AppStatus.AudioOff));
+			}
+			return;
 		}
 
 		// Transport Control Control
