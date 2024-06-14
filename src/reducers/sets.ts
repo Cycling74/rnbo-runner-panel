@@ -21,7 +21,7 @@ export const sets = (state: SetState = {
 
 	switch (action.type) {
 
-		case GraphSetActionType.INIT: {
+		case GraphSetActionType.INIT_SETS: {
 			const { sets } = action.payload;
 
 			return {
@@ -38,7 +38,7 @@ export const sets = (state: SetState = {
 			};
 		}
 
-		case GraphSetActionType.INIT_PRESETS: {
+		case GraphSetActionType.INIT_SET_PRESETS: {
 			const { presets } = action.payload;
 
 			return {

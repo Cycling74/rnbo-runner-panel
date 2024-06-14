@@ -8,15 +8,15 @@ import { showNotification } from "./notifications";
 import { NotificationLevel } from "../models/notification";
 
 export enum GraphSetActionType {
-	INIT = "INIT_SETS",
+	INIT_SETS = "INIT_SETS",
 	SET_SET_PRESET_LATEST = "SET_SET_PRESET_LATEST",
-	INIT_PRESETS = "INIT_PRESETS",
+	INIT_SET_PRESETS = "INIT_SET_PRESETS",
 	SET_SET_LATEST = "SET_PRESET_LATEST",
 	SET_SHOW_GRAPH_SETS = "SET_SHOW_GRAPH_SET"
 }
 
 export interface IInitGraphSets extends ActionBase {
-	type: GraphSetActionType.INIT;
+	type: GraphSetActionType.INIT_SETS;
 	payload: {
 		sets: GraphSetRecord[]
 	}
@@ -37,7 +37,7 @@ export interface IShowGraphSets extends ActionBase {
 }
 
 export interface IInitGraphSetPresets extends ActionBase {
-	type: GraphSetActionType.INIT_PRESETS;
+	type: GraphSetActionType.INIT_SET_PRESETS;
 	payload: {
 		presets: PresetRecord[]
 	}
@@ -54,7 +54,7 @@ export type GraphSetAction = IInitGraphSets | ISetGraphSetsLatest | IShowGraphSe
 
 export const initSets = (names: string[]): GraphSetAction => {
 	return {
-		type: GraphSetActionType.INIT,
+		type: GraphSetActionType.INIT_SETS,
 		payload: {
 			sets: names.map(n => GraphSetRecord.fromDescription(n))
 		}
@@ -72,7 +72,7 @@ export const setGraphSetLatest = (name: string): GraphSetAction => {
 
 export const initSetPresets = (names: string[]): GraphSetAction => {
 	return {
-		type: GraphSetActionType.INIT_PRESETS,
+		type: GraphSetActionType.INIT_SET_PRESETS,
 		payload: {
 			presets: names.map(n => PresetRecord.fromDescription(n, n === "initial"))
 		}
