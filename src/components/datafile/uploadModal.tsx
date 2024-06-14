@@ -38,7 +38,7 @@ const FileDropZone: FC<{ maxFiles: number; setFiles: (files: FileWithPath[]) => 
 						Drag here or click to select
 					</Text>
 					<Text size="md" c="dimmed" inline mt="md">
-						{ maxFiles === 1 ? "Choose a single audio file" : `Choose up to ${maxFiles} audio files` }
+						Choose { maxFiles === 1 ? "a single audio file" : `up to ${maxFiles} audio files` }
 					</Text>
 				</div>
 			</Group>
