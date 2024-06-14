@@ -17,8 +17,8 @@ import { NotificationLevel } from "../../models/notification";
 const AUDIO_MIME_TYPE: string[] = [
 	"audio/x-aiff",
 	"audio/wav", "audio/wave", "audio/x-wav", "audio/x-pn-wav",
-	"audio/flac", "audio/x-flac",
-	//TODO more formats, mpeg, etc?
+	"audio/flac", "audio/x-flac"
+	// TODO more formats, mpeg, etc?
 ];
 
 type UploadFile = {
