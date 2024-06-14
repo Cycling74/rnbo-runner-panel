@@ -1,5 +1,5 @@
 import { Map as ImmuMap } from "immutable";
-import { ActionIcon, Alert, Button, Center, Group, Modal, RingProgress, Stack, Table, Text, Tooltip } from "@mantine/core";
+import { ActionIcon, Alert, Button, Center, Group, Modal, RingProgress, Stack, Table, Text } from "@mantine/core";
 import { FC, memo, useCallback, useState } from "react";
 import { useIsMobileDevice } from "../../hooks/useIsMobileDevice";
 import { Dropzone, FileWithPath } from "@mantine/dropzone";
