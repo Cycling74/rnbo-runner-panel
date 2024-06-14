@@ -1,17 +1,24 @@
-import { ActionIcon, Button, Center, Group, Modal, RingProgress, Stack, Table, Text } from "@mantine/core";
+import { Map as ImmuMap } from "immutable";
+import { ActionIcon, Alert, Button, Center, Group, Modal, RingProgress, Stack, Table, Text, Tooltip } from "@mantine/core";
 import { FC, memo, useCallback, useState } from "react";
 import { useIsMobileDevice } from "../../hooks/useIsMobileDevice";
 import { Dropzone, FileWithPath } from "@mantine/dropzone";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCheck, faFileAudio, faHourglass, faHourglassHalf, faUpload, faXmark } from "@fortawesome/free-solid-svg-icons";
+import { faCheck, faFileAudio, faHourglass, faHourglassHalf, faUpload, faXmark, faXmarkCircle } from "@fortawesome/free-solid-svg-icons";
 import classes from "./datafile.module.css";
 import { formatFileSize } from "../../lib/util";
 import { v4 } from "uuid";
+import { useAppDispatch } from "../../hooks/useAppDispatch";
+import { uploadFileToRemote } from "../../actions/datafiles";
+import { AppDispatch } from "../../lib/store";
+import { showNotification } from "../../actions/notifications";
+import { NotificationLevel } from "../../models/notification";
 
 type UploadFile = {
 	id: string;
 	file: FileWithPath;
 	progress: number;
+	error?: Error;
 }
 
 export type DataFileUploadModalProps = {
@@ -65,14 +72,31 @@ export const FileUploadRow: FC<FileUploadRowProps> = ({
 	onRemove
 }) => {
 
-	const color = upload.progress >= 100 ? "teal" : upload.progress === 0 ? "gray" : "blue.6";
-	const icon = upload.progress >= 100 ? faCheck : upload.progress === 0 ? faHourglass : faHourglassHalf;
+	let color: string;
+	let icon;
+	if (upload.error) {
+		color = "red";
+		icon = faXmarkCircle;
+	} else if (upload.progress === 0) {
+		color = "gray";
+		icon = faHourglass;
+	} else if (upload.progress >= 100) {
+		color = "teal";
+		icon = faCheck;
+	} else {
+		color = "blue.6";
+		icon = faHourglassHalf;
+	}
+
 	return (
 		<Table.Tr key={ upload.file.name } >
 			<Table.Td>
 				<Text fz="sm" truncate="end">
 					{ upload.file.name }
 				</Text>
+				{
+					upload.error ? <Text color="red" size="xs">{ upload.error.message }</Text> : null
+				}
 			</Table.Td>
 			<Table.Td>
 				<Text fz="sm" truncate="end">
@@ -81,18 +105,22 @@ export const FileUploadRow: FC<FileUploadRowProps> = ({
 			</Table.Td>
 			<Table.Td>
 				<Group justify="flex-end">
-					<ActionIcon variant="default" size="sm" onClick={ () => onRemove(upload) } hidden={ isUploading } >
-						<FontAwesomeIcon icon={ faXmark } />
-					</ActionIcon>
+					{
+						isUploading || upload.progress >= 100 || upload.error ? null : (
+							<ActionIcon variant="default" size="sm" onClick={ () => onRemove(upload) } >
+								<FontAwesomeIcon icon={ faXmark } />
+							</ActionIcon>
+						)
+					}
 					<RingProgress
-						hidden={ !isUploading }
+						hidden={ !isUploading || !upload.error }
 						sections={ [{ value: upload.progress, color: "blue.6" }] }
 						size={ 40 }
-						thickness={ 2 }
+						thickness={ 5 }
 						label={ (
 							<Center>
 								<Text c={ color } >
-									<FontAwesomeIcon icon={ icon } size="xs" color="inherit" />
+									<FontAwesomeIcon icon={ icon } color="inherit" />
 								</Text>
 							</Center>
 						)}
@@ -103,40 +131,76 @@ export const FileUploadRow: FC<FileUploadRowProps> = ({
 	);
 };
 
+enum UploadStep {
+	Select,
+	Confirm,
+	Uploading,
+	Error
+}
+
+const doUpload = async (dispatch: AppDispatch, file: File, onProgress: (progress: number) => any) => new Promise<void>((resolve, reject) => {
+	dispatch(uploadFileToRemote(file, { resolve, reject, onProgress }));
+});
+
 export const DataFileUploadModal: FC<DataFileUploadModalProps> = memo(function WrappedDataFileUploadModal({
 	onClose,
 	maxFileCount = 1
 }) {
-	const [uploads, setUploads] = useState<UploadFile[]>([]);
-	const [isUploading, setIsUploading] = useState<boolean>(false);
+	const dispatch = useAppDispatch();
+	const [uploads, setUploads] = useState<ImmuMap<UploadFile["id"], UploadFile>>(ImmuMap<UploadFile["id"], UploadFile>());
+	const [step, setStep] = useState<UploadStep>(UploadStep.Select);
 
 	const showFullScreen = useIsMobileDevice();
 
 	const onSetFiles = useCallback((files: FileWithPath[]) => {
-		setUploads(files.map(file => ({
-			id: v4(),
-			file,
-			progress: 0
-		})));
-	}, [setUploads]);
+		setUploads(ImmuMap<UploadFile["id"], UploadFile>().withMutations(m => {
+			for (const file of files) {
+				const f = { id: v4(), file, progress: 0 };
+				m.set(f.id, f);
+			}
+		}));
+
+		setStep(UploadStep.Confirm);
+	}, [setUploads, setStep]);
 
 	const onCancel = useCallback(() => {
-		setIsUploading(false);
-		setUploads([]);
-	}, [setIsUploading, setUploads]);
+		setStep(UploadStep.Select);
+		setUploads(ImmuMap<UploadFile["id"], UploadFile>());
+	}, [setStep, setUploads]);
 
-	const onSubmit = useCallback(() => {
-		setIsUploading(true);
-	}, [setIsUploading]);
+	const onSubmit = useCallback(async () => {
+		setStep(UploadStep.Uploading);
+
+		let errored = false;
+		for (const upload of uploads.valueSeq().toArray()) {
+			try {
+				await doUpload(dispatch, upload.file, (progress: number) => {
+					setUploads(up => up.set(upload.id, { ...upload, progress }));
+				});
+			} catch (err) {
+				errored = true;
+				setUploads(up => up.set(upload.id, { ...upload, progress: 0, error: err }));
+			}
+		}
+
+		if (!errored) {
+			dispatch(showNotification({ title: "Upload Complete", message: `Successfully uploaded ${uploads.size === 1 ? uploads.first().file.name : `${uploads.size} files`}`, level: NotificationLevel.success }));
+			onClose();
+		} else {
+			setStep(UploadStep.Error);
+		}
+	}, [setStep, uploads, setUploads, dispatch, onClose]);
 
 	const onTriggerClose = useCallback(() => {
-		if (isUploading) return;
+		if (step === UploadStep.Uploading) return;
 		onClose();
-	}, [onClose, isUploading]);
+	}, [onClose, step]);
 
 	const onRemoveUpload = useCallback((file: UploadFile) => {
-		setUploads(uploads.filter(f => f.id !== file.id));
-	}, [uploads, setUploads]);
+		const updated = uploads.delete(file.id);
+		setUploads(updated);
+		if (!updated.size) setStep(UploadStep.Select);
+	}, [uploads, setUploads, setStep]);
 
 	return (
 		<Modal.Root opened onClose={ onTriggerClose } fullScreen={ showFullScreen } size="lg">
@@ -144,52 +208,60 @@ export const DataFileUploadModal: FC<DataFileUploadModalProps> = memo(function W
 			<Modal.Content>
 				<Modal.Header>
 					<Modal.Title>Modal title</Modal.Title>
-					{ isUploading ? null : <Modal.CloseButton /> }
+					{ step === UploadStep.Uploading ? null : <Modal.CloseButton /> }
 				</Modal.Header>
 				<Modal.Body>
 					<Stack gap="xl">
 						{
-							!uploads.length ? <FileDropZone maxFiles={ maxFileCount } setFiles={ onSetFiles } /> : null
+							step === UploadStep.Select ? <FileDropZone maxFiles={ maxFileCount } setFiles={ onSetFiles } /> : null
 						}
 						{
-							uploads.length ? (
-								<Table verticalSpacing="sm">
-									<Table.Thead>
-										<Table.Tr>
-											<Table.Th>Filename</Table.Th>
-											<Table.Th>Size</Table.Th>
-											<Table.Th></Table.Th>
-										</Table.Tr>
-									</Table.Thead>
-									<Table.Tbody>
-										{
-											uploads.map(f => <FileUploadRow key={ f.id } upload={ f } isUploading={ isUploading } onRemove={ onRemoveUpload } />)
-										}
-									</Table.Tbody>
-								</Table>
+							step === UploadStep.Confirm || step === UploadStep.Uploading || step === UploadStep.Error ? (
+								<>
+									<Table verticalSpacing="sm">
+										<Table.Thead>
+											<Table.Tr>
+												<Table.Th>Filename</Table.Th>
+												<Table.Th>Size</Table.Th>
+												<Table.Th></Table.Th>
+											</Table.Tr>
+										</Table.Thead>
+										<Table.Tbody>
+											{
+												uploads.valueSeq().map(f => <FileUploadRow key={ f.id } upload={ f } isUploading={ step === UploadStep.Uploading } onRemove={ onRemoveUpload } />)
+											}
+										</Table.Tbody>
+									</Table>
+									<Group justify="flex-end">
+										<Button.Group>
+											<Button
+												variant="light"
+												color="gray"
+												onClick={ onCancel }
+												leftSection={ <FontAwesomeIcon icon={ faXmark } /> }
+												disabled={ step === UploadStep.Uploading }
+											>
+												Cancel
+											</Button>
+											<Button
+												onClick={ onSubmit }
+												leftSection={ <FontAwesomeIcon icon={ faUpload } /> }
+												loading={ step === UploadStep.Uploading }
+												disabled={ step === UploadStep.Uploading || step === UploadStep.Error }
+											>
+												Upload
+											</Button>
+										</Button.Group>
+									</Group>
+								</>
 							) : null
 						}
 						{
-							!uploads.length || isUploading ? null : (
-								<Group justify="flex-end">
-									<Button.Group>
-										<Button
-											variant="light"
-											color="gray"
-											onClick={ onCancel }
-											leftSection={ <FontAwesomeIcon icon={ faXmark } /> }
-										>
-											Cancel
-										</Button>
-										<Button
-											onClick={ onSubmit }
-											leftSection={ <FontAwesomeIcon icon={ faUpload } /> }
-										>
-											Upload
-										</Button>
-									</Button.Group>
-								</Group>
-							)
+							step === UploadStep.Error ? (
+								<Alert variant="light" color="red" title="Error">
+									Not all files were uploaded successfully. Please check the details above for more info
+								</Alert>
+							) : null
 						}
 					</Stack>
 				</Modal.Body>

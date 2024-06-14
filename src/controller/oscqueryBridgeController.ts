@@ -3,7 +3,7 @@ import { OSCBundle, OSCMessage, readPacket, writePacket } from "osc";
 import { setAppStatus, setConnectionEndpoint } from "../actions/appStatus";
 import { AppDispatch, store } from "../lib/store";
 import { ReconnectingWebsocket } from "../lib/reconnectingWs";
-import { AppStatus } from "../lib/constants";
+import { AppStatus, RunnerCmdMethod } from "../lib/constants";
 import { OSCQueryRNBOState, OSCQueryRNBOInstance, OSCQueryRNBOJackConnections, OSCQueryRNBOPatchersState, OSCValue, OSCQueryRNBOInstancesMetaState, OSCQueryListValue } from "../lib/types";
 import { addPatcherNode, deletePortAliases, initConnections, initNodes, removePatcherNode, setPortAliases, updateSetMetaFromRemote, updateSourcePortConnections, updateSystemOrControlPortInfo } from "../actions/graph";
 import { initPatchers } from "../actions/patchers";
@@ -45,12 +45,12 @@ const configPathMatcher = /^\/rnbo\/config\/(?<name>.+)$/;
 const jackConfigPathMatcher = /^\/rnbo\/jack\/config\/(?<name>.+)$/;
 const instanceConfigPathMatcher = /^\/rnbo\/inst\/config\/(?<name>.+)$/;
 
-class RunnerCmd {
+export class RunnerCmd {
 
 	public readonly id = uuidv4();
 
 	constructor(
-		protected readonly method: string,
+		protected readonly method: RunnerCmdMethod,
 		protected readonly params: any,
 		public readonly timeout = 0 // 0 disables the timeout
 	) {
@@ -114,7 +114,7 @@ export class OSCQueryBridgeControllerPrivate {
 		});
 	}
 
-	private _sendCmd(cmd: RunnerCmd): Promise<any[]> {
+	public sendCmd(cmd: RunnerCmd): Promise<any[]> {
 		return new Promise<any[]>((resolve, reject) => {
 
 			const responses: any[] = [];
@@ -188,7 +188,7 @@ export class OSCQueryBridgeControllerPrivate {
 
 	private async _getDataFileList(): Promise<string[]> {
 		let seq = 0;
-		const filePaths: string[] = JSON.parse((await this._sendCmd(new RunnerCmd("file_read", {
+		const filePaths: string[] = JSON.parse((await this.sendCmd(new RunnerCmd(RunnerCmdMethod.ReadFile, {
 			filetype: "datafile",
 			size: FILE_READ_CHUNK_SIZE
 		}))).sort((a, b) => parseInt(a.seq, 10) - parseInt(b.seq, 10)).map(v => {
