@@ -6,6 +6,13 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheck, faFileAudio, faHourglass, faHourglassHalf, faUpload, faXmark } from "@fortawesome/free-solid-svg-icons";
 import classes from "./datafile.module.css";
 import { formatFileSize } from "../../lib/util";
+import { v4 } from "uuid";
+
+type UploadFile = {
+	id: string;
+	file: FileWithPath;
+	progress: number;
+}
 
 export type DataFileUploadModalProps = {
 	maxFileCount?: number;
@@ -47,41 +54,39 @@ const FileDropZone: FC<{ maxFiles: number; setFiles: (files: FileWithPath[]) => 
 });
 
 type FileUploadRowProps = {
-	file: FileWithPath;
+	upload: UploadFile;
 	isUploading: boolean;
-	onRemove: (file: FileWithPath) => any;
-	progress: number;
+	onRemove: (file: UploadFile) => any;
 };
 
 export const FileUploadRow: FC<FileUploadRowProps> = ({
-	file,
+	upload,
 	isUploading,
-	onRemove,
-	progress
+	onRemove
 }) => {
 
-	const color = progress >= 100 ? "teal" : progress === 0 ? "gray" : "blue.6";
-	const icon = progress >= 100 ? faCheck : progress === 0 ? faHourglass : faHourglassHalf;
+	const color = upload.progress >= 100 ? "teal" : upload.progress === 0 ? "gray" : "blue.6";
+	const icon = upload.progress >= 100 ? faCheck : upload.progress === 0 ? faHourglass : faHourglassHalf;
 	return (
-		<Table.Tr key={ file.name } >
+		<Table.Tr key={ upload.file.name } >
 			<Table.Td>
 				<Text fz="sm" truncate="end">
-					{ file.name }
+					{ upload.file.name }
 				</Text>
 			</Table.Td>
 			<Table.Td>
 				<Text fz="sm" truncate="end">
-					{ formatFileSize(file.size) }
+					{ formatFileSize(upload.file.size) }
 				</Text>
 			</Table.Td>
 			<Table.Td>
 				<Group justify="flex-end">
-					<ActionIcon variant="default" size="sm" onClick={ () => onRemove(file) } hidden={ isUploading } >
+					<ActionIcon variant="default" size="sm" onClick={ () => onRemove(upload) } hidden={ isUploading } >
 						<FontAwesomeIcon icon={ faXmark } />
 					</ActionIcon>
 					<RingProgress
 						hidden={ !isUploading }
-						sections={ [{ value: progress, color: "blue.6" }] }
+						sections={ [{ value: upload.progress, color: "blue.6" }] }
 						size={ 40 }
 						thickness={ 2 }
 						label={ (
@@ -102,15 +107,23 @@ export const DataFileUploadModal: FC<DataFileUploadModalProps> = memo(function W
 	onClose,
 	maxFileCount = 1
 }) {
-	const [files, setFiles] = useState<FileWithPath[]>([]);
+	const [uploads, setUploads] = useState<UploadFile[]>([]);
 	const [isUploading, setIsUploading] = useState<boolean>(false);
 
 	const showFullScreen = useIsMobileDevice();
 
+	const onSetFiles = useCallback((files: FileWithPath[]) => {
+		setUploads(files.map(file => ({
+			id: v4(),
+			file,
+			progress: 0
+		})));
+	}, [setUploads]);
+
 	const onCancel = useCallback(() => {
 		setIsUploading(false);
-		setFiles([]);
-	}, [setIsUploading, setFiles]);
+		setUploads([]);
+	}, [setIsUploading, setUploads]);
 
 	const onSubmit = useCallback(() => {
 		setIsUploading(true);
@@ -121,9 +134,9 @@ export const DataFileUploadModal: FC<DataFileUploadModalProps> = memo(function W
 		onClose();
 	}, [onClose, isUploading]);
 
-	const onRemoveFile = useCallback((file: FileWithPath) => {
-		setFiles(files.filter(f => f !== file));
-	}, [files, setFiles]);
+	const onRemoveUpload = useCallback((file: UploadFile) => {
+		setUploads(uploads.filter(f => f.id !== file.id));
+	}, [uploads, setUploads]);
 
 	return (
 		<Modal.Root opened onClose={ onTriggerClose } fullScreen={ showFullScreen } size="lg">
@@ -136,10 +149,10 @@ export const DataFileUploadModal: FC<DataFileUploadModalProps> = memo(function W
 				<Modal.Body>
 					<Stack gap="xl">
 						{
-							!files.length ? <FileDropZone maxFiles={ maxFileCount } setFiles={ setFiles} /> : null
+							!uploads.length ? <FileDropZone maxFiles={ maxFileCount } setFiles={ onSetFiles } /> : null
 						}
 						{
-							files.length ? (
+							uploads.length ? (
 								<Table verticalSpacing="sm">
 									<Table.Thead>
 										<Table.Tr>
@@ -150,14 +163,14 @@ export const DataFileUploadModal: FC<DataFileUploadModalProps> = memo(function W
 									</Table.Thead>
 									<Table.Tbody>
 										{
-											files.map(f => <FileUploadRow key={ f.name } file={ f } isUploading={ isUploading } onRemove={ onRemoveFile } progress={ 0 } />)
+											uploads.map(f => <FileUploadRow key={ f.id } upload={ f } isUploading={ isUploading } onRemove={ onRemoveUpload } />)
 										}
 									</Table.Tbody>
 								</Table>
 							) : null
 						}
 						{
-							!files.length || isUploading ? null : (
+							!uploads.length || isUploading ? null : (
 								<Group justify="flex-end">
 									<Button.Group>
 										<Button
