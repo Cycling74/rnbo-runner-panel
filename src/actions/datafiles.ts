@@ -2,9 +2,9 @@ import { ActionBase, AppThunk } from "../lib/store";
 import { DataFileRecord } from "../models/datafile";
 import { showNotification } from "./notifications";
 import { NotificationLevel } from "../models/notification";
-import { readFileAsBase64 } from "../lib/util";
 import { RunnerCmd, oscQueryBridge } from "../controller/oscqueryBridgeController";
 import { RunnerCmdMethod } from "../lib/constants";
+import * as Base64 from "js-base64";
 
 export enum DataFilesActionType {
 	INIT = "INIT_DATAFILES",
@@ -29,9 +29,14 @@ export const initDataFiles = (paths: string[]): DataFileAction => {
 };
 
 export const deleteDataFileOnRemote = (file: DataFileRecord): AppThunk =>
-	(dispatch) => {
+	async (dispatch) => {
 		try {
-			// oscQueryBridge.sendPacket(writePacket(message));
+			await oscQueryBridge.sendCmd(
+				new RunnerCmd(RunnerCmdMethod.DeleteFile, {
+					filename: file.fileName,
+					filetype: "datafile"
+				})
+			);
 		} catch (err) {
 			dispatch(showNotification({
 				level: NotificationLevel.error,
@@ -46,21 +51,21 @@ export const uploadFileToRemote = (file: File, { resolve, reject, onProgress }: 
 	async (dispatch) => {
 		try {
 			const chunkSize = Math.pow(1024, 2);
-			const b64 = await readFileAsBase64(file);
-
-			const progressStepSize = (file.length / chunkSize) * 100;
+			const progressStepSize = (file.size / chunkSize) * 100;
 
 			// Send file in chunks
-			for (let i = 0; i < b64.length; i += chunkSize) {
+			for (let i = 0; i < file.size; i += chunkSize) {
+				const chunk = await file.slice(i, i + chunkSize).arrayBuffer();
+				const encoded = Base64.fromUint8Array(new Uint8Array(chunk), false);
 				await oscQueryBridge.sendCmd(
 					new RunnerCmd(RunnerCmdMethod.WriteFile, {
 						filename: file.name,
 						filetype: "datafile",
-						data: b64.slice(i, i + chunkSize),
+						data: encoded,
 						append: i !== 0
 					})
 				);
-				console.log("progress", i * progressStepSize);
+				onProgress(i * progressStepSize);
 			}
 
 			// Send Complete Message
@@ -73,6 +78,7 @@ export const uploadFileToRemote = (file: File, { resolve, reject, onProgress }: 
 					complete: true
 				})
 			);
+			onProgress(100);
 			return void resolve();
 		} catch (err) {
 			console.log(err);
