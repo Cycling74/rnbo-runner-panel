@@ -211,8 +211,13 @@ export class OSCQueryBridgeControllerPrivate {
 		// TODO could take a bit?
 		try {
 			dispatch(initDataFiles(await this._getDataFileList()));
-		} catch(e) {
-			console.error("error getting datafiles", { e });
+		} catch (err) {
+			console.error(err);
+			dispatch(showNotification({
+				title: "Error while requesting sample data",
+				message: "Please check the console for more details",
+				level: NotificationLevel.error
+			}));
 		}
 
 		this._hasIsActive  = state.CONTENTS.jack?.CONTENTS?.info?.CONTENTS?.is_active !== undefined;
@@ -456,7 +461,16 @@ export class OSCQueryBridgeControllerPrivate {
 
 		// only sent when it changes so we don't care what the value, just read the list again
 		if (packet.address === "/rnbo/info/datafile_dir_mtime") {
-			return void dispatch(initDataFiles(await this._getDataFileList()));
+			try {
+				return void dispatch(initDataFiles(await this._getDataFileList()));
+			} catch (err) {
+				console.error(err);
+				dispatch(showNotification({
+					title: "Error while requesting sample data",
+					message: "Please check the console for more details",
+					level: NotificationLevel.error
+				}));
+			}
 		}
 
 		if (packet.address === "/rnbo/inst/control/sets/presets/loaded") {
