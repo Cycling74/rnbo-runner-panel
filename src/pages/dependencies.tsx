@@ -37,7 +37,7 @@ const SampleDependencies = () => {
 					Are you sure you want to delete the file { `"${file.id}"` } from the device?
 				</Text>
 			),
-			labels: { confirm: "Clear", cancel: "Cancel" },
+			labels: { confirm: "Delete", cancel: "Cancel" },
 			confirmProps: { color: "red" },
 			onConfirm: () => dispatch(deleteDataFileOnRemote(file))
 		});
