@@ -11,6 +11,7 @@ export enum AppStatus {
 	Ready,
 	Reconnecting,
 	ResyncingState,
+	AudioOff,
 	Closed,
 	Error
 }
