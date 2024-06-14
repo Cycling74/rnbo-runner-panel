@@ -46,14 +46,21 @@ const jackConfigPathMatcher = /^\/rnbo\/jack\/config\/(?<name>.+)$/;
 const instanceConfigPathMatcher = /^\/rnbo\/inst\/config\/(?<name>.+)$/;
 
 class RunnerCmd {
-	readonly id = uuidv4();
+
+	public readonly id = uuidv4();
+
 	constructor(
-		readonly method: string,
-		readonly params: any
+		protected readonly method: string,
+		protected readonly params: any,
+		public readonly timeout = 0 // 0 disables the timeout
 	) {
 	}
 
-	packet() : Uint8Array {
+	public get hasTimeout(): boolean {
+		return this.timeout > 0;
+	}
+
+	public get packet() : Uint8Array {
 		return writePacket({
 			address: "/rnbo/cmd",
 			args: [
@@ -108,47 +115,64 @@ export class OSCQueryBridgeControllerPrivate {
 	}
 
 	private _sendCmd(cmd: RunnerCmd): Promise<any[]> {
-		// TODO add timeout
 		return new Promise<any[]>((resolve, reject) => {
-			const responces: any[] = [];
+
+			const responses: any[] = [];
 			let resolved = false;
+			let timeout: NodeJS.Timeout;
+
+			// Reassigning cleanup later in order to allow access to both, cleanup and callback
+			// eslint-disable-next-line prefer-const
+			let cleanup: () => void | undefined;
+
 			const callback = async (evt: MessageEvent): Promise<void> => {
 				try {
 					if (resolved) return;
 					if (typeof evt !== "string") {
-						const msg = readPacket(await evt.data.arrayBuffer(), {metadata: true});
-						if ("address" in msg) {
-							if (msg.address === "/rnbo/resp") {
-								const resp = JSON.parse(msg.args[0].value as string);
-								if (resp.error) {
-									throw new Error(resp.error);
-								} else if (resp.result) {
-									if (resp.id === cmd.id) {
-										responces.push(resp.result);
-										const p = parseInt(resp.result.progress, 10);
-										if (p === 100) {
-											resolved = true;
-											this._ws.off("message", callback);
-											resolve(responces);
-											return;
-										}
-									}
-								} else {
-									reject(new Error("unknown response packet: " + msg.args[0].value));
-									return;
-								}
-							}
+						let msg = readPacket(await evt.data.arrayBuffer(), { metadata: true });
+						if (!msg.hasOwnProperty("address")) return;
 
+						msg = msg as OSCMessage;
+						if (msg.hasOwnProperty("address") && msg.address === "/rnbo/resp") {
+							const resp = JSON.parse((msg as OSCMessage).args[0].value as string);
+							if (resp.error) {
+								throw new Error(resp.error);
+							} else if (resp.result) {
+								if (resp.id !== cmd.id) return;
+
+								responses.push(resp.result);
+								const p = parseInt(resp.result.progress, 10);
+
+								if (p === 100) {
+									cleanup?.();
+									return void resolve(responses);
+								}
+							} else {
+								throw new Error("unknown response packet: " + msg.args[0].value);
+							}
 						}
 					}
 				} catch (err) {
-					resolved = true;
-					this._ws.off("message", callback);
+					cleanup?.();
 					return void reject(err);
 				}
 			};
+
+			if (cmd.hasTimeout) {
+				timeout = setTimeout(() => {
+					cleanup?.();
+					return void reject(new Error(`Command timed out after ${cmd.timeout}ms`));
+				}, cmd.timeout);
+			}
+
+			cleanup = () => {
+				resolved = true;
+				if (timeout !== undefined) clearTimeout(timeout);
+				this._ws.off("message", callback);
+			};
+
 			this._ws.on("message", callback);
-			this._ws.sendPacket(Buffer.from(cmd.packet()));
+			this._ws.sendPacket(Buffer.from(cmd.packet));
 		});
 	}
 
@@ -215,7 +239,7 @@ export class OSCQueryBridgeControllerPrivate {
 			console.error(err);
 			dispatch(showNotification({
 				title: "Error while requesting sample data",
-				message: "Please check the console for more details",
+				message: `${err.message} - Please check the console for more details`,
 				level: NotificationLevel.error
 			}));
 		}
@@ -467,7 +491,7 @@ export class OSCQueryBridgeControllerPrivate {
 				console.error(err);
 				dispatch(showNotification({
 					title: "Error while requesting sample data",
-					message: "Please check the console for more details",
+					message: `${err.message} - Please check the console for more details`,
 					level: NotificationLevel.error
 				}));
 			}
