@@ -14,6 +14,13 @@ import { AppDispatch } from "../../lib/store";
 import { showNotification } from "../../actions/notifications";
 import { NotificationLevel } from "../../models/notification";
 
+const AUDIO_MIME_TYPE: string[] = [
+	"audio/x-aiff",
+	"audio/wav", "audio/wave", "audio/x-wav", "audio/x-pn-wav",
+	"audio/flac", "audio/x-flac",
+	//TODO more formats, mpeg, etc?
+];
+
 type UploadFile = {
 	id: string;
 	file: FileWithPath;
@@ -32,7 +39,7 @@ const FileDropZone: FC<{ maxFiles: number; setFiles: (files: FileWithPath[]) => 
 }) {
 	return (
 		<Dropzone
-			accept={[ "audio/aiff", "audio/wav", "image/png"]}
+			accept={ AUDIO_MIME_TYPE }
 			onDrop={ setFiles }
 			className={ classes.fileDropZone }
 			maxFiles={ maxFiles }
@@ -207,7 +214,7 @@ export const DataFileUploadModal: FC<DataFileUploadModalProps> = memo(function W
 			<Modal.Overlay />
 			<Modal.Content>
 				<Modal.Header>
-					<Modal.Title>Modal title</Modal.Title>
+					<Modal.Title>Upload Files</Modal.Title>
 					{ step === UploadStep.Uploading ? null : <Modal.CloseButton /> }
 				</Modal.Header>
 				<Modal.Body>
