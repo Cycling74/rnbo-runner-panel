@@ -113,7 +113,7 @@ export const FileUploadRow: FC<FileUploadRowProps> = ({
 						)
 					}
 					<RingProgress
-						hidden={ !isUploading || !upload.error }
+						hidden={ !(isUploading || upload.error || upload.progress !== 0) }
 						sections={ [{ value: upload.progress, color: "blue.6" }] }
 						size={ 40 }
 						thickness={ 5 }
