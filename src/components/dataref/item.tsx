@@ -61,7 +61,7 @@ const DataRefEntry: FunctionComponent<DataRefEntryProps> = memo(function Wrapped
 	return (
 		<Table.Tr>
 			<Table.Td>
-				<Text fz="sm">
+				<Text fz="sm" truncate="end">
 					{ dataref.id }
 				</Text>
 			</Table.Td>

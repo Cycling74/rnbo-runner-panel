@@ -28,3 +28,11 @@ export const keyEventIsValidForName = (event: KeyboardEvent): boolean => {
 };
 
 export const replaceInvalidNameChars = (text: string) => text.replaceAll(/[^a-z0-9.,_-\s]/ig, "");
+
+const fileSizeUnits = ["Bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
+
+export const formatFileSize = (size: number): string => {
+	if (size === 0) return "0 Bytes";
+	const exp = Math.floor(Math.log(size) / Math.log(1000));
+	return (size / Math.pow(1000, exp)).toFixed(exp >= 2 ? 2 : 0) + " " + fileSizeUnits[exp];
+};

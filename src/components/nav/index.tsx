@@ -4,7 +4,7 @@ import classes from "./nav.module.css";
 import { NavButton } from "./button";
 import { useAppDispatch, useAppSelector } from "../../hooks/useAppDispatch";
 import { toggleShowSettings } from "../../actions/settings";
-import { faDiagramProject, faGear, faQuestionCircle, faVectorSquare } from "@fortawesome/free-solid-svg-icons";
+import { faDiagramProject, faFileAudio, faGear, faQuestionCircle, faVectorSquare } from "@fortawesome/free-solid-svg-icons";
 import { RootStateType } from "../../lib/store";
 import { getShowSettingsModal } from "../../selectors/settings";
 import { ExternalNavLink, NavLink } from "./link";
@@ -44,6 +44,12 @@ const AppNav: FunctionComponent = memo(function WrappedNav() {
 						label="Patcher Instance Control"
 						href={{ pathname: "/instances/[index]", query: { ...restQuery, index: instanceIndex } }}
 						isActive={ pathname === "/instances/[index]" }
+					/>
+					<NavLink
+						icon={ faFileAudio }
+						label="Sample Dependencies"
+						href={{ pathname: "/dependencies", query: restQuery }}
+						isActive={ pathname === "/dependencies" }
 					/>
 				</Stack>
 				<Stack className={ classes.navMenu } >
