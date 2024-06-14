@@ -65,6 +65,7 @@ export enum SortOrder {
 
 export enum RunnerCmdMethod {
 	ReadFile = "file_read",
+	DeleteFile = "file_delete",
 	WriteFile = "file_write",
 	WriteFileExtended = "file_write_extended"
 }
