@@ -75,6 +75,8 @@ class RunnerCmd {
 
 export class OSCQueryBridgeControllerPrivate {
 
+	private _hasIsActive: boolean = false;
+
 	private static instanceExists(index: number): boolean {
 		return !!getPatcherNodeByIndex(store.getState(), index);
 	}
@@ -176,6 +178,20 @@ export class OSCQueryBridgeControllerPrivate {
 		return files;
 	}
 
+	private async _initAudio(state: OSCQueryRNBOState) {
+		// Init Transport
+		dispatch(initTransport(state.CONTENTS.jack?.CONTENTS?.transport));
+
+		// Initialize RNBO Graph Nodes
+		dispatch(initNodes(state.CONTENTS.jack?.CONTENTS.info.CONTENTS.ports, state.CONTENTS.inst));
+
+		// Fetch Connections Info
+		await this._initConnections();
+
+		// Set Init App Status
+		dispatch(setAppStatus(AppStatus.Ready));
+	}
+
 	private async _init() {
 
 		const state = await this._requestState<OSCQueryRNBOState>("/rnbo");
@@ -183,8 +199,6 @@ export class OSCQueryBridgeControllerPrivate {
 		// Init Config
 		dispatch(initRunnerConfig(state));
 
-		// Init Transport
-		dispatch(initTransport(state.CONTENTS.jack.CONTENTS?.transport));
 
 		// Init Patcher Info
 		dispatch(initPatchers(state.CONTENTS.patchers));
@@ -195,12 +209,6 @@ export class OSCQueryBridgeControllerPrivate {
 		dispatch(initSetPresets(state.CONTENTS.inst?.CONTENTS?.control?.CONTENTS?.sets?.CONTENTS?.presets?.CONTENTS?.load?.RANGE?.[0]?.VALS || []));
 		dispatch(setGraphSetPresetLatest(state.CONTENTS.inst?.CONTENTS?.control?.CONTENTS?.sets?.CONTENTS?.presets?.CONTENTS?.loaded?.VALUE || ""));
 
-		// Initialize RNBO Graph Nodes
-		dispatch(initNodes(state.CONTENTS.jack.CONTENTS.info.CONTENTS.ports, state.CONTENTS.inst));
-
-		// Fetch Connections Info
-		await this._initConnections();
-
 		// TODO could take a bit?
 		try {
 			dispatch(initDataFiles(await this._getDataFileList()));
@@ -208,8 +216,15 @@ export class OSCQueryBridgeControllerPrivate {
 			console.error("error getting datafiles", { e });
 		}
 
-		// Set Init App Status
-		dispatch(setAppStatus(AppStatus.Ready));
+		this._hasIsActive  = state.CONTENTS.jack?.CONTENTS?.info?.CONTENTS?.is_active !== undefined;
+
+		// don't init audio if jack isn't active
+		if ((!this._hasIsActive && state.CONTENTS.jack?.CONTENTS?.active?.TYPE === "T") || state.CONTENTS.jack?.CONTENTS?.info?.CONTENTS?.is_active?.TYPE === "T") {
+			await this._initAudio(state);
+		} else {
+			dispatch(setAppStatus(AppStatus.AudioOff));
+		}
+
 	}
 
 	private _onClose = (evt: ErrorEvent) => {
@@ -398,10 +413,33 @@ export class OSCQueryBridgeControllerPrivate {
 		}
 	}
 
+	private async _handleActive(active: boolean, delay: boolean) {
+		if (active) {
+			if (delay) {
+				await sleep(500);
+			}
+			const state = await this._requestState<OSCQueryRNBOState>("/rnbo");
+			await this._initAudio(state);
+		} else {
+			dispatch(setAppStatus(AppStatus.AudioOff));
+		}
+	}
+
 	private async _processOSCMessage(packet: OSCMessage): Promise<void> {
 
 		if (packet.address === "/rnbo/jack/restart") {
 			return void dispatch(showNotification({ title: "Restarting Jack", message: "Please wait while the Jack server is being restarted with the updated audio configuration settings.", level: NotificationLevel.info }));
+		}
+
+		if (packet.address === "/rnbo/jack/info/is_active") {
+			this._hasIsActive = true;
+			await this._handleActive((packet.args as unknown as [boolean])?.[0], false);
+			return;
+		}
+
+		if (!this._hasIsActive && packet.address === "/rnbo/jack/active") {
+			await this._handleActive((packet.args as unknown as [boolean])?.[0], true);
+			return;
 		}
 
 		// Transport Control Control

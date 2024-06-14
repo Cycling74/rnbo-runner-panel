@@ -1,6 +1,6 @@
 import { FunctionComponent, PropsWithChildren, ReactNode, memo } from "react";
 import { IconDefinition } from "@fortawesome/free-solid-svg-icons";
-import { faCircleNotch, faPlugCircleXmark } from "@fortawesome/free-solid-svg-icons";
+import { faCircleNotch, faPlugCircleXmark, faVolumeXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useAppSelector } from "../../hooks/useAppDispatch";
 import { RootStateType } from "../../lib/store";
@@ -32,7 +32,6 @@ const AppStatusWrapper: FunctionComponent<PropsWithChildren> = memo(function Wra
 			title = "Initializing State";
 			icon = faCircleNotch;
 			break;
-
 		case AppStatus.Reconnecting:
 			title = "Reconnecting";
 			icon = faCircleNotch;
@@ -44,6 +43,15 @@ const AppStatusWrapper: FunctionComponent<PropsWithChildren> = memo(function Wra
 		case AppStatus.Closed:
 			title = "Connection Lost";
 			icon = faPlugCircleXmark;
+			break;
+		case AppStatus.AudioOff:
+			title = "Audio is Off";
+			icon = faVolumeXmark;
+			helpText = (
+				<>
+					Go to Settings to update audio configuration.
+				</>
+			);
 			break;
 		case AppStatus.Error:
 			title = "Failed to establish Connection";

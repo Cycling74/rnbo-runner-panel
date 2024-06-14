@@ -184,17 +184,18 @@ export type OSCQueryRNBOJackTransport =  OSCQueryBaseNode & {
 export type OSCQueryRNBOJackState = OSCQueryBaseNode & {
 	CONTENTS: {
 		active: OSCQueryBooleanValue;
-		connections: OSCQueryRNBOJackConnections,
-		info: OSCQueryBaseNode & {
+		connections?: OSCQueryRNBOJackConnections,
+		info?: OSCQueryBaseNode & {
 			CONTENTS: {
 				is_realtime: OSCQueryBooleanValue;
 				owns_server: OSCQueryBooleanValue;
 				ports: OSCQueryRNBOJackPortInfo;
+				is_active?: OSCQueryBooleanValue;
 			};
 		};
 		config: OSCQueryRNBOJackConfig;
 		control: any;
-		transport: OSCQueryRNBOJackTransport;
+		transport?: OSCQueryRNBOJackTransport;
 	};
 };
 
