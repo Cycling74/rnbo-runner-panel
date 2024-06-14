@@ -8,10 +8,12 @@ import classes from "./datafile.module.css";
 import { formatFileSize } from "../../lib/util";
 
 export type DataFileUploadModalProps = {
+	maxFileCount?: number;
 	onClose: () => any;
 };
 
-const FileDropZone: FC<{ setFiles: (files: FileWithPath[]) => any; }> = memo(function WrappedDateFileDropzone({
+const FileDropZone: FC<{ maxFiles: number; setFiles: (files: FileWithPath[]) => any; }> = memo(function WrappedDateFileDropzone({
+	maxFiles,
 	setFiles
 }) {
 	return (
@@ -19,6 +21,7 @@ const FileDropZone: FC<{ setFiles: (files: FileWithPath[]) => any; }> = memo(fun
 			accept={[ "audio/aiff", "audio/wav", "image/png"]}
 			onDrop={ setFiles }
 			className={ classes.fileDropZone }
+			maxFiles={ maxFiles }
 		>
 			<Group className={ classes.fileDropGroup } >
 				<Dropzone.Accept>
@@ -32,10 +35,10 @@ const FileDropZone: FC<{ setFiles: (files: FileWithPath[]) => any; }> = memo(fun
 				</Dropzone.Idle>
 				<div>
 					<Text size="xl" inline>
-						Drag audio files here or click to select files
+						Drag here or click to select
 					</Text>
 					<Text size="md" c="dimmed" inline mt="md">
-						Attach as many files as you like
+						{ maxFiles === 1 ? "Choose a single audio file" : `Choose up to ${maxFiles} audio files` }
 					</Text>
 				</div>
 			</Group>
@@ -44,7 +47,8 @@ const FileDropZone: FC<{ setFiles: (files: FileWithPath[]) => any; }> = memo(fun
 });
 
 export const DataFileUploadModal: FC<DataFileUploadModalProps> = memo(function WrappedDataFileUploadModal({
-	onClose
+	onClose,
+	maxFileCount = 1
 }) {
 	const [files, setFiles] = useState<FileWithPath[]>([]);
 	const [isUploading, setIsUploading] = useState<boolean>(false);
@@ -75,7 +79,7 @@ export const DataFileUploadModal: FC<DataFileUploadModalProps> = memo(function W
 		>
 			<Stack gap="xl">
 				{
-					!files.length ? <FileDropZone setFiles={ setFiles} /> : null
+					!files.length ? <FileDropZone maxFiles={ maxFileCount } setFiles={ setFiles} /> : null
 				}
 				{
 					files.length ? (
