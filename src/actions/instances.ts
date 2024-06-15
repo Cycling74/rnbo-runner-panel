@@ -14,12 +14,15 @@ import { PresetRecord } from "../models/preset";
 import { AppSetting } from "../models/settings";
 import { DataRefRecord } from "../models/dataref";
 import { DataFileRecord } from "../models/datafile";
+import { ParameterSortAttr, SortOrder } from "../lib/constants";
 
 export enum InstanceActionType {
 	SET_INSTANCE = "SET_INSTANCE",
 	SET_INSTANCES = "SET_INSTANCES",
 	DELETE_INSTANCE = "DELETE_INSTANCE",
-	DELETE_INSTANCES = "DELETE_INSTANCES"
+	DELETE_INSTANCES = "DELETE_INSTANCES",
+	SET_INSTANCE_PARAMTER_SORT_ATTR = "SET_INSTANCE_PARAMTER_SORT_ATTR",
+	SET_INSTANCE_PARAMTER_SORT_ORDER = "SET_INSTANCE_PARAMTER_SORT_ORDER"
 }
 
 export interface ISetInstance extends ActionBase {
@@ -50,7 +53,21 @@ export interface IDeleteInstances extends ActionBase {
 	};
 }
 
-export type InstanceAction = ISetInstance | ISetInstances | IDeleteInstance | IDeleteInstances;
+export interface ISetInstanceParameterSortAttr extends ActionBase {
+	type: InstanceActionType.SET_INSTANCE_PARAMTER_SORT_ATTR;
+	payload: {
+		attr: ParameterSortAttr;
+	};
+};
+
+export interface ISetInstanceParameterSortOrder extends ActionBase {
+	type: InstanceActionType.SET_INSTANCE_PARAMTER_SORT_ORDER;
+	payload: {
+		order: SortOrder;
+	};
+};
+
+export type InstanceAction = ISetInstance | ISetInstances | IDeleteInstance | IDeleteInstances | ISetInstanceParameterSortAttr | ISetInstanceParameterSortOrder;
 
 export const setInstance = (instance: InstanceStateRecord): ISetInstance => ({
 	type: InstanceActionType.SET_INSTANCE,
@@ -409,3 +426,22 @@ export const updateInstanceParameterValueNormalized = (index: number, id: Parame
 		}
 	};
 
+
+// Parameter Display Settings
+export const setParameterSortAttribute = (attr: ParameterSortAttr): InstanceAction => {
+	return {
+		type: InstanceActionType.SET_INSTANCE_PARAMTER_SORT_ATTR,
+		payload: {
+			attr
+		}
+	};
+};
+
+export const setParameterSortOrder = (order: SortOrder): InstanceAction => {
+	return {
+		type: InstanceActionType.SET_INSTANCE_PARAMTER_SORT_ORDER,
+		payload: {
+			order
+		}
+	};
+};

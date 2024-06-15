@@ -5,17 +5,19 @@ import { useElementSize, useViewportSize } from "@mantine/hooks";
 import { Breakpoints } from "../../lib/constants";
 import { clamp } from "../../lib/util";
 import { ParameterRecord } from "../../models/parameter";
-import { InstanceStateRecord } from "../../models/instance";
+import { Seq } from "immutable";
 
 export type ParameterListProps = {
 	onSetNormalizedValue: (parameter: ParameterRecord, nValue: number) => any;
-	parameters: InstanceStateRecord["parameters"];
+	parameters: Seq.Indexed<ParameterRecord>;
 }
+
 
 const ParameterList: FunctionComponent<ParameterListProps> = memo(function WrappedParameterList({
 	onSetNormalizedValue,
 	parameters
 }) {
+
 	const { ref, height: elHeight } = useElementSize();
 	const { width } = useViewportSize();
 
@@ -33,7 +35,7 @@ const ParameterList: FunctionComponent<ParameterListProps> = memo(function Wrapp
 	return (
 		<div ref={ ref } className={ classes.parameterList } style={{ columnCount }} >
 			{
-				ref.current === null ? null : parameters.valueSeq().map(p => <ParameterItem key={p.id} param={p} onSetNormalizedValue={onSetNormalizedValue} />)
+				ref.current === null ? null : parameters.map(p => <ParameterItem key={p.id} param={p} onSetNormalizedValue={onSetNormalizedValue} />)
 			}
 		</div>
 	);
