@@ -1,5 +1,5 @@
 import { Record as ImmuRecord} from "immutable";
-import { OSCQueryBooleanValue, OSCQueryFloatValue, OSCQueryIntValue, OSCQuerySingleValue, OSCQueryStringValue, OSCQueryValueType } from "../lib/types";
+import { OSCQueryBooleanValue, OSCQueryFloatValue, OSCQueryIntValue, OSCQueryStringValue, OSCQueryValueType } from "../lib/types";
 
 export enum RunnerInfoKey {
 	CPULoad = "cpu_load",
