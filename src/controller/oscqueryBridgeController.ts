@@ -3,7 +3,7 @@ import { OSCBundle, OSCMessage, readPacket, writePacket } from "osc";
 import { setAppStatus, setConnectionEndpoint } from "../actions/appStatus";
 import { AppDispatch, store } from "../lib/store";
 import { ReconnectingWebsocket } from "../lib/reconnectingWs";
-import { AppStatus } from "../lib/constants";
+import { AppStatus, RunnerCmdMethod } from "../lib/constants";
 import { OSCQueryRNBOState, OSCQueryRNBOInstance, OSCQueryRNBOJackConnections, OSCQueryRNBOPatchersState, OSCValue, OSCQueryRNBOInstancesMetaState, OSCQueryListValue } from "../lib/types";
 import { addPatcherNode, deletePortAliases, initConnections, initNodes, removePatcherNode, setPortAliases, updateSetMetaFromRemote, updateSourcePortConnections, updateSystemOrControlPortInfo } from "../actions/graph";
 import { initPatchers } from "../actions/patchers";
@@ -18,7 +18,6 @@ import { showNotification } from "../actions/notifications";
 import { NotificationLevel } from "../models/notification";
 import { initTransport, updateTransportStatus } from "../actions/transport";
 import { v4 as uuidv4 } from "uuid";
-import { basename } from "path";
 
 const dispatch = store.dispatch as AppDispatch;
 
@@ -46,15 +45,22 @@ const configPathMatcher = /^\/rnbo\/config\/(?<name>.+)$/;
 const jackConfigPathMatcher = /^\/rnbo\/jack\/config\/(?<name>.+)$/;
 const instanceConfigPathMatcher = /^\/rnbo\/inst\/config\/(?<name>.+)$/;
 
-class RunnerCmd {
-	readonly id = uuidv4();
+export class RunnerCmd {
+
+	public readonly id = uuidv4();
+
 	constructor(
-		readonly method: string,
-		readonly params: any
+		protected readonly method: RunnerCmdMethod,
+		protected readonly params: any,
+		public readonly timeout = 0 // 0 disables the timeout
 	) {
 	}
 
-	packet() : Uint8Array {
+	public get hasTimeout(): boolean {
+		return this.timeout > 0;
+	}
+
+	public get packet() : Uint8Array {
 		return writePacket({
 			address: "/rnbo/cmd",
 			args: [
@@ -108,48 +114,65 @@ export class OSCQueryBridgeControllerPrivate {
 		});
 	}
 
-	private _sendCmd(cmd: RunnerCmd): Promise<any[]> {
-		// TODO add timeout
+	public sendCmd(cmd: RunnerCmd): Promise<any[]> {
 		return new Promise<any[]>((resolve, reject) => {
-			const responces: any[] = [];
+
+			const responses: any[] = [];
 			let resolved = false;
+			let timeout: NodeJS.Timeout;
+
+			// Reassigning cleanup later in order to allow access to both, cleanup and callback
+			// eslint-disable-next-line prefer-const
+			let cleanup: () => void | undefined;
+
 			const callback = async (evt: MessageEvent): Promise<void> => {
 				try {
 					if (resolved) return;
 					if (typeof evt !== "string") {
-						const msg = readPacket(await evt.data.arrayBuffer(), {metadata: true});
-						if ("address" in msg) {
-							if (msg.address === "/rnbo/resp") {
-								const resp = JSON.parse(msg.args[0].value as string);
-								if (resp.error) {
-									throw new Error(resp.error);
-								} else if (resp.result) {
-									if (resp.id === cmd.id) {
-										responces.push(resp.result);
-										const p = parseInt(resp.result.progress, 10);
-										if (p === 100) {
-											resolved = true;
-											this._ws.off("message", callback);
-											resolve(responces);
-											return;
-										}
-									}
-								} else {
-									reject(new Error("unknown response packet: " + msg.args[0].value));
-									return;
-								}
-							}
+						let msg = readPacket(await evt.data.arrayBuffer(), { metadata: true });
+						if (!msg.hasOwnProperty("address")) return;
 
+						msg = msg as OSCMessage;
+						if (msg.hasOwnProperty("address") && msg.address === "/rnbo/resp") {
+							const resp = JSON.parse((msg as OSCMessage).args[0].value as string);
+							if (resp.error) {
+								throw new Error(resp.error);
+							} else if (resp.result) {
+								if (resp.id !== cmd.id) return;
+
+								responses.push(resp.result);
+								const p = parseInt(resp.result.progress, 10);
+
+								if (p === 100) {
+									cleanup?.();
+									return void resolve(responses);
+								}
+							} else {
+								throw new Error("unknown response packet: " + msg.args[0].value);
+							}
 						}
 					}
 				} catch (err) {
-					resolved = true;
-					this._ws.off("message", callback);
+					cleanup?.();
 					return void reject(err);
 				}
 			};
+
+			if (cmd.hasTimeout) {
+				timeout = setTimeout(() => {
+					cleanup?.();
+					return void reject(new Error(`Command timed out after ${cmd.timeout}ms`));
+				}, cmd.timeout);
+			}
+
+			cleanup = () => {
+				resolved = true;
+				if (timeout !== undefined) clearTimeout(timeout);
+				this._ws.off("message", callback);
+			};
+
 			this._ws.on("message", callback);
-			this._ws.sendPacket(Buffer.from(cmd.packet()));
+			this._ws.sendPacket(Buffer.from(cmd.packet));
 		});
 	}
 
@@ -165,7 +188,7 @@ export class OSCQueryBridgeControllerPrivate {
 
 	private async _getDataFileList(): Promise<string[]> {
 		let seq = 0;
-		const files: string[] = JSON.parse((await this._sendCmd(new RunnerCmd("file_read", {
+		const filePaths: string[] = JSON.parse((await this.sendCmd(new RunnerCmd(RunnerCmdMethod.ReadFile, {
 			filetype: "datafile",
 			size: FILE_READ_CHUNK_SIZE
 		}))).sort((a, b) => parseInt(a.seq, 10) - parseInt(b.seq, 10)).map(v => {
@@ -174,8 +197,8 @@ export class OSCQueryBridgeControllerPrivate {
 			}
 			seq++;
 			return v.content;
-		}).join("")).map((p: string) => basename(p));
-		return files;
+		}).join(""));
+		return filePaths;
 	}
 
 	private async _initAudio(state: OSCQueryRNBOState) {
@@ -212,8 +235,13 @@ export class OSCQueryBridgeControllerPrivate {
 		// TODO could take a bit?
 		try {
 			dispatch(initDataFiles(await this._getDataFileList()));
-		} catch(e) {
-			console.error("error getting datafiles", { e });
+		} catch (err) {
+			console.error(err);
+			dispatch(showNotification({
+				title: "Error while requesting sample data",
+				message: `${err.message} - Please check the console for more details`,
+				level: NotificationLevel.error
+			}));
 		}
 
 		this._hasIsActive  = state.CONTENTS.jack?.CONTENTS?.info?.CONTENTS?.is_active !== undefined;
@@ -457,7 +485,16 @@ export class OSCQueryBridgeControllerPrivate {
 
 		// only sent when it changes so we don't care what the value, just read the list again
 		if (packet.address === "/rnbo/info/datafile_dir_mtime") {
-			return void dispatch(initDataFiles(await this._getDataFileList()));
+			try {
+				return void dispatch(initDataFiles(await this._getDataFileList()));
+			} catch (err) {
+				console.error(err);
+				dispatch(showNotification({
+					title: "Error while requesting sample data",
+					message: `${err.message} - Please check the console for more details`,
+					level: NotificationLevel.error
+				}));
+			}
 		}
 
 		if (packet.address === "/rnbo/inst/control/sets/presets/loaded") {

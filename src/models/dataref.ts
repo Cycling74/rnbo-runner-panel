@@ -10,11 +10,15 @@ export class DataRefRecord extends ImmuRecord<DataRefRecordProps>({
 	fileName: ""
 }) {
 
-	public static fromDescription(id: string, fileName: string): DataRefRecord {
-		return new DataRefRecord({ id, fileName });
+	public setFileId(v: string) : DataRefRecord {
+		return this.set("fileName", v);
 	}
 
-	public setFileName(v: string) : DataRefRecord {
-		return this.set("fileName", v);
+	public get fileId(): string {
+		return this.fileName;
+	}
+
+	public static fromDescription(id: string, fileName: string): DataRefRecord {
+		return new DataRefRecord({ id, fileName });
 	}
 }

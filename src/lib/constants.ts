@@ -57,3 +57,15 @@ export enum BPMRange {
 
 export const DEFAULT_MIDI_RANGE = ["none", "omni", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16"];
 export const DEFAULT_SAMPLE_RATES = [22500, 44100, 48000];
+
+export enum SortOrder {
+	Asc,
+	Desc
+}
+
+export enum RunnerCmdMethod {
+	ReadFile = "file_read",
+	DeleteFile = "file_delete",
+	WriteFile = "file_write",
+	WriteFileExtended = "file_write_extended"
+}

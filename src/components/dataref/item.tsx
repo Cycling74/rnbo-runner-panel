@@ -5,12 +5,13 @@ import { ActionIcon, Group, Menu, Select, Table, Text, TextInput } from "@mantin
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheck, faClose, faPen, faEraser, faEllipsisVertical } from "@fortawesome/free-solid-svg-icons";
 import { Seq } from "immutable";
+import { DataFileRecord } from "../../models/datafile";
 
 interface DataRefEntryProps {
 	dataref: DataRefRecord;
-	options: Seq.Indexed<string>;
+	options: Seq.Indexed<DataFileRecord>;
 	onClear: (dataref: DataRefRecord) => any;
-	onUpdate: (dataref: DataRefRecord, fileName: string) => any;
+	onUpdate: (dataref: DataRefRecord, file: DataFileRecord) => any;
 }
 
 const DataRefEntry: FunctionComponent<DataRefEntryProps> = memo(function WrappedDataRefEntry({
@@ -21,24 +22,24 @@ const DataRefEntry: FunctionComponent<DataRefEntryProps> = memo(function Wrapped
 }: DataRefEntryProps) {
 
 	const [isEditing, setIsEditing] = useState<boolean>(false);
-	const [fileName, setFileName] = useState<string>(dataref.fileName);
+	const [dataFile, setDataFile] = useState<DataFileRecord | undefined>(options.find(o => o.id === dataref.fileId));
 	const [showDropDown, setShowDropDown] = useState<boolean>(true);
 
 	const toggleEditing = useCallback(() => {
 		if (isEditing) { // reset name upon blur
-			setFileName(dataref.fileName);
+			setDataFile(options.find(o => o.id === dataref.fileId));
 		}
 		setIsEditing(!isEditing);
-	}, [setIsEditing, isEditing, dataref, setFileName]);
+	}, [setIsEditing, isEditing, dataref, setDataFile, options]);
 
-	const onUpdateFileName = useCallback((e: FormEvent<HTMLFormElement>) => {
+	const onSubmit = useCallback((e: FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
-		if (fileName === dataref.fileName) {
+		if (dataFile.id === dataref.fileId) {
 			setIsEditing(false);
 		} else {
-			onUpdate(dataref, fileName);
+			onUpdate(dataref, dataFile);
 		}
-	}, [fileName, dataref, onUpdate, setIsEditing]);
+	}, [dataFile, dataref, onUpdate, setIsEditing]);
 
 	const onClearDataRef = useCallback((e: MouseEvent<HTMLButtonElement>) => {
 		onClear(dataref);
@@ -49,25 +50,25 @@ const DataRefEntry: FunctionComponent<DataRefEntryProps> = memo(function Wrapped
 	const onKeyDown = useCallback(() => setIsEditing(false), [setIsEditing]);
 
 	const onChange = useCallback((value: string) => {
-		setFileName(value);
-	}, [setFileName]);
+		setDataFile(options.find(o => o.id === value));
+	}, [options, setDataFile]);
 
 	useEffect(() => {
-		setFileName(dataref.fileName);
+		setDataFile(options.find(o => o.id === dataref.fileId));
 		setIsEditing(false);
-	}, [dataref, setFileName, setIsEditing]);
+	}, [dataref, options, setDataFile, setIsEditing]);
 
 	return (
 		<Table.Tr>
 			<Table.Td>
-				<Text fz="sm">
+				<Text fz="sm" truncate="end">
 					{ dataref.id }
 				</Text>
 			</Table.Td>
 			<Table.Td>
 				{
 					isEditing ? (
-						<form onSubmit={ onUpdateFileName } >
+						<form onSubmit={ onSubmit } >
 							<Group gap="xs" wrap="nowrap" >
 								<Select
 									comboboxProps={{ width: "max-content", position: "bottom-start" }}
@@ -77,10 +78,10 @@ const DataRefEntry: FunctionComponent<DataRefEntryProps> = memo(function Wrapped
 									onBlur={ onBlur }
 									onFocus={ onFocus}
 									onChange={ onChange }
-									data={ options.toArray() }
+									data={ options.toArray().map(f => ({ value: f.id, label: f.fileName })) }
 									placeholder="No file selected"
 									size="sm"
-									value={ fileName }
+									value={ dataFile?.id }
 									dropdownOpened={ showDropDown }
 									onKeyDown={ onKeyDown }
 								/>
@@ -96,7 +97,7 @@ const DataRefEntry: FunctionComponent<DataRefEntryProps> = memo(function Wrapped
 						</form>
 					) : (
 						<Group className={ classes.datarefFileLabel } wrap="nowrap" >
-							<TextInput flex={ 1 } pointer variant="unstyled" size="sm" readOnly value={ fileName || "<none>" } onClick={ toggleEditing } />
+							<TextInput flex={ 1 } pointer variant="unstyled" size="sm" readOnly value={ dataFile?.fileName || "<none>" } onClick={ toggleEditing } />
 							<ActionIcon onClick={ toggleEditing } variant="transparent" size="xs">
 								<FontAwesomeIcon icon={ faPen } />
 							</ActionIcon>
@@ -114,7 +115,12 @@ const DataRefEntry: FunctionComponent<DataRefEntryProps> = memo(function Wrapped
 						</Menu.Target>
 						<Menu.Dropdown>
 							<Menu.Label>Actions</Menu.Label>
-							<Menu.Item color="red" leftSection={ <FontAwesomeIcon icon={ faEraser } /> } onClick={ onClearDataRef } >Clear Buffer</Menu.Item>
+							<Menu.Item onClick={ toggleEditing } leftSection={ <FontAwesomeIcon icon={ faPen } /> } >
+								Change Source
+							</Menu.Item>
+							<Menu.Item color="red" leftSection={ <FontAwesomeIcon icon={ faEraser } /> } onClick={ onClearDataRef } disabled={ !dataFile } >
+								Clear Buffer
+							</Menu.Item>
 						</Menu.Dropdown>
 					</Menu>
 				</Group>

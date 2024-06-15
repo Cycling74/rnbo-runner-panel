@@ -5,12 +5,13 @@ import { DataRefRecord } from "../../models/dataref";
 import { Seq } from "immutable";
 import { Table } from "@mantine/core";
 import classes from "./datarefs.module.css";
+import { DataFileRecord } from "../../models/datafile";
 
 export type DataRefListProps = {
 	onClearDataRef: (dataref: DataRefRecord) => any;
-	onSetDataRef: (dataref: DataRefRecord, fileName: string) => any;
+	onSetDataRef: (dataref: DataRefRecord, file: DataFileRecord) => any;
 	datarefs: InstanceStateRecord["datarefs"];
-	options: Seq.Indexed<string>; // soundfile list
+	options: Seq.Indexed<DataFileRecord>; // soundfile list
 }
 
 const DataRefList: FunctionComponent<DataRefListProps> = memo(function WrappedDataRefList({
@@ -20,12 +21,12 @@ const DataRefList: FunctionComponent<DataRefListProps> = memo(function WrappedDa
 	options
 }) {
 	return (
-		<Table layout="fixed" className={ classes.dataRefTable } >
+		<Table layout="fixed" className={ classes.dataRefTable } verticalSpacing="sm" maw="100%">
 			<Table.Thead>
 				<Table.Tr>
 					<Table.Th>Buffer</Table.Th>
 					<Table.Th>File</Table.Th>
-					<Table.Th style={{ width: 30 }} ></Table.Th>
+					<Table.Th w={ 60 }></Table.Th>
 				</Table.Tr>
 			</Table.Thead>
 			<Table.Tbody>
