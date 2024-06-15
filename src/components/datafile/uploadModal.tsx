@@ -13,7 +13,7 @@ import { uploadFileToRemote } from "../../actions/datafiles";
 import { AppDispatch } from "../../lib/store";
 
 const AUDIO_MIME_TYPE: string[] = [
-	"audio/x-aiff",
+	"audio/aiff", "audio/x-aiff",
 	"audio/wav", "audio/wave", "audio/x-wav", "audio/x-pn-wav",
 	"audio/flac", "audio/x-flac"
 	// TODO more formats, mpeg, etc?
