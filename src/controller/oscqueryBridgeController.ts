@@ -1,6 +1,6 @@
 import { parse as parseQuery } from "querystring";
 import { OSCBundle, OSCMessage, readPacket, writePacket } from "osc";
-import { setAppStatus, setConnectionEndpoint } from "../actions/appStatus";
+import { initRunnerInfo, setAppStatus, setConnectionEndpoint } from "../actions/appStatus";
 import { AppDispatch, store } from "../lib/store";
 import { ReconnectingWebsocket } from "../lib/reconnectingWs";
 import { AppStatus, RunnerCmdMethod } from "../lib/constants";
@@ -222,6 +222,8 @@ export class OSCQueryBridgeControllerPrivate {
 		// Init Config
 		dispatch(initRunnerConfig(state));
 
+		// Init Status
+		dispatch(initRunnerInfo(state));
 
 		// Init Patcher Info
 		dispatch(initPatchers(state.CONTENTS.patchers));

@@ -1,5 +1,5 @@
 import React, { FunctionComponent, memo, useCallback } from "react";
-import { ActionIcon, AppShell, Burger, Group, Tooltip } from "@mantine/core";
+import { ActionIcon, AppShell, Burger, Group, Progress, Tooltip } from "@mantine/core";
 import classes from "./header.module.css";
 import { useThemeColorScheme } from "../../hooks/useTheme";
 import { faPlay, faSatelliteDish } from "@fortawesome/free-solid-svg-icons";
@@ -9,6 +9,8 @@ import { toggleEndpointInfo } from "../../actions/appStatus";
 import { toggleTransportControl } from "../../actions/transport";
 import { getTransportControlState } from "../../selectors/transport";
 import { RootStateType } from "../../lib/store";
+import { getRunnerInfoRecord } from "../../selectors/appStatus";
+import { RunnerInfoKey } from "../../models/runnerInfo";
 
 export type HeaderProps = {
 	navOpen: boolean;
@@ -24,9 +26,11 @@ export const Header: FunctionComponent<HeaderProps> = memo(function WrappedHeade
 	const dispatch = useAppDispatch();
 
 	const [
-		isRolling
+		isRolling,
+		cpuLoad
 	] = useAppSelector((state: RootStateType) => [
-		getTransportControlState(state).rolling
+		getTransportControlState(state).rolling,
+		getRunnerInfoRecord(state, RunnerInfoKey.CPULoad)
 	]);
 
 
@@ -46,10 +50,13 @@ export const Header: FunctionComponent<HeaderProps> = memo(function WrappedHeade
 							<FontAwesomeIcon icon={ faPlay } />
 						</ActionIcon>
 					</Tooltip>
-					<Tooltip label="Connection Info" >
+					<Tooltip label="Runner Info" >
 						<ActionIcon variant="transparent" color="gray" onClick={ onToggleEndpointInfo } >
 							<FontAwesomeIcon icon={ faSatelliteDish } />
 						</ActionIcon>
+					</Tooltip>
+					<Tooltip label={ `${Math.round(cpuLoad?.oscValue as number || 0)}% CPU Usage`}>
+						<Progress value={ cpuLoad?.oscValue as number || 0 } w={ 28 } size="xl" radius="xs" />
 					</Tooltip>
 				</Group>
 			</Group>
