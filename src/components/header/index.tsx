@@ -56,7 +56,7 @@ export const Header: FunctionComponent<HeaderProps> = memo(function WrappedHeade
 						</ActionIcon>
 					</Tooltip>
 					<Tooltip label={ `${Math.round(cpuLoad?.oscValue as number || 0)}% CPU Usage`}>
-						<Progress value={ cpuLoad?.oscValue as number || 0 } w={ 28 } size="xl" radius="xs" />
+						<Progress value={ cpuLoad?.oscValue as number || 0 } w={ 25 } size="lg" radius="xs" />
 					</Tooltip>
 				</Group>
 			</Group>
