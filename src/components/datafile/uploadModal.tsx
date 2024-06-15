@@ -4,15 +4,13 @@ import { FC, memo, useCallback, useState } from "react";
 import { useIsMobileDevice } from "../../hooks/useIsMobileDevice";
 import { Dropzone, FileWithPath } from "@mantine/dropzone";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCheck, faFileAudio, faHourglass, faHourglassHalf, faUpload, faXmark, faXmarkCircle } from "@fortawesome/free-solid-svg-icons";
+import { IconDefinition, faCheck, faCircleNotch, faFileAudio, faHourglass, faUpload, faXmark, faXmarkCircle } from "@fortawesome/free-solid-svg-icons";
 import classes from "./datafile.module.css";
 import { formatFileSize } from "../../lib/util";
 import { v4 } from "uuid";
 import { useAppDispatch } from "../../hooks/useAppDispatch";
 import { uploadFileToRemote } from "../../actions/datafiles";
 import { AppDispatch } from "../../lib/store";
-import { showNotification } from "../../actions/notifications";
-import { NotificationLevel } from "../../models/notification";
 
 const AUDIO_MIME_TYPE: string[] = [
 	"audio/x-aiff",
@@ -21,19 +19,19 @@ const AUDIO_MIME_TYPE: string[] = [
 	// TODO more formats, mpeg, etc?
 ];
 
-type UploadFile = {
+export type UploadFile = {
 	id: string;
 	file: FileWithPath;
 	progress: number;
 	error?: Error;
 }
 
-export type DataFileUploadModalProps = {
-	maxFileCount?: number;
-	onClose: () => any;
-};
+type FileDropZoneProps = {
+	maxFiles: number;
+	setFiles: (files: FileWithPath[]) => any;
+}
 
-const FileDropZone: FC<{ maxFiles: number; setFiles: (files: FileWithPath[]) => any; }> = memo(function WrappedDateFileDropzone({
+const FileDropZone: FC<FileDropZoneProps> = memo(function WrappedDateFileDropzone({
 	maxFiles,
 	setFiles
 }) {
@@ -80,7 +78,9 @@ export const FileUploadRow: FC<FileUploadRowProps> = ({
 }) => {
 
 	let color: string;
-	let icon;
+	let icon: IconDefinition;
+	let spin: boolean = false;
+
 	if (upload.error) {
 		color = "red";
 		icon = faXmarkCircle;
@@ -92,7 +92,8 @@ export const FileUploadRow: FC<FileUploadRowProps> = ({
 		icon = faCheck;
 	} else {
 		color = "blue.6";
-		icon = faHourglassHalf;
+		icon = faCircleNotch;
+		spin = true;
 	}
 
 	return (
@@ -102,7 +103,7 @@ export const FileUploadRow: FC<FileUploadRowProps> = ({
 					{ upload.file.name }
 				</Text>
 				{
-					upload.error ? <Text color="red" size="xs">{ upload.error.message }</Text> : null
+					upload.error ? <Text c="red" size="xs">{ upload.error.message }</Text> : null
 				}
 			</Table.Td>
 			<Table.Td>
@@ -127,7 +128,7 @@ export const FileUploadRow: FC<FileUploadRowProps> = ({
 						label={ (
 							<Center>
 								<Text c={ color } >
-									<FontAwesomeIcon icon={ icon } color="inherit" />
+									<FontAwesomeIcon icon={ icon } color="inherit" size="xs" spin={ spin } />
 								</Text>
 							</Center>
 						)}
@@ -149,8 +150,16 @@ const doUpload = async (dispatch: AppDispatch, file: File, onProgress: (progress
 	dispatch(uploadFileToRemote(file, { resolve, reject, onProgress }));
 });
 
+export type DataFileUploadModalProps = {
+	maxFileCount?: number;
+	onClose: () => any;
+	onUploadSuccess: (files: UploadFile[]) => any;
+};
+
+
 export const DataFileUploadModal: FC<DataFileUploadModalProps> = memo(function WrappedDataFileUploadModal({
 	onClose,
+	onUploadSuccess,
 	maxFileCount = 1
 }) {
 	const dispatch = useAppDispatch();
@@ -189,14 +198,14 @@ export const DataFileUploadModal: FC<DataFileUploadModalProps> = memo(function W
 				setUploads(up => up.set(upload.id, { ...upload, progress: 0, error: err }));
 			}
 		}
-
-		if (!errored) {
-			dispatch(showNotification({ title: "Upload Complete", message: `Successfully uploaded ${uploads.size === 1 ? uploads.first().file.name : `${uploads.size} files`}`, level: NotificationLevel.success }));
-			onClose();
-		} else {
+		if (errored) {
 			setStep(UploadStep.Error);
+		} else {
+			onUploadSuccess(uploads.valueSeq().toArray());
+			setUploads(ImmuMap<UploadFile["id"], UploadFile>());
+			setStep(UploadStep.Select);
 		}
-	}, [setStep, uploads, setUploads, dispatch, onClose]);
+	}, [setStep, uploads, setUploads, dispatch, onUploadSuccess]);
 
 	const onTriggerClose = useCallback(() => {
 		if (step === UploadStep.Uploading) return;

@@ -8,11 +8,13 @@ import { faArrowDownAZ, faArrowUpAZ, faUpload } from "@fortawesome/free-solid-sv
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { SortOrder } from "../lib/constants";
 import { useCallback, useState } from "react";
-import { DataFileUploadModal } from "../components/datafile/uploadModal";
+import { DataFileUploadModal, UploadFile } from "../components/datafile/uploadModal";
 import { useDisclosure } from "@mantine/hooks";
 import { deleteDataFileOnRemote } from "../actions/datafiles";
 import { DataFileRecord } from "../models/datafile";
 import { modals } from "@mantine/modals";
+import { NotificationLevel } from "../models/notification";
+import { showNotification } from "../actions/notifications";
 
 const SampleDependencies = () => {
 
@@ -43,6 +45,11 @@ const SampleDependencies = () => {
 		});
 	}, [dispatch]);
 
+	const onFileUploadSuccess = useCallback((files: UploadFile[]) => {
+		dispatch(showNotification({ title: "Upload Complete", message: `Successfully uploaded ${files.length === 1 ? files[0].file.name : `${files.length} files`}`, level: NotificationLevel.success }));
+		uploadModalHandlers.close();
+	}, [uploadModalHandlers, dispatch]);
+
 	return (
 		<Stack className={ classes.dataFileWrap } >
 			<Group justify="space-between" wrap="nowrap">
@@ -50,7 +57,7 @@ const SampleDependencies = () => {
 					Upload Files
 				</Button>
 			</Group>
-			{ showUploadModal ? <DataFileUploadModal maxFileCount={ 10 } onClose={ uploadModalHandlers.close } /> : null }
+			{ showUploadModal ? <DataFileUploadModal maxFileCount={ 10 } onClose={ uploadModalHandlers.close } onUploadSuccess={ onFileUploadSuccess } /> : null }
 			<Table verticalSpacing="sm" maw="100%" layout="fixed">
 				<Table.Thead>
 					<Table.Tr>
