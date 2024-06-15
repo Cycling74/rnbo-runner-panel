@@ -6,7 +6,7 @@ export enum RunnerInfoKey {
 	XRunCount = "xrun_count"
 }
 
-export type JackInfoRecordProps = {
+export type RunnerInfoRecordProps = {
 	id: RunnerInfoKey;
 	description: string;
 	oscValue: number | string | boolean | null;
@@ -16,7 +16,7 @@ export type JackInfoRecordProps = {
 
 type RunnierInfoOSCDescType = OSCQueryStringValue | OSCQueryIntValue | OSCQueryBooleanValue | OSCQueryFloatValue;
 
-export class RunnerInfoRecord extends ImmuRecord<JackInfoRecordProps>({
+export class RunnerInfoRecord extends ImmuRecord<RunnerInfoRecordProps>({
 	id: RunnerInfoKey.CPULoad,
 	description: "",
 	oscValue: 0,
@@ -24,6 +24,10 @@ export class RunnerInfoRecord extends ImmuRecord<JackInfoRecordProps>({
 	path: ""
 
 }) {
+
+	public setValue(value: RunnerInfoRecordProps["oscValue"]): RunnerInfoRecord {
+		return this.set("oscValue", value);
+	}
 
 	public static fromDescription(id: RunnerInfoKey, desc: RunnierInfoOSCDescType): RunnerInfoRecord {
 		return new RunnerInfoRecord({

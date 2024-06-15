@@ -60,6 +60,14 @@ export const appStatus = (state: AppStatusState = {
 			};
 		}
 
+		case StatusActionType.SET_RUNNER_INFO_VALUE : {
+			const { record } = action.payload;
+			return {
+				...state,
+				runnerInfo: state.runnerInfo.set(record.id, record)
+			};
+		}
+
 		default:
 			return state;
 	}
