@@ -38,30 +38,6 @@ const PatcherDrawer: FunctionComponent<PatcherDrawerProps> = memo(function Wrapp
 							onLoad={ onLoadPatcher } />
 					))
 				}
-								{
-					patchers.map(patcher => (
-						<PatcherItem
-							key={ patcher.id }
-							patcher={ patcher }
-							onLoad={ onLoadPatcher } />
-					))
-				}
-								{
-					patchers.map(patcher => (
-						<PatcherItem
-							key={ patcher.id }
-							patcher={ patcher }
-							onLoad={ onLoadPatcher } />
-					))
-				}
-								{
-					patchers.map(patcher => (
-						<PatcherItem
-							key={ patcher.id }
-							patcher={ patcher }
-							onLoad={ onLoadPatcher } />
-					))
-				}
 			</Stack>
 		</Drawer>
 	);
