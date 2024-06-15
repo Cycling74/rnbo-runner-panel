@@ -1,5 +1,5 @@
-import { Alert, Button, Group, Menu, MenuItemProps, Stack, Text } from "@mantine/core";
-import { FunctionComponent, MouseEvent, forwardRef, useCallback } from "react";
+import { Button, Group, Stack } from "@mantine/core";
+import { FunctionComponent, useCallback } from "react";
 import { useAppDispatch, useAppSelector } from "../hooks/useAppDispatch";
 import { RootStateType } from "../lib/store";
 import { getPatchersSortedByName } from "../selectors/patchers";
@@ -21,18 +21,6 @@ import { getGraphSetPrsetsSortedByName } from "../selectors/sets";
 import { useDisclosure } from "@mantine/hooks";
 import PatcherDrawer from "../components/patchers";
 import { PatcherRecord } from "../models/patcher";
-
-const NoPatcherInfo = forwardRef<HTMLDivElement, MenuItemProps>(function ForwardedNoPatcherInfo(props, ref) {
-	return (
-		<div { ...props } ref={ ref } style={{ maxWidth: "50vw", width: 200 }}>
-			<Alert title="No Patch available" variant="outline" color="yellow">
-				<Text fz="xs">
-					Please export a RNBO patch to the runner first.
-				</Text>
-			</Alert>
-		</div>
-	);
-});
 
 const Index: FunctionComponent<Record<string, never>> = () => {
 
