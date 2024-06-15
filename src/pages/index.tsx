@@ -19,6 +19,8 @@ import { destroySetPresetOnRemote, loadSetPresetOnRemote, saveSetPresetToRemote,
 import { PresetRecord } from "../models/preset";
 import { getGraphSetPrsetsSortedByName } from "../selectors/sets";
 import { useDisclosure } from "@mantine/hooks";
+import PatcherDrawer from "../components/patchers";
+import { PatcherRecord } from "../models/patcher";
 
 const NoPatcherInfo = forwardRef<HTMLDivElement, MenuItemProps>(function ForwardedNoPatcherInfo(props, ref) {
 	return (
@@ -47,17 +49,13 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 		getGraphSetPrsetsSortedByName(state)
 	]);
 
+	const [patcherDrawerIsOpen, { close: closePatcherDrawer, toggle: togglePatcherDrawer }] = useDisclosure();
 	const [presetDrawerIsOpen, { close: closePresetDrawer, toggle: togglePresetDrawer }] = useDisclosure();
 
-	const onAddInstance = useCallback((e: MouseEvent<HTMLButtonElement>) => {
-		const id = e.currentTarget.dataset.patcherId;
-		if (!id) return;
-
-		const patcher = patchers.get(id);
-		if (!patcher) return;
-
+	const onAddInstance = useCallback((patcher: PatcherRecord) => {
 		dispatch(loadPatcherNodeOnRemote(patcher));
-	}, [dispatch, patchers]);
+		closePatcherDrawer();
+	}, [dispatch, closePatcherDrawer]);
 
 	const onConnectNodes = useCallback((connection: Connection) => {
 		dispatch(createEditorConnection(connection));
@@ -103,35 +101,17 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 		<>
 			<Stack style={{ height: "100%" }} >
 				<Group justify="space-between" wrap="nowrap">
-					<Menu position="bottom-end">
-						<Menu.Target>
-							<Button variant="default" leftSection={ <FontAwesomeIcon icon={ faPlus } /> } >
-								Add Patcher Instance
-							</Button>
-						</Menu.Target>
-						<Menu.Dropdown>
-							{
-								patchers.size === 0 ? (
-									<Menu.Item disabled component={ NoPatcherInfo } />
-								) : <Menu.Label>Select Patcher</Menu.Label>
-							}
-							{
-								patchers.valueSeq().toArray().map(p => (
-									<Menu.Item key={ p.id } data-patcher-id={ p.id } onClick={ onAddInstance } >
-										{ p.name }
-									</Menu.Item>
-								))
-							}
-						</Menu.Dropdown>
-						<Group style={{ flex: "0" }} wrap="nowrap" gap="xs" >
-							<Button variant="default" leftSection={ <FontAwesomeIcon icon={ faObjectGroup } /> } onClick={ onToggleSetsDrawer } >
-								Sets
-							</Button>
-							<Button variant="default" leftSection={ <FontAwesomeIcon icon={ faCamera } /> } onClick={ togglePresetDrawer } >
-								Presets
-							</Button>
-						</Group>
-					</Menu>
+					<Button variant="default" leftSection={ <FontAwesomeIcon icon={ faPlus } /> } onClick={ togglePatcherDrawer } >
+						Add Patcher Instance
+					</Button>
+					<Group style={{ flex: "0" }} wrap="nowrap" gap="xs" >
+						<Button variant="default" leftSection={ <FontAwesomeIcon icon={ faObjectGroup } /> } onClick={ onToggleSetsDrawer } >
+							Sets
+						</Button>
+						<Button variant="default" leftSection={ <FontAwesomeIcon icon={ faCamera } /> } onClick={ togglePresetDrawer } >
+							Presets
+						</Button>
+					</Group>
 				</Group>
 				<GraphEditor
 					nodes={ nodes }
@@ -143,6 +123,7 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 					onEdgesDelete={ onEdgesDelete }
 				/>
 			</Stack>
+			<PatcherDrawer open={ patcherDrawerIsOpen } onClose={ closePatcherDrawer } patchers={ patchers.valueSeq() } onLoadPatcher={ onAddInstance } />
 			<SetsDrawer />
 			<PresetDrawer
 				open={ presetDrawerIsOpen }
