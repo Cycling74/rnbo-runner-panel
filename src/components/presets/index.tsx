@@ -1,4 +1,4 @@
-import { Divider, Drawer, Stack, Text } from "@mantine/core";
+import { Divider, Drawer, Group, Stack, Text } from "@mantine/core";
 import { FunctionComponent, memo, useCallback } from "react";
 import { PresetItem } from "./item";
 import { SavePresetForm } from "./save";
@@ -51,7 +51,7 @@ const PresetDrawer: FunctionComponent<PresetDrawerProps> = memo(function Wrapped
 			opened={ open }
 			onClose={ onClose }
 			position="right"
-			title={ <span><FontAwesomeIcon icon={ faCamera }/> Presets</span> }
+			title={ <Group gap="xs"><FontAwesomeIcon icon={ faCamera }/> Presets</Group> }
 		>
 			<SavePresetForm onSave={ onSavePreset } />
 			<Divider mt="lg" />
