@@ -1,4 +1,4 @@
-import { Button, Divider, Drawer, Flex, Stack, Text } from "@mantine/core";
+import { Button, Divider, Drawer, Flex, Group, Stack, Text } from "@mantine/core";
 import { FunctionComponent, MouseEvent, memo, useCallback } from "react";
 import { useAppDispatch, useAppSelector } from "../../hooks/useAppDispatch";
 import { getGraphSetsSortedByName, getShowGraphSetsDrawer } from "../../selectors/sets";
@@ -77,7 +77,10 @@ const SetsDrawer: FunctionComponent = memo(function WrappedSetsDrawer() {
 				<Flex direction="column" style={{ height: "100%" }}>
 					<Drawer.Header>
 						<Drawer.Title>
-							<FontAwesomeIcon icon={ faObjectGroup }/> Graph Sets
+							<Group gap="xs">
+								<FontAwesomeIcon icon={ faObjectGroup }/>
+								Graph Sets
+							</Group>
 						</Drawer.Title>
 						<Drawer.CloseButton />
 					</Drawer.Header>
