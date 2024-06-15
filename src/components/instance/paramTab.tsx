@@ -1,4 +1,4 @@
-import { Button, Group, Menu, SegmentedControl, Select, Stack, Tabs } from "@mantine/core";
+import { Button, Group, Menu, SegmentedControl, Stack, Tabs } from "@mantine/core";
 import { FunctionComponent, memo, useCallback, useEffect, useState } from "react";
 import { InstanceTab, ParameterSortAttr, SortOrder } from "../../lib/constants";
 import ParameterList from "../parameter/list";

@@ -58,14 +58,14 @@ export interface ISetInstanceParameterSortAttr extends ActionBase {
 	payload: {
 		attr: ParameterSortAttr;
 	};
-};
+}
 
 export interface ISetInstanceParameterSortOrder extends ActionBase {
 	type: InstanceActionType.SET_INSTANCE_PARAMTER_SORT_ORDER;
 	payload: {
 		order: SortOrder;
 	};
-};
+}
 
 export type InstanceAction = ISetInstance | ISetInstances | IDeleteInstance | IDeleteInstances | ISetInstanceParameterSortAttr | ISetInstanceParameterSortOrder;
 
