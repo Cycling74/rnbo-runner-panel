@@ -3,6 +3,7 @@ import { OSCQueryRNBOInstanceParameterInfo, OSCQueryRNBOInstanceParameterValue }
 
 export type ParameterRecordProps = {
 	enumVals: Array<string | number>;
+	index: number;
 	min: number;
 	max: number;
 	name: string;
@@ -14,6 +15,7 @@ export type ParameterRecordProps = {
 export class ParameterRecord extends ImmuRecord<ParameterRecordProps>({
 
 	enumVals: [],
+	index: 0,
 	min: 0,
 	max: 1,
 	name: "name",
@@ -30,6 +32,7 @@ export class ParameterRecord extends ImmuRecord<ParameterRecordProps>({
 			const paramInfo = desc as OSCQueryRNBOInstanceParameterValue;
 			result.push(new ParameterRecord({
 				enumVals: paramInfo.RANGE?.[0]?.VALS || [],
+				index: paramInfo.CONTENTS?.index?.VALUE || 0,
 				min: paramInfo.RANGE?.[0]?.MIN,
 				max: paramInfo.RANGE?.[0]?.MAX,
 				name,

@@ -1,6 +1,7 @@
 import { Map as ImmuMap } from "immutable";
 import { RootStateType } from "../lib/store";
 import { InstanceStateRecord } from "../models/instance";
+import { ParameterSortAttr, SortOrder } from "../lib/constants";
 
 export const getInstance = (state: RootStateType, id: InstanceStateRecord["id"]): InstanceStateRecord | undefined => state.instances.instances.get(id);
 export const getInstances = (state: RootStateType): ImmuMap<InstanceStateRecord["id"], InstanceStateRecord> => state.instances.instances;
@@ -18,3 +19,6 @@ export const getInstancesByIndex = (state: RootStateType): ImmuMap<InstanceState
 		});
 	});
 };
+
+export const getParameterSortAttribute = (state: RootStateType): ParameterSortAttr => state.instances.parameterSortAttribute;
+export const getParameterSortOrder = (state: RootStateType): SortOrder => state.instances.parameterSortOrder;

@@ -215,6 +215,7 @@ export type OSCQueryRNBOPatchersState = OSCQueryBaseNode & {
 
 export type OSCQueryRNBOInstanceParameterValue = OSCQueryBaseNode & OSCQueryFloatValue & OSCQueryValueRange & {
 	CONTENTS: {
+		index: OSCQueryIntValue;
 		normalized: OSCQueryFloatValue & OSCQueryValueRange & { VALUE: number; }
 	};
 	VALUE: number | string;

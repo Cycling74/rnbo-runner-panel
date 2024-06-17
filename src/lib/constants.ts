@@ -59,8 +59,13 @@ export const DEFAULT_MIDI_RANGE = ["none", "omni", "1", "2", "3", "4", "5", "6",
 export const DEFAULT_SAMPLE_RATES = [22500, 44100, 48000];
 
 export enum SortOrder {
-	Asc,
-	Desc
+	Asc = "asc",
+	Desc = "desc"
+}
+
+export enum ParameterSortAttr {
+	Index = "index",
+	Name = "name"
 }
 
 export enum RunnerCmdMethod {
