@@ -18,7 +18,7 @@ import { showNotification } from "../actions/notifications";
 import { NotificationLevel } from "../models/notification";
 import { initTransport, updateTransportStatus } from "../actions/transport";
 import { v4 as uuidv4 } from "uuid";
-import { RunnerInfoKey } from "../models/runnerInfo";
+import { JackInfoKeys } from "../models/runnerInfo";
 
 const dispatch = store.dispatch as AppDispatch;
 
@@ -225,6 +225,9 @@ export class OSCQueryBridgeControllerPrivate {
 
 		// Init Config
 		dispatch(initRunnerConfig(state));
+
+		// Init RunnerInfo
+		dispatch(initRunnerInfo(state));
 
 		// Init Patcher Info
 		dispatch(initPatchers(state.CONTENTS.patchers));
@@ -473,9 +476,9 @@ export class OSCQueryBridgeControllerPrivate {
 			return;
 		}
 
-		for (const entry of Object.values(RunnerInfoKey)) {
-			if (packet.address === `/rnbo/jack/info/${entry}`) {
-				return void dispatch(setRunnerInfoValue(entry, (packet.args as unknown as [number])?.[0] || 0.0));
+		for (const key of JackInfoKeys) {
+			if (packet.address === `/rnbo/jack/info/${key}`) {
+				return void dispatch(setRunnerInfoValue(key, (packet.args as unknown as [number])?.[0] || 0.0));
 			}
 		}
 
