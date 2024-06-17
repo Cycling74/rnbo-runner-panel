@@ -1,11 +1,13 @@
-import { FunctionComponent, PropsWithChildren, ReactNode, memo } from "react";
+import { FunctionComponent, PropsWithChildren, ReactNode, memo, useCallback } from "react";
 import { IconDefinition } from "@fortawesome/free-solid-svg-icons";
 import { faCircleNotch, faPlugCircleXmark, faVolumeXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useAppSelector } from "../../hooks/useAppDispatch";
+import { useAppSelector, useAppDispatch } from "../../hooks/useAppDispatch";
 import { RootStateType } from "../../lib/store";
 import { getAppStatus } from "../../selectors/appStatus";
 import { AppStatus } from "../../lib/constants";
+import { Anchor } from "@mantine/core";
+import { showSettings } from "../../actions/settings";
 
 import classes from "./page.module.css";
 
@@ -14,6 +16,11 @@ const AppStatusWrapper: FunctionComponent<PropsWithChildren> = memo(function Wra
 }) {
 
 	const status = useAppSelector((state: RootStateType) => getAppStatus(state));
+	const dispatch = useAppDispatch();
+
+	const openSettings = useCallback(() => {
+		dispatch(showSettings());
+	}, [dispatch]);
 
 	let icon: IconDefinition;
 	let title: string;
@@ -49,7 +56,7 @@ const AppStatusWrapper: FunctionComponent<PropsWithChildren> = memo(function Wra
 			icon = faVolumeXmark;
 			helpText = (
 				<>
-					Go to Settings to update audio configuration.
+					Go to <Anchor inherit onClick={ openSettings } >Settings</Anchor> to update audio configuration.
 				</>
 			);
 			break;
