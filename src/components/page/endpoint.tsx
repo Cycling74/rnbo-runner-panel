@@ -25,7 +25,7 @@ const EndpointInfo: FunctionComponent = memo(function WrappedSettings() {
 		getRunnerEndpoint(state),
 		getAppStatus(state),
 		getRunnerInfoRecord(state, RunnerInfoKey.XRunCount),
-		getRunnerInfoRecord(state, RunnerInfoKey.RunnerVersion)
+		getRunnerInfoRecord(state, RunnerInfoKey.RunnerVersion)?.oscValue || "unknown"
 	]);
 
 	const [{ hostname, port }, setEndpoint] = useState<{ hostname: string; port: string; }>({ ...appEndpoint });
@@ -113,7 +113,7 @@ const EndpointInfo: FunctionComponent = memo(function WrappedSettings() {
 				</form>
 				<Fieldset legend="Runner Version">
 					{
-						runnerVersion.oscValue || "unknown"
+						runnerVersion
 					}
 				</Fieldset>
 				<Fieldset legend="Status">
