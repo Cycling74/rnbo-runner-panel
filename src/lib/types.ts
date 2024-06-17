@@ -191,6 +191,8 @@ export type OSCQueryRNBOJackState = OSCQueryBaseNode & {
 				owns_server: OSCQueryBooleanValue;
 				ports: OSCQueryRNBOJackPortInfo;
 				is_active?: OSCQueryBooleanValue;
+				xrun_count: OSCQueryIntValue;
+				cpu_load: OSCQueryFloatValue;
 			};
 		};
 		config: OSCQueryRNBOJackConfig;

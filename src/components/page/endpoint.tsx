@@ -1,22 +1,29 @@
-import { Button, Group, Modal, Stack, TextInput } from "@mantine/core";
+import { Alert, Anchor, Button, Fieldset, Group, Modal, Skeleton, Stack, TextInput } from "@mantine/core";
 import { ChangeEvent, FormEvent, FunctionComponent, MouseEvent, memo, useCallback, useEffect, useRef, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../../hooks/useAppDispatch";
 import { RootStateType } from "../../lib/store";
 import { useIsMobileDevice } from "../../hooks/useIsMobileDevice";
-import { getRunnerEndpoint, getShowEndpointInfoModal } from "../../selectors/appStatus";
+import { getAppStatus, getRunnerInfoRecord, getRunnerEndpoint, getShowEndpointInfoModal } from "../../selectors/appStatus";
 import { hideEndpointInfo } from "../../actions/appStatus";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlug, faXmark } from "@fortawesome/free-solid-svg-icons";
+import { AppStatus } from "../../lib/constants";
+import { showSettings } from "../../actions/settings";
+import { RunnerInfoKey } from "../../models/runnerInfo";
 
 const EndpointInfo: FunctionComponent = memo(function WrappedSettings() {
 
 	const dispatch = useAppDispatch();
 	const [
 		doShow,
-		appEndpoint
+		appEndpoint,
+		appStatus,
+		xrunInfo
 	] = useAppSelector((state: RootStateType) => [
 		getShowEndpointInfoModal(state),
-		getRunnerEndpoint(state)
+		getRunnerEndpoint(state),
+		getAppStatus(state),
+		getRunnerInfoRecord(state, RunnerInfoKey.XRunCount)
 	]);
 
 	const [{ hostname, port }, setEndpoint] = useState<{ hostname: string; port: string; }>({ ...appEndpoint });
@@ -38,6 +45,11 @@ const EndpointInfo: FunctionComponent = memo(function WrappedSettings() {
 		window.location.href = `${window.location.protocol}//${window.location.host}?h=${encodeURIComponent(hostname)}&p=${encodeURIComponent(port)}`;
 	}, [hostname, port]);
 
+	const openSettings = useCallback(() => {
+		dispatch(hideEndpointInfo());
+		dispatch(showSettings());
+	}, [dispatch]);
+
 	useEffect(() => {
 		if (!doShow) {
 			setEndpoint({ ...appEndpoint });
@@ -52,48 +64,73 @@ const EndpointInfo: FunctionComponent = memo(function WrappedSettings() {
 			opened={ doShow }
 			fullScreen={ showFullScreen }
 			size="lg"
-			title="OSCQuery Runner Endpoint"
+			title="OSCQuery Runner Info"
 		>
-			<form onSubmit={ onSubmit } ref={ formRef } >
-				<Stack gap="md">
-					<TextInput
-						onChange={ onChangeConfig }
-						name="hostname"
-						label="Hostname"
-						description="The hostname or IP address of the device that runs the OSCQuery Runner"
-						value={ hostname }
-					/>
-					<TextInput
-						onChange={ onChangeConfig }
-						name="port"
-						label="Port"
-						inputMode="numeric"
-						pattern="[0-9]*"
-						description="The port of the OSCQuery Runner Websocket"
-						value={ port }
-					/>
-					<Group justify="flex-end">
-						<Button.Group>
-							<Button
-								variant="light"
-								color="gray"
-								disabled={ !hasChanges }
-								onClick={ onReset }
-								leftSection={ <FontAwesomeIcon icon={ faXmark } /> }
-							>
-								Reset
-							</Button>
-							<Button
-								type="submit"
-								disabled={ !hasChanges }
-								leftSection={ <FontAwesomeIcon icon={ faPlug } /> }
-							>
-								Connect
-							</Button>
-						</Button.Group>
-					</Group>
-				</Stack>
-			</form>
+			<Stack gap="xl">
+				<form onSubmit={ onSubmit } ref={ formRef } >
+					<Fieldset legend="Connection Endpoint">
+						<Stack gap="md">
+							<TextInput
+								onChange={ onChangeConfig }
+								name="hostname"
+								label="Hostname"
+								description="The hostname or IP address of the device that runs the OSCQuery Runner"
+								value={ hostname }
+							/>
+							<TextInput
+								onChange={ onChangeConfig }
+								name="port"
+								label="Port"
+								inputMode="numeric"
+								pattern="[0-9]*"
+								description="The port of the OSCQuery Runner Websocket"
+								value={ port }
+							/>
+							<Group justify="flex-end">
+								<Button.Group>
+									<Button
+										variant="light"
+										color="gray"
+										disabled={ !hasChanges }
+										onClick={ onReset }
+										leftSection={ <FontAwesomeIcon icon={ faXmark } /> }
+									>
+										Reset
+									</Button>
+									<Button
+										type="submit"
+										disabled={ !hasChanges }
+										leftSection={ <FontAwesomeIcon icon={ faPlug } /> }
+									>
+										Connect
+									</Button>
+								</Button.Group>
+							</Group>
+						</Stack>
+					</Fieldset>
+				</form>
+				<Fieldset legend="Status">
+					{
+						appStatus === AppStatus.AudioOff ? (
+							<Alert variant="light" color="yellow" title="Audio is Off">
+								Go to <Anchor inherit onClick={ openSettings } >Settings</Anchor> to update audio configuration.
+							</Alert>
+						) : null
+					}
+					{
+						appStatus === AppStatus.Ready && xrunInfo ? (
+							<TextInput
+								label="xrun count"
+								description={ xrunInfo.description  }
+								readOnly
+								value={ `${xrunInfo.oscValue}` }
+							/>
+						) : (
+							<Skeleton height={ 30 } />
+						)
+					}
+				</Fieldset>
+			</Stack>
 		</Modal>
 	);
 });
