@@ -3,8 +3,11 @@ import { OSCQueryBooleanValue, OSCQueryFloatValue, OSCQueryIntValue, OSCQueryStr
 
 export enum RunnerInfoKey {
 	CPULoad = "cpu_load",
-	XRunCount = "xrun_count"
+	XRunCount = "xrun_count",
+	RunnerVersion = "version"
 }
+
+export const JackInfoKeys: (RunnerInfoKey.CPULoad | RunnerInfoKey.XRunCount)[] = [RunnerInfoKey.CPULoad, RunnerInfoKey.XRunCount];
 
 export type RunnerInfoRecordProps = {
 	id: RunnerInfoKey;
@@ -14,7 +17,7 @@ export type RunnerInfoRecordProps = {
 	path: string;
 }
 
-type RunnierInfoOSCDescType = OSCQueryStringValue | OSCQueryIntValue | OSCQueryBooleanValue | OSCQueryFloatValue;
+type RunnerInfoOSCDescType = OSCQueryStringValue | OSCQueryIntValue | OSCQueryBooleanValue | OSCQueryFloatValue;
 
 export class RunnerInfoRecord extends ImmuRecord<RunnerInfoRecordProps>({
 	id: RunnerInfoKey.CPULoad,
@@ -29,7 +32,7 @@ export class RunnerInfoRecord extends ImmuRecord<RunnerInfoRecordProps>({
 		return this.set("oscValue", value);
 	}
 
-	public static fromDescription(id: RunnerInfoKey, desc: RunnierInfoOSCDescType): RunnerInfoRecord {
+	public static fromDescription(id: RunnerInfoKey, desc: RunnerInfoOSCDescType): RunnerInfoRecord {
 		return new RunnerInfoRecord({
 			id,
 			description: desc.DESCRIPTION || "",
