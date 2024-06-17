@@ -9,8 +9,9 @@ import { toggleEndpointInfo } from "../../actions/appStatus";
 import { toggleTransportControl } from "../../actions/transport";
 import { getTransportControlState } from "../../selectors/transport";
 import { RootStateType } from "../../lib/store";
-import { getRunnerInfoRecord } from "../../selectors/appStatus";
+import { getAppStatus, getRunnerInfoRecord } from "../../selectors/appStatus";
 import { RunnerInfoKey } from "../../models/runnerInfo";
+import { AppStatus } from "../../lib/constants";
 
 export type HeaderProps = {
 	navOpen: boolean;
@@ -28,10 +29,13 @@ export const Header: FunctionComponent<HeaderProps> = memo(function WrappedHeade
 	const [
 		isRolling,
 		cpuLoad
-	] = useAppSelector((state: RootStateType) => [
-		getTransportControlState(state).rolling,
-		getRunnerInfoRecord(state, RunnerInfoKey.CPULoad)
-	]);
+	] = useAppSelector((state: RootStateType) => {
+		const status = getAppStatus(state);
+		return [
+			getTransportControlState(state).rolling,
+			status === AppStatus.Ready ? getRunnerInfoRecord(state, RunnerInfoKey.CPULoad) : null
+		];
+	});
 
 
 	const onToggleEndpointInfo = useCallback(() => dispatch(toggleEndpointInfo()), [dispatch]);
