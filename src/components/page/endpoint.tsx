@@ -18,12 +18,14 @@ const EndpointInfo: FunctionComponent = memo(function WrappedSettings() {
 		doShow,
 		appEndpoint,
 		appStatus,
-		xrunInfo
+		xrunInfo,
+		runnerVersion
 	] = useAppSelector((state: RootStateType) => [
 		getShowEndpointInfoModal(state),
 		getRunnerEndpoint(state),
 		getAppStatus(state),
-		getRunnerInfoRecord(state, RunnerInfoKey.XRunCount)
+		getRunnerInfoRecord(state, RunnerInfoKey.XRunCount),
+		getRunnerInfoRecord(state, RunnerInfoKey.RunnerVersion)
 	]);
 
 	const [{ hostname, port }, setEndpoint] = useState<{ hostname: string; port: string; }>({ ...appEndpoint });
@@ -109,6 +111,11 @@ const EndpointInfo: FunctionComponent = memo(function WrappedSettings() {
 						</Stack>
 					</Fieldset>
 				</form>
+				<Fieldset legend="Runner Version">
+					{
+						runnerVersion.oscValue || "unknown"
+					}
+				</Fieldset>
 				<Fieldset legend="Status">
 					{
 						appStatus === AppStatus.AudioOff ? (
