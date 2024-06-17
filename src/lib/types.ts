@@ -108,7 +108,7 @@ export type OSCQueryRNBOInfoState = OSCQueryBaseNode & {
 				supported: OSCQueryBooleanValue;
 			};
 		}
-		version: OSCQueryListValue;
+		version: OSCQueryStringValue;
 	};
 };
 
@@ -181,20 +181,22 @@ export type OSCQueryRNBOJackTransport =  OSCQueryBaseNode & {
 	}
 }
 
+export type OSCQueryRNBOJackInfoState =  OSCQueryBaseNode & {
+	CONTENTS: {
+		is_realtime?: OSCQueryBooleanValue;
+		owns_server?: OSCQueryBooleanValue;
+		ports?: OSCQueryRNBOJackPortInfo;
+		is_active?: OSCQueryBooleanValue;
+		xrun_count?: OSCQueryIntValue;
+		cpu_load?: OSCQueryFloatValue;
+	};
+};
+
 export type OSCQueryRNBOJackState = OSCQueryBaseNode & {
 	CONTENTS: {
 		active: OSCQueryBooleanValue;
 		connections?: OSCQueryRNBOJackConnections,
-		info?: OSCQueryBaseNode & {
-			CONTENTS: {
-				is_realtime: OSCQueryBooleanValue;
-				owns_server: OSCQueryBooleanValue;
-				ports: OSCQueryRNBOJackPortInfo;
-				is_active?: OSCQueryBooleanValue;
-				xrun_count: OSCQueryIntValue;
-				cpu_load: OSCQueryFloatValue;
-			};
-		};
+		info?: OSCQueryRNBOJackInfoState;
 		config: OSCQueryRNBOJackConfig;
 		control: any;
 		transport?: OSCQueryRNBOJackTransport;
@@ -342,6 +344,7 @@ export type OSCQueryRNBOState = OSCQueryBaseNode & {
 		jack: OSCQueryRNBOJackState;
 		patchers: OSCQueryRNBOPatchersState;
 		inst: OSCQueryRNBOInstancesState;
+		info: OSCQueryRNBOInfoState;
 	};
 };
 
