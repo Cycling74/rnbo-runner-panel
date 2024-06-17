@@ -1,6 +1,6 @@
 import { parse as parseQuery } from "querystring";
 import { OSCBundle, OSCMessage, readPacket, writePacket } from "osc";
-import { initRunnerInfo, setAppStatus, setConnectionEndpoint } from "../actions/appStatus";
+import { initRunnerInfo, setRunnerInfoValue, setAppStatus, setConnectionEndpoint } from "../actions/appStatus";
 import { AppDispatch, store } from "../lib/store";
 import { ReconnectingWebsocket } from "../lib/reconnectingWs";
 import { AppStatus, RunnerCmdMethod } from "../lib/constants";
@@ -18,6 +18,7 @@ import { showNotification } from "../actions/notifications";
 import { NotificationLevel } from "../models/notification";
 import { initTransport, updateTransportStatus } from "../actions/transport";
 import { v4 as uuidv4 } from "uuid";
+import { RunnerInfoKey } from "../models/runnerInfo";
 
 const dispatch = store.dispatch as AppDispatch;
 
@@ -205,6 +206,9 @@ export class OSCQueryBridgeControllerPrivate {
 		// Init Transport
 		dispatch(initTransport(state.CONTENTS.jack?.CONTENTS?.transport));
 
+		// Init RunnerInfo
+		dispatch(initRunnerInfo(state));
+
 		// Initialize RNBO Graph Nodes
 		dispatch(initNodes(state.CONTENTS.jack?.CONTENTS.info.CONTENTS.ports, state.CONTENTS.inst));
 
@@ -221,9 +225,6 @@ export class OSCQueryBridgeControllerPrivate {
 
 		// Init Config
 		dispatch(initRunnerConfig(state));
-
-		// Init Status
-		dispatch(initRunnerInfo(state));
 
 		// Init Patcher Info
 		dispatch(initPatchers(state.CONTENTS.patchers));
@@ -470,6 +471,12 @@ export class OSCQueryBridgeControllerPrivate {
 		if (!this._hasIsActive && packet.address === "/rnbo/jack/active") {
 			await this._handleActive((packet.args as unknown as [boolean])?.[0], true);
 			return;
+		}
+
+		for (const entry of Object.values(RunnerInfoKey)) {
+			if (packet.address === `/rnbo/jack/info/${entry}`) {
+				return void dispatch(setRunnerInfoValue(entry, (packet.args as unknown as [number])?.[0] || 0.0));
+			}
 		}
 
 		// Transport Control Control
