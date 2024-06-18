@@ -95,19 +95,24 @@ export class InstanceStateRecord extends ImmuRecord<InstanceStateProps>({
 		return this.set("presets", InstanceStateRecord.presetsFromDescription(entries, this.presetLatest, this.presetInitial));
 	}
 
-	public static messagesArrayFromDescription(messagesDesc: OSCQueryRNBOInstanceMessageInfo, name?: string): string[] {
+	private static messagesArrayFromDescription(desc: OSCQueryRNBOInstanceMessageInfo, name?: string): string[] {
+		if (typeof desc.VALUE !== "undefined") return [name];
+
 		const result: string[] = [];
-		for (const [key, desc] of Object.entries(messagesDesc?.CONTENTS || {}) as Array<[string, OSCQueryRNBOInstanceMessageInfo]>) {
-			if (typeof desc.VALUE !== "undefined") {
-				result.push( name ? `${name}/${key}` : key);
-			} else {
-				for (const [subKey, subDesc] of Object.entries(desc.CONTENTS)) {
-					const subPrefix = name ? `${name}/${key}/${subKey}` : `${key}/${subKey}`;
-					result.push(...this.messagesArrayFromDescription(subDesc, subPrefix));
-				}
-			}
+		for (const [subKey, subDesc] of Object.entries(desc.CONTENTS)) {
+			const subPrefix = name ? `${name}/${subKey}` : subKey;
+			result.push(...this.messagesArrayFromDescription(subDesc, subPrefix));
 		}
 		return result;
+	}
+
+	public static messagesFromDescription(messagesDesc: OSCQueryRNBOInstance["CONTENTS"]["messages"]["CONTENTS"]["in"], name?: string): ImmuMap<string, string> {
+		return ImmuMap<string, string>().withMutations((map) => {
+			for (const [name, desc] of Object.entries(messagesDesc.CONTENTS || {})) {
+				const names = this.messagesArrayFromDescription(desc, name);
+				names.forEach(n => map.set(n, ""));
+			}
+		});
 	}
 
 	public static parametersFromDescription(paramsDesc: OSCQueryRNBOInstance["CONTENTS"]["params"]): ImmuMap<ParameterRecord["id"], ParameterRecord> {
@@ -137,24 +142,14 @@ export class InstanceStateRecord extends ImmuRecord<InstanceStateProps>({
 		const initialPreset: string = desc.CONTENTS.presets.CONTENTS?.initial?.VALUE || "";
 		const latestPreset: string = desc.CONTENTS.presets.CONTENTS?.loaded?.VALUE || "";
 
-		const msgInputs = this.messagesArrayFromDescription(desc.CONTENTS.messages.CONTENTS.in);
-		const msgOutputs = this.messagesArrayFromDescription(desc.CONTENTS.messages.CONTENTS.out);
 
 		return new InstanceStateRecord({
 			index: parseInt(desc.FULL_PATH.split("/").pop(), 10),
 			name: this.getJackName(desc.CONTENTS.jack),
 			patcher: desc.CONTENTS.name.VALUE,
 			path: desc.FULL_PATH,
-			messageInputs: ImmuMap<string, string>().withMutations(m => {
-				for (const name of msgInputs) {
-					m.set(name, "");
-				}
-			}),
-			messageOutputs: ImmuMap<string, string>().withMutations(m => {
-				for (const name of msgOutputs) {
-					m.set(name, "");
-				}
-			}),
+			messageInputs: this.messagesFromDescription(desc.CONTENTS.messages.CONTENTS.in),
+			messageOutputs: this.messagesFromDescription(desc.CONTENTS.messages.CONTENTS.out),
 			parameters: this.parametersFromDescription(desc.CONTENTS.params),
 			presets: this.presetsFromDescription(desc.CONTENTS.presets.CONTENTS.entries, latestPreset, initialPreset),
 			datarefs: this.datarefsFromDescription(desc.CONTENTS.data_refs)
