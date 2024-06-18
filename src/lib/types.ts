@@ -241,6 +241,10 @@ export type OSCQueryRNBOInstanceMessageInfo = OSCQueryRNBOInstanceMessageValue |
 	VALUE: undefined;
 };
 
+export type OSCQueryRNBOInstanceMessages = OSCQueryBaseNode & {
+	CONTENTS: Record<string, OSCQueryRNBOInstanceMessageInfo>;
+};
+
 export type OSCQueryRNBOInstancePresetEntries = OSCQueryListValue<string, string[]>;
 
 export type OSCQueryRNBOInstanceConnection = OSCQueryListValue<string, string[]>;
@@ -293,12 +297,8 @@ export type OSCQueryRNBOInstance = OSCQueryBaseNode & {
 		};
 		messages?: OSCQueryBaseNode & {
 			CONTENTS: {
-				in: OSCQueryBaseNode & {
-					CONTENTS: Record<string, OSCQueryRNBOInstanceMessageInfo>;
-				};
-				out: OSCQueryBaseNode & {
-					CONTENTS: Record<string, OSCQueryRNBOInstanceMessageInfo>;
-				};
+				in?: OSCQueryRNBOInstanceMessages;
+				out?: OSCQueryRNBOInstanceMessages;
 			};
 		};
 		midi: OSCQueryBaseNode & {
