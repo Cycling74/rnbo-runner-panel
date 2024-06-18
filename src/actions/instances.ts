@@ -335,8 +335,8 @@ export const updateInstanceMessages = (index: number, desc: OSCQueryRNBOInstance
 
 			dispatch(setInstance(
 				instance
-					.set("messageInputs", InstanceStateRecord.messageInputsFromDescription(desc))
-					.set("messageOutputs", InstanceStateRecord.messageOutputsFromDescription(desc))
+					.set("messageInputs", InstanceStateRecord.messagesFromDescription(desc.CONTENTS?.in))
+					.set("messageOutputs", InstanceStateRecord.messagesFromDescription(desc.CONTENTS?.out))
 			));
 		} catch (e) {
 			console.log(e);

@@ -2,7 +2,7 @@ import { Map as ImmuMap, Record as ImmuRecord, OrderedMap as ImmuOrderedMap } fr
 import { ParameterRecord } from "./parameter";
 import { PresetRecord } from "./preset";
 import { DataRefRecord } from "./dataref";
-import { OSCQueryRNBOInstance, OSCQueryRNBOInstancePresetEntries } from "../lib/types";
+import { OSCQueryRNBOInstance, OSCQueryRNBOInstanceMessages, OSCQueryRNBOInstanceMessageInfo, OSCQueryRNBOInstancePresetEntries } from "../lib/types";
 
 export type InstanceStateProps = {
 	index: number;
@@ -95,18 +95,22 @@ export class InstanceStateRecord extends ImmuRecord<InstanceStateProps>({
 		return this.set("presets", InstanceStateRecord.presetsFromDescription(entries, this.presetLatest, this.presetInitial));
 	}
 
-	public static messageInputsFromDescription(messagesDesc: OSCQueryRNBOInstance["CONTENTS"]["messages"]): ImmuMap<string, string> {
-		return ImmuMap<string, string>().withMutations((map) => {
-			for (const name of Object.keys(messagesDesc?.CONTENTS?.in?.CONTENTS || {})) {
-				map.set(name, "");
-			}
-		});
+	private static messagesArrayFromDescription(desc: OSCQueryRNBOInstanceMessageInfo, name?: string): string[] {
+		if (typeof desc.VALUE !== "undefined") return [name];
+
+		const result: string[] = [];
+		for (const [subKey, subDesc] of Object.entries(desc.CONTENTS)) {
+			const subPrefix = name ? `${name}/${subKey}` : subKey;
+			result.push(...this.messagesArrayFromDescription(subDesc, subPrefix));
+		}
+		return result;
 	}
 
-	public static messageOutputsFromDescription(messagesDesc: OSCQueryRNBOInstance["CONTENTS"]["messages"]): ImmuMap<string, string> {
+	public static messagesFromDescription(messagesDesc?: OSCQueryRNBOInstanceMessages): ImmuMap<string, string> {
 		return ImmuMap<string, string>().withMutations((map) => {
-			for (const name of Object.keys(messagesDesc?.CONTENTS?.out?.CONTENTS || {})) {
-				map.set(name, "");
+			for (const [name, desc] of Object.entries(messagesDesc?.CONTENTS || {})) {
+				const names = this.messagesArrayFromDescription(desc, name);
+				names.forEach(n => map.set(n, ""));
 			}
 		});
 	}
@@ -138,13 +142,14 @@ export class InstanceStateRecord extends ImmuRecord<InstanceStateProps>({
 		const initialPreset: string = desc.CONTENTS.presets.CONTENTS?.initial?.VALUE || "";
 		const latestPreset: string = desc.CONTENTS.presets.CONTENTS?.loaded?.VALUE || "";
 
+
 		return new InstanceStateRecord({
 			index: parseInt(desc.FULL_PATH.split("/").pop(), 10),
 			name: this.getJackName(desc.CONTENTS.jack),
 			patcher: desc.CONTENTS.name.VALUE,
 			path: desc.FULL_PATH,
-			messageInputs: this.messageInputsFromDescription(desc.CONTENTS.messages),
-			messageOutputs: this.messageOutputsFromDescription(desc.CONTENTS.messages),
+			messageInputs: this.messagesFromDescription(desc.CONTENTS.messages?.CONTENTS?.in),
+			messageOutputs: this.messagesFromDescription(desc.CONTENTS.messages?.CONTENTS?.out),
 			parameters: this.parametersFromDescription(desc.CONTENTS.params),
 			presets: this.presetsFromDescription(desc.CONTENTS.presets.CONTENTS.entries, latestPreset, initialPreset),
 			datarefs: this.datarefsFromDescription(desc.CONTENTS.data_refs)

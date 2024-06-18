@@ -218,6 +218,7 @@ export type OSCQueryRNBOPatchersState = OSCQueryBaseNode & {
 export type OSCQueryRNBOInstanceParameterValue = OSCQueryBaseNode & OSCQueryFloatValue & OSCQueryValueRange & {
 	CONTENTS: {
 		index: OSCQueryIntValue;
+		meta: OSCQueryStringValue;
 		normalized: OSCQueryFloatValue & OSCQueryValueRange & { VALUE: number; }
 	};
 	VALUE: number | string;
@@ -226,6 +227,22 @@ export type OSCQueryRNBOInstanceParameterValue = OSCQueryBaseNode & OSCQueryFloa
 export type OSCQueryRNBOInstanceParameterInfo = OSCQueryRNBOInstanceParameterValue | {
 	CONTENTS: Record<string, OSCQueryRNBOInstanceParameterInfo>;
 	VALUE: undefined;
+};
+
+export type OSCQueryRNBOInstanceMessageValue = OSCQueryBaseNode & OSCQueryListValue<string> & {
+	CONTENTS: {
+		meta: OSCQueryStringValue;
+	};
+	VALUE: string[];
+};
+
+export type OSCQueryRNBOInstanceMessageInfo = OSCQueryRNBOInstanceMessageValue | {
+	CONTENTS: Record<string, OSCQueryRNBOInstanceMessageInfo>;
+	VALUE: undefined;
+};
+
+export type OSCQueryRNBOInstanceMessages = OSCQueryBaseNode & {
+	CONTENTS: Record<string, OSCQueryRNBOInstanceMessageInfo>;
 };
 
 export type OSCQueryRNBOInstancePresetEntries = OSCQueryListValue<string, string[]>;
@@ -280,12 +297,8 @@ export type OSCQueryRNBOInstance = OSCQueryBaseNode & {
 		};
 		messages?: OSCQueryBaseNode & {
 			CONTENTS: {
-				in: OSCQueryBaseNode & {
-					CONTENTS: Record<string, OSCQueryUnknownValue>;
-				};
-				out: OSCQueryBaseNode & {
-					CONTENTS: Record<string, OSCQueryValue>;
-				};
+				in?: OSCQueryRNBOInstanceMessages;
+				out?: OSCQueryRNBOInstanceMessages;
 			};
 		};
 		midi: OSCQueryBaseNode & {
