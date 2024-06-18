@@ -2,7 +2,7 @@ import { Map as ImmuMap, Record as ImmuRecord, OrderedMap as ImmuOrderedMap } fr
 import { ParameterRecord } from "./parameter";
 import { PresetRecord } from "./preset";
 import { DataRefRecord } from "./dataref";
-import { OSCQueryRNBOInstance, OSCQueryRNBOInstanceMessageInfo, OSCQueryRNBOInstancePresetEntries } from "../lib/types";
+import { OSCQueryRNBOInstance, OSCQueryRNBOInstanceMessages, OSCQueryRNBOInstanceMessageInfo, OSCQueryRNBOInstancePresetEntries } from "../lib/types";
 
 export type InstanceStateProps = {
 	index: number;
@@ -106,9 +106,9 @@ export class InstanceStateRecord extends ImmuRecord<InstanceStateProps>({
 		return result;
 	}
 
-	public static messagesFromDescription(messagesDesc: OSCQueryRNBOInstance["CONTENTS"]["messages"]["CONTENTS"]["in"], name?: string): ImmuMap<string, string> {
+	public static messagesFromDescription(messagesDesc?: OSCQueryRNBOInstanceMessages): ImmuMap<string, string> {
 		return ImmuMap<string, string>().withMutations((map) => {
-			for (const [name, desc] of Object.entries(messagesDesc.CONTENTS || {})) {
+			for (const [name, desc] of Object.entries(messagesDesc?.CONTENTS || {})) {
 				const names = this.messagesArrayFromDescription(desc, name);
 				names.forEach(n => map.set(n, ""));
 			}
@@ -148,8 +148,8 @@ export class InstanceStateRecord extends ImmuRecord<InstanceStateProps>({
 			name: this.getJackName(desc.CONTENTS.jack),
 			patcher: desc.CONTENTS.name.VALUE,
 			path: desc.FULL_PATH,
-			messageInputs: this.messagesFromDescription(desc.CONTENTS.messages.CONTENTS.in),
-			messageOutputs: this.messagesFromDescription(desc.CONTENTS.messages.CONTENTS.out),
+			messageInputs: this.messagesFromDescription(desc.CONTENTS.messages?.CONTENTS?.in),
+			messageOutputs: this.messagesFromDescription(desc.CONTENTS.messages?.CONTENTS?.out),
 			parameters: this.parametersFromDescription(desc.CONTENTS.params),
 			presets: this.presetsFromDescription(desc.CONTENTS.presets.CONTENTS.entries, latestPreset, initialPreset),
 			datarefs: this.datarefsFromDescription(desc.CONTENTS.data_refs)
