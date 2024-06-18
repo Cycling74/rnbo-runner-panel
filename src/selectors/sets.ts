@@ -2,6 +2,8 @@ import { Map as ImmuMap } from "immutable";
 import { RootStateType } from "../lib/store";
 import { GraphSetRecord } from "../models/set";
 import { PresetRecord } from "../models/preset";
+import { createSelector } from "reselect";
+import { SortOrder } from "../lib/constants";
 
 export const getGraphSets = (state: RootStateType): ImmuMap<GraphSetRecord["id"], GraphSetRecord> => {
 	return state.sets.sets;
@@ -13,26 +15,43 @@ export const getGraphSet = (state: RootStateType, name: string): GraphSetRecord 
 
 const collator = new Intl.Collator("en-US");
 
-export const getGraphSetsSortedByName = (state: RootStateType) => {
-	return state.sets.sets
-		.valueSeq()
-		.sort((left: GraphSetRecord, right: GraphSetRecord): number => collator.compare(left.name, right.name));
+export const getGraphSetsSortedByName = createSelector(
+	[
+		getGraphSets,
+		(state: RootStateType, order: SortOrder): SortOrder => order
+	],
+	(sets, order) => {
+		return sets.valueSeq().sort((left: GraphSetRecord, right: GraphSetRecord): number => {
+			return collator.compare(left.name, right.name) * (order === SortOrder.Asc ? 1 : -1);
+		});
+	}
+);
+
+export const getGraphPresets = (state: RootStateType): ImmuMap<string, PresetRecord> => {
+	return state.sets.presets;
 };
 
 // sort initial first
-export const getGraphSetPrsetsSortedByName = (state: RootStateType) => {
-	return state.sets.presets
-		.valueSeq()
-		.sort((left: PresetRecord, right: PresetRecord): number => {
+export const getGraphSetPresetsSortedByName = createSelector(
+	[
+		getGraphPresets,
+		(state: RootStateType, order: SortOrder): SortOrder => order
+	],
+	(presets, order) => {
+		return presets.valueSeq().sort((left: PresetRecord, right: PresetRecord): number => {
+			let result;
 			if (left.name === right.name) {
-				return 0;
+				result = 0;
 			} else if (left.name === "initial") {
-				return -1;
+				result = -1;
 			} else if (right.name === "initial") {
-				return 1;
+				result = 1;
+			} else {
+				result = collator.compare(left.name, right.name);
 			}
-			return collator.compare(left.name, right.name);
+			return result * (order === SortOrder.Asc ? 1 : -1);
 		});
-};
+	}
+);
 
 export const getShowGraphSetsDrawer = (state: RootStateType): boolean => state.sets.show;
