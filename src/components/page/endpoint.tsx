@@ -1,4 +1,4 @@
-import { Alert, Anchor, Button, Fieldset, Group, Modal, Skeleton, Stack, TextInput } from "@mantine/core";
+import { ActionIcon, Alert, Anchor, Button, Fieldset, Grid, Group, Modal, Paper, Popover, Skeleton, Stack, Text, TextInput } from "@mantine/core";
 import { ChangeEvent, FormEvent, FunctionComponent, MouseEvent, memo, useCallback, useEffect, useRef, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../../hooks/useAppDispatch";
 import { RootStateType } from "../../lib/store";
@@ -6,10 +6,70 @@ import { useIsMobileDevice } from "../../hooks/useIsMobileDevice";
 import { getAppStatus, getRunnerInfoRecord, getRunnerEndpoint, getShowEndpointInfoModal } from "../../selectors/appStatus";
 import { hideEndpointInfo } from "../../actions/appStatus";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPlug, faXmark } from "@fortawesome/free-solid-svg-icons";
+import { faInfoCircle, faPlug, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { AppStatus } from "../../lib/constants";
 import { showSettings } from "../../actions/settings";
-import { RunnerInfoKey } from "../../models/runnerInfo";
+import { RunnerInfoKey, RunnerInfoRecord } from "../../models/runnerInfo";
+
+type InfoCardProps = {
+	title: string;
+	description?: string;
+	value: string
+}
+
+const InfoCard: FunctionComponent<InfoCardProps> = ({
+	title,
+	description,
+	value
+}) => {
+
+	return (
+		<Paper withBorder radius="sm" p="xs">
+			<Group align="center" gap="xs">
+				<Text c="dimmed" tt="uppercase" fw="bold" size="xs">
+					{ title }
+				</Text>
+				{
+					description?.length ? (
+						<Popover withArrow position="bottom">
+							<Popover.Target>
+								<ActionIcon size="xs" variant="transparent" color="gray">
+									<FontAwesomeIcon icon={ faInfoCircle } size="xs"/>
+								</ActionIcon>
+							</Popover.Target>
+							<Popover.Dropdown>
+								<Text size="xs">
+									{ description }
+								</Text>
+							</Popover.Dropdown>
+						</Popover>
+					) : null
+				}
+			</Group>
+			<Text fw="bold" size="sm" mt="x">
+				{ value }
+			</Text>
+		</Paper>
+	);
+};
+
+const InfoCardSkeleton: FunctionComponent<Pick<InfoCardProps, "title">> = ({ title }) => (
+	<Paper withBorder radius="sm" p="xs">
+		<Text c="dimmed" tt="uppercase" fw="bold" size="xs">
+			{ title }
+		</Text>
+		<Skeleton h={ 20 } />
+	</Paper>
+);
+
+const infoKeyOrder: Partial<Record<RunnerInfoKey, { title: string; }>> = {
+	[RunnerInfoKey.RunnerVersion]: {
+		title: "Runner Version"
+	},
+	[RunnerInfoKey.XRunCount]: {
+		title: "xrun Count"
+	}
+};
 
 const EndpointInfo: FunctionComponent = memo(function WrappedSettings() {
 
@@ -18,12 +78,15 @@ const EndpointInfo: FunctionComponent = memo(function WrappedSettings() {
 		doShow,
 		appEndpoint,
 		appStatus,
-		xrunInfo
+		runnerInfoRecords
 	] = useAppSelector((state: RootStateType) => [
 		getShowEndpointInfoModal(state),
 		getRunnerEndpoint(state),
 		getAppStatus(state),
-		getRunnerInfoRecord(state, RunnerInfoKey.XRunCount)
+		new Map<RunnerInfoKey, RunnerInfoRecord>([
+			[RunnerInfoKey.XRunCount, getRunnerInfoRecord(state, RunnerInfoKey.XRunCount)],
+			[RunnerInfoKey.RunnerVersion, getRunnerInfoRecord(state, RunnerInfoKey.RunnerVersion)]
+		])
 	]);
 
 	const [{ hostname, port }, setEndpoint] = useState<{ hostname: string; port: string; }>({ ...appEndpoint });
@@ -64,7 +127,7 @@ const EndpointInfo: FunctionComponent = memo(function WrappedSettings() {
 			opened={ doShow }
 			fullScreen={ showFullScreen }
 			size="lg"
-			title="OSCQuery Runner Info"
+			title="OSCQuery Runner"
 		>
 			<Stack gap="xl">
 				<form onSubmit={ onSubmit } ref={ formRef } >
@@ -109,26 +172,32 @@ const EndpointInfo: FunctionComponent = memo(function WrappedSettings() {
 						</Stack>
 					</Fieldset>
 				</form>
-				<Fieldset legend="Status">
-					{
-						appStatus === AppStatus.AudioOff ? (
-							<Alert variant="light" color="yellow" title="Audio is Off">
-								Go to <Anchor inherit onClick={ openSettings } >Settings</Anchor> to update audio configuration.
-							</Alert>
-						) : null
-					}
-					{
-						appStatus === AppStatus.Ready && xrunInfo ? (
-							<TextInput
-								label="xrun count"
-								description={ xrunInfo.description  }
-								readOnly
-								value={ `${xrunInfo.oscValue}` }
-							/>
-						) : (
-							<Skeleton height={ 30 } />
-						)
-					}
+				<Fieldset legend="Info">
+					<Grid grow>
+						{
+							appStatus === AppStatus.AudioOff ? (
+								<Alert variant="light" color="yellow" title="Audio is Off">
+									Go to <Anchor inherit onClick={ openSettings } >Settings</Anchor> to update audio configuration.
+								</Alert>
+							) : null
+						}
+						{
+							Object.entries(infoKeyOrder).map(([key, props]) => {
+								const rec = runnerInfoRecords.get(key as RunnerInfoKey);
+								return (
+									<Grid.Col span={ 6 } key={ key } >
+										{
+											rec ? (
+												<InfoCard { ...props } value={ `${rec.oscValue}` } description={ rec.description } />
+											) : (
+												<InfoCardSkeleton { ...props } />
+											)
+										}
+									</Grid.Col>
+								);
+							})
+						}
+					</Grid>
 				</Fieldset>
 			</Stack>
 		</Modal>
