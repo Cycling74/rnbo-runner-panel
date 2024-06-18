@@ -8,6 +8,8 @@ import { loadSettingsState, purgeSettingsState, storeSettingsState } from "../li
 export type AppSettings = {
 	[AppSetting.colorScheme]: string;
 	[AppSetting.debugMessageOutput]: boolean;
+	[AppSetting.paramSortAttribute]: boolean;
+	[AppSetting.paramSortOrder]: boolean;
 }
 
 export type SettingsState = {

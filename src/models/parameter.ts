@@ -72,4 +72,8 @@ export class ParameterRecord extends ImmuRecord<ParameterRecordProps>({
 	public setNormalizedValue(nv: number): ParameterRecord {
 		return this.set("normalizedValue", nv);
 	}
+
+	public matchesQuery(query: string): boolean {
+		return this.name.toLowerCase().includes(query);
+	}
 }
