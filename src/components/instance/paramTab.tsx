@@ -7,7 +7,7 @@ import classes from "./instance.module.css";
 import { useAppDispatch, useAppSelector } from "../../hooks/useAppDispatch";
 import { InstanceStateRecord } from "../../models/instance";
 import { setInstanceParameterValueNormalizedOnRemote } from "../../actions/instances";
-import { OrderedSet, Seq } from "immutable";
+import { OrderedSet } from "immutable";
 import { RootStateType } from "../../lib/store";
 import { getParameterSortAttribute, getParameterSortOrder } from "../../selectors/instances";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
