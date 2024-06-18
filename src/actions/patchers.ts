@@ -47,7 +47,7 @@ export const destroyPatcherOnRemote = (patcher: PatcherRecord): AppThunk =>
 			dispatch(showNotification({
 				level: NotificationLevel.error,
 				title: `Error while trying to delete patcher ${patcher.name}`,
-				message: "Please check the consolor for further details."
+				message: "Please check the console for further details."
 			}));
 			console.error(err);
 		}
@@ -68,7 +68,7 @@ export const renamePatcherOnRemote = (patcher: PatcherRecord, newName: string): 
 			dispatch(showNotification({
 				level: NotificationLevel.error,
 				title: `Error while trying to rename patcher ${patcher.name} -> ${newName}`,
-				message: "Please check the consolor for further details."
+				message: "Please check the console for further details."
 			}));
 			console.error(err);
 		}
