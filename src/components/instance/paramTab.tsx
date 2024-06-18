@@ -1,5 +1,5 @@
-import { Button, Group, Popover, SegmentedControl, Select, Stack, Tabs, Text } from "@mantine/core";
-import { FunctionComponent, memo, useCallback, useEffect, useState } from "react";
+import { ActionIcon, Button, Group, Popover, SegmentedControl, Select, Stack, Tabs, Text, TextInput } from "@mantine/core";
+import { ChangeEvent, FC, FunctionComponent, KeyboardEvent, memo, useCallback, useEffect, useRef, useState } from "react";
 import { InstanceTab, ParameterSortAttr, SortOrder } from "../../lib/constants";
 import ParameterList from "../parameter/list";
 import { ParameterRecord } from "../../models/parameter";
@@ -11,13 +11,74 @@ import { Seq } from "immutable";
 import { RootStateType } from "../../lib/store";
 import { getParameterSortAttribute, getParameterSortOrder } from "../../selectors/instances";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArrowDownAZ, faArrowUpAZ, faSort } from "@fortawesome/free-solid-svg-icons";
+import { faArrowDownAZ, faArrowUpAZ, faSearch, faSort, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { setAppSetting } from "../../actions/settings";
 import { AppSetting } from "../../models/settings";
+import { useDebouncedCallback, useDisclosure } from "@mantine/hooks";
 
-export type InstanceParameterTabProps = {
-	instance: InstanceStateRecord;
+
+type ParameterSearchInputProps = {
+	onSearch: (query: string) => any;
 }
+
+const ParameterSearchInput: FC<ParameterSearchInputProps> = memo(function WrappedParameterSearchInput({
+	onSearch
+}) {
+
+	const [showSearchInput, showSearchInputActions] = useDisclosure();
+	const [searchValue, setSearchValue] = useState<string>("");
+	const searchInputRef = useRef<HTMLInputElement>();
+
+	const onChangeSearchValue = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+		setSearchValue(e.target.value);
+	}, [setSearchValue]);
+
+	const onBlur = useCallback(() => {
+		if (!searchValue?.length) showSearchInputActions.close();
+	}, [searchValue, showSearchInputActions]);
+
+	const onClear = useCallback(() => {
+		setSearchValue("");
+		searchInputRef.current?.focus();
+	}, [setSearchValue]);
+
+	const onKeyDown = useCallback((e: KeyboardEvent<HTMLInputElement>) => {
+		if (e.key === "Escape") {
+			if (searchValue.length) {
+				setSearchValue("");
+			} else {
+				searchInputRef.current?.blur();
+			}
+		}
+	}, [setSearchValue, searchInputRef, searchValue]);
+
+	useEffect(() => {
+		onSearch(searchValue);
+	}, [searchValue, onSearch]);
+
+	return (
+		showSearchInput || searchValue?.length ? (
+			<TextInput
+				autoFocus
+				ref={ searchInputRef }
+				onKeyDown={ onKeyDown }
+				onBlur={ onBlur }
+				onChange={ onChangeSearchValue }
+				leftSection={ <FontAwesomeIcon icon={ faSearch } size="xs" /> } size="xs"
+				rightSection={(
+					<ActionIcon variant="transparent" color="gray" onClick={ onClear } >
+						<FontAwesomeIcon icon={ faXmark } size="xs" />
+					</ActionIcon>
+				)}
+				value={ searchValue }
+			/>
+		) : (
+			<ActionIcon size="md" variant="default" onClick={ showSearchInputActions.open } >
+				<FontAwesomeIcon icon={ faSearch } size="xs" />
+			</ActionIcon>
+		)
+	);
+});
 
 const collator = new Intl.Collator("en-US");
 const parameterComparators: Record<ParameterSortAttr, Record<SortOrder, (a: ParameterRecord, b: ParameterRecord) => number>> = {
@@ -47,6 +108,10 @@ const getSortedParameterIds = (params: InstanceStateRecord["parameters"], attr: 
 	return params.valueSeq().sort(parameterComparators[attr][order]).map(p => p.id);
 };
 
+export type InstanceParameterTabProps = {
+	instance: InstanceStateRecord;
+}
+
 const InstanceParameterTab: FunctionComponent<InstanceParameterTabProps> = memo(function WrappedInstanceParameterTab({
 	instance
 }) {
@@ -55,6 +120,8 @@ const InstanceParameterTab: FunctionComponent<InstanceParameterTabProps> = memo(
 		getParameterSortAttribute(state),
 		getParameterSortOrder(state)
 	]);
+
+	const [searchValue, setSearchValue] = useState<string>("");
 
 	const [sortedParamIds, setSortedParamIds] = useState<Seq.Indexed<string>>(getSortedParameterIds(instance.parameters, sortAttr.value as ParameterSortAttr, sortOrder.value as SortOrder));
 
@@ -72,14 +139,22 @@ const InstanceParameterTab: FunctionComponent<InstanceParameterTabProps> = memo(
 		dispatch(setInstanceParameterValueNormalizedOnRemote(instance, param, val));
 	}, [dispatch, instance]);
 
+	const onSearch = useDebouncedCallback((query: string) => {
+		setSearchValue(query);
+	}, 150);
+
 	useEffect(() => {
 		setSortedParamIds(getSortedParameterIds(instance.parameters, sortAttr.value as ParameterSortAttr, sortOrder.value as SortOrder));
 	}, [instance.id, sortAttr, sortOrder]);
+
+	let parameters = sortedParamIds.map(id => instance.parameters.get(id));
+	if (searchValue?.length) parameters = parameters.filter(p => p.matchesQuery(searchValue));
 
 	return (
 		<Tabs.Panel value={ InstanceTab.Parameters } >
 			<Stack gap="md" h="100%">
 				<Group justify="flex-end" gap="xs">
+					<ParameterSearchInput onSearch={ onSearch } />
 					<Popover position="bottom-end" withArrow>
 						<Popover.Target>
 							<Button size="xs" variant="default" leftSection={ <FontAwesomeIcon icon={ faSort } /> } >
@@ -117,7 +192,7 @@ const InstanceParameterTab: FunctionComponent<InstanceParameterTabProps> = memo(
 						</div>
 					) : (
 						<div className={ classes.paramSectionWrap } >
-							<ParameterList parameters={ sortedParamIds.map(id => instance.parameters.get(id)) } onSetNormalizedValue={ onSetNormalizedParamValue } />
+							<ParameterList parameters={ parameters } onSetNormalizedValue={ onSetNormalizedParamValue } />
 						</div>
 					)
 				}
