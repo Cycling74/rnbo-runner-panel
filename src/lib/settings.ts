@@ -3,7 +3,7 @@ import { AppSetting } from "../models/settings";
 import { AppSettingRecord, AppSettingValue, appSettingDefaults } from "../models/settings";
 
 const LS_KEY = "@@rnbo_runner_settings@@";
-const LS_VERSION = 2;
+const LS_VERSION = 3;
 
 export const loadSettingsState = (): ImmuOrderedMap<AppSetting, AppSettingRecord> => {
 	let storedData: Partial<Record<AppSetting, AppSettingValue>> = {};

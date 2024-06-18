@@ -1,19 +1,14 @@
 import { Map as ImmuMap } from "immutable";
 import { InstanceStateRecord } from "../models/instance";
 import { InstanceAction, InstanceActionType } from "../actions/instances";
-import { ParameterSortAttr, SortOrder } from "../lib/constants";
 
 export interface InstanceInstancesState {
 	instances: ImmuMap<InstanceStateRecord["id"], InstanceStateRecord>;
-	parameterSortAttribute: ParameterSortAttr;
-	parameterSortOrder: SortOrder;
 }
 
 export const instances = (state: InstanceInstancesState = {
 
-	instances: ImmuMap<InstanceStateRecord["id"], InstanceStateRecord>(),
-	parameterSortAttribute: ParameterSortAttr.Name,
-	parameterSortOrder: SortOrder.Asc
+	instances: ImmuMap<InstanceStateRecord["id"], InstanceStateRecord>()
 
 }, action: InstanceAction): InstanceInstancesState => {
 
@@ -56,22 +51,6 @@ export const instances = (state: InstanceInstancesState = {
 			return {
 				...state,
 				instances: state.instances.deleteAll(instances.map(d => d.id))
-			};
-		}
-
-		case InstanceActionType.SET_INSTANCE_PARAMTER_SORT_ATTR: {
-			const { attr } = action.payload;
-			return {
-				...state,
-				parameterSortAttribute: attr
-			};
-		}
-
-		case InstanceActionType.SET_INSTANCE_PARAMTER_SORT_ORDER: {
-			const { order } = action.payload;
-			return {
-				...state,
-				parameterSortOrder: order
 			};
 		}
 

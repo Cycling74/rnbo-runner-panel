@@ -64,7 +64,7 @@ export enum SortOrder {
 }
 
 export enum ParameterSortAttr {
-	Index = "index",
+	Index = "displayorder",
 	Name = "name"
 }
 

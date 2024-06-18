@@ -1,4 +1,4 @@
-import { Button, Group, Menu, SegmentedControl, Stack, Tabs } from "@mantine/core";
+import { Button, Group, Popover, SegmentedControl, Select, Stack, Tabs, Text } from "@mantine/core";
 import { FunctionComponent, memo, useCallback, useEffect, useState } from "react";
 import { InstanceTab, ParameterSortAttr, SortOrder } from "../../lib/constants";
 import ParameterList from "../parameter/list";
@@ -6,12 +6,14 @@ import { ParameterRecord } from "../../models/parameter";
 import classes from "./instance.module.css";
 import { useAppDispatch, useAppSelector } from "../../hooks/useAppDispatch";
 import { InstanceStateRecord } from "../../models/instance";
-import { setInstanceParameterValueNormalizedOnRemote, setParameterSortAttribute, setParameterSortOrder } from "../../actions/instances";
+import { setInstanceParameterValueNormalizedOnRemote } from "../../actions/instances";
 import { Seq } from "immutable";
 import { RootStateType } from "../../lib/store";
 import { getParameterSortAttribute, getParameterSortOrder } from "../../selectors/instances";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowDownAZ, faArrowUpAZ, faSort } from "@fortawesome/free-solid-svg-icons";
+import { setAppSetting } from "../../actions/settings";
+import { AppSetting } from "../../models/settings";
 
 export type InstanceParameterTabProps = {
 	instance: InstanceStateRecord;
@@ -45,7 +47,6 @@ const getSortedParameterIds = (params: InstanceStateRecord["parameters"], attr: 
 	return params.valueSeq().sort(parameterComparators[attr][order]).map(p => p.id);
 };
 
-
 const InstanceParameterTab: FunctionComponent<InstanceParameterTabProps> = memo(function WrappedInstanceParameterTab({
 	instance
 }) {
@@ -55,16 +56,16 @@ const InstanceParameterTab: FunctionComponent<InstanceParameterTabProps> = memo(
 		getParameterSortOrder(state)
 	]);
 
-	const [sortedParamIds, setSortedParamIds] = useState<Seq.Indexed<string>>(getSortedParameterIds(instance.parameters, sortAttr, sortOrder));
+	const [sortedParamIds, setSortedParamIds] = useState<Seq.Indexed<string>>(getSortedParameterIds(instance.parameters, sortAttr.value as ParameterSortAttr, sortOrder.value as SortOrder));
 
 	const dispatch = useAppDispatch();
 
 	const onChangeSortOrder = useCallback((value: string) => {
-		dispatch(setParameterSortOrder(value as SortOrder));
+		dispatch(setAppSetting(AppSetting.paramSortOrder, value));
 	}, [dispatch]);
 
 	const onChangeSortAttr = useCallback((value: string) => {
-		dispatch(setParameterSortAttribute(value as ParameterSortAttr));
+		dispatch(setAppSetting(AppSetting.paramSortAttribute, value));
 	}, [dispatch]);
 
 	const onSetNormalizedParamValue = useCallback((param: ParameterRecord, val: number) => {
@@ -72,38 +73,42 @@ const InstanceParameterTab: FunctionComponent<InstanceParameterTabProps> = memo(
 	}, [dispatch, instance]);
 
 	useEffect(() => {
-		setSortedParamIds(getSortedParameterIds(instance.parameters, sortAttr, sortOrder));
+		setSortedParamIds(getSortedParameterIds(instance.parameters, sortAttr.value as ParameterSortAttr, sortOrder.value as SortOrder));
 	}, [instance.id, sortAttr, sortOrder]);
 
 	return (
 		<Tabs.Panel value={ InstanceTab.Parameters } >
 			<Stack gap="md" h="100%">
 				<Group justify="flex-end" gap="xs">
-					<Menu position="bottom-end">
-						<Menu.Target>
+					<Popover position="bottom-end" withArrow>
+						<Popover.Target>
 							<Button size="xs" variant="default" leftSection={ <FontAwesomeIcon icon={ faSort } /> } >
 								Sort
 							</Button>
-						</Menu.Target>
-						<Menu.Dropdown>
-							<Stack gap="xs" px="xs" py="xs">
-								<Menu.Label>Sort By</Menu.Label>
-								<SegmentedControl
+						</Popover.Target>
+						<Popover.Dropdown>
+							<Stack gap="sm">
+								<Select
 									size="xs"
+									label="Sort By"
+									name="sort_attribute"
 									onChange={ onChangeSortAttr }
-									data={ [{ label: "Name", value: ParameterSortAttr.Name }, { label: "Index", value: ParameterSortAttr.Index }] }
-									value={ sortAttr }
+									data={ sortAttr.options }
+									value={ sortAttr.value as string }
 								/>
-								<Menu.Label>Sort Order</Menu.Label>
-								<SegmentedControl
-									size="xs"
-									onChange={ onChangeSortOrder }
-									data={ [{ label: <FontAwesomeIcon icon={ faArrowDownAZ } size="sm" />, value: SortOrder.Asc }, { label: <FontAwesomeIcon icon={ faArrowUpAZ } size="sm" />, value: SortOrder.Desc }] }
-									value={ sortOrder }
-								/>
+								<div>
+									<Text size="xs">Sort Order</Text>
+									<SegmentedControl
+										size="xs"
+										fullWidth
+										onChange={ onChangeSortOrder }
+										data={ [{ label: <FontAwesomeIcon icon={ faArrowDownAZ } size="sm" />, value: SortOrder.Asc }, { label: <FontAwesomeIcon icon={ faArrowUpAZ } size="sm" />, value: SortOrder.Desc }] }
+										value={ sortOrder.value as string }
+									/>
+								</div>
 							</Stack>
-						</Menu.Dropdown>
-					</Menu>
+						</Popover.Dropdown>
+					</Popover>
 				</Group>
 				{
 					!instance.parameters.size ? (
