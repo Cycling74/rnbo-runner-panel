@@ -11,6 +11,7 @@ import { DrawerSectionTitle } from "../page/drawer";
 import { GraphSetRecord } from "../../models/set";
 import { modals } from "@mantine/modals";
 import classes from "./sets.module.css";
+import { SortOrder } from "../../lib/constants";
 
 const SetsDrawer: FunctionComponent = memo(function WrappedSetsDrawer() {
 
@@ -20,7 +21,7 @@ const SetsDrawer: FunctionComponent = memo(function WrappedSetsDrawer() {
 		sets
 	] = useAppSelector(state => [
 		getShowGraphSetsDrawer(state),
-		getGraphSetsSortedByName(state)
+		getGraphSetsSortedByName(state, SortOrder.Asc)
 	]);
 
 	const onCloseDrawer = useCallback(() => dispatch(hideGraphSets()), [dispatch]);

@@ -1,6 +1,6 @@
 import { Tabs, Text } from "@mantine/core";
 import { FunctionComponent, memo, useCallback } from "react";
-import { InstanceTab } from "../../lib/constants";
+import { InstanceTab, SortOrder } from "../../lib/constants";
 import { useAppDispatch, useAppSelector } from "../../hooks/useAppDispatch";
 import DataRefList from "../dataref/list";
 import classes from "./instance.module.css";
@@ -21,7 +21,7 @@ const InstanceDataRefsTab: FunctionComponent<InstanceDataRefTabProps> = memo(fun
 }) {
 
 	const dispatch = useAppDispatch();
-	const datafiles = useAppSelector((state: RootStateType) => getDataFilesSortedByName(state));
+	const datafiles = useAppSelector((state: RootStateType) => getDataFilesSortedByName(state, SortOrder.Asc));
 
 	const onSetDataRef = useCallback((dataref: DataRefRecord, file: DataFileRecord) => {
 		dispatch(setInstanceDataRefValueOnRemote(instance, dataref, file));

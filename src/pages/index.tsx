@@ -17,10 +17,11 @@ import {
 import SetsDrawer from "../components/sets";
 import { destroySetPresetOnRemote, loadSetPresetOnRemote, saveSetPresetToRemote, renameSetPresetOnRemote, toggleShowGraphSets } from "../actions/sets";
 import { PresetRecord } from "../models/preset";
-import { getGraphSetPrsetsSortedByName } from "../selectors/sets";
+import { getGraphSetPresetsSortedByName } from "../selectors/sets";
 import { useDisclosure } from "@mantine/hooks";
 import PatcherDrawer from "../components/patchers";
 import { PatcherRecord } from "../models/patcher";
+import { SortOrder } from "../lib/constants";
 
 const Index: FunctionComponent<Record<string, never>> = () => {
 
@@ -31,10 +32,10 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 		connections,
 		presets
 	] = useAppSelector((state: RootStateType) => [
-		getPatchersSortedByName(state),
+		getPatchersSortedByName(state, SortOrder.Asc),
 		getNodes(state),
 		getConnections(state),
-		getGraphSetPrsetsSortedByName(state)
+		getGraphSetPresetsSortedByName(state, SortOrder.Asc)
 	]);
 
 	const [patcherDrawerIsOpen, { close: closePatcherDrawer, toggle: togglePatcherDrawer }] = useDisclosure();
@@ -111,7 +112,7 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 					onEdgesDelete={ onEdgesDelete }
 				/>
 			</Stack>
-			<PatcherDrawer open={ patcherDrawerIsOpen } onClose={ closePatcherDrawer } patchers={ patchers.valueSeq() } onLoadPatcher={ onAddInstance } />
+			<PatcherDrawer open={ patcherDrawerIsOpen } onClose={ closePatcherDrawer } patchers={ patchers } onLoadPatcher={ onAddInstance } />
 			<SetsDrawer />
 			<PresetDrawer
 				open={ presetDrawerIsOpen }
