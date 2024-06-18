@@ -18,7 +18,7 @@ const AboutInfo: FunctionComponent = () => {
 				The code for this app is available on Github and <Anchor fz="inherit" href="https://github.com/Cycling74/rnbo-runner-panel/blob/main/LICENSE.txt" target="_blank" rel="noreferrer noopener" >MIT licensed</Anchor>.
 				<br/>
 				<br/>
-				<img src={ scheme === "light" ? "/c74-dark.svg" : "/c74-light.svg" } />
+				<img src={ scheme === "light" ? "/c74-dark.svg" : "/c74-light.svg" } alt="cycling logo"/>
 				<br/>
 				<br/>
 				2024 Cycling &apos;74
