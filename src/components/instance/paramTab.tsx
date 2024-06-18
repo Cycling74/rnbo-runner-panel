@@ -7,7 +7,7 @@ import classes from "./instance.module.css";
 import { useAppDispatch, useAppSelector } from "../../hooks/useAppDispatch";
 import { InstanceStateRecord } from "../../models/instance";
 import { setInstanceParameterValueNormalizedOnRemote } from "../../actions/instances";
-import { Seq } from "immutable";
+import { OrderedSet, Seq } from "immutable";
 import { RootStateType } from "../../lib/store";
 import { getParameterSortAttribute, getParameterSortOrder } from "../../selectors/instances";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -104,8 +104,8 @@ const parameterComparators: Record<ParameterSortAttr, Record<SortOrder, (a: Para
 	}
 };
 
-const getSortedParameterIds = (params: InstanceStateRecord["parameters"], attr: ParameterSortAttr, order: SortOrder): Seq.Indexed<string> => {
-	return params.valueSeq().sort(parameterComparators[attr][order]).map(p => p.id);
+const getSortedParameterIds = (params: InstanceStateRecord["parameters"], attr: ParameterSortAttr, order: SortOrder): OrderedSet<string> => {
+	return OrderedSet<string>(params.valueSeq().sort(parameterComparators[attr][order]).map(p => p.id));
 };
 
 export type InstanceParameterTabProps = {
@@ -123,7 +123,7 @@ const InstanceParameterTab: FunctionComponent<InstanceParameterTabProps> = memo(
 
 	const [searchValue, setSearchValue] = useState<string>("");
 
-	const [sortedParamIds, setSortedParamIds] = useState<Seq.Indexed<string>>(getSortedParameterIds(instance.parameters, sortAttr.value as ParameterSortAttr, sortOrder.value as SortOrder));
+	const [sortedParamIds, setSortedParamIds] = useState<OrderedSet<ParameterRecord["id"]>>(getSortedParameterIds(instance.parameters, sortAttr.value as ParameterSortAttr, sortOrder.value as SortOrder));
 
 	const dispatch = useAppDispatch();
 

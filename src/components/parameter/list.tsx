@@ -5,11 +5,11 @@ import { useElementSize, useViewportSize } from "@mantine/hooks";
 import { Breakpoints } from "../../lib/constants";
 import { clamp } from "../../lib/util";
 import { ParameterRecord } from "../../models/parameter";
-import { Seq } from "immutable";
+import { OrderedSet } from "immutable";
 
 export type ParameterListProps = {
 	onSetNormalizedValue: (parameter: ParameterRecord, nValue: number) => any;
-	parameters: Seq.Indexed<ParameterRecord>;
+	parameters: OrderedSet<ParameterRecord>;
 }
 
 
