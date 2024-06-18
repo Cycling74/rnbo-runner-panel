@@ -147,7 +147,7 @@ const InstanceParameterTab: FunctionComponent<InstanceParameterTabProps> = memo(
 		setSortedParamIds(getSortedParameterIds(instance.parameters, sortAttr.value as ParameterSortAttr, sortOrder.value as SortOrder));
 	}, [instance.id, sortAttr, sortOrder]);
 
-	let parameters = sortedParamIds.map(id => instance.parameters.get(id));
+	let parameters = sortedParamIds.map(id => instance.parameters.get(id)).filter(p => !!p);
 	if (searchValue?.length) parameters = parameters.filter(p => p.matchesQuery(searchValue));
 
 	return (
