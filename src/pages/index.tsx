@@ -16,6 +16,7 @@ import {
 } from "../actions/graph";
 import SetsDrawer from "../components/sets";
 import { destroySetPresetOnRemote, loadSetPresetOnRemote, saveSetPresetToRemote, renameSetPresetOnRemote, clearGraphSetOnRemote, destroyGraphSetOnRemote, loadGraphSetOnRemote, renameGraphSetOnRemote, saveGraphSetOnRemote } from "../actions/sets";
+import { destroyPatcherOnRemote, renamePatcherOnRemote } from "../actions/patchers";
 import { PresetRecord } from "../models/preset";
 import { getGraphSetPresetsSortedByName, getGraphSetsSortedByName } from "../selectors/sets";
 import { useDisclosure } from "@mantine/hooks";
@@ -113,6 +114,14 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 		dispatch(renameSetPresetOnRemote(preset, name));
 	}, [dispatch]);
 
+	const onDeletePatcher = useCallback((p: PatcherRecord) => {
+		dispatch(destroyPatcherOnRemote(p));
+	}, [dispatch]);
+
+	const onRenamePatcher = useCallback((p: PatcherRecord, name: string) => {
+		dispatch(renamePatcherOnRemote(p, name));
+	}, [dispatch]);
+
 	return (
 		<>
 			<Stack style={{ height: "100%" }} >
@@ -139,7 +148,14 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 					onEdgesDelete={ onEdgesDelete }
 				/>
 			</Stack>
-			<PatcherDrawer open={ patcherDrawerIsOpen } onClose={ closePatcherDrawer } patchers={ patchers } onLoadPatcher={ onAddInstance } />
+			<PatcherDrawer
+				open={ patcherDrawerIsOpen }
+				patchers={ patchers }
+				onClose={ closePatcherDrawer }
+				onLoadPatcher={ onAddInstance }
+				onRenamePatcher={ onRenamePatcher }
+				onDeletePatcher={ onDeletePatcher }
+			/>
 			<SetsDrawer
 				onClose={ closeSetDrawer }
 				onClearSet={ onClearSet }
