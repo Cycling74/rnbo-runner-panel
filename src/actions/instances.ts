@@ -3,7 +3,7 @@ import { ActionBase, AppThunk } from "../lib/store";
 import { OSCQueryRNBOInstance, OSCQueryRNBOInstancePresetEntries, OSCValue } from "../lib/types";
 import { InstanceStateRecord } from "../models/instance";
 import { getInstanceByIndex } from "../selectors/instances";
-import { getAppSettingValue } from "../selectors/settings";
+import { getAppSetting } from "../selectors/settings";
 import { ParameterRecord } from "../models/parameter";
 import { OSCArgument, writePacket } from "osc";
 import { showNotification } from "./notifications";
@@ -333,7 +333,7 @@ export const updateInstanceMessageOutputValue = (index: number, name: string, va
 			const state = getState();
 
 			// Debug enabled?!
-			const enabled = getAppSettingValue<boolean>(state, AppSetting.debugMessageOutput);
+			const enabled = getAppSetting(state, AppSetting.debugMessageOutput)?.value || false;
 			if (!enabled) return;
 
 			// Active Instance view?!

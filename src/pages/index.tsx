@@ -15,13 +15,14 @@ import {
 	loadPatcherNodeOnRemote
 } from "../actions/graph";
 import SetsDrawer from "../components/sets";
-import { destroySetPresetOnRemote, loadSetPresetOnRemote, saveSetPresetToRemote, renameSetPresetOnRemote, toggleShowGraphSets } from "../actions/sets";
+import { destroySetPresetOnRemote, loadSetPresetOnRemote, saveSetPresetToRemote, renameSetPresetOnRemote, clearGraphSetOnRemote, destroyGraphSetOnRemote, loadGraphSetOnRemote, renameGraphSetOnRemote, saveGraphSetOnRemote } from "../actions/sets";
 import { PresetRecord } from "../models/preset";
-import { getGraphSetPresetsSortedByName } from "../selectors/sets";
+import { getGraphSetPresetsSortedByName, getGraphSetsSortedByName } from "../selectors/sets";
 import { useDisclosure } from "@mantine/hooks";
 import PatcherDrawer from "../components/patchers";
 import { PatcherRecord } from "../models/patcher";
 import { SortOrder } from "../lib/constants";
+import { GraphSetRecord } from "../models/set";
 
 const Index: FunctionComponent<Record<string, never>> = () => {
 
@@ -30,22 +31,27 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 		patchers,
 		nodes,
 		connections,
-		presets
+		graphSets,
+		graphPresets
 	] = useAppSelector((state: RootStateType) => [
 		getPatchersSortedByName(state, SortOrder.Asc),
 		getNodes(state),
 		getConnections(state),
+		getGraphSetsSortedByName(state, SortOrder.Asc),
 		getGraphSetPresetsSortedByName(state, SortOrder.Asc)
 	]);
 
 	const [patcherDrawerIsOpen, { close: closePatcherDrawer, toggle: togglePatcherDrawer }] = useDisclosure();
+	const [setDrawerIsOpen,  { close: closeSetDrawer, toggle: toggleSetDrawer }] = useDisclosure();
 	const [presetDrawerIsOpen, { close: closePresetDrawer, toggle: togglePresetDrawer }] = useDisclosure();
 
+	// Instances
 	const onAddInstance = useCallback((patcher: PatcherRecord) => {
 		dispatch(loadPatcherNodeOnRemote(patcher));
 		closePatcherDrawer();
 	}, [dispatch, closePatcherDrawer]);
 
+	// Nodes
 	const onConnectNodes = useCallback((connection: Connection) => {
 		dispatch(createEditorConnection(connection));
 	}, [dispatch]);
@@ -58,6 +64,7 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 		dispatch(removeEditorNodesById(nodes.map(n => n.id)));
 	}, [dispatch]);
 
+	// Edges
 	const onEdgesChange = useCallback((changes: EdgeChange[]) => {
 		dispatch(applyEditorEdgeChanges(changes));
 	}, [dispatch]);
@@ -66,10 +73,30 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 		dispatch(removeEditorConnectionsById(edges.map(e => e.id)));
 	}, [dispatch]);
 
-	const onToggleSetsDrawer = useCallback(() => {
-		dispatch(toggleShowGraphSets());
+	// Sets
+	const onClearSet = useCallback(() => {
+		dispatch(clearGraphSetOnRemote());
+		closeSetDrawer();
+	}, [dispatch, closeSetDrawer]);
+
+	const onDeleteSet = useCallback((set: GraphSetRecord) => {
+		dispatch(destroyGraphSetOnRemote(set));
 	}, [dispatch]);
 
+	const onLoadSet = useCallback((set: GraphSetRecord) => {
+		dispatch(loadGraphSetOnRemote(set));
+		closeSetDrawer();
+	}, [dispatch]);
+
+	const onRenameSet = useCallback((set: GraphSetRecord, name: string) => {
+		dispatch(renameGraphSetOnRemote(set, name));
+	}, [dispatch]);
+
+	const onSaveSet = useCallback((name: string) => {
+		dispatch(saveGraphSetOnRemote(name));
+	}, [dispatch]);
+
+	// Presets
 	const onLoadPreset = useCallback((preset: PresetRecord) => {
 		dispatch(loadSetPresetOnRemote(preset));
 	}, [dispatch]);
@@ -94,7 +121,7 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 						Add Patcher Instance
 					</Button>
 					<Group style={{ flex: "0" }} wrap="nowrap" gap="xs" >
-						<Button variant="default" leftSection={ <FontAwesomeIcon icon={ faObjectGroup } /> } onClick={ onToggleSetsDrawer } >
+						<Button variant="default" leftSection={ <FontAwesomeIcon icon={ faObjectGroup } /> } onClick={ toggleSetDrawer } >
 							Sets
 						</Button>
 						<Button variant="default" leftSection={ <FontAwesomeIcon icon={ faCamera } /> } onClick={ togglePresetDrawer } >
@@ -113,7 +140,16 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 				/>
 			</Stack>
 			<PatcherDrawer open={ patcherDrawerIsOpen } onClose={ closePatcherDrawer } patchers={ patchers } onLoadPatcher={ onAddInstance } />
-			<SetsDrawer />
+			<SetsDrawer
+				onClose={ closeSetDrawer }
+				onClearSet={ onClearSet }
+				onDeleteSet={ onDeleteSet }
+				onLoadSet={ onLoadSet }
+				onRenameSet={ onRenameSet }
+				onSaveSet={ onSaveSet }
+				open={ setDrawerIsOpen }
+				sets={ graphSets }
+			/>
 			<PresetDrawer
 				open={ presetDrawerIsOpen }
 				onClose={ closePresetDrawer }
@@ -121,7 +157,7 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 				onLoadPreset={ onLoadPreset }
 				onSavePreset={ onSavePreset }
 				onRenamePreset={ onRenamePreset }
-				presets={ presets }
+				presets={ graphPresets }
 			/>
 		</>
 	);

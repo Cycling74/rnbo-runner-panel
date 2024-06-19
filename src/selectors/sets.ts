@@ -9,9 +9,15 @@ export const getGraphSets = (state: RootStateType): ImmuMap<GraphSetRecord["id"]
 	return state.sets.sets;
 };
 
-export const getGraphSet = (state: RootStateType, name: string): GraphSetRecord | undefined => {
-	return state.sets.sets.get(name);
-};
+export const getGraphSet = createSelector(
+	[
+		getGraphSets,
+		(state: RootStateType, name: string): string => name
+	],
+	(sets, name): GraphSetRecord | undefined => {
+		return sets.get(name);
+	}
+);
 
 const collator = new Intl.Collator("en-US");
 
@@ -30,6 +36,16 @@ export const getGraphSetsSortedByName = createSelector(
 export const getGraphPresets = (state: RootStateType): ImmuMap<string, PresetRecord> => {
 	return state.sets.presets;
 };
+
+export const getGraphPreset = createSelector(
+	[
+		getGraphPresets,
+		(state: RootStateType, id: string): string => id
+	],
+	(presets, id): PresetRecord | undefined => {
+		return presets.get(id);
+	}
+);
 
 // sort initial first
 export const getGraphSetPresetsSortedByName = createSelector(
@@ -53,5 +69,3 @@ export const getGraphSetPresetsSortedByName = createSelector(
 		});
 	}
 );
-
-export const getShowGraphSetsDrawer = (state: RootStateType): boolean => state.sets.show;

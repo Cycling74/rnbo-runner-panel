@@ -8,7 +8,16 @@ export const getDataFiles = (state: RootStateType): ImmuMap<DataFileRecord["id"]
 	return state.datafiles.files;
 };
 
-export const getDataFile = (state: RootStateType, id: string): DataFileRecord | undefined => state.datafiles.files.get(id) || undefined;
+export const getDataFile = createSelector(
+	[
+		getDataFiles,
+		(state: RootStateType, id: string): string => id
+
+	],
+	(files, id): DataFileRecord | undefined => {
+		return files.get(id) || undefined;
+	}
+);
 
 const collator = new Intl.Collator("en-US");
 

@@ -10,6 +10,9 @@ import InstanceMIDITab from "./midiTab";
 import InstanceDataRefsTab from "./datarefTab";
 import { useIsMobileDevice } from "../../hooks/useIsMobileDevice";
 import { InstanceStateRecord } from "../../models/instance";
+import { AppSettingRecord } from "../../models/settings";
+import { DataFileRecord } from "../../models/datafile";
+import { Seq } from "immutable";
 
 const tabs = [
 	{ icon: faSliders, value: InstanceTab.Parameters, label: "Parameters" },
@@ -20,14 +23,20 @@ const tabs = [
 
 export type InstanceProps = {
 	instance: InstanceStateRecord;
-	enabledMessageOuput: boolean;
-	enabledMIDIKeyboard: boolean;
+	datafiles: Seq.Indexed<DataFileRecord>
+	enabledMessageOuput: AppSettingRecord;
+	enabledMIDIKeyboard: AppSettingRecord;
+	paramSortOrder: AppSettingRecord;
+	paramSortAttr: AppSettingRecord;
 }
 
 const Instance: FunctionComponent<InstanceProps> = memo(function WrappedInstance({
 	instance,
+	datafiles,
 	enabledMessageOuput,
-	enabledMIDIKeyboard
+	enabledMIDIKeyboard,
+	paramSortOrder,
+	paramSortAttr
 }) {
 
 	const [activeTab, setActiveTab] = useState<InstanceTab>(InstanceTab.Parameters);
@@ -56,10 +65,10 @@ const Instance: FunctionComponent<InstanceProps> = memo(function WrappedInstance
 				}
 			</Tabs.List>
 			<div className={ classes.instanceTabContentWrap } >
-				<InstanceParameterTab instance={ instance } />
-				<InstanceMessagesTab instance={ instance } outputEnabled={ enabledMessageOuput } />
-				<InstanceDataRefsTab instance={ instance } />
-				<InstanceMIDITab instance={ instance } keyboardEnabled={ enabledMIDIKeyboard } />
+				<InstanceParameterTab instance={ instance } sortAttr={ paramSortAttr } sortOrder={ paramSortOrder } />
+				<InstanceMessagesTab instance={ instance } outputEnabled={ enabledMessageOuput.value as boolean } />
+				<InstanceDataRefsTab instance={ instance } datafiles={ datafiles } />
+				<InstanceMIDITab instance={ instance } keyboardEnabled={ enabledMIDIKeyboard.value as boolean } />
 			</div>
 		</Tabs>
 	);

@@ -8,6 +8,16 @@ export const getPatchers = (state: RootStateType): ImmuMap<PatcherRecord["id"], 
 	return state.patchers.patchers;
 };
 
+export const getPatcher = createSelector(
+	[
+		getPatchers,
+		(state: RootStateType, name: string): string => name
+	],
+	(patchers, name): PatcherRecord | undefined => {
+		return patchers.get(name);
+	}
+);
+
 const collator = new Intl.Collator("en-US");
 export const getPatchersSortedByName = createSelector(
 	[
@@ -20,7 +30,3 @@ export const getPatchersSortedByName = createSelector(
 		});
 	}
 );
-
-export const getPatcher = (state: RootStateType, name: string): PatcherRecord | undefined => {
-	return state.patchers.patchers.get(name);
-};

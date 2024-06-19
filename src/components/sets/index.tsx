@@ -1,8 +1,5 @@
 import { Button, Divider, Drawer, Flex, Group, Stack, Text } from "@mantine/core";
 import { FunctionComponent, MouseEvent, memo, useCallback } from "react";
-import { useAppDispatch, useAppSelector } from "../../hooks/useAppDispatch";
-import { getGraphSetsSortedByName, getShowGraphSetsDrawer } from "../../selectors/sets";
-import { destroyGraphSetOnRemote, hideGraphSets, loadGraphSetOnRemote, renameGraphSetOnRemote, saveGraphSetOnRemote, clearGraphSetOnRemote } from "../../actions/sets";
 import { GraphSetItem } from "./item";
 import { SaveGraphSetForm } from "./save";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -11,34 +8,33 @@ import { DrawerSectionTitle } from "../page/drawer";
 import { GraphSetRecord } from "../../models/set";
 import { modals } from "@mantine/modals";
 import classes from "./sets.module.css";
-import { SortOrder } from "../../lib/constants";
+import { Seq } from "immutable";
 
-const SetsDrawer: FunctionComponent = memo(function WrappedSetsDrawer() {
+export type SetsDrawerProps = {
+	onClose: () => any;
+	onClearSet: () => any;
+	onDeleteSet: (set: GraphSetRecord) => any;
+	onLoadSet: (set: GraphSetRecord) => any;
+	onRenameSet: (set: GraphSetRecord, name: string) => any;
+	onSaveSet: (name: string) => any;
+	open: boolean;
+	sets: Seq.Indexed<GraphSetRecord>;
+}
 
-	const dispatch = useAppDispatch();
-	const [
-		open,
-		sets
-	] = useAppSelector(state => [
-		getShowGraphSetsDrawer(state),
-		getGraphSetsSortedByName(state, SortOrder.Asc)
-	]);
+const SetsDrawer: FunctionComponent<SetsDrawerProps> = memo(function WrappedSetsDrawer({
+	onClose,
+	open,
+	sets,
 
-	const onCloseDrawer = useCallback(() => dispatch(hideGraphSets()), [dispatch]);
-	const onSaveSet = useCallback((name: string) => {
-		dispatch(saveGraphSetOnRemote(name));
-	}, [dispatch]);
+	onClearSet,
+	onDeleteSet,
+	onLoadSet,
+	onRenameSet,
+	onSaveSet
 
-	const onRenameSet = useCallback((set: GraphSetRecord, name: string) => {
-		dispatch(renameGraphSetOnRemote(set, name));
-	}, [dispatch]);
+}) {
 
-	const onLoadSet = useCallback((set: GraphSetRecord) => {
-		dispatch(loadGraphSetOnRemote(set));
-		dispatch(hideGraphSets());
-	}, [dispatch]);
-
-	const onDeleteSet = useCallback((set: GraphSetRecord) => {
+	const onTriggerDeleteSet = useCallback((set: GraphSetRecord) => {
 		modals.openConfirmModal({
 			title: "Delete Set",
 			centered: true,
@@ -49,11 +45,11 @@ const SetsDrawer: FunctionComponent = memo(function WrappedSetsDrawer() {
 			),
 			labels: { confirm: "Delete", cancel: "Cancel" },
 			confirmProps: { color: "red" },
-			onConfirm: () => dispatch(destroyGraphSetOnRemote(set))
+			onConfirm: () => onDeleteSet(set)
 		});
-	}, [dispatch]);
+	}, [onDeleteSet]);
 
-	const onClearSet = useCallback((_e: MouseEvent<HTMLButtonElement>) => {
+	const onTriggerClearSet = useCallback((_e: MouseEvent<HTMLButtonElement>) => {
 		modals.openConfirmModal({
 			title: "Clear Set",
 			centered: true,
@@ -64,15 +60,12 @@ const SetsDrawer: FunctionComponent = memo(function WrappedSetsDrawer() {
 			),
 			labels: { confirm: "Ok", cancel: "Cancel" },
 			confirmProps: { color: "red" },
-			onConfirm: () => {
-				dispatch(clearGraphSetOnRemote());
-				dispatch(hideGraphSets());
-			}
+			onConfirm: () => onClearSet()
 		});
-	}, [dispatch]);
+	}, [onClearSet]);
 
 	return (
-		<Drawer.Root opened={ open } onClose={ onCloseDrawer } position="right">
+		<Drawer.Root opened={ open } onClose={ onClose } position="right">
 			<Drawer.Overlay />
 			<Drawer.Content>
 				<Flex direction="column" style={{ height: "100%" }}>
@@ -93,12 +86,12 @@ const SetsDrawer: FunctionComponent = memo(function WrappedSetsDrawer() {
 								<DrawerSectionTitle>Saved Sets</DrawerSectionTitle>
 								<Stack gap="sm" >
 									{
-										sets.map(set => <GraphSetItem key={ set.id } set={ set } onRename={ onRenameSet } onLoad={ onLoadSet } onDelete={ onDeleteSet }/> )
+										sets.map(set => <GraphSetItem key={ set.id } set={ set } onRename={ onRenameSet } onLoad={ onLoadSet } onDelete={ onTriggerDeleteSet }/> )
 									}
 								</Stack>
 							</Flex>
 							<Divider />
-							<Button variant="outline" fullWidth={true} leftSection={ <FontAwesomeIcon icon={ faEraser } /> } onClick={ onClearSet } color="red" >
+							<Button variant="outline" fullWidth={true} leftSection={ <FontAwesomeIcon icon={ faEraser } /> } onClick={ onTriggerClearSet } color="red" >
 								Clear Set
 							</Button>
 						</Flex>

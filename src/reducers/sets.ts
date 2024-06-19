@@ -4,7 +4,6 @@ import { PresetRecord } from "../models/preset";
 import { GraphSetAction, GraphSetActionType } from "../actions/sets";
 
 export type SetState = {
-	show: boolean;
 	sets: ImmuMap<GraphSetRecord["id"], GraphSetRecord>;
 	latest: string;
 	presets: ImmuMap<PresetRecord["id"], PresetRecord>;
@@ -12,7 +11,6 @@ export type SetState = {
 };
 
 export const sets = (state: SetState = {
-	show: false,
 	sets: ImmuMap<GraphSetRecord["id"], GraphSetRecord>(),
 	latest: "",
 	presets: ImmuMap<GraphSetRecord["id"], PresetRecord>(),
@@ -27,14 +25,6 @@ export const sets = (state: SetState = {
 			return {
 				...state,
 				sets: ImmuMap<GraphSetRecord["id"], GraphSetRecord>(sets.map(p => [p.id, p.setLatest(p.name === state.latest)]))
-			};
-		}
-
-		case GraphSetActionType.SET_SHOW_GRAPH_SETS: {
-			const { show } = action.payload;
-			return {
-				...state,
-				show
 			};
 		}
 

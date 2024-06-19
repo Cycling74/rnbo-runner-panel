@@ -11,8 +11,7 @@ import { useRouter } from "next/router";
 
 const EditorPatcherNode: FunctionComponent<EditorNodeProps> = memo(function WrappedGraphPatcherNode({
 	data: {
-		node,
-		contentHeight
+		node
 	},
 	selected
 }) {
@@ -39,7 +38,7 @@ const EditorPatcherNode: FunctionComponent<EditorNodeProps> = memo(function Wrap
 					</ActionIcon>
 				</div>
 			</div>
-			<div className={ classes.nodeContent } style={{ height: `${contentHeight}px` }} >
+			<div className={ classes.nodeContent } style={{ height: `${node.contentHeight}px` }} >
 				{
 					sinks.map((port, i) => <EditorPort key={ port.id } port={ port } offset={ calcPortOffset(sinks.length, i)}/>)
 				}

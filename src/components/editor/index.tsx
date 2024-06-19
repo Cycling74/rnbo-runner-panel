@@ -75,7 +75,6 @@ const GraphEditor: FunctionComponent<GraphEditorProps> = memo(function WrappedFl
 		selected: node.selected,
 		type: node?.type,
 		data: {
-			contentHeight: node.contentHeight,
 			node
 		}
 	}));

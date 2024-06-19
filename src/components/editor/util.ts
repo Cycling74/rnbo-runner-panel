@@ -3,7 +3,6 @@ import { GraphConnectionRecord, GraphNodeRecord } from "../../models/graph";
 
 export type NodeDataProps = {
 	node: GraphNodeRecord;
-	contentHeight: GraphNodeRecord["contentHeight"];
 };
 
 export type EdgeDataProps = {
