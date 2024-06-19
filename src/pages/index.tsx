@@ -87,7 +87,7 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 	const onLoadSet = useCallback((set: GraphSetRecord) => {
 		dispatch(loadGraphSetOnRemote(set));
 		closeSetDrawer();
-	}, [dispatch]);
+	}, [dispatch, closeSetDrawer]);
 
 	const onRenameSet = useCallback((set: GraphSetRecord, name: string) => {
 		dispatch(renameGraphSetOnRemote(set, name));
