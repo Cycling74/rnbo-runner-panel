@@ -9,7 +9,7 @@ import { InstanceStateRecord } from "../../models/instance";
 import { setInstanceParameterValueNormalizedOnRemote } from "../../actions/instances";
 import { OrderedSet as ImmuOrderedSet } from "immutable";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArrowDownAZ, faArrowUpAZ, faCircleInfo, faSearch, faSort, faXmark } from "@fortawesome/free-solid-svg-icons";
+import { faArrowDownAZ, faArrowUpAZ, faSearch, faSort, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { setAppSetting } from "../../actions/settings";
 import { AppSetting, AppSettingRecord } from "../../models/settings";
 import { useDebouncedCallback, useDisclosure } from "@mantine/hooks";
