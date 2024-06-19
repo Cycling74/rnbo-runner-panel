@@ -266,6 +266,17 @@ export const setInstanceDataRefValueOnRemote = throttle((instance: InstanceState
 		oscQueryBridge.sendPacket(writePacket(message));
 	}, 100);
 
+export const setInstanceParameterMetaOnRemote = (instance: InstanceStateRecord, param: ParameterRecord, value: string): AppThunk =>
+	() => {
+		const message = {
+			address: `${param.path}/meta`,
+			args: [
+				{ type: "s", value }
+			]
+		};
+
+		oscQueryBridge.sendPacket(writePacket(message));
+	};
 
 // Updates in response to remote OSCQuery Updates
 export const updateInstancePresetEntries = (index: number, entries: OSCQueryRNBOInstancePresetEntries): AppThunk =>
@@ -404,6 +415,19 @@ export const updateInstanceParameterValueNormalized = (index: number, id: Parame
 			if (!instance) return;
 
 			dispatch(setInstance(instance.setParameterNormalizedValue(id, value)));
+		} catch (e) {
+			console.log(e);
+		}
+	};
+
+export const updateInstanceParameterMeta = (index: number, id: ParameterRecord["id"], value: string): AppThunk =>
+	(dispatch, getState) => {
+		try {
+			const state = getState();
+			const instance = getInstanceByIndex(state, index);
+			if (!instance) return;
+
+			dispatch(setInstance(instance.setParameterMeta(id, value)));
 		} catch (e) {
 			console.log(e);
 		}

@@ -12,7 +12,7 @@ import { initSets, setGraphSetLatest, initSetPresets, setGraphSetPresetLatest } 
 import { initDataFiles } from "../actions/datafiles";
 import { sleep } from "../lib/util";
 import { getPatcherNodeByIndex } from "../selectors/graph";
-import { updateInstanceDataRefValue, updateInstanceMessageOutputValue, updateInstanceMessages, updateInstanceParameterValue, updateInstanceParameterValueNormalized, updateInstanceParameters, updateInstancePresetEntries, updateInstancePresetLatest, updateInstancePresetInitial } from "../actions/instances";
+import { updateInstanceDataRefValue, updateInstanceMessageOutputValue, updateInstanceMessages, updateInstanceParameterValue, updateInstanceParameterValueNormalized, updateInstanceParameters, updateInstancePresetEntries, updateInstancePresetLatest, updateInstancePresetInitial, updateInstanceParameterMeta } from "../actions/instances";
 import { ConnectionType, PortDirection } from "../models/graph";
 import { showNotification } from "../actions/notifications";
 import { NotificationLevel } from "../models/notification";
@@ -354,7 +354,8 @@ export class OSCQueryBridgeControllerPrivate {
 			return void dispatch(updateInstancePresetEntries(index, presetInfo.CONTENTS.entries));
 		} else if (
 			instInfoMatch.groups.content === "params" &&
-			!instInfoMatch.groups.rest.endsWith("/normalized")
+			!instInfoMatch.groups.rest.endsWith("/normalized") &&
+			!instInfoMatch.groups.rest.endsWith("/meta")
 		) {
 			// Add Parameter
 			const paramInfo = await this._requestState< OSCQueryRNBOInstance["CONTENTS"]["params"]>(`/rnbo/inst/${index}/params`);
@@ -570,16 +571,26 @@ export class OSCQueryBridgeControllerPrivate {
 		if (isNaN(index)) return;
 
 		// Parameter Changes
-		if (packetMatch.groups.content === "params") {
-			const isNormalized = packetMatch.groups.rest.endsWith("/normalized");
-			const name = isNormalized ? packetMatch.groups.rest.split("/").slice(0, -1).join("/") : packetMatch.groups.rest;
+		if (
+			packetMatch.groups.content === "params" && packetMatch.groups.rest.endsWith("/normalized")
+		) {
+			// Normalized Value Update
+			const name = packetMatch.groups.rest.split("/").slice(0, -1).join("/");
 			if (!name || !packet.args.length || typeof packet.args[0] !== "number") return;
-
-			isNormalized
-				? dispatch(updateInstanceParameterValueNormalized(index, name, packet.args[0]))
-				: dispatch(updateInstanceParameterValue(index, name, packet.args[0]));
-
-			return;
+			return void dispatch(updateInstanceParameterValueNormalized(index, name, packet.args[0]));
+		} else if (
+			packetMatch.groups.content === "params" && packetMatch.groups.rest.endsWith("/meta")
+		) {
+			// Meta Update
+			const name = packetMatch.groups.rest.split("/").slice(0, -1).join("/");
+			return void dispatch(updateInstanceParameterMeta(index, name, packet.args[0] as unknown as string));
+		} else if (
+			packetMatch.groups.content === "params"
+		) {
+			// Value Update
+			const name = packetMatch.groups.rest;
+			if (!name || !packet.args.length || typeof packet.args[0] !== "number") return;
+			return void dispatch(updateInstanceParameterValue(index, name, packet.args[0]));
 		}
 
 		// Preset changes

@@ -68,6 +68,12 @@ export class InstanceStateRecord extends ImmuRecord<InstanceStateProps>({
 		return this.set("parameters", this.parameters.set(param.id, param.setNormalizedValue(value)));
 	}
 
+	public setParameterMeta(id: ParameterRecord["id"], value: string): InstanceStateRecord {
+		const param = this.parameters.get(id);
+		if (!param) return this;
+		return this.set("parameters", this.parameters.set(param.id, param.setMeta(value)));
+	}
+
 	public static presetsFromDescription(entries: OSCQueryRNBOInstancePresetEntries, latest: string, initial: string): ImmuMap<PresetRecord["id"], PresetRecord> {
 		return ImmuOrderedMap<PresetRecord["id"], PresetRecord>().withMutations((map) => {
 			for (const name of entries.VALUE) {

@@ -6,13 +6,14 @@ import { ParameterRecord } from "../../models/parameter";
 import classes from "./instance.module.css";
 import { useAppDispatch } from "../../hooks/useAppDispatch";
 import { InstanceStateRecord } from "../../models/instance";
-import { setInstanceParameterValueNormalizedOnRemote } from "../../actions/instances";
+import { setInstanceParameterMetaOnRemote, setInstanceParameterValueNormalizedOnRemote } from "../../actions/instances";
 import { OrderedSet as ImmuOrderedSet } from "immutable";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArrowDownAZ, faArrowUpAZ, faSearch, faSort, faXmark } from "@fortawesome/free-solid-svg-icons";
+import { faArrowDownAZ, faArrowUpAZ, faInfoCircle, faSearch, faSort, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { setAppSetting } from "../../actions/settings";
 import { AppSetting, AppSettingRecord } from "../../models/settings";
 import { useDebouncedCallback, useDisclosure } from "@mantine/hooks";
+import { ParamMetaEditorModal } from "../parameter/metaEditorModal";
 
 type ParameterSearchInputProps = {
 	onSearch: (query: string) => any;
@@ -119,6 +120,7 @@ const InstanceParameterTab: FunctionComponent<InstanceParameterTabProps> = memo(
 
 	const [searchValue, setSearchValue] = useState<string>("");
 	const [sortedParamIds, setSortedParamIds] = useState<ImmuOrderedSet<ParameterRecord["id"]>>(getSortedParameterIds(instance.parameters, sortAttr.value as ParameterSortAttr, sortOrder.value as SortOrder));
+	const [showMetaModal, { toggle: toggleMetaModal, close: closeMetaModal }] = useDisclosure();
 
 	const dispatch = useAppDispatch();
 
@@ -138,6 +140,10 @@ const InstanceParameterTab: FunctionComponent<InstanceParameterTabProps> = memo(
 		setSearchValue(query);
 	}, 150);
 
+	const onSaveParameterMeta = useCallback((param: ParameterRecord, metaValue: string) => {
+		dispatch(setInstanceParameterMetaOnRemote(instance, param, metaValue));
+	}, [dispatch, instance]);
+
 	useEffect(() => {
 		setSortedParamIds(getSortedParameterIds(instance.parameters, sortAttr.value as ParameterSortAttr, sortOrder.value as SortOrder));
 	}, [instance, sortAttr, sortOrder]);
@@ -148,37 +154,51 @@ const InstanceParameterTab: FunctionComponent<InstanceParameterTabProps> = memo(
 	return (
 		<Tabs.Panel value={ InstanceTab.Parameters } >
 			<Stack gap="md" h="100%">
-				<Group justify="flex-end" gap="xs">
-					<ParameterSearchInput onSearch={ onSearch } />
-					<Popover position="bottom-end" withArrow>
-						<Popover.Target>
-							<Button size="xs" variant="default" leftSection={ <FontAwesomeIcon icon={ faSort } /> } >
-								Sort
-							</Button>
-						</Popover.Target>
-						<Popover.Dropdown>
-							<Stack gap="sm">
-								<Select
-									size="xs"
-									label="Sort By"
-									name="sort_attribute"
-									onChange={ onChangeSortAttr }
-									data={ sortAttr.options }
-									value={ sortAttr.value as string }
-								/>
-								<div>
-									<Text size="xs">Sort Order</Text>
-									<SegmentedControl
+				{
+					showMetaModal ? (
+						<ParamMetaEditorModal
+							parameters={ parameters }
+							onClose={ closeMetaModal }
+							onSaveParameterMeta={ onSaveParameterMeta }
+						/>
+					) : null
+				}
+				<Group justify="space-between">
+					<Button leftSection={ <FontAwesomeIcon icon={ faInfoCircle } /> } onClick={ toggleMetaModal } disabled={ !parameters.size } size="xs" variant="default" >
+						Edit Meta
+					</Button>
+					<Group justify="flex-end" gap="xs">
+						<ParameterSearchInput onSearch={ onSearch } />
+						<Popover position="bottom-end" withArrow>
+							<Popover.Target>
+								<Button size="xs" variant="default" leftSection={ <FontAwesomeIcon icon={ faSort } /> } >
+									Sort
+								</Button>
+							</Popover.Target>
+							<Popover.Dropdown>
+								<Stack gap="sm">
+									<Select
 										size="xs"
-										fullWidth
-										onChange={ onChangeSortOrder }
-										data={ [{ label: <FontAwesomeIcon icon={ faArrowDownAZ } size="sm" />, value: SortOrder.Asc }, { label: <FontAwesomeIcon icon={ faArrowUpAZ } size="sm" />, value: SortOrder.Desc }] }
-										value={ sortOrder.value as string }
+										label="Sort By"
+										name="sort_attribute"
+										onChange={ onChangeSortAttr }
+										data={ sortAttr.options }
+										value={ sortAttr.value as string }
 									/>
-								</div>
-							</Stack>
-						</Popover.Dropdown>
-					</Popover>
+									<div>
+										<Text size="xs">Sort Order</Text>
+										<SegmentedControl
+											size="xs"
+											fullWidth
+											onChange={ onChangeSortOrder }
+											data={ [{ label: <FontAwesomeIcon icon={ faArrowDownAZ } size="sm" />, value: SortOrder.Asc }, { label: <FontAwesomeIcon icon={ faArrowUpAZ } size="sm" />, value: SortOrder.Desc }] }
+											value={ sortOrder.value as string }
+										/>
+									</div>
+								</Stack>
+							</Popover.Dropdown>
+						</Popover>
+					</Group>
 				</Group>
 				{
 					!instance.parameters.size ? (

@@ -6,6 +6,7 @@ export type ParameterRecordProps = {
 	index: number;
 	min: number;
 	max: number;
+	meta: string;
 	name: string;
 	normalizedValue: number;
 	path: string;
@@ -18,6 +19,7 @@ export class ParameterRecord extends ImmuRecord<ParameterRecordProps>({
 	index: 0,
 	min: 0,
 	max: 1,
+	meta: "",
 	name: "name",
 	normalizedValue: 0,
 	path: "",
@@ -35,6 +37,7 @@ export class ParameterRecord extends ImmuRecord<ParameterRecordProps>({
 				index: paramInfo.CONTENTS?.index?.VALUE || 0,
 				min: paramInfo.RANGE?.[0]?.MIN,
 				max: paramInfo.RANGE?.[0]?.MAX,
+				meta: paramInfo.CONTENTS?.meta.VALUE || "{}",
 				name,
 				normalizedValue: paramInfo.CONTENTS.normalized.VALUE,
 				path: paramInfo.FULL_PATH,
@@ -75,5 +78,9 @@ export class ParameterRecord extends ImmuRecord<ParameterRecordProps>({
 
 	public matchesQuery(query: string): boolean {
 		return this.name.toLowerCase().includes(query);
+	}
+
+	public setMeta(value: string): ParameterRecord {
+		return this.set("meta", value);
 	}
 }
