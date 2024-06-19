@@ -2,7 +2,6 @@ import { Alert, Drawer, Group, Stack, Text } from "@mantine/core";
 import { FunctionComponent, memo, useCallback } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faVectorSquare } from "@fortawesome/free-solid-svg-icons";
-import { DrawerSectionTitle } from "../page/drawer";
 import { Seq } from "immutable";
 import { PatcherRecord } from "../../models/patcher";
 import { PatcherItem } from "./item";

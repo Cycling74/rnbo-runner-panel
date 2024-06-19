@@ -1,5 +1,5 @@
 import { ChangeEvent, FormEvent, FunctionComponent, KeyboardEvent, MouseEvent, memo, useCallback, useEffect, useRef, useState } from "react";
-import { ActionIcon, Button, Group, Menu, Text, TextInput, Tooltip } from "@mantine/core";
+import { ActionIcon, Button, Group, Menu, TextInput, Tooltip } from "@mantine/core";
 import { PatcherRecord } from "../../models/patcher";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheck, faClose, faEllipsisVertical, faPen, faPlus, faTrash } from "@fortawesome/free-solid-svg-icons";
