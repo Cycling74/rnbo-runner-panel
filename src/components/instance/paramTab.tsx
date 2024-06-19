@@ -4,18 +4,15 @@ import { InstanceTab, ParameterSortAttr, SortOrder } from "../../lib/constants";
 import ParameterList from "../parameter/list";
 import { ParameterRecord } from "../../models/parameter";
 import classes from "./instance.module.css";
-import { useAppDispatch, useAppSelector } from "../../hooks/useAppDispatch";
+import { useAppDispatch } from "../../hooks/useAppDispatch";
 import { InstanceStateRecord } from "../../models/instance";
 import { setInstanceParameterValueNormalizedOnRemote } from "../../actions/instances";
 import { OrderedSet as ImmuOrderedSet } from "immutable";
-import { RootStateType } from "../../lib/store";
-import { getParameterSortAttribute, getParameterSortOrder } from "../../selectors/instances";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArrowDownAZ, faArrowUpAZ, faSearch, faSort, faXmark } from "@fortawesome/free-solid-svg-icons";
+import { faArrowDownAZ, faArrowUpAZ, faCircleInfo, faSearch, faSort, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { setAppSetting } from "../../actions/settings";
-import { AppSetting } from "../../models/settings";
+import { AppSetting, AppSettingRecord } from "../../models/settings";
 import { useDebouncedCallback, useDisclosure } from "@mantine/hooks";
-
 
 type ParameterSearchInputProps = {
 	onSearch: (query: string) => any;
@@ -110,19 +107,17 @@ const getSortedParameterIds = (params: InstanceStateRecord["parameters"], attr: 
 
 export type InstanceParameterTabProps = {
 	instance: InstanceStateRecord;
+	sortAttr: AppSettingRecord;
+	sortOrder: AppSettingRecord;
 }
 
 const InstanceParameterTab: FunctionComponent<InstanceParameterTabProps> = memo(function WrappedInstanceParameterTab({
-	instance
+	instance,
+	sortAttr,
+	sortOrder
 }) {
 
-	const [sortAttr, sortOrder] = useAppSelector((state: RootStateType) => [
-		getParameterSortAttribute(state),
-		getParameterSortOrder(state)
-	]);
-
 	const [searchValue, setSearchValue] = useState<string>("");
-
 	const [sortedParamIds, setSortedParamIds] = useState<ImmuOrderedSet<ParameterRecord["id"]>>(getSortedParameterIds(instance.parameters, sortAttr.value as ParameterSortAttr, sortOrder.value as SortOrder));
 
 	const dispatch = useAppDispatch();

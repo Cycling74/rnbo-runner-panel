@@ -1,27 +1,27 @@
 import { Tabs, Text } from "@mantine/core";
 import { FunctionComponent, memo, useCallback } from "react";
-import { InstanceTab, SortOrder } from "../../lib/constants";
-import { useAppDispatch, useAppSelector } from "../../hooks/useAppDispatch";
+import { InstanceTab } from "../../lib/constants";
+import { useAppDispatch } from "../../hooks/useAppDispatch";
 import DataRefList from "../dataref/list";
 import classes from "./instance.module.css";
 import { InstanceStateRecord } from "../../models/instance";
 import { setInstanceDataRefValueOnRemote } from "../../actions/instances";
 import { DataRefRecord } from "../../models/dataref";
 import { modals } from "@mantine/modals";
-import { getDataFilesSortedByName } from "../../selectors/datafiles";
-import { RootStateType } from "../../lib/store";
 import { DataFileRecord } from "../../models/datafile";
+import { Seq } from "immutable";
 
 export type InstanceDataRefTabProps = {
 	instance: InstanceStateRecord;
+	datafiles: Seq.Indexed<DataFileRecord>;
 }
 
 const InstanceDataRefsTab: FunctionComponent<InstanceDataRefTabProps> = memo(function WrappedInstanceDataRefsTab({
-	instance
+	instance,
+	datafiles
 }) {
 
 	const dispatch = useAppDispatch();
-	const datafiles = useAppSelector((state: RootStateType) => getDataFilesSortedByName(state, SortOrder.Asc));
 
 	const onSetDataRef = useCallback((dataref: DataRefRecord, file: DataFileRecord) => {
 		dispatch(setInstanceDataRefValueOnRemote(instance, dataref, file));

@@ -8,16 +8,17 @@ import classes from "../../components/instance/instance.module.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCamera, faDiagramProject, faTrash, faVectorSquare } from "@fortawesome/free-solid-svg-icons";
 import { getAppStatus } from "../../selectors/appStatus";
-import { AppStatus } from "../../lib/constants";
+import { AppStatus, SortOrder } from "../../lib/constants";
 import Link from "next/link";
 import { getInstanceByIndex, getInstances } from "../../selectors/instances";
 import { unloadPatcherNodeByIndexOnRemote } from "../../actions/graph";
-import { getAppSettingValue } from "../../selectors/settings";
+import { getAppSetting } from "../../selectors/settings";
 import { AppSetting } from "../../models/settings";
 import PresetDrawer from "../../components/presets";
 import { PresetRecord } from "../../models/preset";
 import { destroyPresetOnRemoteInstance, renamePresetOnRemoteInstance, setInitialPresetOnRemoteInstance, loadPresetOnRemoteInstance, savePresetToRemoteInstance } from "../../actions/instances";
 import { useDisclosure } from "@mantine/hooks";
+import { getDataFilesSortedByName } from "../../selectors/datafiles";
 
 export default function Instance() {
 
@@ -33,16 +34,22 @@ export default function Instance() {
 		currentInstance,
 		appStatus,
 		instances,
+		datafiles,
 		enabledMessageOuput,
-		enabledMIDIKeyboard
+		enabledMIDIKeyboard,
+		sortAttr,
+		sortOrder
 	] = useAppSelector((state: RootStateType) => {
 		const currentInstance = getInstanceByIndex(state, instanceIndex);
 		return [
 			currentInstance,
 			getAppStatus(state),
 			getInstances(state),
-			getAppSettingValue<boolean>(state, AppSetting.debugMessageOutput),
-			getAppSettingValue<boolean>(state, AppSetting.keyboardMIDIInput)
+			getDataFilesSortedByName(state, SortOrder.Asc),
+			getAppSetting(state, AppSetting.debugMessageOutput),
+			getAppSetting(state, AppSetting.keyboardMIDIInput),
+			getAppSetting(state, AppSetting.paramSortAttribute),
+			getAppSetting(state, AppSetting.paramSortOrder)
 		];
 	});
 
@@ -118,8 +125,11 @@ export default function Instance() {
 			</Group>
 			<InstanceComponent
 				instance={ currentInstance }
+				datafiles={ datafiles }
 				enabledMessageOuput={ enabledMessageOuput }
 				enabledMIDIKeyboard={ enabledMIDIKeyboard }
+				paramSortAttr={ sortAttr }
+				paramSortOrder={ sortOrder }
 			/>
 			<PresetDrawer
 				open={ presetDrawerIsOpen }

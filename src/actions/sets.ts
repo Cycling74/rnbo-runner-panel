@@ -3,7 +3,6 @@ import { oscQueryBridge } from "../controller/oscqueryBridgeController";
 import { ActionBase, AppThunk } from "../lib/store";
 import { GraphSetRecord } from "../models/set";
 import { PresetRecord } from "../models/preset";
-import { getShowGraphSetsDrawer } from "../selectors/sets";
 import { showNotification } from "./notifications";
 import { NotificationLevel } from "../models/notification";
 
@@ -12,7 +11,6 @@ export enum GraphSetActionType {
 	SET_SET_PRESET_LATEST = "SET_SET_PRESET_LATEST",
 	INIT_SET_PRESETS = "INIT_SET_PRESETS",
 	SET_SET_LATEST = "SET_PRESET_LATEST",
-	SET_SHOW_GRAPH_SETS = "SET_SHOW_GRAPH_SET"
 }
 
 export interface IInitGraphSets extends ActionBase {
@@ -29,13 +27,6 @@ export interface ISetGraphSetsLatest extends ActionBase {
 	}
 }
 
-export interface IShowGraphSets extends ActionBase {
-	type: GraphSetActionType.SET_SHOW_GRAPH_SETS;
-	payload: {
-		show: boolean;
-	};
-}
-
 export interface IInitGraphSetPresets extends ActionBase {
 	type: GraphSetActionType.INIT_SET_PRESETS;
 	payload: {
@@ -50,7 +41,7 @@ export interface ISetGraphSetPresetsLatest extends ActionBase {
 	}
 }
 
-export type GraphSetAction = IInitGraphSets | ISetGraphSetsLatest | IShowGraphSets | IInitGraphSetPresets | ISetGraphSetPresetsLatest;
+export type GraphSetAction = IInitGraphSets | ISetGraphSetsLatest | IInitGraphSetPresets | ISetGraphSetPresetsLatest;
 
 export const initSets = (names: string[]): GraphSetAction => {
 	return {
@@ -87,31 +78,6 @@ export const setGraphSetPresetLatest = (name: string): GraphSetAction => {
 		}
 	};
 };
-
-export const showGraphSets = (): GraphSetAction => {
-	return {
-		type: GraphSetActionType.SET_SHOW_GRAPH_SETS,
-		payload: {
-			show: true
-		}
-	};
-};
-
-export const hideGraphSets = (): GraphSetAction => {
-	return {
-		type: GraphSetActionType.SET_SHOW_GRAPH_SETS,
-		payload: {
-			show: false
-		}
-	};
-};
-
-export const toggleShowGraphSets = () : AppThunk =>
-	(dispatch, getState) => {
-		const state = getState();
-		const isShown = getShowGraphSetsDrawer(state);
-		dispatch({ type: GraphSetActionType.SET_SHOW_GRAPH_SETS, payload: { show: !isShown } });
-	};
 
 export const clearGraphSetOnRemote = (): AppThunk =>
 	(dispatch) => {
