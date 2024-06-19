@@ -46,7 +46,7 @@ export const Header: FunctionComponent<HeaderProps> = memo(function WrappedHeade
 			<Group className={ classes.headerWrapper } >
 				<Group>
 					<Burger opened={ navOpen } onClick={ onToggleNav } hiddenFrom="md" size="sm" />
-					<img src={ scheme === "light" ? "/c74-dark.svg" : "/c74-light.svg" } />
+					<img src={ scheme === "light" ? "/c74-dark.svg" : "/c74-light.svg" } alt="Cycling '74 Logo" />
 				</Group>
 				<Group justify="end" align="center" gap="md">
 					<Tooltip label="Transport Control" >

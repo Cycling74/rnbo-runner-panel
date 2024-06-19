@@ -7,7 +7,7 @@ import classes from "./instance.module.css";
 import { useAppDispatch, useAppSelector } from "../../hooks/useAppDispatch";
 import { InstanceStateRecord } from "../../models/instance";
 import { setInstanceParameterValueNormalizedOnRemote } from "../../actions/instances";
-import { OrderedSet, Seq } from "immutable";
+import { OrderedSet as ImmuOrderedSet } from "immutable";
 import { RootStateType } from "../../lib/store";
 import { getParameterSortAttribute, getParameterSortOrder } from "../../selectors/instances";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -104,8 +104,8 @@ const parameterComparators: Record<ParameterSortAttr, Record<SortOrder, (a: Para
 	}
 };
 
-const getSortedParameterIds = (params: InstanceStateRecord["parameters"], attr: ParameterSortAttr, order: SortOrder): OrderedSet<string> => {
-	return OrderedSet<string>(params.valueSeq().sort(parameterComparators[attr][order]).map(p => p.id));
+const getSortedParameterIds = (params: InstanceStateRecord["parameters"], attr: ParameterSortAttr, order: SortOrder): ImmuOrderedSet<string> => {
+	return ImmuOrderedSet<string>(params.valueSeq().sort(parameterComparators[attr][order]).map(p => p.id));
 };
 
 export type InstanceParameterTabProps = {
@@ -123,7 +123,7 @@ const InstanceParameterTab: FunctionComponent<InstanceParameterTabProps> = memo(
 
 	const [searchValue, setSearchValue] = useState<string>("");
 
-	const [sortedParamIds, setSortedParamIds] = useState<OrderedSet<ParameterRecord["id"]>>(getSortedParameterIds(instance.parameters, sortAttr.value as ParameterSortAttr, sortOrder.value as SortOrder));
+	const [sortedParamIds, setSortedParamIds] = useState<ImmuOrderedSet<ParameterRecord["id"]>>(getSortedParameterIds(instance.parameters, sortAttr.value as ParameterSortAttr, sortOrder.value as SortOrder));
 
 	const dispatch = useAppDispatch();
 
@@ -145,7 +145,7 @@ const InstanceParameterTab: FunctionComponent<InstanceParameterTabProps> = memo(
 
 	useEffect(() => {
 		setSortedParamIds(getSortedParameterIds(instance.parameters, sortAttr.value as ParameterSortAttr, sortOrder.value as SortOrder));
-	}, [instance.id, sortAttr, sortOrder]);
+	}, [instance, sortAttr, sortOrder]);
 
 	let parameters = sortedParamIds.map(id => instance.parameters.get(id)).filter(p => !!p);
 	if (searchValue?.length) parameters = parameters.filter(p => p.matchesQuery(searchValue));

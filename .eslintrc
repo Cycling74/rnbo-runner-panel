@@ -9,6 +9,7 @@
 		"@typescript-eslint/no-explicit-any": "off",
 		"no-shadow": "off",
     "@typescript-eslint/no-shadow": "off",
+		"@next/next/no-img-element": "off",
 		"new-cap": [
       "error", {
         "capIsNewExceptionPattern": "^Immu*"
