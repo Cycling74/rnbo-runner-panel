@@ -1,8 +1,8 @@
 import { ChangeEvent, FormEvent, FunctionComponent, KeyboardEvent, MouseEvent, memo, useCallback, useEffect, useRef, useState } from "react";
-import { ActionIcon, Button, Group, Menu, TextInput } from "@mantine/core";
+import { ActionIcon, Button, Group, Menu, Text, TextInput, Tooltip } from "@mantine/core";
 import { PatcherRecord } from "../../models/patcher";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCheck, faClose, faEllipsisVertical, faPen, faTrash } from "@fortawesome/free-solid-svg-icons";
+import { faCheck, faClose, faEllipsisVertical, faPen, faPlus, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { keyEventIsValidForName, replaceInvalidNameChars } from "../../lib/util";
 import classes from "./patchers.module.css";
 
@@ -82,7 +82,7 @@ export const PatcherItem: FunctionComponent<PatcherItemProps> = memo(function Wr
 
 	return isEditing ? (
 		<form onSubmit={ onRenamePatcher } >
-			<Group align="flex-start">
+			<Group align="center" justify="flex-start">
 				<TextInput
 					className={ classes.patcherItemNameInput }
 					onChange={ onChange }
@@ -105,18 +105,21 @@ export const PatcherItem: FunctionComponent<PatcherItemProps> = memo(function Wr
 		</form>
 	) : (
 		<Group gap="xs">
-			<Button
-				className={ classes.patcherItemButton }
-				justify="flex-start"
-				size="sm"
-				variant="default"
-				onClick={ onLoadPatcher }
-			>
-				{ patcher.name }
-			</Button>
+			<Tooltip label={ `Click to create a new instance of ${patcher.name}` } openDelay={ 500 } >
+				<Button
+					className={ classes.patcherItemButton }
+					justify="flex-start"
+					size="sm"
+					variant="default"
+					onClick={ onLoadPatcher }
+					leftSection={ <FontAwesomeIcon icon={ faPlus } /> }
+				>
+					{ patcher.name }
+				</Button>
+			</Tooltip>
 			<Menu position="bottom-end" >
 				<Menu.Target>
-					<ActionIcon variant="subtle" color="gray">
+					<ActionIcon variant="subtle" color="gray" size="md">
 						<FontAwesomeIcon icon={ faEllipsisVertical } />
 					</ActionIcon>
 				</Menu.Target>

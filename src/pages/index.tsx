@@ -4,7 +4,7 @@ import { useAppDispatch, useAppSelector } from "../hooks/useAppDispatch";
 import { RootStateType } from "../lib/store";
 import { getPatchersSortedByName } from "../selectors/patchers";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faObjectGroup, faPlus, faCamera } from "@fortawesome/free-solid-svg-icons";
+import { faObjectGroup, faCamera, faVectorSquare } from "@fortawesome/free-solid-svg-icons";
 import { getConnections, getNodes } from "../selectors/graph";
 import GraphEditor from "../components/editor";
 import PresetDrawer from "../components/presets";
@@ -126,8 +126,8 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 		<>
 			<Stack style={{ height: "100%" }} >
 				<Group justify="space-between" wrap="nowrap">
-					<Button variant="default" leftSection={ <FontAwesomeIcon icon={ faPlus } /> } onClick={ togglePatcherDrawer } >
-						Add Patcher Instance
+					<Button variant="default" leftSection={ <FontAwesomeIcon icon={ faVectorSquare } /> } onClick={ togglePatcherDrawer } >
+						Patchers
 					</Button>
 					<Group style={{ flex: "0" }} wrap="nowrap" gap="xs" >
 						<Button variant="default" leftSection={ <FontAwesomeIcon icon={ faObjectGroup } /> } onClick={ toggleSetDrawer } >

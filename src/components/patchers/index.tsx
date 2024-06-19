@@ -46,9 +46,8 @@ const PatcherDrawer: FunctionComponent<PatcherDrawerProps> = memo(function Wrapp
 			opened={ open }
 			onClose={ onClose }
 			position="left"
-			title={ <Group gap="xs"><FontAwesomeIcon icon={ faVectorSquare }/> Add Patcher Instance</Group> }
+			title={ <Group gap="xs"><FontAwesomeIcon icon={ faVectorSquare }/>Patchers</Group> }
 		>
-			<DrawerSectionTitle>Patchers</DrawerSectionTitle>
 			<Stack gap="sm">
 				{
 					patchers.size ? patchers.map(patcher => (
