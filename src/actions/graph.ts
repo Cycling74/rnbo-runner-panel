@@ -378,12 +378,8 @@ export const initNodes = (jackPortsInfo: OSCQueryRNBOJackPortInfo, instanceInfo:
 			const info = value as OSCQueryRNBOInstance;
 			let node = GraphPatcherNodeRecord.fromDescription(info);
 			const nodeMeta = meta.nodes[node.id];
-			if (nodeMeta) {
-				node = node.updatePosition(nodeMeta.position.x, nodeMeta.position.y);
-			} else {
-				const { x, y } = getPatcherOrControlNodeCoordinates(node, patcherAndControlNodes);
-				node = node.updatePosition(x, y);
-			}
+			const { x, y } = nodeMeta?.position || { x: 0, y: 0 };
+			node = node.updatePosition(x, y);
 
 			patcherAndControlNodes.push(node);
 			instances.push(InstanceStateRecord.fromDescription(info));
@@ -898,16 +894,13 @@ export const updateSourcePortConnections = (source: string, sinks: string[]): Ap
 	};
 
 export const addPatcherNode = (desc: OSCQueryRNBOInstance, metaString: string): AppThunk =>
-	(dispatch, getState) => {
-		const state = getState();
-		const existingNodes = getNodes(state).valueSeq().toArray();
-
+	(dispatch) => {
 		// Create Node
 		let node = GraphPatcherNodeRecord.fromDescription(desc);
 		const setMeta: OSCQuerySetMeta = deserializeSetMeta(metaString);
 		const nodeMeta: OSCQuerySetNodeMeta | undefined = setMeta?.nodes?.[node.id];
 
-		const { x, y } = nodeMeta?.position || getPatcherOrControlNodeCoordinates(node, existingNodes);
+		const { x, y } = nodeMeta?.position || { x: 0, y: 0 }; // default to 0, 0
 		node = node.updatePosition(x, y);
 
 		dispatch(setNode(node));
