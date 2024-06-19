@@ -7,8 +7,7 @@ import { Paper } from "@mantine/core";
 
 const EditorControlNode: FunctionComponent<EditorNodeProps> = memo(function WrappedGraphControlNode({
 	data: {
-		node,
-		contentHeight
+		node
 	},
 	selected
 }) {
@@ -22,7 +21,7 @@ const EditorControlNode: FunctionComponent<EditorNodeProps> = memo(function Wrap
 			<div className={ classes.nodeHeader } >
 				{ node.id }
 			</div>
-			<div className={ classes.nodeContent } style={{ height: `${contentHeight}px` }} >
+			<div className={ classes.nodeContent } style={{ height: `${node.contentHeight}px` }} >
 				{
 					sinks.map((port, i) => <EditorPort key={ port.id } port={ port } offset={ calcPortOffset(sinks.length, i)}/>)
 				}

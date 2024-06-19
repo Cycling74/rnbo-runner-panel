@@ -10,8 +10,7 @@ import { getPortAliasesForNode } from "../../selectors/graph";
 
 const EditorSystemNode: FunctionComponent<EditorNodeProps> = memo(function WrappedGraphPatcherNode({
 	data: {
-		node,
-		contentHeight
+		node
 	},
 	selected
 }) {
@@ -31,7 +30,7 @@ const EditorSystemNode: FunctionComponent<EditorNodeProps> = memo(function Wrapp
 			<div className={ classes.nodeHeader } >
 				{ node.jackName }
 			</div>
-			<div className={ classes.nodeContent } style={{ height: `${contentHeight}px`, minWidth: `${300 + Math.max(0, (longestAliasCharCount - 10) * 5)}px` }} >
+			<div className={ classes.nodeContent } style={{ height: `${node.contentHeight}px`, minWidth: `${300 + Math.max(0, (longestAliasCharCount - 10) * 5)}px` }} >
 				{
 					sinks.map((port, i) => <EditorPort key={ port.id }  port={ port } offset={ calcPortOffset(sinks.length, i) } alias={ aliases.get(port.portName) } />)
 				}
