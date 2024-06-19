@@ -4,7 +4,7 @@ import { useAppDispatch, useAppSelector } from "../hooks/useAppDispatch";
 import { RootStateType } from "../lib/store";
 import { getPatchersSortedByName } from "../selectors/patchers";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faObjectGroup, faPlus, faCamera } from "@fortawesome/free-solid-svg-icons";
+import { faObjectGroup, faCamera, faVectorSquare } from "@fortawesome/free-solid-svg-icons";
 import { getConnections, getNodes } from "../selectors/graph";
 import GraphEditor from "../components/editor";
 import PresetDrawer from "../components/presets";
@@ -16,6 +16,7 @@ import {
 } from "../actions/graph";
 import SetsDrawer from "../components/sets";
 import { destroySetPresetOnRemote, loadSetPresetOnRemote, saveSetPresetToRemote, renameSetPresetOnRemote, clearGraphSetOnRemote, destroyGraphSetOnRemote, loadGraphSetOnRemote, renameGraphSetOnRemote, saveGraphSetOnRemote } from "../actions/sets";
+import { destroyPatcherOnRemote, renamePatcherOnRemote } from "../actions/patchers";
 import { PresetRecord } from "../models/preset";
 import { getGraphSetPresetsSortedByName, getGraphSetsSortedByName } from "../selectors/sets";
 import { useDisclosure } from "@mantine/hooks";
@@ -86,7 +87,7 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 	const onLoadSet = useCallback((set: GraphSetRecord) => {
 		dispatch(loadGraphSetOnRemote(set));
 		closeSetDrawer();
-	}, [dispatch]);
+	}, [dispatch, closeSetDrawer]);
 
 	const onRenameSet = useCallback((set: GraphSetRecord, name: string) => {
 		dispatch(renameGraphSetOnRemote(set, name));
@@ -113,12 +114,20 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 		dispatch(renameSetPresetOnRemote(preset, name));
 	}, [dispatch]);
 
+	const onDeletePatcher = useCallback((p: PatcherRecord) => {
+		dispatch(destroyPatcherOnRemote(p));
+	}, [dispatch]);
+
+	const onRenamePatcher = useCallback((p: PatcherRecord, name: string) => {
+		dispatch(renamePatcherOnRemote(p, name));
+	}, [dispatch]);
+
 	return (
 		<>
 			<Stack style={{ height: "100%" }} >
 				<Group justify="space-between" wrap="nowrap">
-					<Button variant="default" leftSection={ <FontAwesomeIcon icon={ faPlus } /> } onClick={ togglePatcherDrawer } >
-						Add Patcher Instance
+					<Button variant="default" leftSection={ <FontAwesomeIcon icon={ faVectorSquare } /> } onClick={ togglePatcherDrawer } >
+						Patchers
 					</Button>
 					<Group style={{ flex: "0" }} wrap="nowrap" gap="xs" >
 						<Button variant="default" leftSection={ <FontAwesomeIcon icon={ faObjectGroup } /> } onClick={ toggleSetDrawer } >
@@ -139,7 +148,14 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 					onEdgesDelete={ onEdgesDelete }
 				/>
 			</Stack>
-			<PatcherDrawer open={ patcherDrawerIsOpen } onClose={ closePatcherDrawer } patchers={ patchers } onLoadPatcher={ onAddInstance } />
+			<PatcherDrawer
+				open={ patcherDrawerIsOpen }
+				patchers={ patchers }
+				onClose={ closePatcherDrawer }
+				onLoadPatcher={ onAddInstance }
+				onRenamePatcher={ onRenamePatcher }
+				onDeletePatcher={ onDeletePatcher }
+			/>
 			<SetsDrawer
 				onClose={ closeSetDrawer }
 				onClearSet={ onClearSet }
