@@ -278,6 +278,18 @@ export const setInstanceParameterMetaOnRemote = (instance: InstanceStateRecord, 
 		oscQueryBridge.sendPacket(writePacket(message));
 	};
 
+export const restoreDefaultParameterMetaOnRemote = (instance: InstanceStateRecord, param: ParameterRecord): AppThunk =>
+	() => {
+		const message = {
+			address: `${param.path}/meta`,
+			args: [
+				{ type: "s", value: "" }
+			]
+		};
+
+		oscQueryBridge.sendPacket(writePacket(message));
+	};
+
 // Updates in response to remote OSCQuery Updates
 export const updateInstancePresetEntries = (index: number, entries: OSCQueryRNBOInstancePresetEntries): AppThunk =>
 	(dispatch, getState) => {

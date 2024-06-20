@@ -9,12 +9,15 @@ import { OrderedSet } from "immutable";
 
 export type ParameterListProps = {
 	onSetNormalizedValue: (parameter: ParameterRecord, nValue: number) => any;
+	onSaveMetadata: (parameter: ParameterRecord, meta: string) => any;
+	onRestoreMetadata: (parameter: ParameterRecord) => any;
 	parameters: OrderedSet<ParameterRecord>;
 }
 
-
 const ParameterList: FunctionComponent<ParameterListProps> = memo(function WrappedParameterList({
 	onSetNormalizedValue,
+	onSaveMetadata,
+	onRestoreMetadata,
 	parameters
 }) {
 
@@ -35,7 +38,7 @@ const ParameterList: FunctionComponent<ParameterListProps> = memo(function Wrapp
 	return (
 		<div ref={ ref } className={ classes.parameterList } style={{ columnCount }} >
 			{
-				ref.current === null ? null : parameters.map(p => <ParameterItem key={p.id} param={p} onSetNormalizedValue={onSetNormalizedValue} />)
+				ref.current === null ? null : parameters.map(p => <ParameterItem key={p.id} param={p} onSetNormalizedValue={onSetNormalizedValue} onSaveMetadata={ onSaveMetadata } onRestoreMetadata={ onRestoreMetadata } />)
 			}
 		</div>
 	);

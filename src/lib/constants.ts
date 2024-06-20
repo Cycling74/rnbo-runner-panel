@@ -74,3 +74,9 @@ export enum RunnerCmdMethod {
 	WriteFile = "file_write",
 	WriteFileExtended = "file_write_extended"
 }
+
+export enum MetadataScope {
+	Parameter,
+	Inport,
+	Outport
+}
