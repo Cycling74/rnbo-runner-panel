@@ -26,11 +26,11 @@ const InstanceMessagesTab: FunctionComponent<InstanceMessageTabProps> = memo(fun
 		dispatch(sendInstanceMessageToRemote(instance, port.id, value));
 	}, [dispatch, instance]);
 
-	const onSaveOutportMetadata = useCallback((port: MessagePortRecord, meta: string) => {
+	const onSavePortMetadata = useCallback((port: MessagePortRecord, meta: string) => {
 		dispatch(setInstanceMessagePortMetaOnRemote(instance, port, meta));
 	}, [dispatch, instance]);
 
-	const onRestoreDefaultOutportMetadata = useCallback((port: MessagePortRecord) => {
+	const onRestoreDefaultPortMetadata = useCallback((port: MessagePortRecord) => {
 		dispatch(restoreDefaultMessagePortMetaOnRemote(instance, port));
 	}, [dispatch, instance]);
 
@@ -38,11 +38,17 @@ const InstanceMessagesTab: FunctionComponent<InstanceMessageTabProps> = memo(fun
 		<Tabs.Panel value={ InstanceTab.MessagePorts } >
 			<SectionTitle>Input Ports</SectionTitle>
 			{
-				instance.messageInports.size ? <MessageInportList inports={ instance.messageInports.valueSeq() } onSendMessage={ onSendInportMessage } /> : (
+				!instance.messageInports.size ? (
 					<div className={ classes.emptySection }>
 						This patcher instance has no message input ports.
 					</div>
-				)
+				) :
+				<MessageInportList
+					inports={ instance.messageInports.valueSeq() }
+					onSendMessage={ onSendInportMessage }
+					onRestoreMetadata={ onRestoreDefaultPortMetadata }
+					onSaveMetadata={ onSavePortMetadata }
+				/>
 			}
 			<SectionTitle>Output Ports</SectionTitle>
 			{
@@ -54,8 +60,8 @@ const InstanceMessagesTab: FunctionComponent<InstanceMessageTabProps> = memo(fun
 				<MessageOutportList
 					outports={ instance.messageOutports.valueSeq() }
 					outputEnabled={ outputEnabled }
-					onRestoreMetadata={ onRestoreDefaultOutportMetadata }
-					onSaveMetadata={ onSaveOutportMetadata }
+					onRestoreMetadata={ onRestoreDefaultPortMetadata }
+					onSaveMetadata={ onSavePortMetadata }
 				/>
 			}
 		</Tabs.Panel>

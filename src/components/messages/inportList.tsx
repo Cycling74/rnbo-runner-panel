@@ -7,17 +7,27 @@ import { MessagePortRecord } from "../../models/messageport";
 export type MessageInportListProps = {
 	inports: Seq.Indexed<MessagePortRecord>;
 	onSendMessage: (port: MessagePortRecord, value: string) => any;
+	onRestoreMetadata: (param: MessagePortRecord) => any;
+	onSaveMetadata: (param: MessagePortRecord, meta: string) => any;
 }
 
 const MessageInportList: FunctionComponent<MessageInportListProps> = memo(function WrappedMessageInportList({
 	inports,
-	onSendMessage
+	onSendMessage,
+	onRestoreMetadata,
+	onSaveMetadata
 }) {
 
 	return (
 		<div className={ classes.portList }>
 			{
-				inports.map(port => <InportEntry key={port.id} port={ port } onSend={ onSendMessage } />)
+				inports.map(port => <InportEntry
+					key={port.id}
+					port={ port }
+					onSend={ onSendMessage }
+					onSaveMetadata={ onSaveMetadata }
+					onRestoreMetadata={ onRestoreMetadata }
+				/>)
 			}
 		</div>
 	);
