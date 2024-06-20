@@ -6,7 +6,7 @@ import { ParameterRecord } from "../../models/parameter";
 import classes from "./instance.module.css";
 import { useAppDispatch } from "../../hooks/useAppDispatch";
 import { InstanceStateRecord } from "../../models/instance";
-import { setInstanceParameterValueNormalizedOnRemote } from "../../actions/instances";
+import { restoreDefaultParameterMetaOnRemote, setInstanceParameterMetaOnRemote, setInstanceParameterValueNormalizedOnRemote } from "../../actions/instances";
 import { OrderedSet as ImmuOrderedSet } from "immutable";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowDownAZ, faArrowUpAZ, faSearch, faSort, faXmark } from "@fortawesome/free-solid-svg-icons";
@@ -134,6 +134,14 @@ const InstanceParameterTab: FunctionComponent<InstanceParameterTabProps> = memo(
 		dispatch(setInstanceParameterValueNormalizedOnRemote(instance, param, val));
 	}, [dispatch, instance]);
 
+	const onSaveParameterMetadata = useCallback((param: ParameterRecord, meta: string) => {
+		dispatch(setInstanceParameterMetaOnRemote(instance, param, meta));
+	}, [dispatch, instance]);
+
+	const onRestoreDefaultParameterMetadata = useCallback((param: ParameterRecord) => {
+		dispatch(restoreDefaultParameterMetaOnRemote(instance, param));
+	}, [dispatch, instance]);
+
 	const onSearch = useDebouncedCallback((query: string) => {
 		setSearchValue(query);
 	}, 150);
@@ -187,7 +195,7 @@ const InstanceParameterTab: FunctionComponent<InstanceParameterTabProps> = memo(
 						</div>
 					) : (
 						<div className={ classes.paramSectionWrap } >
-							<ParameterList parameters={ parameters } onSetNormalizedValue={ onSetNormalizedParamValue } />
+							<ParameterList parameters={ parameters } onSetNormalizedValue={ onSetNormalizedParamValue } onSaveMetadata={ onSaveParameterMetadata } onRestoreMetadata={ onRestoreDefaultParameterMetadata } />
 						</div>
 					)
 				}

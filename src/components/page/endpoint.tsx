@@ -152,13 +152,12 @@ const EndpointInfo: FunctionComponent = memo(function WrappedSettings() {
 							<Group justify="flex-end">
 								<Button.Group>
 									<Button
-										variant="light"
-										color="gray"
+										variant="default"
 										disabled={ !hasChanges }
 										onClick={ onReset }
 										leftSection={ <FontAwesomeIcon icon={ faXmark } /> }
 									>
-										Reset
+										Cancel
 									</Button>
 									<Button
 										type="submit"
