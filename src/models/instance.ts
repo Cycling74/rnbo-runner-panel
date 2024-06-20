@@ -3,7 +3,7 @@ import { ParameterRecord } from "./parameter";
 import { PresetRecord } from "./preset";
 import { DataRefRecord } from "./dataref";
 import { MessagePortRecord } from "./messageport";
-import { OSCQueryRNBOInstance, OSCQueryRNBOInstanceMessages, OSCQueryRNBOInstanceMessageInfo, OSCQueryRNBOInstancePresetEntries } from "../lib/types";
+import { OSCQueryRNBOInstance, OSCQueryRNBOInstanceMessages, OSCQueryRNBOInstanceMessageInfo, OSCQueryRNBOInstanceMessageValue, OSCQueryRNBOInstancePresetEntries } from "../lib/types";
 
 export type InstanceStateProps = {
 	index: number;
@@ -14,8 +14,8 @@ export type InstanceStateProps = {
 	presetInitial: string;
 	presetLatest: string;
 
-	messageInputs: ImmuMap<MessagePortRecord["id"], MessagePortRecord>;
-	messageOutputs: ImmuMap<MessagePortRecord["id"], MessagePortRecord>;
+	messageInports: ImmuMap<MessagePortRecord["id"], MessagePortRecord>;
+	messageOutports: ImmuMap<MessagePortRecord["id"], MessagePortRecord>;
 	parameters: ImmuMap<ParameterRecord["id"], ParameterRecord>;
 	presets: ImmuOrderedMap<PresetRecord["id"], PresetRecord>;
 	datarefs: ImmuOrderedMap<DataRefRecord["id"], DataRefRecord>;
@@ -32,8 +32,8 @@ export class InstanceStateRecord extends ImmuRecord<InstanceStateProps>({
 	presetInitial: "",
 	presetLatest: "",
 
-	messageInputs: ImmuMap<MessagePortRecord["id"], MessagePortRecord>(),
-	messageOutputs: ImmuMap<MessagePortRecord["id"], MessagePortRecord>(),
+	messageInports: ImmuMap<MessagePortRecord["id"], MessagePortRecord>(),
+	messageOutports: ImmuMap<MessagePortRecord["id"], MessagePortRecord>(),
 	parameters: ImmuMap<ParameterRecord["id"], ParameterRecord>(),
 	presets: ImmuMap<PresetRecord["id"], PresetRecord>(),
 	datarefs: ImmuMap<DataRefRecord["id"], DataRefRecord>()
@@ -45,10 +45,22 @@ export class InstanceStateRecord extends ImmuRecord<InstanceStateProps>({
 	}
 
 	public setMessageOutportValue(id: string, value: string): InstanceStateRecord {
-		const p = this.messageOutputs.get(id);
+		const p = this.messageOutports.get(id);
 		if (!p) return this;
 
-		return this.set("messageOutputs", this.messageOutputs.set(p.id, p.setValue(value)));
+		return this.set("messageOutports", this.messageOutports.set(p.id, p.setValue(value)));
+	}
+
+	public setMessageOutportMeta(id: MessagePortRecord["id"], value: string): InstanceStateRecord {
+		const p = this.messageOutports.get(id);
+		if (!p) return this;
+		return this.set("messageOutports", this.messageOutports.set(p.id, p.setMeta(value)));
+	}
+
+	public setMessageInportMeta(id: MessagePortRecord["id"], value: string): InstanceStateRecord {
+		const p = this.messageInports.get(id);
+		if (!p) return this;
+		return this.set("messageInports", this.messageInports.set(p.id, p.setMeta(value)));
 	}
 
 	public setDataRefValue(id: string, fileId: string): InstanceStateRecord {
@@ -107,7 +119,7 @@ export class InstanceStateRecord extends ImmuRecord<InstanceStateProps>({
 
 	private static messagesArrayFromDescription(desc: OSCQueryRNBOInstanceMessageInfo, name: string): MessagePortRecord[] {
 		if (typeof desc.VALUE !== "undefined") {
-			return [MessagePortRecord.fromDescription(name, desc)];
+			return [MessagePortRecord.fromDescription(name, desc as OSCQueryRNBOInstanceMessageValue)];
 		}
 
 		const result: MessagePortRecord[] = [];
@@ -160,8 +172,8 @@ export class InstanceStateRecord extends ImmuRecord<InstanceStateProps>({
 			name: this.getJackName(desc.CONTENTS.jack),
 			patcher: desc.CONTENTS.name.VALUE,
 			path: desc.FULL_PATH,
-			messageInputs: this.messagesFromDescription(desc.CONTENTS.messages?.CONTENTS?.in),
-			messageOutputs: this.messagesFromDescription(desc.CONTENTS.messages?.CONTENTS?.out),
+			messageInports: this.messagesFromDescription(desc.CONTENTS.messages?.CONTENTS?.in),
+			messageOutports: this.messagesFromDescription(desc.CONTENTS.messages?.CONTENTS?.out),
 			parameters: this.parametersFromDescription(desc.CONTENTS.params),
 			presets: this.presetsFromDescription(desc.CONTENTS.presets.CONTENTS.entries, latestPreset, initialPreset),
 			datarefs: this.datarefsFromDescription(desc.CONTENTS.data_refs)

@@ -12,7 +12,11 @@ import { initSets, setGraphSetLatest, initSetPresets, setGraphSetPresetLatest } 
 import { initDataFiles } from "../actions/datafiles";
 import { sleep } from "../lib/util";
 import { getPatcherNodeByIndex } from "../selectors/graph";
-import { updateInstanceDataRefValue, updateInstanceMessageOutputValue, updateInstanceMessages, updateInstanceParameterValue, updateInstanceParameterValueNormalized, updateInstanceParameters, updateInstancePresetEntries, updateInstancePresetLatest, updateInstancePresetInitial, updateInstanceParameterMeta } from "../actions/instances";
+import {
+	updateInstanceDataRefValue,
+	updateInstanceMessageOutportValue, updateInstanceMessages, updateInstanceMessageOutportMeta, updateInstanceMessageInportMeta,
+	updateInstanceParameterValue, updateInstanceParameterValueNormalized, updateInstanceParameters, updateInstanceParameterMeta,
+	updateInstancePresetEntries, updateInstancePresetLatest, updateInstancePresetInitial } from "../actions/instances";
 import { ConnectionType, PortDirection } from "../models/graph";
 import { showNotification } from "../actions/notifications";
 import { NotificationLevel } from "../models/notification";
@@ -602,12 +606,22 @@ export class OSCQueryBridgeControllerPrivate {
 			return void dispatch(updateInstancePresetEntries(index, presetInfo.CONTENTS.entries));
 		}
 
+		//port meta
+		if (packetMatch.groups.rest.endsWith("/meta")) {
+			if (packetMatch.groups.content === "messages/out") {
+				return void dispatch(updateInstanceMessageOutportMeta(index, packetMatch.groups.rest.replace(/\/meta$/, ""), packet.args[0] as unknown as string));
+			} else if (packetMatch.groups.content === "messages/in") {
+				return void dispatch(updateInstanceMessageInportMeta(index, packetMatch.groups.rest.replace(/\/meta$/, ""), packet.args[0] as unknown as string));
+			}
+		}
+
 		// Output Messages
 		if (
 			packetMatch.groups.content === "messages/out" &&
 			packetMatch.groups.rest?.length
 		) {
-			return void dispatch(updateInstanceMessageOutputValue(index, packetMatch.groups.rest, packet.args as any as OSCValue | OSCValue[]));
+			// groups.rest might not actually be a valid id but that should be okay
+			return void dispatch(updateInstanceMessageOutportValue(index, packetMatch.groups.rest, packet.args as any as OSCValue | OSCValue[]));
 		}
 
 		if (
