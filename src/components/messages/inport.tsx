@@ -1,6 +1,6 @@
 import { FunctionComponent, memo, useState, useCallback } from "react";
 import classes from "./ports.module.css";
-import { ActionIcon, Button, Group, Menu, TextInput } from "@mantine/core";
+import { ActionIcon, Button, Group, Menu, TextInput, Tooltip } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCode, faEllipsisVertical, faPaperPlane } from "@fortawesome/free-solid-svg-icons";
@@ -58,17 +58,18 @@ const MessageInportEntry: FunctionComponent<MessageInportEntryProps> = memo(func
 			<Group justify="space-between">
 				<label htmlFor={ port.name } className={ classes.portItemLabel } >{ port.name }</label>
 			</Group>
-			<Group align="flex-end">
+			<Group>
 				<TextInput
-					description={ `Send data to the inport with name "${port.name}"`}
 					onChange={ handleChange }
 					size="sm"
 					value={ text }
 					style={{ flex: 1 }}
 				/>
-				<Button variant="outline" size="sm" onClick={ sendMessage } >
-					<FontAwesomeIcon icon={ faPaperPlane } />
-				</Button>
+				<Tooltip label={ `Send data to the inport with name "${port.name}"`} >
+					<Button variant="outline" size="sm" onClick={ sendMessage } >
+						<FontAwesomeIcon icon={ faPaperPlane } />
+					</Button>
+				</Tooltip>
 				<Menu position="bottom-end">
 					<Menu.Target>
 						<ActionIcon variant="subtle" color="gray" size="md">
