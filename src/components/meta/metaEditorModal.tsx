@@ -52,14 +52,13 @@ export const MetaEditorModal: FC<MetaEditorModalProps> = memo(function WrappedPa
 	scope
 }) {
 
-	const [initialValue, setInitialValue] = useState<string>(meta);
+	const [initialValue, setInitialValue] = useState<string | undefined>(undefined);
 	const [value, setValue] = useState<string>(meta);
 	const [error, setError] = useState<Error | undefined>();
 	const [hasChanges, setHasChanges] = useState<boolean>(false);
 
 	useEffect(() => {
-		if (!initialValue) return void setInitialValue(meta);
-		if (meta === initialValue) return;
+		if (initialValue === undefined || meta === initialValue) return void setInitialValue(meta);
 
 		if (!hasChanges) {
 			setInitialValue(meta);
