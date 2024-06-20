@@ -6,16 +6,18 @@ import { MessagePortRecord } from "../../models/messageport";
 
 export type MessageOutportListProps = {
 	outports: Seq.Indexed<MessagePortRecord>;
+	outputEnabled: boolean;
 }
 
 const MessageOutportList: FunctionComponent<MessageOutportListProps> = memo(function WrappedMessageOutportList({
-	outports
+	outports,
+	outputEnabled
 }) {
 
 	return (
 		<div className={ classes.portList }>
 			{
-				outports.map(port => <MessageOutportEntry key={ port.id } port={ port } />)
+				outports.map(port => <MessageOutportEntry key={ port.id } port={ port } outputEnabled={ outputEnabled }/>)
 			}
 		</div>
 	);

@@ -5,11 +5,15 @@ import { MessagePortRecord } from "../../models/messageport";
 
 interface MessageOutportEntryProps {
 	port: MessagePortRecord;
+	outputEnabled: boolean;
 }
 
 const MessageOutportEntry: FunctionComponent<MessageOutportEntryProps> = memo(function WrappedMessageOutportEntry({
-	port
+	port,
+	outputEnabled
 }) {
+
+	// TODO should there be some sort of tooltip or some indication if output isn't enabled?
 
 	return (
 		<div className={ classes.outport } >
@@ -17,6 +21,7 @@ const MessageOutportEntry: FunctionComponent<MessageOutportEntryProps> = memo(fu
 				label={ port.id }
 				size="sm"
 				placeholder="No value received"
+				disabled={ !outputEnabled }
 				readOnly
 				value={ port.value }
 			/>

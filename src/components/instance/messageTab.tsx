@@ -41,11 +41,8 @@ const InstanceMessagesTab: FunctionComponent<InstanceMessageTabProps> = memo(fun
 					<div className={ classes.emptySection }>
 						This patcher instance has no output ports.
 					</div>
-				) : !outputEnabled ? (
-					<div className={ classes.disabledMessageOutput } >
-						Output port monitoring is currently disabled. Enable it in the settings in order to display the output values.
-					</div>
-				) : <MessageOutportList outports={ instance.messageOutputs.valueSeq() } />
+				) :
+				<MessageOutportList outports={ instance.messageOutputs.valueSeq() } outputEnabled={ outputEnabled }/>
 			}
 		</Tabs.Panel>
 	);
