@@ -5,6 +5,7 @@ import { InstanceStateRecord } from "../models/instance";
 import { getInstanceByIndex } from "../selectors/instances";
 import { getAppSetting } from "../selectors/settings";
 import { ParameterRecord } from "../models/parameter";
+import { MessagePortRecord } from "../models/messageport";
 import { OSCArgument, writePacket } from "osc";
 import { showNotification } from "./notifications";
 import { NotificationLevel } from "../models/notification";
@@ -266,7 +267,7 @@ export const setInstanceDataRefValueOnRemote = throttle((instance: InstanceState
 		oscQueryBridge.sendPacket(writePacket(message));
 	}, 100);
 
-export const setInstanceParameterMetaOnRemote = (instance: InstanceStateRecord, param: ParameterRecord, value: string): AppThunk =>
+export const setInstanceParameterMetaOnRemote = (_instance: InstanceStateRecord, param: ParameterRecord, value: string): AppThunk =>
 	() => {
 		const message = {
 			address: `${param.path}/meta`,
@@ -278,10 +279,34 @@ export const setInstanceParameterMetaOnRemote = (instance: InstanceStateRecord, 
 		oscQueryBridge.sendPacket(writePacket(message));
 	};
 
-export const restoreDefaultParameterMetaOnRemote = (instance: InstanceStateRecord, param: ParameterRecord): AppThunk =>
+export const restoreDefaultParameterMetaOnRemote = (_instance: InstanceStateRecord, param: ParameterRecord): AppThunk =>
 	() => {
 		const message = {
 			address: `${param.path}/meta`,
+			args: [
+				{ type: "s", value: "" }
+			]
+		};
+
+		oscQueryBridge.sendPacket(writePacket(message));
+	};
+
+export const setInstanceMessagePortMetaOnRemote = (_instance: InstanceStateRecord, port: MessagePortRecord, value: string): AppThunk =>
+	() => {
+		const message = {
+			address: `${port.path}/meta`,
+			args: [
+				{ type: "s", value }
+			]
+		};
+
+		oscQueryBridge.sendPacket(writePacket(message));
+	};
+
+export const restoreDefaultMessagePortMetaOnRemote = (_instance: InstanceStateRecord, port: MessagePortRecord): AppThunk =>
+	() => {
+		const message = {
+			address: `${port.path}/meta`,
 			args: [
 				{ type: "s", value: "" }
 			]
@@ -341,15 +366,15 @@ export const updateInstanceMessages = (index: number, desc: OSCQueryRNBOInstance
 
 			dispatch(setInstance(
 				instance
-					.set("messageInputs", InstanceStateRecord.messagesFromDescription(desc.CONTENTS?.in))
-					.set("messageOutputs", InstanceStateRecord.messagesFromDescription(desc.CONTENTS?.out))
+					.set("messageInports", InstanceStateRecord.messagesFromDescription(desc.CONTENTS?.in))
+					.set("messageOutports", InstanceStateRecord.messagesFromDescription(desc.CONTENTS?.out))
 			));
 		} catch (e) {
 			console.log(e);
 		}
 	};
 
-export const updateInstanceMessageOutputValue = (index: number, name: string, value: OSCValue | OSCValue[]): AppThunk =>
+export const updateInstanceMessageOutportValue = (index: number, name: string, value: OSCValue | OSCValue[]): AppThunk =>
 	(dispatch, getState) => {
 		try {
 
@@ -440,6 +465,32 @@ export const updateInstanceParameterMeta = (index: number, id: ParameterRecord["
 			if (!instance) return;
 
 			dispatch(setInstance(instance.setParameterMeta(id, value)));
+		} catch (e) {
+			console.log(e);
+		}
+	};
+
+export const updateInstanceMessageOutportMeta = (index: number, id: MessagePortRecord["id"], value: string): AppThunk =>
+	(dispatch, getState) => {
+		try {
+			const state = getState();
+			const instance = getInstanceByIndex(state, index);
+			if (!instance) return;
+
+			dispatch(setInstance(instance.setMessageOutportMeta(id, value)));
+		} catch (e) {
+			console.log(e);
+		}
+	};
+
+export const updateInstanceMessageInportMeta = (index: number, id: MessagePortRecord["id"], value: string): AppThunk =>
+	(dispatch, getState) => {
+		try {
+			const state = getState();
+			const instance = getInstanceByIndex(state, index);
+			if (!instance) return;
+
+			dispatch(setInstance(instance.setMessageInportMeta(id, value)));
 		} catch (e) {
 			console.log(e);
 		}

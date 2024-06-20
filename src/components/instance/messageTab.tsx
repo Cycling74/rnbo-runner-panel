@@ -8,6 +8,8 @@ import MessageOutportList from "../messages/outportList";
 import classes from "./instance.module.css";
 import { InstanceStateRecord } from "../../models/instance";
 import { sendInstanceMessageToRemote } from "../../actions/instances";
+import { MessagePortRecord } from "../../models/messageport";
+import { restoreDefaultMessagePortMetaOnRemote, setInstanceMessagePortMetaOnRemote } from "../../actions/instances";
 
 export type InstanceMessageTabProps = {
 	instance: InstanceStateRecord;
@@ -20,31 +22,47 @@ const InstanceMessagesTab: FunctionComponent<InstanceMessageTabProps> = memo(fun
 }) {
 
 	const dispatch = useAppDispatch();
-	const onSendInportMessage = useCallback((id: string, value: string) => {
-		dispatch(sendInstanceMessageToRemote(instance, id, value));
+	const onSendInportMessage = useCallback((port: MessagePortRecord, value: string) => {
+		dispatch(sendInstanceMessageToRemote(instance, port.id, value));
+	}, [dispatch, instance]);
+
+	const onSavePortMetadata = useCallback((port: MessagePortRecord, meta: string) => {
+		dispatch(setInstanceMessagePortMetaOnRemote(instance, port, meta));
+	}, [dispatch, instance]);
+
+	const onRestoreDefaultPortMetadata = useCallback((port: MessagePortRecord) => {
+		dispatch(restoreDefaultMessagePortMetaOnRemote(instance, port));
 	}, [dispatch, instance]);
 
 	return (
 		<Tabs.Panel value={ InstanceTab.MessagePorts } >
 			<SectionTitle>Input Ports</SectionTitle>
 			{
-				instance.messageInputs.size ? <MessageInportList inports={ instance.messageInputs } onSendMessage={ onSendInportMessage } /> : (
+				!instance.messageInports.size ? (
 					<div className={ classes.emptySection }>
 						This patcher instance has no message input ports.
 					</div>
-				)
+				) :
+					<MessageInportList
+						inports={ instance.messageInports.valueSeq() }
+						onSendMessage={ onSendInportMessage }
+						onRestoreMetadata={ onRestoreDefaultPortMetadata }
+						onSaveMetadata={ onSavePortMetadata }
+					/>
 			}
 			<SectionTitle>Output Ports</SectionTitle>
 			{
-				!instance.messageOutputs.size ? (
+				!instance.messageOutports.size ? (
 					<div className={ classes.emptySection }>
 						This patcher instance has no output ports.
 					</div>
-				) : !outputEnabled ? (
-					<div className={ classes.disabledMessageOutput } >
-						Output port monitoring is currently disabled. Enable it in the settings in order to display the output values.
-					</div>
-				) : <MessageOutportList outports={ instance.messageOutputs } />
+				) :
+					<MessageOutportList
+						outports={ instance.messageOutports.valueSeq() }
+						outputEnabled={ outputEnabled }
+						onRestoreMetadata={ onRestoreDefaultPortMetadata }
+						onSaveMetadata={ onSavePortMetadata }
+					/>
 			}
 		</Tabs.Panel>
 	);
