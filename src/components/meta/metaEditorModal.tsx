@@ -126,7 +126,9 @@ export const MetaEditorModal: FC<MetaEditorModalProps> = memo(function WrappedPa
 					setValue(meta);
 					setHasChanges(false);
 					try {
-						JSON.parse(meta); // ensure valid
+						if (meta) {
+							JSON.parse(meta); // ensure valid
+						}
 						setError(undefined);
 					} catch (err) {
 						setError(new Error("Invalid JSON."));
@@ -148,7 +150,10 @@ export const MetaEditorModal: FC<MetaEditorModalProps> = memo(function WrappedPa
 	const onInputChange = useCallback((e: ChangeEvent<HTMLTextAreaElement>) => {
 		if (error) {
 			try {
-				JSON.parse(e.currentTarget.value); // ensure valid
+				const v = e.currentTarget.value;
+				if (v) {
+					JSON.parse(v); // ensure valid
+				}
 				setError(undefined);
 			} catch (err) {
 				setError(new Error("Invalid JSON."));
@@ -160,8 +165,10 @@ export const MetaEditorModal: FC<MetaEditorModalProps> = memo(function WrappedPa
 
 	const onInputBlur = useCallback(() => {
 		try {
-			const j: AnyJson = JSON.parse(value); // ensure valid
-			setValue(JSON.stringify(j, null, 2));
+			if (value) {
+				const j: AnyJson = JSON.parse(value); // ensure valid
+				setValue(JSON.stringify(j, null, 2));
+			}
 			setError(undefined);
 		} catch (err) {
 			setError(new Error("Invalid JSON."));
@@ -171,7 +178,9 @@ export const MetaEditorModal: FC<MetaEditorModalProps> = memo(function WrappedPa
 	const onSaveValue = useCallback((e: FormEvent) => {
 		e.preventDefault();
 		try {
-			JSON.parse(value); // ensure valid
+			if (value) {
+				JSON.parse(value); // ensure valid
+			}
 			setHasChanges(false);
 			onSaveMeta(value);
 		} catch (err) {
