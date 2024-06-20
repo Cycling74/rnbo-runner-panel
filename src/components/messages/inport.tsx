@@ -23,7 +23,6 @@ const MessageInportEntry: FunctionComponent<MessageInportEntryProps> = memo(func
 }) {
 
 	const [text, setText] = useState("");
-
 	const [showMetaEditor, { toggle: toggleMetaEditor, close: closeMetaEditor }] = useDisclosure();
 
 	const onSaveMeta = useCallback((meta: string) => {
@@ -39,9 +38,7 @@ const MessageInportEntry: FunctionComponent<MessageInportEntryProps> = memo(func
 	};
 
 	const sendMessage = useCallback(() => {
-		if (onSend) {
-			onSend(port, text);
-		}
+		onSend(port, text);
 	}, [onSend, port, text]);
 
 	return (

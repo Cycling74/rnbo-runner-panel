@@ -606,7 +606,7 @@ export class OSCQueryBridgeControllerPrivate {
 			return void dispatch(updateInstancePresetEntries(index, presetInfo.CONTENTS.entries));
 		}
 
-		//port meta
+		// port meta
 		if (packetMatch.groups.rest.endsWith("/meta")) {
 			if (packetMatch.groups.content === "messages/out") {
 				return void dispatch(updateInstanceMessageOutportMeta(index, packetMatch.groups.rest.replace(/\/meta$/, ""), packet.args[0] as unknown as string));

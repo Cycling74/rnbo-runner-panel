@@ -43,12 +43,12 @@ const InstanceMessagesTab: FunctionComponent<InstanceMessageTabProps> = memo(fun
 						This patcher instance has no message input ports.
 					</div>
 				) :
-				<MessageInportList
-					inports={ instance.messageInports.valueSeq() }
-					onSendMessage={ onSendInportMessage }
-					onRestoreMetadata={ onRestoreDefaultPortMetadata }
-					onSaveMetadata={ onSavePortMetadata }
-				/>
+					<MessageInportList
+						inports={ instance.messageInports.valueSeq() }
+						onSendMessage={ onSendInportMessage }
+						onRestoreMetadata={ onRestoreDefaultPortMetadata }
+						onSaveMetadata={ onSavePortMetadata }
+					/>
 			}
 			<SectionTitle>Output Ports</SectionTitle>
 			{
@@ -57,12 +57,12 @@ const InstanceMessagesTab: FunctionComponent<InstanceMessageTabProps> = memo(fun
 						This patcher instance has no output ports.
 					</div>
 				) :
-				<MessageOutportList
-					outports={ instance.messageOutports.valueSeq() }
-					outputEnabled={ outputEnabled }
-					onRestoreMetadata={ onRestoreDefaultPortMetadata }
-					onSaveMetadata={ onSavePortMetadata }
-				/>
+					<MessageOutportList
+						outports={ instance.messageOutports.valueSeq() }
+						outputEnabled={ outputEnabled }
+						onRestoreMetadata={ onRestoreDefaultPortMetadata }
+						onSaveMetadata={ onSavePortMetadata }
+					/>
 			}
 		</Tabs.Panel>
 	);
