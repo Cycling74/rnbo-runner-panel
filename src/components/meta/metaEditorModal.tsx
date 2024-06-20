@@ -80,12 +80,13 @@ export const MetaEditorModal: FC<MetaEditorModalProps> = memo(function WrappedPa
 				setInitialValue(meta);
 			},
 			onConfirm: () => {
+				setError(undefined);
 				setInitialValue(meta);
 				setValue(meta);
 				setHasChanges(false);
 			}
 		});
-	}, [meta, initialValue, setInitialValue, setValue, hasChanges, setHasChanges]);
+	}, [meta, initialValue, setInitialValue, setValue, hasChanges, setHasChanges, setError]);
 
 	const showFullScreen = useIsMobileDevice();
 
