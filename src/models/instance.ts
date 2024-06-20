@@ -2,6 +2,7 @@ import { Map as ImmuMap, Record as ImmuRecord, OrderedMap as ImmuOrderedMap } fr
 import { ParameterRecord } from "./parameter";
 import { PresetRecord } from "./preset";
 import { DataRefRecord } from "./dataref";
+import { MessagePortRecord } from "./messageport";
 import { OSCQueryRNBOInstance, OSCQueryRNBOInstanceMessages, OSCQueryRNBOInstanceMessageInfo, OSCQueryRNBOInstancePresetEntries } from "../lib/types";
 
 export type InstanceStateProps = {
@@ -13,8 +14,8 @@ export type InstanceStateProps = {
 	presetInitial: string;
 	presetLatest: string;
 
-	messageInputs: ImmuMap<string, string>;
-	messageOutputs: ImmuMap<string, string>;
+	messageInputs: ImmuMap<MessagePortRecord["id"], MessagePortRecord>;
+	messageOutputs: ImmuMap<MessagePortRecord["id"], MessagePortRecord>;
 	parameters: ImmuMap<ParameterRecord["id"], ParameterRecord>;
 	presets: ImmuOrderedMap<PresetRecord["id"], PresetRecord>;
 	datarefs: ImmuOrderedMap<DataRefRecord["id"], DataRefRecord>;
@@ -31,8 +32,8 @@ export class InstanceStateRecord extends ImmuRecord<InstanceStateProps>({
 	presetInitial: "",
 	presetLatest: "",
 
-	messageInputs: ImmuMap<string, string>(),
-	messageOutputs: ImmuMap<string, string>(),
+	messageInputs: ImmuMap<MessagePortRecord["id"], MessagePortRecord>(),
+	messageOutputs: ImmuMap<MessagePortRecord["id"], MessagePortRecord>(),
 	parameters: ImmuMap<ParameterRecord["id"], ParameterRecord>(),
 	presets: ImmuMap<PresetRecord["id"], PresetRecord>(),
 	datarefs: ImmuMap<DataRefRecord["id"], DataRefRecord>()
@@ -44,7 +45,10 @@ export class InstanceStateRecord extends ImmuRecord<InstanceStateProps>({
 	}
 
 	public setMessageOutportValue(id: string, value: string): InstanceStateRecord {
-		return this.set("messageOutputs", this.messageOutputs.set(id, value));
+		const p = this.messageOutputs.get(id);
+		if (!p) return this;
+
+		return this.set("messageOutputs", this.messageOutputs.set(p.id, p.setValue(value)));
 	}
 
 	public setDataRefValue(id: string, fileId: string): InstanceStateRecord {
@@ -101,10 +105,12 @@ export class InstanceStateRecord extends ImmuRecord<InstanceStateProps>({
 		return this.set("presets", InstanceStateRecord.presetsFromDescription(entries, this.presetLatest, this.presetInitial));
 	}
 
-	private static messagesArrayFromDescription(desc: OSCQueryRNBOInstanceMessageInfo, name?: string): string[] {
-		if (typeof desc.VALUE !== "undefined") return [name];
+	private static messagesArrayFromDescription(desc: OSCQueryRNBOInstanceMessageInfo, name: string): MessagePortRecord[] {
+		if (typeof desc.VALUE !== "undefined") {
+			return [MessagePortRecord.fromDescription(name, desc)];
+		}
 
-		const result: string[] = [];
+		const result: MessagePortRecord[] = [];
 		for (const [subKey, subDesc] of Object.entries(desc.CONTENTS)) {
 			const subPrefix = name ? `${name}/${subKey}` : subKey;
 			result.push(...this.messagesArrayFromDescription(subDesc, subPrefix));
@@ -112,11 +118,11 @@ export class InstanceStateRecord extends ImmuRecord<InstanceStateProps>({
 		return result;
 	}
 
-	public static messagesFromDescription(messagesDesc?: OSCQueryRNBOInstanceMessages): ImmuMap<string, string> {
-		return ImmuMap<string, string>().withMutations((map) => {
+	public static messagesFromDescription(messagesDesc?: OSCQueryRNBOInstanceMessages): ImmuMap<MessagePortRecord["id"], MessagePortRecord> {
+		return ImmuMap<MessagePortRecord["id"], MessagePortRecord>().withMutations((map) => {
 			for (const [name, desc] of Object.entries(messagesDesc?.CONTENTS || {})) {
-				const names = this.messagesArrayFromDescription(desc, name);
-				names.forEach(n => map.set(n, ""));
+				const ports = this.messagesArrayFromDescription(desc, name);
+				ports.forEach(n => map.set(n.id, n));
 			}
 		});
 	}

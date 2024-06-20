@@ -8,6 +8,7 @@ import MessageOutportList from "../messages/outportList";
 import classes from "./instance.module.css";
 import { InstanceStateRecord } from "../../models/instance";
 import { sendInstanceMessageToRemote } from "../../actions/instances";
+import { MessagePortRecord } from "../../models/messageport";
 
 export type InstanceMessageTabProps = {
 	instance: InstanceStateRecord;
@@ -20,15 +21,15 @@ const InstanceMessagesTab: FunctionComponent<InstanceMessageTabProps> = memo(fun
 }) {
 
 	const dispatch = useAppDispatch();
-	const onSendInportMessage = useCallback((id: string, value: string) => {
-		dispatch(sendInstanceMessageToRemote(instance, id, value));
+	const onSendInportMessage = useCallback((port: MessagePortRecord, value: string) => {
+		dispatch(sendInstanceMessageToRemote(instance, port.id, value));
 	}, [dispatch, instance]);
 
 	return (
 		<Tabs.Panel value={ InstanceTab.MessagePorts } >
 			<SectionTitle>Input Ports</SectionTitle>
 			{
-				instance.messageInputs.size ? <MessageInportList inports={ instance.messageInputs } onSendMessage={ onSendInportMessage } /> : (
+				instance.messageInputs.size ? <MessageInportList inports={ instance.messageInputs.valueSeq() } onSendMessage={ onSendInportMessage } /> : (
 					<div className={ classes.emptySection }>
 						This patcher instance has no message input ports.
 					</div>
@@ -44,7 +45,7 @@ const InstanceMessagesTab: FunctionComponent<InstanceMessageTabProps> = memo(fun
 					<div className={ classes.disabledMessageOutput } >
 						Output port monitoring is currently disabled. Enable it in the settings in order to display the output values.
 					</div>
-				) : <MessageOutportList outports={ instance.messageOutputs } />
+				) : <MessageOutportList outports={ instance.messageOutputs.valueSeq() } />
 			}
 		</Tabs.Panel>
 	);

@@ -1,22 +1,24 @@
 import { FunctionComponent, memo } from "react";
 import classes from "./ports.module.css";
 import { TextInput } from "@mantine/core";
+import { MessagePortRecord } from "../../models/messageport";
 
 interface MessageOutportEntryProps {
-	id: string;
-	value: string;
+	port: MessagePortRecord;
 }
 
-const MessageOutportEntry: FunctionComponent<MessageOutportEntryProps> = memo(function WrappedMessageOutportEntry({ id, value }) {
+const MessageOutportEntry: FunctionComponent<MessageOutportEntryProps> = memo(function WrappedMessageOutportEntry({
+	port
+}) {
 
 	return (
 		<div className={ classes.outport } >
 			<TextInput
-				label={ id }
+				label={ port.id }
 				size="sm"
 				placeholder="No value received"
 				readOnly
-				value={ value }
+				value={ port.value }
 			/>
 		</div>
 	);
