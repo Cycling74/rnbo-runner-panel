@@ -1,17 +1,19 @@
 import { Record as ImmuRecord } from "immutable";
-import { OSCQueryRNBOInstanceMessageInfo } from "../lib/types";
+import { OSCQueryRNBOInstanceMessageValue } from "../lib/types";
 
 export type MessagePortRecordProps = {
 	tag: string;
 	meta: string;
 	value: string;
+	path: string;
 };
 
 
 export class MessagePortRecord extends ImmuRecord<MessagePortRecordProps>({
 	tag: "",
 	meta: "",
-	value: ""
+	value: "",
+	path: ""
 }) {
 
 	public get id(): string {
@@ -30,9 +32,11 @@ export class MessagePortRecord extends ImmuRecord<MessagePortRecordProps>({
 		return this.set("value", value);
 	}
 
-	public static fromDescription(tag: string, desc: OSCQueryRNBOInstanceMessageInfo): MessagePortRecord {
+	public static fromDescription(tag: string, desc: OSCQueryRNBOInstanceMessageValue): MessagePortRecord {
 		return new MessagePortRecord({
-			tag
+			tag,
+			path: desc.FULL_PATH,
+			meta: desc.CONTENTS?.meta?.VALUE || ""
 		});
 	}
 
