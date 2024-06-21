@@ -2,7 +2,7 @@ import Router from "next/router";
 import { ActionBase, AppThunk } from "../lib/store";
 import { OSCQueryRNBOInstance, OSCQueryRNBOInstancePresetEntries, OSCValue } from "../lib/types";
 import { InstanceStateRecord } from "../models/instance";
-import { getInstanceByIndex } from "../selectors/instances";
+import { getInstanceByIndex, getInstance } from "../selectors/instances";
 import { getAppSetting } from "../selectors/settings";
 import { ParameterRecord } from "../models/parameter";
 import { MessagePortRecord } from "../models/messageport";
@@ -250,8 +250,12 @@ export const setInstanceParameterValueNormalizedOnRemote = throttle((instance: I
 
 		oscQueryBridge.sendPacket(writePacket(message));
 
+		if (instance.waitingForMidiMapping) {
+			dispatch(setInstance(instance.setParameterNormalizedValue(param.id, value).setParameterWaitingForMidiMapping(param.id)));
+		} else {
 		// optimistic local state update
-		dispatch(setInstance(instance.setParameterNormalizedValue(param.id, value)));
+			dispatch(setInstance(instance.setParameterNormalizedValue(param.id, value)));
+		}
 	}, 100);
 
 export const setInstanceDataRefValueOnRemote = throttle((instance: InstanceStateRecord, dataref: DataRefRecord, file?: DataFileRecord): AppThunk =>
@@ -362,7 +366,7 @@ export const updateInstanceMessages = (index: number, desc: OSCQueryRNBOInstance
 
 			const state = getState();
 			const instance = getInstanceByIndex(state, index);
-			if (instance) return;
+			if (!instance) return;
 
 			dispatch(setInstance(
 				instance
@@ -452,6 +456,86 @@ export const updateInstanceParameterValueNormalized = (index: number, id: Parame
 			if (!instance) return;
 
 			dispatch(setInstance(instance.setParameterNormalizedValue(id, value)));
+		} catch (e) {
+			console.log(e);
+		}
+	};
+
+export const setInstanceWaitingForMidiMapping = (id: InstanceStateRecord["id"], value: boolean): AppThunk =>
+	(dispatch, getState) => {
+		try {
+			const state = getState();
+			const instance = getInstance(state, id);
+			if (!instance) return;
+
+			dispatch(setInstance(instance.setWatingForMapping(value)));
+
+			try {
+				const message = {
+					address: `${instance.path}/midi/last/report`,
+					args: [
+						{ type: value ? "T" : "F", value: value ? "true" : "false" }
+					]
+				};
+				oscQueryBridge.sendPacket(writePacket(message));
+			} catch (err) {
+				dispatch(showNotification({
+					level: NotificationLevel.error,
+					title: "Error while trying set midi report",
+					message: "Please check the console for further details."
+				}));
+				console.log(err);
+			}
+		} catch (e) {
+			console.log(e);
+		}
+	};
+
+export const updateInstanceMIDIReport = (index: number, value: boolean): AppThunk =>
+	(dispatch, getState) => {
+		try {
+			const state = getState();
+			const instance = getInstanceByIndex(state, index);
+			if (!instance) return;
+			dispatch(setInstance(instance.setWatingForMapping(value)));
+		} catch (e) {
+			console.log(e);
+		}
+	};
+
+export const updateInstanceMIDILastValue = (index: number, value: string): AppThunk =>
+	(dispatch, getState) => {
+		try {
+
+			const state = getState();
+
+			const instance = getInstanceByIndex(state, index);
+			if (!instance?.waitingForMidiMapping) return;
+
+			const midiMeta = JSON.parse(value);
+
+			// find param waiting for mapping and update their meta
+			instance.parameters.forEach(param => {
+				if (param.waitingForMidiMapping) {
+					let meta: any = {};
+					if (param.meta) {
+						meta = JSON.parse(param.meta);
+					}
+					meta.midi = midiMeta;
+
+					const message = {
+						address: `${param.path}/meta`,
+						args: [
+							{ type: "s", value: JSON.stringify(meta) }
+						]
+					};
+
+					oscQueryBridge.sendPacket(writePacket(message));
+				}
+			});
+
+			// stop waiting
+			dispatch(setInstance(instance.clearParametersWaitingForMidiMapping()));
 		} catch (e) {
 			console.log(e);
 		}
