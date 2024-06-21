@@ -13,6 +13,7 @@ export type ParameterRecordProps = {
 	type: string;
 	value: string | number;
 	waitingForMidiMapping: boolean;
+	isMidiMapped: boolean;
 }
 export class ParameterRecord extends ImmuRecord<ParameterRecordProps>({
 
@@ -26,26 +27,27 @@ export class ParameterRecord extends ImmuRecord<ParameterRecordProps>({
 	path: "",
 	type: "f",
 	value: 0,
-	waitingForMidiMapping: false
-
+	waitingForMidiMapping: false,
+	isMidiMapped: false
 }) {
 
 	public static arrayFromDescription(desc: OSCQueryRNBOInstanceParameterInfo, name?: string): ParameterRecord[] {
 		const result: ParameterRecord[] = [];
 		if (typeof desc.VALUE !== "undefined") {
 			const paramInfo = desc as OSCQueryRNBOInstanceParameterValue;
-			result.push(new ParameterRecord({
+
+			// use setMeta to consolidate midi mapping detection logic
+			result.push((new ParameterRecord({
 				enumVals: paramInfo.RANGE?.[0]?.VALS || [],
 				index: paramInfo.CONTENTS?.index?.VALUE || 0,
 				min: paramInfo.RANGE?.[0]?.MIN,
 				max: paramInfo.RANGE?.[0]?.MAX,
-				meta: paramInfo.CONTENTS?.meta.VALUE || "{}",
 				name,
 				normalizedValue: paramInfo.CONTENTS.normalized.VALUE,
 				path: paramInfo.FULL_PATH,
 				type: paramInfo.TYPE,
-				value: paramInfo.VALUE
-			}));
+				value: paramInfo.VALUE,
+			})).setMeta(paramInfo.CONTENTS?.meta.VALUE || ""));
 		} else {
 			// Polyphonic params
 			for (const [subParamName, subDesc] of Object.entries(desc.CONTENTS) as Array<[string, OSCQueryRNBOInstanceParameterInfo]>) {
@@ -83,7 +85,16 @@ export class ParameterRecord extends ImmuRecord<ParameterRecordProps>({
 	}
 
 	public setMeta(value: string): ParameterRecord {
-		return this.set("meta", value);
+		// detect midi mapping
+		let isMidiMapped = false;
+		try {
+			// detection simply looks for a 'midi' entry in the meta
+			const j = JSON.parse(value);
+			isMidiMapped = typeof j.midi === "object";
+		} catch {
+			// ignore
+		}
+		return this.set("meta", value).set("isMidiMapped", isMidiMapped);
 	}
 
 	public setWatingForMidiMapping(value: boolean): ParameterRecord {
