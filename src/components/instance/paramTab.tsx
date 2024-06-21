@@ -1,4 +1,4 @@
-import { ActionIcon, Button, Group, Popover, SegmentedControl, Select, Stack, Tabs, Text, TextInput } from "@mantine/core";
+import { ActionIcon, Button, Group, Popover, SegmentedControl, Select, Stack, Switch, Tabs, Text, TextInput } from "@mantine/core";
 import { ChangeEvent, FC, FunctionComponent, KeyboardEvent, memo, useCallback, useEffect, useRef, useState } from "react";
 import { InstanceTab, ParameterSortAttr, SortOrder } from "../../lib/constants";
 import ParameterList from "../parameter/list";
@@ -6,7 +6,7 @@ import { ParameterRecord } from "../../models/parameter";
 import classes from "./instance.module.css";
 import { useAppDispatch } from "../../hooks/useAppDispatch";
 import { InstanceStateRecord } from "../../models/instance";
-import { restoreDefaultParameterMetaOnRemote, setInstanceParameterMetaOnRemote, setInstanceParameterValueNormalizedOnRemote } from "../../actions/instances";
+import { restoreDefaultParameterMetaOnRemote, setInstanceParameterMetaOnRemote, setInstanceParameterValueNormalizedOnRemote, setInstanceWaitingForMidiMapping } from "../../actions/instances";
 import { OrderedSet as ImmuOrderedSet } from "immutable";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowDownAZ, faArrowUpAZ, faSearch, faSort, faXmark } from "@fortawesome/free-solid-svg-icons";
@@ -146,6 +146,11 @@ const InstanceParameterTab: FunctionComponent<InstanceParameterTabProps> = memo(
 		setSearchValue(query);
 	}, 150);
 
+	const onMidiMap = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+		e.preventDefault();
+		dispatch(setInstanceWaitingForMidiMapping(instance.id, e.currentTarget.checked));
+	}, [dispatch, instance]);
+
 	useEffect(() => {
 		setSortedParamIds(getSortedParameterIds(instance.parameters, sortAttr.value as ParameterSortAttr, sortOrder.value as SortOrder));
 	}, [instance, sortAttr, sortOrder]);
@@ -157,6 +162,7 @@ const InstanceParameterTab: FunctionComponent<InstanceParameterTabProps> = memo(
 		<Tabs.Panel value={ InstanceTab.Parameters } >
 			<Stack gap="md" h="100%">
 				<Group justify="flex-end" gap="xs">
+					<Switch size="xs" variant="default" label="MIDI Map" checked={ instance.waitingForMidiMapping } onChange={ onMidiMap }/>
 					<ParameterSearchInput onSearch={ onSearch } />
 					<Popover position="bottom-end" withArrow>
 						<Popover.Target>
