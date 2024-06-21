@@ -542,8 +542,14 @@ export const updateInstanceMIDILastValue = (index: number, value: string): AppTh
 
 			const midiMeta = JSON.parse(value);
 
-			// find param waiting for mapping and update their meta
-			instance.parameters.forEach(param => {
+			// find param waiting for mapping
+			const waiting = instance.parameters.filter(p => p.waitingForMidiMapping);
+
+			// stop waiting
+			dispatch(setInstance(instance.clearParametersWaitingForMidiMapping()));
+
+			// update meta
+			waiting.forEach(param => {
 				if (param.waitingForMidiMapping) {
 					let meta: any = {};
 					if (param.meta) {
@@ -562,8 +568,6 @@ export const updateInstanceMIDILastValue = (index: number, value: string): AppTh
 				}
 			});
 
-			// stop waiting
-			dispatch(setInstance(instance.clearParametersWaitingForMidiMapping()));
 		} catch (e) {
 			console.log(e);
 		}
