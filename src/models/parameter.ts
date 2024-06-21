@@ -12,6 +12,7 @@ export type ParameterRecordProps = {
 	path: string;
 	type: string;
 	value: string | number;
+	waitingForMidiMapping: boolean;
 }
 export class ParameterRecord extends ImmuRecord<ParameterRecordProps>({
 
@@ -24,7 +25,8 @@ export class ParameterRecord extends ImmuRecord<ParameterRecordProps>({
 	normalizedValue: 0,
 	path: "",
 	type: "f",
-	value: 0
+	value: 0,
+	waitingForMidiMapping: false
 
 }) {
 
@@ -82,5 +84,9 @@ export class ParameterRecord extends ImmuRecord<ParameterRecordProps>({
 
 	public setMeta(value: string): ParameterRecord {
 		return this.set("meta", value);
+	}
+
+	public setWatingForMidiMapping(value: boolean): ParameterRecord {
+		return this.set("waitingForMidiMapping", value);
 	}
 }
