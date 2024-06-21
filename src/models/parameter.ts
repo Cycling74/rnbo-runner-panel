@@ -46,7 +46,7 @@ export class ParameterRecord extends ImmuRecord<ParameterRecordProps>({
 				normalizedValue: paramInfo.CONTENTS.normalized.VALUE,
 				path: paramInfo.FULL_PATH,
 				type: paramInfo.TYPE,
-				value: paramInfo.VALUE,
+				value: paramInfo.VALUE
 			})).setMeta(paramInfo.CONTENTS?.meta.VALUE || ""));
 		} else {
 			// Polyphonic params
