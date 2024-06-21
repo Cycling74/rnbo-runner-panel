@@ -6,7 +6,11 @@ import { ParameterRecord } from "../../models/parameter";
 import classes from "./instance.module.css";
 import { useAppDispatch } from "../../hooks/useAppDispatch";
 import { InstanceStateRecord } from "../../models/instance";
-import { restoreDefaultParameterMetaOnRemote, setInstanceParameterMetaOnRemote, setInstanceParameterValueNormalizedOnRemote, setInstanceWaitingForMidiMapping } from "../../actions/instances";
+import {
+	restoreDefaultParameterMetaOnRemote, setInstanceParameterMetaOnRemote,
+	setInstanceParameterValueNormalizedOnRemote,
+	setInstanceWaitingForMidiMapping, clearParameterMidiMappingOnRemote
+} from "../../actions/instances";
 import { OrderedSet as ImmuOrderedSet } from "immutable";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowDownAZ, faArrowUpAZ, faSearch, faSort, faXmark } from "@fortawesome/free-solid-svg-icons";
@@ -142,6 +146,10 @@ const InstanceParameterTab: FunctionComponent<InstanceParameterTabProps> = memo(
 		dispatch(restoreDefaultParameterMetaOnRemote(instance, param));
 	}, [dispatch, instance]);
 
+	const onClearParameterMidiMapping = useCallback((param: ParameterRecord) => {
+		dispatch(clearParameterMidiMappingOnRemote(instance.id, param.id));
+	}, [dispatch, instance]);
+
 	const onSearch = useDebouncedCallback((query: string) => {
 		setSearchValue(query);
 	}, 150);
@@ -201,7 +209,13 @@ const InstanceParameterTab: FunctionComponent<InstanceParameterTabProps> = memo(
 						</div>
 					) : (
 						<div className={ classes.paramSectionWrap } >
-							<ParameterList parameters={ parameters } onSetNormalizedValue={ onSetNormalizedParamValue } onSaveMetadata={ onSaveParameterMetadata } onRestoreMetadata={ onRestoreDefaultParameterMetadata } />
+							<ParameterList
+								parameters={ parameters }
+								onSetNormalizedValue={ onSetNormalizedParamValue }
+								onSaveMetadata={ onSaveParameterMetadata }
+								onRestoreMetadata={ onRestoreDefaultParameterMetadata }
+								onClearMidiMapping={ onClearParameterMidiMapping }
+							/>
 						</div>
 					)
 				}
