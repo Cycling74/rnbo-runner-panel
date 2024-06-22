@@ -115,10 +115,10 @@ const DataRefEntry: FunctionComponent<DataRefEntryProps> = memo(function Wrapped
 						</Menu.Target>
 						<Menu.Dropdown>
 							<Menu.Label>Actions</Menu.Label>
-							<Menu.Item onClick={ toggleEditing } leftSection={ <FontAwesomeIcon icon={ faPen } /> } >
+							<Menu.Item onClick={ toggleEditing } leftSection={ <FontAwesomeIcon fixedWidth icon={ faPen } /> } >
 								Change Source
 							</Menu.Item>
-							<Menu.Item color="red" leftSection={ <FontAwesomeIcon icon={ faEraser } /> } onClick={ onClearDataRef } disabled={ !dataFile } >
+							<Menu.Item color="red" leftSection={ <FontAwesomeIcon fixedWidth icon={ faEraser } /> } onClick={ onClearDataRef } disabled={ !dataFile } >
 								Clear Buffer
 							</Menu.Item>
 						</Menu.Dropdown>
