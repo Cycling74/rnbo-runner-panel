@@ -1,5 +1,5 @@
 import { Record as ImmuRecord } from "immutable";
-import { OSCQueryRNBOInstanceParameterInfo, OSCQueryRNBOInstanceParameterValue } from "../lib/types";
+import { AnyJson, JsonMap, OSCQueryRNBOInstanceParameterInfo, OSCQueryRNBOInstanceParameterValue } from "../lib/types";
 
 export type ParameterRecordProps = {
 	enumVals: Array<string | number>;
@@ -82,6 +82,25 @@ export class ParameterRecord extends ImmuRecord<ParameterRecordProps>({
 
 	public matchesQuery(query: string): boolean {
 		return this.name.toLowerCase().includes(query);
+	}
+
+	public getParsedMeta(): AnyJson {
+		let meta: AnyJson = {};
+		try {
+			meta = JSON.parse(this.meta);
+		} catch {
+			// ignore
+		}
+		return meta;
+	}
+
+	// get parsed meta but if it isn't a map, return an empty map
+	public getParsedMetaObject(): JsonMap {
+		const meta = this.getParsedMeta();
+		if (typeof meta !== "object") {
+			return {};
+		}
+		return meta as JsonMap;
 	}
 
 	public setMeta(value: string): ParameterRecord {
