@@ -489,7 +489,7 @@ export const updateInstanceParameterValueNormalized = (index: number, id: Parame
 		}
 	};
 
-export const setInstanceWaitingForMidiMapping = (id: InstanceStateRecord["id"], value: boolean): AppThunk =>
+export const setInstanceWaitingForMidiMappingOnRemote = (id: InstanceStateRecord["id"], value: boolean): AppThunk =>
 	(dispatch, getState) => {
 		try {
 			const state = getState();

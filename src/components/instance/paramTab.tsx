@@ -9,7 +9,7 @@ import { InstanceStateRecord } from "../../models/instance";
 import {
 	restoreDefaultParameterMetaOnRemote, setInstanceParameterMetaOnRemote,
 	setInstanceParameterValueNormalizedOnRemote,
-	setInstanceWaitingForMidiMapping, clearParameterMidiMappingOnRemote
+	setInstanceWaitingForMidiMappingOnRemote, clearParameterMidiMappingOnRemote
 } from "../../actions/instances";
 import { OrderedSet as ImmuOrderedSet } from "immutable";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -156,7 +156,7 @@ const InstanceParameterTab: FunctionComponent<InstanceParameterTabProps> = memo(
 
 	const onMidiMap = useCallback((e: ChangeEvent<HTMLInputElement>) => {
 		e.preventDefault();
-		dispatch(setInstanceWaitingForMidiMapping(instance.id, e.currentTarget.checked));
+		dispatch(setInstanceWaitingForMidiMappingOnRemote(instance.id, e.currentTarget.checked));
 	}, [dispatch, instance]);
 
 	useEffect(() => {
