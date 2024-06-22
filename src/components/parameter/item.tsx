@@ -94,7 +94,7 @@ const Parameter = memo(function WrappedParameter({ param, onSetNormalizedValue, 
 					</Menu.Target>
 					<Menu.Dropdown>
 						<Menu.Label>Actions</Menu.Label>
-						<Menu.Item leftSection={ <FontAwesomeIcon icon={ faCode } /> } onClick={ toggleMetaEditor }>
+						<Menu.Item leftSection={ <FontAwesomeIcon fixedWidth icon={ faCode } /> } onClick={ toggleMetaEditor }>
 							Edit Metadata
 						</Menu.Item>
 					</Menu.Dropdown>

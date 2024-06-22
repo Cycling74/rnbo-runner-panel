@@ -1,4 +1,4 @@
-import { Button, Group, Stack } from "@mantine/core";
+import { Button, Group, Stack, Text } from "@mantine/core";
 import { FunctionComponent, useCallback } from "react";
 import { useAppDispatch, useAppSelector } from "../hooks/useAppDispatch";
 import { RootStateType } from "../lib/store";
@@ -24,6 +24,7 @@ import PatcherDrawer from "../components/patchers";
 import { PatcherRecord } from "../models/patcher";
 import { SortOrder } from "../lib/constants";
 import { GraphSetRecord } from "../models/set";
+import { modals } from "@mantine/modals";
 
 const Index: FunctionComponent<Record<string, never>> = () => {
 
@@ -97,6 +98,27 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 		dispatch(saveGraphSetOnRemote(name));
 	}, [dispatch]);
 
+	const onSaveSetAs = useCallback((set: GraphSetRecord) => {
+		if (set.latest) {
+			dispatch(saveGraphSetOnRemote(set.name));
+		} else {
+			modals.openConfirmModal({
+				title: "Overwrite Set",
+				centered: true,
+				children: (
+					<Text size="sm">
+						Are you sure you want to overwrite the set named { `"${set.name}"` }?
+					</Text>
+				),
+				labels: { confirm: "Overwrite", cancel: "Cancel" },
+				confirmProps: { color: "red" },
+				onConfirm: () => {
+					dispatch(saveGraphSetOnRemote(set.name));
+				}
+			});
+		}
+	}, [dispatch]);
+
 	// Presets
 	const onLoadPreset = useCallback((preset: PresetRecord) => {
 		dispatch(loadSetPresetOnRemote(preset));
@@ -163,6 +185,7 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 				onLoadSet={ onLoadSet }
 				onRenameSet={ onRenameSet }
 				onSaveSet={ onSaveSet }
+				onSaveSetAs={ onSaveSetAs }
 				open={ setDrawerIsOpen }
 				sets={ graphSets }
 			/>

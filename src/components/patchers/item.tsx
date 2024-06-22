@@ -125,8 +125,8 @@ export const PatcherItem: FunctionComponent<PatcherItemProps> = memo(function Wr
 				</Menu.Target>
 				<Menu.Dropdown>
 					<Menu.Label>Actions</Menu.Label>
-					<Menu.Item leftSection={ <FontAwesomeIcon icon={ faPen } /> } onClick={ toggleEditing } >Rename</Menu.Item>
-					<Menu.Item color="red" leftSection={ <FontAwesomeIcon icon={ faTrash } /> } onClick={ onDeletePatcher } >Delete</Menu.Item>
+					<Menu.Item leftSection={ <FontAwesomeIcon fixedWidth icon={ faPen } /> } onClick={ toggleEditing } >Rename</Menu.Item>
+					<Menu.Item color="red" leftSection={ <FontAwesomeIcon fixedWidth icon={ faTrash } /> } onClick={ onDeletePatcher } >Delete</Menu.Item>
 				</Menu.Dropdown>
 			</Menu>
 		</Group>

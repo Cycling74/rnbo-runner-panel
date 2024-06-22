@@ -2,7 +2,7 @@ import { ChangeEvent, FormEvent, FunctionComponent, KeyboardEvent, MouseEvent, m
 import { GraphSetRecord } from "../../models/set";
 import { ActionIcon, Button, Group, Menu, TextInput, Tooltip } from "@mantine/core";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCheck, faClose, faEllipsisVertical, faPen, faTrash, faClock } from "@fortawesome/free-solid-svg-icons";
+import { faCheck, faClose, faEllipsisVertical, faPen, faTrash, faClock, faFileArrowDown } from "@fortawesome/free-solid-svg-icons";
 import classes from "./sets.module.css";
 import { keyEventIsValidForName, replaceInvalidNameChars } from "../../lib/util";
 
@@ -11,13 +11,15 @@ export type GraphSetItemProps = {
 	onDelete: (set: GraphSetRecord) => any;
 	onLoad: (set: GraphSetRecord) => any;
 	onRename: (set: GraphSetRecord, name: string) => any;
+	onSave: (set: GraphSetRecord) => any;
 };
 
 export const GraphSetItem: FunctionComponent<GraphSetItemProps> = memo(function WrappedGraphSet({
 	set,
 	onDelete,
 	onLoad,
-	onRename
+	onRename,
+	onSave
 }: GraphSetItemProps) {
 
 	const [isEditing, setIsEditing] = useState<boolean>(false);
@@ -48,6 +50,10 @@ export const GraphSetItem: FunctionComponent<GraphSetItemProps> = memo(function 
 	const onDeleteSet = useCallback((e: MouseEvent<HTMLButtonElement>) => {
 		onDelete(set);
 	}, [onDelete, set]);
+
+	const onSaveSet = useCallback((_e: MouseEvent<HTMLButtonElement>) => {
+		onSave(set);
+	}, [onSave, set]);
 
 	const onChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
 		setName(replaceInvalidNameChars(e.target.value));
@@ -128,8 +134,9 @@ export const GraphSetItem: FunctionComponent<GraphSetItemProps> = memo(function 
 				</Menu.Target>
 				<Menu.Dropdown>
 					<Menu.Label>Actions</Menu.Label>
-					<Menu.Item leftSection={ <FontAwesomeIcon icon={ faPen } /> } onClick={ toggleEditing } >Rename</Menu.Item>
-					<Menu.Item color="red" leftSection={ <FontAwesomeIcon icon={ faTrash } /> } onClick={ onDeleteSet } >Delete</Menu.Item>
+					<Menu.Item leftSection={ <FontAwesomeIcon fixedWidth icon={ faFileArrowDown } /> } onClick={ onSaveSet } >{ set.latest ? "Save Changes" : "Overwrite" }</Menu.Item>
+					<Menu.Item leftSection={ <FontAwesomeIcon fixedWidth icon={ faPen } /> } onClick={ toggleEditing } >Rename</Menu.Item>
+					<Menu.Item color="red" leftSection={ <FontAwesomeIcon fixedWidth icon={ faTrash } /> } onClick={ onDeleteSet } >Delete</Menu.Item>
 				</Menu.Dropdown>
 			</Menu>
 		</Group>

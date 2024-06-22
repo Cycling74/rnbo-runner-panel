@@ -138,9 +138,9 @@ export const PresetItem: FunctionComponent<PresetItemProps> = memo(function Wrap
 				</Menu.Target>
 				<Menu.Dropdown>
 					<Menu.Label>Actions</Menu.Label>
-					<Menu.Item leftSection={ <FontAwesomeIcon icon={ faPen } /> } onClick={ toggleEditing } >Rename</Menu.Item>
-					{ onSetInitial && <Menu.Item leftSection={ <FontAwesomeIcon icon={ faStar } /> } onClick={ onSetInitialPreset } >Load on Startup</Menu.Item> }
-					<Menu.Item color="red" leftSection={ <FontAwesomeIcon icon={ faTrash } /> } onClick={ onDeletePreset } >Delete</Menu.Item>
+					<Menu.Item leftSection={ <FontAwesomeIcon fixedWidth icon={ faPen } /> } onClick={ toggleEditing } >Rename</Menu.Item>
+					{ onSetInitial && <Menu.Item leftSection={ <FontAwesomeIcon fixedWidth icon={ faStar } /> } onClick={ onSetInitialPreset } >Load on Startup</Menu.Item> }
+					<Menu.Item color="red" leftSection={ <FontAwesomeIcon fixedWidth icon={ faTrash } /> } onClick={ onDeletePreset } >Delete</Menu.Item>
 				</Menu.Dropdown>
 			</Menu>
 		</Group>
