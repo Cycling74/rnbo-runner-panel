@@ -509,7 +509,7 @@ export const setInstanceWaitingForMidiMappingOnRemote = (id: InstanceStateRecord
 			} catch (err) {
 				dispatch(showNotification({
 					level: NotificationLevel.error,
-					title: "Error while trying set midi report",
+					title: "Error while trying set midi mapping mode on remote",
 					message: "Please check the console for further details."
 				}));
 				console.log(err);
