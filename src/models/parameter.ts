@@ -97,7 +97,7 @@ export class ParameterRecord extends ImmuRecord<ParameterRecordProps>({
 		return this.set("meta", value).set("isMidiMapped", isMidiMapped);
 	}
 
-	public setWatingForMidiMapping(value: boolean): ParameterRecord {
+	public setWaitingForMidiMapping(value: boolean): ParameterRecord {
 		return this.set("waitingForMidiMapping", value);
 	}
 }

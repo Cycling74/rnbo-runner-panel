@@ -81,16 +81,16 @@ export class InstanceStateRecord extends ImmuRecord<InstanceStateProps>({
 		return this.set("parameters", this.parameters.set(param.id, param.setValue(value)));
 	}
 
-	public setWatingForMapping(value: boolean): InstanceStateRecord {
+	public setWaitingForMapping(value: boolean): InstanceStateRecord {
 		return this.set("waitingForMidiMapping", value).clearParametersWaitingForMidiMapping();
 	}
 
 	public clearParametersWaitingForMidiMapping(): InstanceStateRecord {
-		return this.set("parameters", this.parameters.map(p => p.setWatingForMidiMapping(false)));
+		return this.set("parameters", this.parameters.map(p => p.setWaitingForMidiMapping(false)));
 	}
 
 	public setParameterWaitingForMidiMapping(id: ParameterRecord["id"]): InstanceStateRecord {
-		return this.set("parameters", this.parameters.map(p => p.setWatingForMidiMapping(p.id === id)));
+		return this.set("parameters", this.parameters.map(p => p.setWaitingForMidiMapping(p.id === id)));
 	}
 
 	public setParameterNormalizedValue(id: ParameterRecord["id"], value: number): InstanceStateRecord {

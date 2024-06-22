@@ -496,7 +496,7 @@ export const setInstanceWaitingForMidiMapping = (id: InstanceStateRecord["id"], 
 			const instance = getInstance(state, id);
 			if (!instance) return;
 
-			dispatch(setInstance(instance.setWatingForMapping(value)));
+			dispatch(setInstance(instance.setWaitingForMapping(value)));
 
 			try {
 				const message = {
@@ -525,7 +525,7 @@ export const updateInstanceMIDIReport = (index: number, value: boolean): AppThun
 			const state = getState();
 			const instance = getInstanceByIndex(state, index);
 			if (!instance) return;
-			dispatch(setInstance(instance.setWatingForMapping(value)));
+			dispatch(setInstance(instance.setWaitingForMapping(value)));
 		} catch (e) {
 			console.log(e);
 		}
