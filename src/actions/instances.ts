@@ -537,24 +537,15 @@ export const updateInstanceMIDILastValue = (index: number, value: string): AppTh
 
 			const state = getState();
 
-			const instance = getInstanceByIndex(state, index);
+			let instance = getInstanceByIndex(state, index);
 			if (!instance?.waitingForMidiMapping) return;
 
 			const midiMeta = JSON.parse(value);
 
-			// find param waiting for mapping
-			const waiting = instance.parameters.filter(p => p.waitingForMidiMapping);
-
-			// stop waiting
-			dispatch(setInstance(instance.clearParametersWaitingForMidiMapping()));
-
-			// update meta
-			waiting.forEach(param => {
+			// find waiting, update their meta, set them no longer waiting and update map
+			instance = instance.set("parameters", instance.parameters.map(param => {
 				if (param.waitingForMidiMapping) {
-					let meta: any = {};
-					if (param.meta) {
-						meta = JSON.parse(param.meta);
-					}
+					const meta = param.getParsedMetaObject();
 					meta.midi = midiMeta;
 
 					const message = {
@@ -565,8 +556,12 @@ export const updateInstanceMIDILastValue = (index: number, value: string): AppTh
 					};
 
 					oscQueryBridge.sendPacket(writePacket(message));
+					return param.setWaitingForMidiMapping(false);
 				}
-			});
+				return param;
+			}));
+
+			dispatch(setInstance(instance));
 
 		} catch (e) {
 			console.log(e);
