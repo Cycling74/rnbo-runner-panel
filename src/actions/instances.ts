@@ -304,23 +304,18 @@ export const clearParameterMidiMappingOnRemote = (id: InstanceStateRecord["id"],
 		const param = instance.parameters.get(paramId);
 		if (!param) return;
 
-		let meta = param.meta;
-		try {
-			const j = JSON.parse(meta);
-			delete j.midi;
-			meta = JSON.stringify(j);
-		} catch {
-			// Ignore
+		const meta = param.getParsedMeta();
+		if (typeof meta === "object") {
+			delete meta.midi;
+			const message = {
+				address: `${param.path}/meta`,
+				args: [
+					{ type: "s", value: JSON.stringify(meta) }
+				]
+			};
+
+			oscQueryBridge.sendPacket(writePacket(message));
 		}
-
-		const message = {
-			address: `${param.path}/meta`,
-			args: [
-				{ type: "s", value: meta }
-			]
-		};
-
-		oscQueryBridge.sendPacket(writePacket(message));
 	};
 
 export const setInstanceMessagePortMetaOnRemote = (_instance: InstanceStateRecord, port: MessagePortRecord, value: string): AppThunk =>
