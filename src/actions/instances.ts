@@ -315,7 +315,7 @@ export const clearParameterMidiMappingOnRemote = (id: InstanceStateRecord["id"],
 		if (!param) return;
 
 		const meta = param.getParsedMeta();
-		if (typeof meta === "object") {
+		if (typeof meta === "object" && !Array.isArray(meta)) {
 			delete meta.midi;
 			const message = {
 				address: `${param.path}/meta`,
