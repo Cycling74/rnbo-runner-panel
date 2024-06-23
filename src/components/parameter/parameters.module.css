@@ -2,7 +2,7 @@
 	break-inside: avoid-column;
 	page-break-inside: avoid;
 	padding: 2px 2px var(--mantine-spacing-xl) 2px;
-	margin-bottom: var(--mantine-spacing-xs);
+	margin-bottom: 6px;
 
 	background-color: var(--parameter-bg-color);
 	outline-color: transparent;

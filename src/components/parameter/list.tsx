@@ -1,7 +1,7 @@
-import { FunctionComponent, memo } from "react";
+import { FunctionComponent, memo, useEffect, useRef, useState } from "react";
 import ParameterItem, { parameterBoxHeight } from "./item";
 import classes from "./parameters.module.css";
-import { useElementSize, useViewportSize } from "@mantine/hooks";
+import { useElementSize, useResizeObserver, useViewportSize } from "@mantine/hooks";
 import { Breakpoints } from "../../lib/constants";
 import { clamp } from "../../lib/util";
 import { ParameterRecord } from "../../models/parameter";
@@ -28,11 +28,12 @@ const ParameterList: FunctionComponent<ParameterListProps> = memo(function Wrapp
 	parameters
 }) {
 
-	const { ref, height: elHeight } = useElementSize();
-	const { width } = useViewportSize();
+	const ref = useRef<HTMLDivElement>();
+	const [topCoord, setTopCoord] = useState<number>(0);
+	const { height, width } = useViewportSize();
 	const colorScheme  = useThemeColorScheme();
 
-	const paramOverflow = elHeight === 0 || isNaN(elHeight) ? 1 : Math.ceil((parameters.size * parameterBoxHeight) / elHeight);
+	const paramOverflow = Math.ceil((parameters.size * parameterBoxHeight) / (height - topCoord));
 
 	let columnCount = 1;
 	if (width >= Breakpoints.xl) {
@@ -42,6 +43,10 @@ const ParameterList: FunctionComponent<ParameterListProps> = memo(function Wrapp
 	} else if (width >= Breakpoints.sm) { // treat SM and MD equal
 		columnCount = clamp(paramOverflow, 1, 2);
 	}
+
+	useEffect(() => {
+		setTopCoord(ref.current?.getBoundingClientRect().top);
+	}, [ref, height]);
 
 	return (
 		<div ref={ ref } className={ classes.parameterList } data-color-scheme={ colorScheme } data-active-midi-mapping={ isMIDIMapping } style={{ columnCount }} >

@@ -8,7 +8,7 @@ import { useDisclosure } from "@mantine/hooks";
 import { MetaEditorModal } from "../meta/metaEditorModal";
 import { MetadataScope } from "../../lib/constants";
 
-export const parameterBoxHeight = 70;
+export const parameterBoxHeight = 87 + 6; // 87px + 6px margin
 const formatParamValueForDisplay = (value: number | string) => {
 	if (typeof value === "number") return Number.isInteger(value) ? value : value.toFixed(2);
 	return value;
