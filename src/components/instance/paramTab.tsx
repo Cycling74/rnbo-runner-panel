@@ -169,6 +169,19 @@ const InstanceParameterTab: FunctionComponent<InstanceParameterTabProps> = memo(
 		setSortedParamIds(getSortedParameterIds(instance.parameters, sortAttr.value as ParameterSortAttr, sortOrder.value as SortOrder));
 	}, [instance, sortAttr, sortOrder]);
 
+	useEffect(() => {
+		const onKeyDown = (e: KeyboardEvent) => {
+			if (e.code === "Escape" && instance.waitingForMidiMapping && document.activeElement instanceof HTMLElement && document.activeElement.nodeName !== "INPUT") {
+				dispatch(setInstanceWaitingForMidiMappingOnRemote(instance.id, false));
+			}
+		};
+		document.addEventListener("keydown", onKeyDown);
+
+		return () => {
+			document.removeEventListener("keydown", onKeyDown);
+		};
+	}, [instance, dispatch]);
+
 	let parameters = sortedParamIds.map(id => instance.parameters.get(id)).filter(p => !!p);
 	if (searchValue?.length) parameters = parameters.filter(p => p.matchesQuery(searchValue));
 
