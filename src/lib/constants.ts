@@ -18,7 +18,6 @@ export enum AppStatus {
 
 export enum InstanceTab {
 	MessagePorts = "msg",
-	MIDI = "midi",
 	Parameters = "params",
 	DataRefs = "datarefs",
 }

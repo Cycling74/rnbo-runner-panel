@@ -6,7 +6,7 @@ import { useRouter } from "next/router";
 import { ActionIcon, Button, Group, NativeSelect, Stack, Text } from "@mantine/core";
 import classes from "../../components/instance/instance.module.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCamera, faDiagramProject, faTrash, faVectorSquare } from "@fortawesome/free-solid-svg-icons";
+import { faCamera, faDiagramProject, faMusic, faTrash, faVectorSquare } from "@fortawesome/free-solid-svg-icons";
 import { getAppStatus } from "../../selectors/appStatus";
 import { AppStatus, SortOrder } from "../../lib/constants";
 import Link from "next/link";
@@ -19,12 +19,14 @@ import { PresetRecord } from "../../models/preset";
 import { destroyPresetOnRemoteInstance, renamePresetOnRemoteInstance, setInitialPresetOnRemoteInstance, loadPresetOnRemoteInstance, savePresetToRemoteInstance } from "../../actions/instances";
 import { useDisclosure } from "@mantine/hooks";
 import { getDataFilesSortedByName } from "../../selectors/datafiles";
+import InstanceKeyboardModal from "../../components/keyroll/modal";
 import { modals } from "@mantine/modals";
 
 export default function Instance() {
 
 	const { query, isReady, pathname, push } = useRouter();
 	const [presetDrawerIsOpen, { close: closePresetDrawer, toggle: togglePresetDrawer }] = useDisclosure();
+	const [keyboardModalIsOpen, { close: closeKeyboardModal, toggle: toggleKeyboardModal }] = useDisclosure();
 
 	const { index, ...restQuery } = query;
 	const instanceIndex = parseInt(Array.isArray(index) ? index.join("") : index || "0", 10);
@@ -42,6 +44,7 @@ export default function Instance() {
 		sortOrder
 	] = useAppSelector((state: RootStateType) => {
 		const currentInstance = getInstanceByIndex(state, instanceIndex);
+
 		return [
 			currentInstance,
 			getAppStatus(state),
@@ -132,6 +135,9 @@ export default function Instance() {
 					<ActionIcon variant="outline" color="red" size="lg" onClick={ onUnloadInstance } >
 						<FontAwesomeIcon icon={ faTrash } />
 					</ActionIcon>
+					<ActionIcon variant="default" size="lg" onClick={ toggleKeyboardModal }>
+						<FontAwesomeIcon icon={ faMusic } />
+					</ActionIcon>
 					<Button variant="default" leftSection={ <FontAwesomeIcon icon={ faCamera } /> } onClick={ togglePresetDrawer } >
 						Presets
 					</Button>
@@ -141,7 +147,6 @@ export default function Instance() {
 				instance={ currentInstance }
 				datafiles={ datafiles }
 				enabledMessageOuput={ enabledMessageOuput }
-				enabledMIDIKeyboard={ enabledMIDIKeyboard }
 				paramSortAttr={ sortAttr }
 				paramSortOrder={ sortOrder }
 			/>
@@ -154,6 +159,12 @@ export default function Instance() {
 				onRenamePreset={ onRenamePreset }
 				onSetInitialPreset={ onSetInitialPreset }
 				presets={ currentInstance.presets.valueSeq() }
+			/>
+			<InstanceKeyboardModal
+				open={ keyboardModalIsOpen }
+				onClose={ closeKeyboardModal }
+				instance={ currentInstance }
+				keyboardEnabled= { enabledMIDIKeyboard.value as boolean }
 			/>
 		</Stack>
 	);
