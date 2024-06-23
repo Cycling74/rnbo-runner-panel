@@ -10,7 +10,7 @@ import {
 	restoreDefaultParameterMetaOnRemote, setInstanceParameterMetaOnRemote,
 	setInstanceParameterValueNormalizedOnRemote,
 	setInstanceWaitingForMidiMappingOnRemote, clearParameterMidiMappingOnRemote,
-	activateParameterMIDIMappingFocusOnRemote
+	activateParameterMIDIMappingFocus
 } from "../../actions/instances";
 import { OrderedSet as ImmuOrderedSet } from "immutable";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -154,7 +154,7 @@ const InstanceParameterTab: FunctionComponent<InstanceParameterTabProps> = memo(
 	}, [dispatch, instance]);
 
 	const onActivateParameterMIDIMapping = useCallback((param: ParameterRecord) => {
-		dispatch(activateParameterMIDIMappingFocusOnRemote(instance, param));
+		dispatch(activateParameterMIDIMappingFocus(instance, param));
 	}, [dispatch, instance]);
 
 	const onClearParameterMidiMapping = useCallback((param: ParameterRecord) => {

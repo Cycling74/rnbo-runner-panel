@@ -290,18 +290,8 @@ export const restoreDefaultParameterMetaOnRemote = (_instance: InstanceStateReco
 		oscQueryBridge.sendPacket(writePacket(message));
 	};
 
-export const activateParameterMIDIMappingFocusOnRemote = (instance: InstanceStateRecord, param: ParameterRecord): AppThunk =>
+export const activateParameterMIDIMappingFocus = (instance: InstanceStateRecord, param: ParameterRecord): AppThunk =>
 	(dispatch) => {
-
-		// To activate Parameter Mapping Focus we just "touch" the normalized
-		const message = {
-			address: `${param.path}/normalized`,
-			args: [
-				{ type: "f", value: param.normalizedValue }
-			]
-		};
-
-		oscQueryBridge.sendPacket(writePacket(message));
 		dispatch(setInstance(instance.setParameterWaitingForMidiMapping(param.id)));
 	};
 
