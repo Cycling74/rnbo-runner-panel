@@ -3,7 +3,7 @@ import { ParameterRecord } from "../../models/parameter";
 import classes from "./parameters.module.css";
 import { ActionIcon, Group, Menu, Indicator, Slider, Tooltip } from "@mantine/core";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCode, faEllipsisVertical, faMap as faMidiMapped, faStar as faMidiMapWaiting } from "@fortawesome/free-solid-svg-icons";
+import { faCode, faEllipsisVertical, faEraser } from "@fortawesome/free-solid-svg-icons";
 import { useDisclosure } from "@mantine/hooks";
 import { MetaEditorModal } from "../meta/metaEditorModal";
 import { MetadataScope } from "../../lib/constants";
@@ -15,7 +15,9 @@ const formatParamValueForDisplay = (value: number | string) => {
 };
 
 interface ParameterProps {
+	instanceIsMIDIMapping: boolean;
 	param: ParameterRecord;
+	onActivateMIDIMapping: (param: ParameterRecord) => any;
 	onRestoreMetadata: (param: ParameterRecord) => any;
 	onSaveMetadata: (param: ParameterRecord, meta: string) => any;
 	onSetNormalizedValue: (param: ParameterRecord, nValue: number) => void;
@@ -23,7 +25,9 @@ interface ParameterProps {
 }
 
 const Parameter = memo(function WrappedParameter({
+	instanceIsMIDIMapping,
 	param,
+	onActivateMIDIMapping,
 	onSetNormalizedValue,
 	onSaveMetadata,
 	onRestoreMetadata,
@@ -45,6 +49,11 @@ const Parameter = memo(function WrappedParameter({
 		onSetNormalizedValue(param, nVal);
 	}, [setUseLocalValue, onSetNormalizedValue, param]);
 
+	const onTriggerActivateMIDIMapping = useCallback(() => {
+		if (param.waitingForMidiMapping) return;
+		onActivateMIDIMapping(param);
+	}, [param, onActivateMIDIMapping]);
+
 	const onSaveMeta = useCallback((meta: string) => onSaveMetadata(param, meta), [param, onSaveMetadata]);
 	const onRestoreMeta = useCallback(() => onRestoreMetadata(param), [param, onRestoreMetadata]);
 	const onClearMidiMap = useCallback(() => onClearMidiMapping(param), [param, onClearMidiMapping]);
@@ -53,13 +62,14 @@ const Parameter = memo(function WrappedParameter({
 	const value = param.getValueForNormalizedValue(currentValue);
 	const stepSize = param.isEnum ? 1 / (param.enumVals.length - 1) : 0.001;
 
-	const indicatorIcon = param.waitingForMidiMapping ? faMidiMapWaiting : faMidiMapped;
-	const indicatorActive = param.waitingForMidiMapping || param.isMidiMapped;
-	const indicatorText = param.waitingForMidiMapping ? "This param is waiting for MIDI mapping" : "This param is MIDI mapped";
-	const indcatorColor = param.waitingForMidiMapping ? "yellow" : "green";
+	const indicatorText = param.isMidiMapped ? "This param is MIDI mapped" : undefined;
 
 	return (
-		<div className={ classes.parameterItem } >
+		<div
+			className={ classes.parameterItem }
+			data-active-midi-mappping={ param.waitingForMidiMapping }
+			onClick={ instanceIsMIDIMapping ? onTriggerActivateMIDIMapping : null }
+		>
 			{
 				showMetaEditor ? (
 					<MetaEditorModal
@@ -73,29 +83,27 @@ const Parameter = memo(function WrappedParameter({
 				) : null
 			}
 			<Group justify="space-between">
-				<Indicator
-					position="top-end"
-					className={ classes.parameterItemLabelIndicator }
-					color={ indcatorColor }
-					disabled={ !indicatorActive }
-					label={(
-						<Tooltip label={ indicatorText } openDelay={ 500 } >
-							<FontAwesomeIcon icon={ indicatorIcon } size="xs" />
-						</Tooltip>
-					)}
-					size={ 18 }
-					withBorder
-				>
-					<label htmlFor={ param.name } className={ classes.parameterItemLabel } >{ param.name }</label>
-				</Indicator>
+				<Tooltip label={ indicatorText } openDelay={ 500 } disabled={ !indicatorText }>
+					<Indicator
+						position="middle-end"
+						disabled={ !indicatorText }
+						classNames={{ root: classes.parameterItemMIDIIndicator }}
+					>
+						<label htmlFor={ param.name } className={ classes.parameterItemLabel } >
+							{ param.name }
+						</label>
+					</Indicator>
+				</Tooltip>
 			</Group>
 			<Group>
 				<Slider
 					label={ formatParamValueForDisplay(value) }
 					classNames={{ markWrapper: classes.markWrapper, markLabel: classes.markLabel }}
+					className={ classes.parameterItemSlider }
 					flex={ 1 }
 					max={ 1 }
 					min={ 0 }
+					disabled={ instanceIsMIDIMapping }
 					name={ param.name }
 					onChange={ onChange }
 					onChangeEnd={ onChangeEnd }
@@ -108,9 +116,9 @@ const Parameter = memo(function WrappedParameter({
 							: [{ label: `${formatParamValueForDisplay(param.min)}`, value: 0 }, { label: `${formatParamValueForDisplay(param.max)}`, value: 1 }]
 					}
 				/>
-				<Menu position="bottom-end">
+				<Menu position="bottom-end" disabled={ instanceIsMIDIMapping } >
 					<Menu.Target>
-						<ActionIcon variant="subtle" color="gray" size="md">
+						<ActionIcon variant="subtle" color="gray" size="md" className={ classes.parameterItemActionMenuTarget } >
 							<FontAwesomeIcon icon={ faEllipsisVertical } />
 						</ActionIcon>
 					</Menu.Target>
@@ -119,12 +127,9 @@ const Parameter = memo(function WrappedParameter({
 						<Menu.Item leftSection={ <FontAwesomeIcon fixedWidth icon={ faCode } /> } onClick={ toggleMetaEditor }>
 							Edit Metadata
 						</Menu.Item>
-						{ param.isMidiMapped ? (
-							<Menu.Item leftSection={ <FontAwesomeIcon icon={ faMidiMapped } /> } onClick={ onClearMidiMap }>
-								Clear Midi Mapping
-							</Menu.Item>
-						) : null
-						}
+						<Menu.Item leftSection={ <FontAwesomeIcon icon={ faEraser } /> } onClick={ onClearMidiMap } disabled={ !param.isMidiMapped } >
+							Clear Midi Mapping
+						</Menu.Item>
 					</Menu.Dropdown>
 				</Menu>
 			</Group>

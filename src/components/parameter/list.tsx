@@ -6,8 +6,11 @@ import { Breakpoints } from "../../lib/constants";
 import { clamp } from "../../lib/util";
 import { ParameterRecord } from "../../models/parameter";
 import { OrderedSet } from "immutable";
+import { useThemeColorScheme } from "../../hooks/useTheme";
 
 export type ParameterListProps = {
+	isMIDIMapping: boolean;
+	onActivateMIDIMapping: (parameter: ParameterRecord) => any;
 	onSetNormalizedValue: (parameter: ParameterRecord, nValue: number) => any;
 	onSaveMetadata: (parameter: ParameterRecord, meta: string) => any;
 	onRestoreMetadata: (parameter: ParameterRecord) => any;
@@ -16,6 +19,8 @@ export type ParameterListProps = {
 }
 
 const ParameterList: FunctionComponent<ParameterListProps> = memo(function WrappedParameterList({
+	isMIDIMapping,
+	onActivateMIDIMapping,
 	onSetNormalizedValue,
 	onSaveMetadata,
 	onRestoreMetadata,
@@ -25,6 +30,7 @@ const ParameterList: FunctionComponent<ParameterListProps> = memo(function Wrapp
 
 	const { ref, height: elHeight } = useElementSize();
 	const { width } = useViewportSize();
+	const colorScheme  = useThemeColorScheme();
 
 	const paramOverflow = elHeight === 0 || isNaN(elHeight) ? 1 : Math.ceil((parameters.size * parameterBoxHeight) / elHeight);
 
@@ -38,12 +44,14 @@ const ParameterList: FunctionComponent<ParameterListProps> = memo(function Wrapp
 	}
 
 	return (
-		<div ref={ ref } className={ classes.parameterList } style={{ columnCount }} >
+		<div ref={ ref } className={ classes.parameterList } data-color-scheme={ colorScheme } data-active-midi-mapping={ isMIDIMapping } style={{ columnCount }} >
 			{
 				ref.current === null ? null : parameters.map(p =>
 					<ParameterItem
 						key={p.id}
 						param={p}
+						instanceIsMIDIMapping={ isMIDIMapping }
+						onActivateMIDIMapping={ onActivateMIDIMapping }
 						onSetNormalizedValue={ onSetNormalizedValue }
 						onSaveMetadata={ onSaveMetadata }
 						onRestoreMetadata={ onRestoreMetadata }

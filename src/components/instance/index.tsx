@@ -65,7 +65,7 @@ const Instance: FunctionComponent<InstanceProps> = memo(function WrappedInstance
 				}
 			</Tabs.List>
 			<div className={ classes.instanceTabContentWrap } >
-				<InstanceParameterTab instance={ instance } sortAttr={ paramSortAttr } sortOrder={ paramSortOrder } />
+				<InstanceParameterTab instance={ instance } sortAttr={ paramSortAttr } sortOrder={ paramSortOrder } isMIDIMapping={ instance.waitingForMidiMapping } />
 				<InstanceMessagesTab instance={ instance } outputEnabled={ enabledMessageOuput.value as boolean } />
 				<InstanceDataRefsTab instance={ instance } datafiles={ datafiles } />
 				<InstanceMIDITab instance={ instance } keyboardEnabled={ enabledMIDIKeyboard.value as boolean } />

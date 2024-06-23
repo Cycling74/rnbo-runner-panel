@@ -1,5 +1,5 @@
 import { ActionIcon, Button, Group, Popover, SegmentedControl, Select, Stack, Switch, Tabs, Text, TextInput } from "@mantine/core";
-import { ChangeEvent, FC, FunctionComponent, KeyboardEvent, memo, useCallback, useEffect, useRef, useState } from "react";
+import { ChangeEvent, FC, FunctionComponent, KeyboardEvent as ReactKeyboardEvent, memo, useCallback, useEffect, useRef, useState } from "react";
 import { InstanceTab, ParameterSortAttr, SortOrder } from "../../lib/constants";
 import ParameterList from "../parameter/list";
 import { ParameterRecord } from "../../models/parameter";
@@ -9,7 +9,8 @@ import { InstanceStateRecord } from "../../models/instance";
 import {
 	restoreDefaultParameterMetaOnRemote, setInstanceParameterMetaOnRemote,
 	setInstanceParameterValueNormalizedOnRemote,
-	setInstanceWaitingForMidiMappingOnRemote, clearParameterMidiMappingOnRemote
+	setInstanceWaitingForMidiMappingOnRemote, clearParameterMidiMappingOnRemote,
+	activateParameterMIDIMappingFocusOnRemote
 } from "../../actions/instances";
 import { OrderedSet as ImmuOrderedSet } from "immutable";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -43,7 +44,7 @@ const ParameterSearchInput: FC<ParameterSearchInputProps> = memo(function Wrappe
 		searchInputRef.current?.focus();
 	}, [setSearchValue]);
 
-	const onKeyDown = useCallback((e: KeyboardEvent<HTMLInputElement>) => {
+	const onKeyDown = useCallback((e: ReactKeyboardEvent<HTMLInputElement>) => {
 		if (e.key === "Escape") {
 			if (searchValue.length) {
 				setSearchValue("");
@@ -111,12 +112,14 @@ const getSortedParameterIds = (params: InstanceStateRecord["parameters"], attr: 
 
 export type InstanceParameterTabProps = {
 	instance: InstanceStateRecord;
+	isMIDIMapping: boolean;
 	sortAttr: AppSettingRecord;
 	sortOrder: AppSettingRecord;
 }
 
 const InstanceParameterTab: FunctionComponent<InstanceParameterTabProps> = memo(function WrappedInstanceParameterTab({
 	instance,
+	isMIDIMapping,
 	sortAttr,
 	sortOrder
 }) {
@@ -146,6 +149,16 @@ const InstanceParameterTab: FunctionComponent<InstanceParameterTabProps> = memo(
 		dispatch(restoreDefaultParameterMetaOnRemote(instance, param));
 	}, [dispatch, instance]);
 
+	const onToggleMIDIMapping = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+		e.preventDefault();
+		e.currentTarget.blur();
+		dispatch(setInstanceWaitingForMidiMappingOnRemote(instance.id, e.currentTarget.checked));
+	}, [dispatch, instance]);
+
+	const onActivateParameterMIDIMapping = useCallback((param: ParameterRecord) => {
+		dispatch(activateParameterMIDIMappingFocusOnRemote(instance, param));
+	}, [dispatch, instance]);
+
 	const onClearParameterMidiMapping = useCallback((param: ParameterRecord) => {
 		dispatch(clearParameterMidiMappingOnRemote(instance.id, param.id));
 	}, [dispatch, instance]);
@@ -153,11 +166,6 @@ const InstanceParameterTab: FunctionComponent<InstanceParameterTabProps> = memo(
 	const onSearch = useDebouncedCallback((query: string) => {
 		setSearchValue(query);
 	}, 150);
-
-	const onMidiMap = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-		e.preventDefault();
-		dispatch(setInstanceWaitingForMidiMappingOnRemote(instance.id, e.currentTarget.checked));
-	}, [dispatch, instance]);
 
 	useEffect(() => {
 		setSortedParamIds(getSortedParameterIds(instance.parameters, sortAttr.value as ParameterSortAttr, sortOrder.value as SortOrder));
@@ -169,38 +177,40 @@ const InstanceParameterTab: FunctionComponent<InstanceParameterTabProps> = memo(
 	return (
 		<Tabs.Panel value={ InstanceTab.Parameters } >
 			<Stack gap="md" h="100%">
-				<Group justify="flex-end" gap="xs">
-					<Switch size="xs" variant="default" label="MIDI Map" checked={ instance.waitingForMidiMapping } onChange={ onMidiMap }/>
-					<ParameterSearchInput onSearch={ onSearch } />
-					<Popover position="bottom-end" withArrow>
-						<Popover.Target>
-							<Button size="xs" variant="default" leftSection={ <FontAwesomeIcon icon={ faSort } /> } >
-								Sort
-							</Button>
-						</Popover.Target>
-						<Popover.Dropdown>
-							<Stack gap="sm">
-								<Select
-									size="xs"
-									label="Sort By"
-									name="sort_attribute"
-									onChange={ onChangeSortAttr }
-									data={ sortAttr.options }
-									value={ sortAttr.value as string }
-								/>
-								<div>
-									<Text size="xs">Sort Order</Text>
-									<SegmentedControl
+				<Group justify="space-between">
+					<Switch size="xs" variant="default" color="violet.4" label="MIDI Map" checked={ instance.waitingForMidiMapping } onChange={ onToggleMIDIMapping } />
+					<Group justify="flex-end" gap="xs">
+						<ParameterSearchInput onSearch={ onSearch } />
+						<Popover position="bottom-end" withArrow>
+							<Popover.Target>
+								<Button size="xs" variant="default" leftSection={ <FontAwesomeIcon icon={ faSort } /> } >
+									Sort
+								</Button>
+							</Popover.Target>
+							<Popover.Dropdown>
+								<Stack gap="sm">
+									<Select
 										size="xs"
-										fullWidth
-										onChange={ onChangeSortOrder }
-										data={ [{ label: <FontAwesomeIcon icon={ faArrowDownAZ } size="sm" />, value: SortOrder.Asc }, { label: <FontAwesomeIcon icon={ faArrowUpAZ } size="sm" />, value: SortOrder.Desc }] }
-										value={ sortOrder.value as string }
+										label="Sort By"
+										name="sort_attribute"
+										onChange={ onChangeSortAttr }
+										data={ sortAttr.options }
+										value={ sortAttr.value as string }
 									/>
-								</div>
-							</Stack>
-						</Popover.Dropdown>
-					</Popover>
+									<div>
+										<Text size="xs">Sort Order</Text>
+										<SegmentedControl
+											size="xs"
+											fullWidth
+											onChange={ onChangeSortOrder }
+											data={ [{ label: <FontAwesomeIcon icon={ faArrowDownAZ } size="sm" />, value: SortOrder.Asc }, { label: <FontAwesomeIcon icon={ faArrowUpAZ } size="sm" />, value: SortOrder.Desc }] }
+											value={ sortOrder.value as string }
+										/>
+									</div>
+								</Stack>
+							</Popover.Dropdown>
+						</Popover>
+					</Group>
 				</Group>
 				{
 					!instance.parameters.size ? (
@@ -211,6 +221,8 @@ const InstanceParameterTab: FunctionComponent<InstanceParameterTabProps> = memo(
 						<div className={ classes.paramSectionWrap } >
 							<ParameterList
 								parameters={ parameters }
+								isMIDIMapping={ isMIDIMapping }
+								onActivateMIDIMapping={ onActivateParameterMIDIMapping }
 								onSetNormalizedValue={ onSetNormalizedParamValue }
 								onSaveMetadata={ onSaveParameterMetadata }
 								onRestoreMetadata={ onRestoreDefaultParameterMetadata }

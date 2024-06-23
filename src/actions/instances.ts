@@ -249,13 +249,8 @@ export const setInstanceParameterValueNormalizedOnRemote = throttle((instance: I
 		};
 
 		oscQueryBridge.sendPacket(writePacket(message));
-
-		if (instance.waitingForMidiMapping) {
-			dispatch(setInstance(instance.setParameterNormalizedValue(param.id, value).setParameterWaitingForMidiMapping(param.id)));
-		} else {
 		// optimistic local state update
-			dispatch(setInstance(instance.setParameterNormalizedValue(param.id, value)));
-		}
+		dispatch(setInstance(instance.setParameterNormalizedValue(param.id, value)));
 	}, 100);
 
 export const setInstanceDataRefValueOnRemote = throttle((instance: InstanceStateRecord, dataref: DataRefRecord, file?: DataFileRecord): AppThunk =>
@@ -293,6 +288,21 @@ export const restoreDefaultParameterMetaOnRemote = (_instance: InstanceStateReco
 		};
 
 		oscQueryBridge.sendPacket(writePacket(message));
+	};
+
+export const activateParameterMIDIMappingFocusOnRemote = (instance: InstanceStateRecord, param: ParameterRecord): AppThunk =>
+	(dispatch) => {
+
+		// To activate Parameter Mapping Focus we just "touch" the normalized
+		const message = {
+			address: `${param.path}/normalized`,
+			args: [
+				{ type: "f", value: param.normalizedValue }
+			]
+		};
+
+		oscQueryBridge.sendPacket(writePacket(message));
+		dispatch(setInstance(instance.setParameterWaitingForMidiMapping(param.id)));
 	};
 
 export const clearParameterMidiMappingOnRemote = (id: InstanceStateRecord["id"], paramId: ParameterRecord["id"]): AppThunk =>
