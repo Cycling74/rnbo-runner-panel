@@ -1,7 +1,7 @@
 import { FunctionComponent, memo, useEffect, useRef, useState } from "react";
 import ParameterItem, { parameterBoxHeight } from "./item";
 import classes from "./parameters.module.css";
-import { useElementSize, useResizeObserver, useViewportSize } from "@mantine/hooks";
+import { useViewportSize } from "@mantine/hooks";
 import { Breakpoints } from "../../lib/constants";
 import { clamp } from "../../lib/util";
 import { ParameterRecord } from "../../models/parameter";
