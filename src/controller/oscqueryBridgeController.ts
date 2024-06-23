@@ -16,7 +16,9 @@ import {
 	updateInstanceDataRefValue,
 	updateInstanceMessageOutportValue, updateInstanceMessages, updateInstanceMessageOutportMeta, updateInstanceMessageInportMeta,
 	updateInstanceParameterValue, updateInstanceParameterValueNormalized, updateInstanceParameters, updateInstanceParameterMeta,
-	updateInstancePresetEntries, updateInstancePresetLatest, updateInstancePresetInitial } from "../actions/instances";
+	updateInstancePresetEntries, updateInstancePresetLatest, updateInstancePresetInitial,
+	updateInstanceMIDILastValue, updateInstanceMIDIReport
+} from "../actions/instances";
 import { ConnectionType, PortDirection } from "../models/graph";
 import { showNotification } from "../actions/notifications";
 import { NotificationLevel } from "../models/notification";
@@ -38,7 +40,7 @@ const portIOPathMatcher = /^\/rnbo\/jack\/info\/ports\/(?<type>audio|midi)\/(?<d
 const portAliasPathMatcher = /^\/rnbo\/jack\/info\/ports\/aliases\/(?<port>.+)$/;
 const patchersPathMatcher = /^\/rnbo\/patchers/;
 const instancePathMatcher = /^\/rnbo\/inst\/(?<index>\d+)$/;
-const instanceStatePathMatcher = /^\/rnbo\/inst\/(?<index>\d+)\/(?<content>params|messages\/in|messages\/out|presets|data_refs)\/(?<rest>\S+)/;
+const instanceStatePathMatcher = /^\/rnbo\/inst\/(?<index>\d+)\/(?<content>params|messages\/in|messages\/out|presets|data_refs|midi\/last)\/(?<rest>\S+)/;
 const instancePresetPathMatcher = /^\/rnbo\/inst\/(?<index>\d+)\/presets\/(?<property>loaded|initial)$/;
 const connectionsPathMatcher = /^\/rnbo\/jack\/connections\/(?<type>audio|midi)\/(?<name>.+)$/;
 const setMetaPathMatcher = /^\/rnbo\/inst\/control\/sets\/meta/;
@@ -634,6 +636,17 @@ export class OSCQueryBridgeControllerPrivate {
 			}
 			console.log("unexpected dataref OSC packet format", { packet });
 
+		}
+
+		if (packetMatch.groups.content === "midi/last") {
+			switch (packetMatch.groups.rest) {
+				case "value":
+					return void dispatch(updateInstanceMIDILastValue(index, packet.args[0] as unknown as string));
+				case "report":
+					return void dispatch(updateInstanceMIDIReport(index, packet.args[0] as unknown as boolean));
+				default:
+					return;
+			}
 		}
 
 	}

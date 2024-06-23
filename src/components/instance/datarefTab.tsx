@@ -1,6 +1,5 @@
-import { Tabs, Text } from "@mantine/core";
+import { Stack, Text } from "@mantine/core";
 import { FunctionComponent, memo, useCallback } from "react";
-import { InstanceTab } from "../../lib/constants";
 import { useAppDispatch } from "../../hooks/useAppDispatch";
 import DataRefList from "../dataref/list";
 import classes from "./instance.module.css";
@@ -43,7 +42,7 @@ const InstanceDataRefsTab: FunctionComponent<InstanceDataRefTabProps> = memo(fun
 	}, [dispatch, instance]);
 
 	return (
-		<Tabs.Panel value={ InstanceTab.DataRefs } >
+		<Stack>
 			{
 				!instance.datarefs.size ? (
 					<div className={ classes.emptySection }>
@@ -51,7 +50,7 @@ const InstanceDataRefsTab: FunctionComponent<InstanceDataRefTabProps> = memo(fun
 					</div>
 				) : <DataRefList datarefs={ instance.datarefs } options={ datafiles } onSetDataRef={ onSetDataRef } onClearDataRef={ onClearDataRef } />
 			}
-		</Tabs.Panel>
+		</Stack>
 	);
 });
 

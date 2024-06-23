@@ -11,6 +11,7 @@ export const customProps: MantineThemeOther & CustomThemeProps = {
 };
 
 export const rnboTheme = createTheme({
+	cursorType: "pointer",
 	headings: {
 		sizes: {
 			h1: {

@@ -19,6 +19,8 @@ export type InstanceStateProps = {
 	parameters: ImmuMap<ParameterRecord["id"], ParameterRecord>;
 	presets: ImmuOrderedMap<PresetRecord["id"], PresetRecord>;
 	datarefs: ImmuOrderedMap<DataRefRecord["id"], DataRefRecord>;
+
+	waitingForMidiMapping: boolean;
 }
 
 const collator = new Intl.Collator("en-US");
@@ -36,7 +38,9 @@ export class InstanceStateRecord extends ImmuRecord<InstanceStateProps>({
 	messageOutports: ImmuMap<MessagePortRecord["id"], MessagePortRecord>(),
 	parameters: ImmuMap<ParameterRecord["id"], ParameterRecord>(),
 	presets: ImmuMap<PresetRecord["id"], PresetRecord>(),
-	datarefs: ImmuMap<DataRefRecord["id"], DataRefRecord>()
+	datarefs: ImmuMap<DataRefRecord["id"], DataRefRecord>(),
+
+	waitingForMidiMapping: false
 
 }) {
 
@@ -75,6 +79,18 @@ export class InstanceStateRecord extends ImmuRecord<InstanceStateProps>({
 		if (!param) return this;
 
 		return this.set("parameters", this.parameters.set(param.id, param.setValue(value)));
+	}
+
+	public setWaitingForMapping(value: boolean): InstanceStateRecord {
+		return this.set("waitingForMidiMapping", value).clearParametersWaitingForMidiMapping();
+	}
+
+	public clearParametersWaitingForMidiMapping(): InstanceStateRecord {
+		return this.set("parameters", this.parameters.map(p => p.setWaitingForMidiMapping(false)));
+	}
+
+	public setParameterWaitingForMidiMapping(id: ParameterRecord["id"]): InstanceStateRecord {
+		return this.set("parameters", this.parameters.map(p => p.setWaitingForMidiMapping(p.id === id)));
 	}
 
 	public setParameterNormalizedValue(id: ParameterRecord["id"], value: number): InstanceStateRecord {

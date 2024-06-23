@@ -2,7 +2,7 @@ import Router from "next/router";
 import { ActionBase, AppThunk } from "../lib/store";
 import { OSCQueryRNBOInstance, OSCQueryRNBOInstancePresetEntries, OSCValue } from "../lib/types";
 import { InstanceStateRecord } from "../models/instance";
-import { getInstanceByIndex } from "../selectors/instances";
+import { getInstanceByIndex, getInstance } from "../selectors/instances";
 import { getAppSetting } from "../selectors/settings";
 import { ParameterRecord } from "../models/parameter";
 import { MessagePortRecord } from "../models/messageport";
@@ -249,7 +249,6 @@ export const setInstanceParameterValueNormalizedOnRemote = throttle((instance: I
 		};
 
 		oscQueryBridge.sendPacket(writePacket(message));
-
 		// optimistic local state update
 		dispatch(setInstance(instance.setParameterNormalizedValue(param.id, value)));
 	}, 100);
@@ -289,6 +288,34 @@ export const restoreDefaultParameterMetaOnRemote = (_instance: InstanceStateReco
 		};
 
 		oscQueryBridge.sendPacket(writePacket(message));
+	};
+
+export const activateParameterMIDIMappingFocus = (instance: InstanceStateRecord, param: ParameterRecord): AppThunk =>
+	(dispatch) => {
+		dispatch(setInstance(instance.setParameterWaitingForMidiMapping(param.id)));
+	};
+
+export const clearParameterMidiMappingOnRemote = (id: InstanceStateRecord["id"], paramId: ParameterRecord["id"]): AppThunk =>
+	(_dispatch, getState) => {
+		const state = getState();
+		const instance = getInstance(state, id);
+		if (!instance) return;
+
+		const param = instance.parameters.get(paramId);
+		if (!param) return;
+
+		const meta = param.getParsedMeta();
+		if (typeof meta === "object" && !Array.isArray(meta)) {
+			delete meta.midi;
+			const message = {
+				address: `${param.path}/meta`,
+				args: [
+					{ type: "s", value: JSON.stringify(meta) }
+				]
+			};
+
+			oscQueryBridge.sendPacket(writePacket(message));
+		}
 	};
 
 export const setInstanceMessagePortMetaOnRemote = (_instance: InstanceStateRecord, port: MessagePortRecord, value: string): AppThunk =>
@@ -362,7 +389,7 @@ export const updateInstanceMessages = (index: number, desc: OSCQueryRNBOInstance
 
 			const state = getState();
 			const instance = getInstanceByIndex(state, index);
-			if (instance) return;
+			if (!instance) return;
 
 			dispatch(setInstance(
 				instance
@@ -452,6 +479,85 @@ export const updateInstanceParameterValueNormalized = (index: number, id: Parame
 			if (!instance) return;
 
 			dispatch(setInstance(instance.setParameterNormalizedValue(id, value)));
+		} catch (e) {
+			console.log(e);
+		}
+	};
+
+export const setInstanceWaitingForMidiMappingOnRemote = (id: InstanceStateRecord["id"], value: boolean): AppThunk =>
+	(dispatch, getState) => {
+		try {
+			const state = getState();
+			const instance = getInstance(state, id);
+			if (!instance) return;
+
+			dispatch(setInstance(instance.setWaitingForMapping(value)));
+
+			try {
+				const message = {
+					address: `${instance.path}/midi/last/report`,
+					args: [
+						{ type: value ? "T" : "F", value: value ? "true" : "false" }
+					]
+				};
+				oscQueryBridge.sendPacket(writePacket(message));
+			} catch (err) {
+				dispatch(showNotification({
+					level: NotificationLevel.error,
+					title: "Error while trying set midi mapping mode on remote",
+					message: "Please check the console for further details."
+				}));
+				console.log(err);
+			}
+		} catch (e) {
+			console.log(e);
+		}
+	};
+
+export const updateInstanceMIDIReport = (index: number, value: boolean): AppThunk =>
+	(dispatch, getState) => {
+		try {
+			const state = getState();
+			const instance = getInstanceByIndex(state, index);
+			if (!instance) return;
+			dispatch(setInstance(instance.setWaitingForMapping(value)));
+		} catch (e) {
+			console.log(e);
+		}
+	};
+
+export const updateInstanceMIDILastValue = (index: number, value: string): AppThunk =>
+	(dispatch, getState) => {
+		try {
+
+			const state = getState();
+
+			let instance = getInstanceByIndex(state, index);
+			if (!instance?.waitingForMidiMapping) return;
+
+			const midiMeta = JSON.parse(value);
+
+			// find waiting, update their meta, set them no longer waiting and update map
+			instance = instance.set("parameters", instance.parameters.map(param => {
+				if (param.waitingForMidiMapping) {
+					const meta = param.getParsedMetaObject();
+					meta.midi = midiMeta;
+
+					const message = {
+						address: `${param.path}/meta`,
+						args: [
+							{ type: "s", value: JSON.stringify(meta) }
+						]
+					};
+
+					oscQueryBridge.sendPacket(writePacket(message));
+					return param.setWaitingForMidiMapping(false);
+				}
+				return param;
+			}));
+
+			dispatch(setInstance(instance));
+
 		} catch (e) {
 			console.log(e);
 		}

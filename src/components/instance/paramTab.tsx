@@ -1,12 +1,17 @@
-import { ActionIcon, Button, Group, Popover, SegmentedControl, Select, Stack, Tabs, Text, TextInput } from "@mantine/core";
-import { ChangeEvent, FC, FunctionComponent, KeyboardEvent, memo, useCallback, useEffect, useRef, useState } from "react";
-import { InstanceTab, ParameterSortAttr, SortOrder } from "../../lib/constants";
+import { ActionIcon, Button, Group, Popover, SegmentedControl, Select, Stack, Switch, Text, TextInput } from "@mantine/core";
+import { ChangeEvent, FC, FunctionComponent, KeyboardEvent as ReactKeyboardEvent, memo, useCallback, useEffect, useRef, useState } from "react";
+import { ParameterSortAttr, SortOrder } from "../../lib/constants";
 import ParameterList from "../parameter/list";
 import { ParameterRecord } from "../../models/parameter";
 import classes from "./instance.module.css";
 import { useAppDispatch } from "../../hooks/useAppDispatch";
 import { InstanceStateRecord } from "../../models/instance";
-import { restoreDefaultParameterMetaOnRemote, setInstanceParameterMetaOnRemote, setInstanceParameterValueNormalizedOnRemote } from "../../actions/instances";
+import {
+	restoreDefaultParameterMetaOnRemote, setInstanceParameterMetaOnRemote,
+	setInstanceParameterValueNormalizedOnRemote,
+	setInstanceWaitingForMidiMappingOnRemote, clearParameterMidiMappingOnRemote,
+	activateParameterMIDIMappingFocus
+} from "../../actions/instances";
 import { OrderedSet as ImmuOrderedSet } from "immutable";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowDownAZ, faArrowUpAZ, faSearch, faSort, faXmark } from "@fortawesome/free-solid-svg-icons";
@@ -39,7 +44,7 @@ const ParameterSearchInput: FC<ParameterSearchInputProps> = memo(function Wrappe
 		searchInputRef.current?.focus();
 	}, [setSearchValue]);
 
-	const onKeyDown = useCallback((e: KeyboardEvent<HTMLInputElement>) => {
+	const onKeyDown = useCallback((e: ReactKeyboardEvent<HTMLInputElement>) => {
 		if (e.key === "Escape") {
 			if (searchValue.length) {
 				setSearchValue("");
@@ -142,6 +147,20 @@ const InstanceParameterTab: FunctionComponent<InstanceParameterTabProps> = memo(
 		dispatch(restoreDefaultParameterMetaOnRemote(instance, param));
 	}, [dispatch, instance]);
 
+	const onToggleMIDIMapping = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+		e.preventDefault();
+		e.currentTarget.blur();
+		dispatch(setInstanceWaitingForMidiMappingOnRemote(instance.id, e.currentTarget.checked));
+	}, [dispatch, instance]);
+
+	const onActivateParameterMIDIMapping = useCallback((param: ParameterRecord) => {
+		dispatch(activateParameterMIDIMappingFocus(instance, param));
+	}, [dispatch, instance]);
+
+	const onClearParameterMidiMapping = useCallback((param: ParameterRecord) => {
+		dispatch(clearParameterMidiMappingOnRemote(instance.id, param.id));
+	}, [dispatch, instance]);
+
 	const onSearch = useDebouncedCallback((query: string) => {
 		setSearchValue(query);
 	}, 150);
@@ -150,12 +169,32 @@ const InstanceParameterTab: FunctionComponent<InstanceParameterTabProps> = memo(
 		setSortedParamIds(getSortedParameterIds(instance.parameters, sortAttr.value as ParameterSortAttr, sortOrder.value as SortOrder));
 	}, [instance, sortAttr, sortOrder]);
 
+	useEffect(() => {
+		const onKeyDown = (e: KeyboardEvent) => {
+			if (e.code === "Escape" && instance.waitingForMidiMapping && document.activeElement instanceof HTMLElement && document.activeElement.nodeName !== "INPUT") {
+				dispatch(setInstanceWaitingForMidiMappingOnRemote(instance.id, false));
+			}
+		};
+		document.addEventListener("keydown", onKeyDown);
+
+		return () => {
+			document.removeEventListener("keydown", onKeyDown);
+		};
+	}, [instance, dispatch]);
+
+	useEffect(() => {
+		return () => {
+			dispatch(setInstanceWaitingForMidiMappingOnRemote(instance.id, false));
+		};
+	}, [instance.id, dispatch]);
+
 	let parameters = sortedParamIds.map(id => instance.parameters.get(id)).filter(p => !!p);
 	if (searchValue?.length) parameters = parameters.filter(p => p.matchesQuery(searchValue));
 
 	return (
-		<Tabs.Panel value={ InstanceTab.Parameters } >
-			<Stack gap="md" h="100%">
+		<Stack gap="md" h="100%">
+			<Group justify="space-between">
+				<Switch size="xs" variant="default" color="violet.4" label="MIDI Map" checked={ instance.waitingForMidiMapping } onChange={ onToggleMIDIMapping } />
 				<Group justify="flex-end" gap="xs">
 					<ParameterSearchInput onSearch={ onSearch } />
 					<Popover position="bottom-end" withArrow>
@@ -188,19 +227,27 @@ const InstanceParameterTab: FunctionComponent<InstanceParameterTabProps> = memo(
 						</Popover.Dropdown>
 					</Popover>
 				</Group>
-				{
-					!instance.parameters.size ? (
-						<div className={ classes.emptySection }>
-							This patcher instance has no parameters
-						</div>
-					) : (
-						<div className={ classes.paramSectionWrap } >
-							<ParameterList parameters={ parameters } onSetNormalizedValue={ onSetNormalizedParamValue } onSaveMetadata={ onSaveParameterMetadata } onRestoreMetadata={ onRestoreDefaultParameterMetadata } />
-						</div>
-					)
-				}
-			</Stack>
-		</Tabs.Panel>
+			</Group>
+			{
+				!instance.parameters.size ? (
+					<div className={ classes.emptySection }>
+						This patcher instance has no parameters
+					</div>
+				) : (
+					<div className={ classes.paramSectionWrap } >
+						<ParameterList
+							parameters={ parameters }
+							isMIDIMapping={ instance.waitingForMidiMapping }
+							onActivateMIDIMapping={ onActivateParameterMIDIMapping }
+							onSetNormalizedValue={ onSetNormalizedParamValue }
+							onSaveMetadata={ onSaveParameterMetadata }
+							onRestoreMetadata={ onRestoreDefaultParameterMetadata }
+							onClearMidiMapping={ onClearParameterMidiMapping }
+						/>
+					</div>
+				)
+			}
+		</Stack>
 	);
 });
 

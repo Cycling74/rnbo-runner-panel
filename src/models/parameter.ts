@@ -1,5 +1,5 @@
 import { Record as ImmuRecord } from "immutable";
-import { OSCQueryRNBOInstanceParameterInfo, OSCQueryRNBOInstanceParameterValue } from "../lib/types";
+import { AnyJson, JsonMap, OSCQueryRNBOInstanceParameterInfo, OSCQueryRNBOInstanceParameterValue } from "../lib/types";
 
 export type ParameterRecordProps = {
 	enumVals: Array<string | number>;
@@ -12,6 +12,8 @@ export type ParameterRecordProps = {
 	path: string;
 	type: string;
 	value: string | number;
+	waitingForMidiMapping: boolean;
+	isMidiMapped: boolean;
 }
 export class ParameterRecord extends ImmuRecord<ParameterRecordProps>({
 
@@ -24,26 +26,28 @@ export class ParameterRecord extends ImmuRecord<ParameterRecordProps>({
 	normalizedValue: 0,
 	path: "",
 	type: "f",
-	value: 0
-
+	value: 0,
+	waitingForMidiMapping: false,
+	isMidiMapped: false
 }) {
 
 	public static arrayFromDescription(desc: OSCQueryRNBOInstanceParameterInfo, name?: string): ParameterRecord[] {
 		const result: ParameterRecord[] = [];
 		if (typeof desc.VALUE !== "undefined") {
 			const paramInfo = desc as OSCQueryRNBOInstanceParameterValue;
-			result.push(new ParameterRecord({
+
+			// use setMeta to consolidate midi mapping detection logic
+			result.push((new ParameterRecord({
 				enumVals: paramInfo.RANGE?.[0]?.VALS || [],
 				index: paramInfo.CONTENTS?.index?.VALUE || 0,
 				min: paramInfo.RANGE?.[0]?.MIN,
 				max: paramInfo.RANGE?.[0]?.MAX,
-				meta: paramInfo.CONTENTS?.meta.VALUE || "{}",
 				name,
 				normalizedValue: paramInfo.CONTENTS.normalized.VALUE,
 				path: paramInfo.FULL_PATH,
 				type: paramInfo.TYPE,
 				value: paramInfo.VALUE
-			}));
+			})).setMeta(paramInfo.CONTENTS?.meta.VALUE || ""));
 		} else {
 			// Polyphonic params
 			for (const [subParamName, subDesc] of Object.entries(desc.CONTENTS) as Array<[string, OSCQueryRNBOInstanceParameterInfo]>) {
@@ -80,7 +84,39 @@ export class ParameterRecord extends ImmuRecord<ParameterRecordProps>({
 		return this.name.toLowerCase().includes(query);
 	}
 
+	public getParsedMeta(): AnyJson {
+		let meta: AnyJson = {};
+		try {
+			meta = JSON.parse(this.meta);
+		} catch {
+			// ignore
+		}
+		return meta;
+	}
+
+	// get parsed meta but if it isn't a map, return an empty map
+	public getParsedMetaObject(): JsonMap {
+		const meta = this.getParsedMeta();
+		if (typeof meta !== "object") {
+			return {};
+		}
+		return meta as JsonMap;
+	}
+
 	public setMeta(value: string): ParameterRecord {
-		return this.set("meta", value);
+		// detect midi mapping
+		let isMidiMapped = false;
+		try {
+			// detection simply looks for a 'midi' entry in the meta
+			const j = JSON.parse(value);
+			isMidiMapped = typeof j.midi === "object";
+		} catch {
+			// ignore
+		}
+		return this.set("meta", value).set("isMidiMapped", isMidiMapped);
+	}
+
+	public setWaitingForMidiMapping(value: boolean): ParameterRecord {
+		return this.set("waitingForMidiMapping", value);
 	}
 }
