@@ -182,6 +182,12 @@ const InstanceParameterTab: FunctionComponent<InstanceParameterTabProps> = memo(
 		};
 	}, [instance, dispatch]);
 
+	useEffect(() => {
+		return () => {
+			dispatch(setInstanceWaitingForMidiMappingOnRemote(instance.id, false));
+		};
+	}, [instance.id]);
+
 	let parameters = sortedParamIds.map(id => instance.parameters.get(id)).filter(p => !!p);
 	if (searchValue?.length) parameters = parameters.filter(p => p.matchesQuery(searchValue));
 
