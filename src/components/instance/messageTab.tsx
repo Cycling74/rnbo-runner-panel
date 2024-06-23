@@ -1,6 +1,5 @@
-import { Tabs } from "@mantine/core";
+import { Stack } from "@mantine/core";
 import { FunctionComponent, memo, useCallback } from "react";
-import { InstanceTab } from "../../lib/constants";
 import { useAppDispatch } from "../../hooks/useAppDispatch";
 import MessageInportList from "../messages/inportList";
 import { SectionTitle } from "../page/sectionTitle";
@@ -35,7 +34,7 @@ const InstanceMessagesTab: FunctionComponent<InstanceMessageTabProps> = memo(fun
 	}, [dispatch, instance]);
 
 	return (
-		<Tabs.Panel value={ InstanceTab.MessagePorts } >
+		<Stack>
 			<SectionTitle>Input Ports</SectionTitle>
 			{
 				!instance.messageInports.size ? (
@@ -64,7 +63,7 @@ const InstanceMessagesTab: FunctionComponent<InstanceMessageTabProps> = memo(fun
 						onSaveMetadata={ onSavePortMetadata }
 					/>
 			}
-		</Tabs.Panel>
+		</Stack>
 	);
 });
 

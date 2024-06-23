@@ -1,6 +1,6 @@
-import { ActionIcon, Button, Group, Popover, SegmentedControl, Select, Stack, Switch, Tabs, Text, TextInput } from "@mantine/core";
+import { ActionIcon, Button, Group, Popover, SegmentedControl, Select, Stack, Switch, Text, TextInput } from "@mantine/core";
 import { ChangeEvent, FC, FunctionComponent, KeyboardEvent as ReactKeyboardEvent, memo, useCallback, useEffect, useRef, useState } from "react";
-import { InstanceTab, ParameterSortAttr, SortOrder } from "../../lib/constants";
+import { ParameterSortAttr, SortOrder } from "../../lib/constants";
 import ParameterList from "../parameter/list";
 import { ParameterRecord } from "../../models/parameter";
 import classes from "./instance.module.css";
@@ -112,14 +112,12 @@ const getSortedParameterIds = (params: InstanceStateRecord["parameters"], attr: 
 
 export type InstanceParameterTabProps = {
 	instance: InstanceStateRecord;
-	isMIDIMapping: boolean;
 	sortAttr: AppSettingRecord;
 	sortOrder: AppSettingRecord;
 }
 
 const InstanceParameterTab: FunctionComponent<InstanceParameterTabProps> = memo(function WrappedInstanceParameterTab({
 	instance,
-	isMIDIMapping,
 	sortAttr,
 	sortOrder
 }) {
@@ -175,64 +173,62 @@ const InstanceParameterTab: FunctionComponent<InstanceParameterTabProps> = memo(
 	if (searchValue?.length) parameters = parameters.filter(p => p.matchesQuery(searchValue));
 
 	return (
-		<Tabs.Panel value={ InstanceTab.Parameters } >
-			<Stack gap="md" h="100%">
-				<Group justify="space-between">
-					<Switch size="xs" variant="default" color="violet.4" label="MIDI Map" checked={ instance.waitingForMidiMapping } onChange={ onToggleMIDIMapping } />
-					<Group justify="flex-end" gap="xs">
-						<ParameterSearchInput onSearch={ onSearch } />
-						<Popover position="bottom-end" withArrow>
-							<Popover.Target>
-								<Button size="xs" variant="default" leftSection={ <FontAwesomeIcon icon={ faSort } /> } >
-									Sort
-								</Button>
-							</Popover.Target>
-							<Popover.Dropdown>
-								<Stack gap="sm">
-									<Select
+		<Stack gap="md" h="100%">
+			<Group justify="space-between">
+				<Switch size="xs" variant="default" color="violet.4" label="MIDI Map" checked={ instance.waitingForMidiMapping } onChange={ onToggleMIDIMapping } />
+				<Group justify="flex-end" gap="xs">
+					<ParameterSearchInput onSearch={ onSearch } />
+					<Popover position="bottom-end" withArrow>
+						<Popover.Target>
+							<Button size="xs" variant="default" leftSection={ <FontAwesomeIcon icon={ faSort } /> } >
+								Sort
+							</Button>
+						</Popover.Target>
+						<Popover.Dropdown>
+							<Stack gap="sm">
+								<Select
+									size="xs"
+									label="Sort By"
+									name="sort_attribute"
+									onChange={ onChangeSortAttr }
+									data={ sortAttr.options }
+									value={ sortAttr.value as string }
+								/>
+								<div>
+									<Text size="xs">Sort Order</Text>
+									<SegmentedControl
 										size="xs"
-										label="Sort By"
-										name="sort_attribute"
-										onChange={ onChangeSortAttr }
-										data={ sortAttr.options }
-										value={ sortAttr.value as string }
+										fullWidth
+										onChange={ onChangeSortOrder }
+										data={ [{ label: <FontAwesomeIcon icon={ faArrowDownAZ } size="sm" />, value: SortOrder.Asc }, { label: <FontAwesomeIcon icon={ faArrowUpAZ } size="sm" />, value: SortOrder.Desc }] }
+										value={ sortOrder.value as string }
 									/>
-									<div>
-										<Text size="xs">Sort Order</Text>
-										<SegmentedControl
-											size="xs"
-											fullWidth
-											onChange={ onChangeSortOrder }
-											data={ [{ label: <FontAwesomeIcon icon={ faArrowDownAZ } size="sm" />, value: SortOrder.Asc }, { label: <FontAwesomeIcon icon={ faArrowUpAZ } size="sm" />, value: SortOrder.Desc }] }
-											value={ sortOrder.value as string }
-										/>
-									</div>
-								</Stack>
-							</Popover.Dropdown>
-						</Popover>
-					</Group>
+								</div>
+							</Stack>
+						</Popover.Dropdown>
+					</Popover>
 				</Group>
-				{
-					!instance.parameters.size ? (
-						<div className={ classes.emptySection }>
-							This patcher instance has no parameters
-						</div>
-					) : (
-						<div className={ classes.paramSectionWrap } >
-							<ParameterList
-								parameters={ parameters }
-								isMIDIMapping={ isMIDIMapping }
-								onActivateMIDIMapping={ onActivateParameterMIDIMapping }
-								onSetNormalizedValue={ onSetNormalizedParamValue }
-								onSaveMetadata={ onSaveParameterMetadata }
-								onRestoreMetadata={ onRestoreDefaultParameterMetadata }
-								onClearMidiMapping={ onClearParameterMidiMapping }
-							/>
-						</div>
-					)
-				}
-			</Stack>
-		</Tabs.Panel>
+			</Group>
+			{
+				!instance.parameters.size ? (
+					<div className={ classes.emptySection }>
+						This patcher instance has no parameters
+					</div>
+				) : (
+					<div className={ classes.paramSectionWrap } >
+						<ParameterList
+							parameters={ parameters }
+							isMIDIMapping={ instance.waitingForMidiMapping }
+							onActivateMIDIMapping={ onActivateParameterMIDIMapping }
+							onSetNormalizedValue={ onSetNormalizedParamValue }
+							onSaveMetadata={ onSaveParameterMetadata }
+							onRestoreMetadata={ onRestoreDefaultParameterMetadata }
+							onClearMidiMapping={ onClearParameterMidiMapping }
+						/>
+					</div>
+				)
+			}
+		</Stack>
 	);
 });
 

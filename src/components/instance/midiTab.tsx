@@ -1,6 +1,4 @@
-import { Tabs } from "@mantine/core";
 import { FunctionComponent, memo, useCallback } from "react";
-import { InstanceTab } from "../../lib/constants";
 import { useAppDispatch } from "../../hooks/useAppDispatch";
 import KeyRoll from "../keyroll";
 import { InstanceStateRecord } from "../../models/instance";
@@ -27,9 +25,7 @@ const InstanceMIDITab: FunctionComponent<InstanceMIDITabProps> = memo(function W
 	}, [dispatch, instance]);
 
 	return (
-		<Tabs.Panel value={ InstanceTab.MIDI } >
-			<KeyRoll onTriggerNoteOn={ triggerMIDINoteOn } onTriggerNoteOff={ triggerMIDINoteOff } keyboardEnabled={ keyboardEnabled } />
-		</Tabs.Panel>
+		<KeyRoll onTriggerNoteOn={ triggerMIDINoteOn } onTriggerNoteOff={ triggerMIDINoteOff } keyboardEnabled={ keyboardEnabled } />
 	);
 });
 
