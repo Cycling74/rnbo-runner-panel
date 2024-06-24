@@ -1,5 +1,6 @@
 import { Record as ImmuRecord } from "immutable";
 import { AnyJson, JsonMap, OSCQueryRNBOInstanceParameterInfo, OSCQueryRNBOInstanceParameterValue } from "../lib/types";
+import { parseParamMetaJSONString } from "../lib/util";
 
 export type ParameterRecordProps = {
 	enumVals: Array<string | number>;
@@ -96,23 +97,25 @@ export class ParameterRecord extends ImmuRecord<ParameterRecordProps>({
 
 	// get parsed meta but if it isn't a map, return an empty map
 	public getParsedMetaObject(): JsonMap {
-		const meta = this.getParsedMeta();
-		if (typeof meta !== "object") {
+		try {
+			return parseParamMetaJSONString(this.meta); // ensure valid
+		} catch (err) {
 			return {};
 		}
-		return meta as JsonMap;
 	}
 
 	public setMeta(value: string): ParameterRecord {
 		// detect midi mapping
 		let isMidiMapped = false;
+		let j: JsonMap = {};
 		try {
 			// detection simply looks for a 'midi' entry in the meta
-			const j = JSON.parse(value);
-			isMidiMapped = typeof j.midi === "object";
+			j = parseParamMetaJSONString(value);
 		} catch {
 			// ignore
 		}
+
+		isMidiMapped = typeof j.midi === "object";
 		return this.set("meta", value).set("isMidiMapped", isMidiMapped);
 	}
 
