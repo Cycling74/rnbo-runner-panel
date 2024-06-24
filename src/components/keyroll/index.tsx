@@ -151,7 +151,7 @@ export const KeyRoll: FunctionComponent<KeyRollProps> = memo(function WrappedKey
 				className={ classes.keyroll }
 				style={{
 					"--keyroll-width": `${elementWidth}px`,
-					"--keyroll-height": `${elementHeight}px`,
+					"--keyroll-height": elementHeight ? `${elementHeight}px` : "50vh",
 					"--octave-count": octaveCount
 				} as CSSProperties }
 			>

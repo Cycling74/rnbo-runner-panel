@@ -3,10 +3,10 @@ import { useAppDispatch, useAppSelector } from "../../hooks/useAppDispatch";
 import { RootStateType } from "../../lib/store";
 import InstanceComponent from "../../components/instance";
 import { useRouter } from "next/router";
-import { Button, Group, NativeSelect, Stack } from "@mantine/core";
+import { ActionIcon, Button, Group, NativeSelect, Stack, Text } from "@mantine/core";
 import classes from "../../components/instance/instance.module.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCamera, faDiagramProject, faTrash, faVectorSquare } from "@fortawesome/free-solid-svg-icons";
+import { faCamera, faDiagramProject, faMusic, faTrash, faVectorSquare } from "@fortawesome/free-solid-svg-icons";
 import { getAppStatus } from "../../selectors/appStatus";
 import { AppStatus, SortOrder } from "../../lib/constants";
 import Link from "next/link";
@@ -19,11 +19,14 @@ import { PresetRecord } from "../../models/preset";
 import { destroyPresetOnRemoteInstance, renamePresetOnRemoteInstance, setInitialPresetOnRemoteInstance, loadPresetOnRemoteInstance, savePresetToRemoteInstance } from "../../actions/instances";
 import { useDisclosure } from "@mantine/hooks";
 import { getDataFilesSortedByName } from "../../selectors/datafiles";
+import InstanceKeyboardModal from "../../components/keyroll/modal";
+import { modals } from "@mantine/modals";
 
 export default function Instance() {
 
 	const { query, isReady, pathname, push } = useRouter();
 	const [presetDrawerIsOpen, { close: closePresetDrawer, toggle: togglePresetDrawer }] = useDisclosure();
+	const [keyboardModalIsOpen, { close: closeKeyboardModal, toggle: toggleKeyboardModal }] = useDisclosure();
 
 	const { index, ...restQuery } = query;
 	const instanceIndex = parseInt(Array.isArray(index) ? index.join("") : index || "0", 10);
@@ -41,6 +44,7 @@ export default function Instance() {
 		sortOrder
 	] = useAppSelector((state: RootStateType) => {
 		const currentInstance = getInstanceByIndex(state, instanceIndex);
+
 		return [
 			currentInstance,
 			getAppStatus(state),
@@ -58,8 +62,21 @@ export default function Instance() {
 	}, [push, pathname, query]);
 
 	const onUnloadInstance = useCallback((e: MouseEvent<HTMLButtonElement>) => {
-		dispatch(unloadPatcherNodeByIndexOnRemote(currentInstance.index));
-		push({ pathname: "/", query: restQuery });
+		modals.openConfirmModal({
+			title: "Unload Patcher Instance",
+			centered: true,
+			children: (
+				<Text size="sm">
+					Are you sure you want to unload the Patcher Instance { currentInstance?.patcher } at index {currentInstance?.index}?
+				</Text>
+			),
+			labels: { confirm: "Unload", cancel: "Cancel" },
+			confirmProps: { color: "red" },
+			onConfirm: () => {
+				dispatch(unloadPatcherNodeByIndexOnRemote(currentInstance.index));
+				push({ pathname: "/", query: restQuery });
+			}
+		});
 	}, [dispatch, currentInstance, push, restQuery]);
 
 	const onLoadPreset = useCallback((preset: PresetRecord) => {
@@ -115,9 +132,12 @@ export default function Instance() {
 					/>
 				</div>
 				<Group style={{ flex: "0" }} wrap="nowrap" gap="xs" >
-					<Button variant="outline" color="red" onClick={ onUnloadInstance } >
+					<ActionIcon variant="outline" color="red" size="lg" onClick={ onUnloadInstance } >
 						<FontAwesomeIcon icon={ faTrash } />
-					</Button>
+					</ActionIcon>
+					<ActionIcon variant="default" size="lg" onClick={ toggleKeyboardModal }>
+						<FontAwesomeIcon icon={ faMusic } />
+					</ActionIcon>
 					<Button variant="default" leftSection={ <FontAwesomeIcon icon={ faCamera } /> } onClick={ togglePresetDrawer } >
 						Presets
 					</Button>
@@ -127,7 +147,6 @@ export default function Instance() {
 				instance={ currentInstance }
 				datafiles={ datafiles }
 				enabledMessageOuput={ enabledMessageOuput }
-				enabledMIDIKeyboard={ enabledMIDIKeyboard }
 				paramSortAttr={ sortAttr }
 				paramSortOrder={ sortOrder }
 			/>
@@ -140,6 +159,12 @@ export default function Instance() {
 				onRenamePreset={ onRenamePreset }
 				onSetInitialPreset={ onSetInitialPreset }
 				presets={ currentInstance.presets.valueSeq() }
+			/>
+			<InstanceKeyboardModal
+				open={ keyboardModalIsOpen }
+				onClose={ closeKeyboardModal }
+				instance={ currentInstance }
+				keyboardEnabled= { enabledMIDIKeyboard.value as boolean }
 			/>
 		</Stack>
 	);

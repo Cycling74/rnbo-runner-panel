@@ -38,7 +38,7 @@ export const appSettingDefaults: Record<AppSetting, Omit<AppSettingRecordProps, 
 		value: "light"
 	},
 	[AppSetting.keyboardMIDIInput]: {
-		description: "Activate this Setting to play MIDI notes into an instance using your computer's keyboard, when displaying the MIDI control tab",
+		description: "Activate this Setting to play MIDI notes into an instance using your computer's keyboard, when displaying the Virtual MIDI Keyboard",
 		tab: SettingsTab.UI,
 		title: "Computer MIDI Keyboard",
 		type: AppSettingType.Boolean,

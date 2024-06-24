@@ -1,12 +1,11 @@
 import { Tabs, Text } from "@mantine/core";
 import { FunctionComponent, memo, useEffect, useState } from "react";
-import { faArrowRightArrowLeft, faMusic, faSliders, faFileAudio } from "@fortawesome/free-solid-svg-icons";
+import { faArrowRightArrowLeft, faSliders, faFileAudio } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import classes from "./instance.module.css";
 import { InstanceTab } from "../../lib/constants";
 import InstanceParameterTab from "./paramTab";
 import InstanceMessagesTab from "./messageTab";
-import InstanceMIDITab from "./midiTab";
 import InstanceDataRefsTab from "./datarefTab";
 import { useIsMobileDevice } from "../../hooks/useIsMobileDevice";
 import { InstanceStateRecord } from "../../models/instance";
@@ -17,15 +16,13 @@ import { Seq } from "immutable";
 const tabs = [
 	{ icon: faSliders, value: InstanceTab.Parameters, label: "Parameters" },
 	{ icon: faArrowRightArrowLeft, value: InstanceTab.MessagePorts, label: "Ports" },
-	{ icon: faFileAudio, value: InstanceTab.DataRefs, label: "Buffers" },
-	{ icon: faMusic, value: InstanceTab.MIDI, label: "MIDI" }
+	{ icon: faFileAudio, value: InstanceTab.DataRefs, label: "Buffers" }
 ];
 
 export type InstanceProps = {
 	instance: InstanceStateRecord;
 	datafiles: Seq.Indexed<DataFileRecord>
 	enabledMessageOuput: AppSettingRecord;
-	enabledMIDIKeyboard: AppSettingRecord;
 	paramSortOrder: AppSettingRecord;
 	paramSortAttr: AppSettingRecord;
 }
@@ -34,7 +31,6 @@ const Instance: FunctionComponent<InstanceProps> = memo(function WrappedInstance
 	instance,
 	datafiles,
 	enabledMessageOuput,
-	enabledMIDIKeyboard,
 	paramSortOrder,
 	paramSortAttr
 }) {
@@ -73,9 +69,6 @@ const Instance: FunctionComponent<InstanceProps> = memo(function WrappedInstance
 				</Tabs.Panel>
 				<Tabs.Panel value={ InstanceTab.DataRefs } >
 					<InstanceDataRefsTab instance={ instance } datafiles={ datafiles } />
-				</Tabs.Panel>
-				<Tabs.Panel value={ InstanceTab.MIDI } >
-					<InstanceMIDITab instance={ instance } keyboardEnabled={ enabledMIDIKeyboard.value as boolean } />
 				</Tabs.Panel>
 			</div>
 		</Tabs>
