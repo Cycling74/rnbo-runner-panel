@@ -1,5 +1,5 @@
-import { ActionIcon, Button, Group, Popover, SegmentedControl, Select, Stack, Switch, Text, TextInput } from "@mantine/core";
-import { ChangeEvent, FC, FunctionComponent, KeyboardEvent as ReactKeyboardEvent, memo, useCallback, useEffect, useRef, useState } from "react";
+import { ActionIcon, Button, Group, Popover, SegmentedControl, Select, Stack, Text, TextInput, Tooltip } from "@mantine/core";
+import { ChangeEvent, FC, FunctionComponent, MouseEvent, KeyboardEvent as ReactKeyboardEvent, memo, useCallback, useEffect, useRef, useState } from "react";
 import { ParameterSortAttr, SortOrder } from "../../lib/constants";
 import ParameterList from "../parameter/list";
 import { ParameterRecord } from "../../models/parameter";
@@ -13,11 +13,11 @@ import {
 	activateParameterMIDIMappingFocus
 } from "../../actions/instances";
 import { OrderedSet as ImmuOrderedSet } from "immutable";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArrowDownAZ, faArrowUpAZ, faSearch, faSort, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { setAppSetting } from "../../actions/settings";
 import { AppSetting, AppSettingRecord } from "../../models/settings";
 import { useDebouncedCallback, useDisclosure } from "@mantine/hooks";
+import { IconElement } from "../elements/icon";
+import { mdiClose, mdiMagnify, mdiMidiPort, mdiSort, mdiSortAscending, mdiSortDescending } from "@mdi/js";
 
 type ParameterSearchInputProps = {
 	onSearch: (query: string) => any;
@@ -66,17 +66,17 @@ const ParameterSearchInput: FC<ParameterSearchInputProps> = memo(function Wrappe
 				onKeyDown={ onKeyDown }
 				onBlur={ onBlur }
 				onChange={ onChangeSearchValue }
-				leftSection={ <FontAwesomeIcon icon={ faSearch } size="xs" /> } size="xs"
+				leftSection={ <IconElement path={ mdiMagnify } /> } size="xs"
 				rightSection={(
 					<ActionIcon variant="transparent" color="gray" onClick={ onClear } >
-						<FontAwesomeIcon icon={ faXmark } size="xs" />
+						<IconElement path={ mdiClose } size="1em" />
 					</ActionIcon>
 				)}
 				value={ searchValue }
 			/>
 		) : (
 			<ActionIcon size="md" variant="default" onClick={ showSearchInputActions.open } >
-				<FontAwesomeIcon icon={ faSearch } size="xs" />
+				<IconElement path={ mdiMagnify } />
 			</ActionIcon>
 		)
 	);
@@ -147,10 +147,9 @@ const InstanceParameterTab: FunctionComponent<InstanceParameterTabProps> = memo(
 		dispatch(restoreDefaultParameterMetaOnRemote(instance, param));
 	}, [dispatch, instance]);
 
-	const onToggleMIDIMapping = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-		e.preventDefault();
+	const onToggleMIDIMapping = useCallback((e: MouseEvent<HTMLButtonElement>) => {
 		e.currentTarget.blur();
-		dispatch(setInstanceWaitingForMidiMappingOnRemote(instance.id, e.currentTarget.checked));
+		dispatch(setInstanceWaitingForMidiMappingOnRemote(instance.id, !instance.waitingForMidiMapping));
 	}, [dispatch, instance]);
 
 	const onActivateParameterMIDIMapping = useCallback((param: ParameterRecord) => {
@@ -194,12 +193,20 @@ const InstanceParameterTab: FunctionComponent<InstanceParameterTabProps> = memo(
 	return (
 		<Stack gap="md" h="100%">
 			<Group justify="space-between">
-				<Switch size="xs" variant="default" color="violet.4" label="MIDI Map" checked={ instance.waitingForMidiMapping } onChange={ onToggleMIDIMapping } />
+				<Tooltip label={ instance.waitingForMidiMapping ? "Disable MIDI Mapping" : "Enable MIDI Mapping" } >
+					<ActionIcon
+						onClick={ onToggleMIDIMapping }
+						variant={ instance.waitingForMidiMapping ? "filled" : "default" }
+						color={ instance.waitingForMidiMapping ? "violet.4" : undefined }
+					>
+						<IconElement path={ mdiMidiPort } />
+					</ActionIcon>
+				</Tooltip>
 				<Group justify="flex-end" gap="xs">
 					<ParameterSearchInput onSearch={ onSearch } />
 					<Popover position="bottom-end" withArrow>
 						<Popover.Target>
-							<Button size="xs" variant="default" leftSection={ <FontAwesomeIcon icon={ faSort } /> } >
+							<Button size="xs" variant="default" leftSection={ <IconElement path={ mdiSort } /> } >
 								Sort
 							</Button>
 						</Popover.Target>
@@ -219,7 +226,7 @@ const InstanceParameterTab: FunctionComponent<InstanceParameterTabProps> = memo(
 										size="xs"
 										fullWidth
 										onChange={ onChangeSortOrder }
-										data={ [{ label: <FontAwesomeIcon icon={ faArrowDownAZ } size="sm" />, value: SortOrder.Asc }, { label: <FontAwesomeIcon icon={ faArrowUpAZ } size="sm" />, value: SortOrder.Desc }] }
+										data={ [{ label: <IconElement path={ mdiSortAscending } />, value: SortOrder.Asc }, { label: <IconElement path={ mdiSortDescending } />, value: SortOrder.Desc }] }
 										value={ sortOrder.value as string }
 									/>
 								</div>

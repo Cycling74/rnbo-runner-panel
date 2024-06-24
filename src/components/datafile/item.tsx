@@ -1,8 +1,8 @@
 import { ActionIcon, Group, Table, Text } from "@mantine/core";
 import { DataFileRecord } from "../../models/datafile";
 import { FC, memo, useCallback } from "react";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faTrash } from "@fortawesome/free-solid-svg-icons";
+import { IconElement } from "../elements/icon";
+import { mdiTrashCan } from "@mdi/js";
 
 export type DataFileListItemProps = {
 	dataFile: DataFileRecord;
@@ -28,7 +28,7 @@ export const DataFileListItem: FC<DataFileListItemProps> = memo(function Wrapped
 			<Table.Td>
 				<Group justify="flex-end">
 					<ActionIcon color="red" variant="outline" onClick={ onTriggerDelete } >
-						<FontAwesomeIcon icon={ faTrash } />
+						<IconElement path={ mdiTrashCan } />
 					</ActionIcon>
 				</Group>
 			</Table.Td>

@@ -3,8 +3,7 @@ import { ChangeEvent, FunctionComponent, ReactNode, memo } from "react";
 import classes from "./settings.module.css";
 import { SettingTarget } from "../../lib/constants";
 import { useAppDispatch } from "../../hooks/useAppDispatch";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { IconDefinition } from "@fortawesome/free-solid-svg-icons";
+import { IconElement } from "../elements/icon";
 
 export enum SettingsItemType {
 	OnOff,
@@ -168,7 +167,7 @@ export const SettingsItem: FunctionComponent<BaseSettingsItemProps> = memo(funct
 export type SettingActionProps = {
 	action: () => any;
 	description?: string;
-	icon: IconDefinition;
+	icon: string;
 	label: string;
 }
 
@@ -189,7 +188,7 @@ export const SettingsAction: FunctionComponent<SettingActionProps> = memo(functi
 					variant="outline"
 					onClick={ () => dispatch(props.action()) }
 				>
-					<FontAwesomeIcon icon={ props.icon } />
+					<IconElement path={ props.icon } />
 				</ActionIcon>
 			</div>
 		</Group>

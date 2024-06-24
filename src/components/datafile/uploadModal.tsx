@@ -3,14 +3,14 @@ import { ActionIcon, Alert, Button, Center, Group, Modal, RingProgress, Stack, T
 import { FC, memo, useCallback, useState } from "react";
 import { useIsMobileDevice } from "../../hooks/useIsMobileDevice";
 import { Dropzone, FileWithPath } from "@mantine/dropzone";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { IconDefinition, faCheck, faCircleNotch, faFileAudio, faHourglass, faUpload, faXmark, faXmarkCircle } from "@fortawesome/free-solid-svg-icons";
 import classes from "./datafile.module.css";
 import { formatFileSize } from "../../lib/util";
 import { v4 } from "uuid";
 import { useAppDispatch } from "../../hooks/useAppDispatch";
 import { uploadFileToRemote } from "../../actions/datafiles";
 import { AppDispatch } from "../../lib/store";
+import { IconElement } from "../elements/icon";
+import { mdiAlertCircleOutline, mdiCheckCircleOutline, mdiClose, mdiFileMusic, mdiLoading, mdiProgressClock, mdiUpload, mdiUploadOff } from "@mdi/js";
 
 const AUDIO_MIME_TYPE: string[] = [
 	"audio/aiff", "audio/x-aiff",
@@ -44,13 +44,13 @@ const FileDropZone: FC<FileDropZoneProps> = memo(function WrappedDateFileDropzon
 		>
 			<Group className={ classes.fileDropGroup } >
 				<Dropzone.Accept>
-					<FontAwesomeIcon icon={ faUpload } size="3x" fixedWidth />
+					<IconElement path={ mdiUpload } size={ 3 } />
 				</Dropzone.Accept>
 				<Dropzone.Reject>
-					<FontAwesomeIcon icon={ faXmark } size="3x" fixedWidth />
+					<IconElement path={ mdiUploadOff } size={ 3 } />
 				</Dropzone.Reject>
 				<Dropzone.Idle>
-					<FontAwesomeIcon icon={ faFileAudio } size="3x" fixedWidth />
+					<IconElement path={ mdiFileMusic } size={ 3 } />
 				</Dropzone.Idle>
 				<div>
 					<Text size="xl" inline>
@@ -78,21 +78,21 @@ export const FileUploadRow: FC<FileUploadRowProps> = ({
 }) => {
 
 	let color: string;
-	let icon: IconDefinition;
+	let icon: string;
 	let spin: boolean = false;
 
 	if (upload.error) {
 		color = "red";
-		icon = faXmarkCircle;
+		icon = mdiAlertCircleOutline;
 	} else if (upload.progress === 0) {
 		color = "gray";
-		icon = faHourglass;
+		icon = mdiProgressClock;
 	} else if (upload.progress >= 100) {
 		color = "teal";
-		icon = faCheck;
+		icon = mdiCheckCircleOutline;
 	} else {
 		color = "blue.6";
-		icon = faCircleNotch;
+		icon = mdiLoading;
 		spin = true;
 	}
 
@@ -116,7 +116,7 @@ export const FileUploadRow: FC<FileUploadRowProps> = ({
 					{
 						isUploading || upload.progress >= 100 || upload.error ? null : (
 							<ActionIcon variant="default" size="sm" onClick={ () => onRemove(upload) } >
-								<FontAwesomeIcon icon={ faXmark } />
+								<IconElement path={ mdiClose } />
 							</ActionIcon>
 						)
 					}
@@ -127,9 +127,7 @@ export const FileUploadRow: FC<FileUploadRowProps> = ({
 						thickness={ 5 }
 						label={ (
 							<Center>
-								<Text c={ color } >
-									<FontAwesomeIcon icon={ icon } color="inherit" size="xs" spin={ spin } />
-								</Text>
+								<IconElement path={ icon } spin={ spin } color={ color } />
 							</Center>
 						)}
 					/>
@@ -254,14 +252,14 @@ export const DataFileUploadModal: FC<DataFileUploadModalProps> = memo(function W
 												variant="light"
 												color="gray"
 												onClick={ onCancel }
-												leftSection={ <FontAwesomeIcon icon={ faXmark } /> }
+												leftSection={ <IconElement path={ mdiClose } /> }
 												disabled={ step === UploadStep.Uploading }
 											>
 												Cancel
 											</Button>
 											<Button
 												onClick={ onSubmit }
-												leftSection={ <FontAwesomeIcon icon={ faUpload } /> }
+												leftSection={ <IconElement path={ mdiUpload } /> }
 												loading={ step === UploadStep.Uploading }
 												disabled={ step === UploadStep.Uploading || step === UploadStep.Error }
 											>

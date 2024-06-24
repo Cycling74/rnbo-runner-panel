@@ -2,11 +2,11 @@ import { FunctionComponent, memo, useState, useCallback } from "react";
 import classes from "./ports.module.css";
 import { ActionIcon, Button, Group, Menu, TextInput, Tooltip } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCode, faEllipsisVertical, faPaperPlane } from "@fortawesome/free-solid-svg-icons";
 import { MessagePortRecord } from "../../models/messageport";
 import { MetaEditorModal } from "../meta/metaEditorModal";
 import { MetadataScope } from "../../lib/constants";
+import { IconElement } from "../elements/icon";
+import { mdiCodeBraces, mdiDotsVertical, mdiSend } from "@mdi/js";
 
 interface MessageInportEntryProps {
 	port: MessagePortRecord;
@@ -67,18 +67,18 @@ const MessageInportEntry: FunctionComponent<MessageInportEntryProps> = memo(func
 				/>
 				<Tooltip label={ `Send data to the inport with name "${port.name}"`} >
 					<Button variant="outline" size="sm" onClick={ sendMessage } >
-						<FontAwesomeIcon icon={ faPaperPlane } />
+						<IconElement path={ mdiSend } />
 					</Button>
 				</Tooltip>
 				<Menu position="bottom-end">
 					<Menu.Target>
 						<ActionIcon variant="subtle" color="gray" size="md">
-							<FontAwesomeIcon icon={ faEllipsisVertical } />
+							<IconElement path={ mdiDotsVertical } />
 						</ActionIcon>
 					</Menu.Target>
 					<Menu.Dropdown>
 						<Menu.Label>Actions</Menu.Label>
-						<Menu.Item leftSection={ <FontAwesomeIcon fixedWidth icon={ faCode } /> } onClick={ toggleMetaEditor }>
+						<Menu.Item leftSection={ <IconElement path={ mdiCodeBraces } /> } onClick={ toggleMetaEditor }>
 							Edit Metadata
 						</Menu.Item>
 					</Menu.Dropdown>

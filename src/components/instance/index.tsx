@@ -1,7 +1,5 @@
 import { Tabs, Text } from "@mantine/core";
 import { FunctionComponent, memo, useEffect, useState } from "react";
-import { faArrowRightArrowLeft, faSliders, faFileAudio } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import classes from "./instance.module.css";
 import { InstanceTab } from "../../lib/constants";
 import InstanceParameterTab from "./paramTab";
@@ -12,11 +10,13 @@ import { InstanceStateRecord } from "../../models/instance";
 import { AppSettingRecord } from "../../models/settings";
 import { DataFileRecord } from "../../models/datafile";
 import { Seq } from "immutable";
+import { IconElement } from "../elements/icon";
+import { mdiFileMusic, mdiSwapHorizontal, mdiTune } from "@mdi/js";
 
 const tabs = [
-	{ icon: faSliders, value: InstanceTab.Parameters, label: "Parameters" },
-	{ icon: faArrowRightArrowLeft, value: InstanceTab.MessagePorts, label: "Ports" },
-	{ icon: faFileAudio, value: InstanceTab.DataRefs, label: "Buffers" }
+	{ icon: mdiTune, value: InstanceTab.Parameters, label: "Parameters" },
+	{ icon: mdiSwapHorizontal, value: InstanceTab.MessagePorts, label: "Ports" },
+	{ icon: mdiFileMusic, value: InstanceTab.DataRefs, label: "Buffers" }
 ];
 
 export type InstanceProps = {
@@ -54,7 +54,7 @@ const Instance: FunctionComponent<InstanceProps> = memo(function WrappedInstance
 			<Tabs.List grow={ isMobile } >
 				{
 					tabs.map(({ icon, label, value }) => (
-						<Tabs.Tab key={ value } value={ value } leftSection={ <FontAwesomeIcon icon={ icon } /> } >
+						<Tabs.Tab key={ value } value={ value } leftSection={ <IconElement path={ icon } /> } >
 							<Text fz="sm" className={ classes.tabLabel } >{ label }</Text>
 						</Tabs.Tab>
 					))

@@ -1,10 +1,10 @@
 import { ChangeEvent, FormEvent, FunctionComponent, KeyboardEvent, MouseEvent, memo, useCallback, useEffect, useRef, useState } from "react";
 import { GraphSetRecord } from "../../models/set";
 import { ActionIcon, Button, Group, Menu, TextInput, Tooltip } from "@mantine/core";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCheck, faClose, faEllipsisVertical, faPen, faTrash, faClock, faFileArrowDown } from "@fortawesome/free-solid-svg-icons";
 import classes from "./sets.module.css";
 import { keyEventIsValidForName, replaceInvalidNameChars } from "../../lib/util";
+import { IconElement } from "../elements/icon";
+import { mdiCheck, mdiClose, mdiContentSave, mdiDotsVertical, mdiHistory, mdiPencil, mdiTrashCan } from "@mdi/js";
 
 export type GraphSetItemProps = {
 	set: GraphSetRecord;
@@ -101,10 +101,10 @@ export const GraphSetItem: FunctionComponent<GraphSetItemProps> = memo(function 
 				/>
 				<ActionIcon.Group>
 					<ActionIcon variant="subtle" size="md" color="gray" onClick={ toggleEditing } >
-						<FontAwesomeIcon icon={ faClose } />
+						<IconElement path={ mdiClose } />
 					</ActionIcon>
 					<ActionIcon variant="subtle" size="md" type="submit">
-						<FontAwesomeIcon icon={ faCheck } />
+						<IconElement path={ mdiCheck } />
 					</ActionIcon>
 				</ActionIcon.Group>
 			</Group>
@@ -119,7 +119,7 @@ export const GraphSetItem: FunctionComponent<GraphSetItemProps> = memo(function 
 				variant="default"
 				leftSection={ set?.latest ? (
 					<Tooltip label="This set was loaded last" openDelay={ 500 }>
-						<FontAwesomeIcon icon={ faClock } size="xs" />
+						<IconElement path={ mdiHistory } />
 					</Tooltip>
 				) : null }
 				onClick={ onLoadSet }
@@ -129,14 +129,14 @@ export const GraphSetItem: FunctionComponent<GraphSetItemProps> = memo(function 
 			<Menu position="bottom-end" >
 				<Menu.Target>
 					<ActionIcon variant="subtle" color="gray">
-						<FontAwesomeIcon icon={ faEllipsisVertical } />
+						<IconElement path={ mdiDotsVertical } />
 					</ActionIcon>
 				</Menu.Target>
 				<Menu.Dropdown>
 					<Menu.Label>Actions</Menu.Label>
-					<Menu.Item leftSection={ <FontAwesomeIcon fixedWidth icon={ faFileArrowDown } /> } onClick={ onSaveSet } >{ set.latest ? "Save Changes" : "Overwrite" }</Menu.Item>
-					<Menu.Item leftSection={ <FontAwesomeIcon fixedWidth icon={ faPen } /> } onClick={ toggleEditing } >Rename</Menu.Item>
-					<Menu.Item color="red" leftSection={ <FontAwesomeIcon fixedWidth icon={ faTrash } /> } onClick={ onDeleteSet } >Delete</Menu.Item>
+					<Menu.Item leftSection={ <IconElement path={ mdiContentSave } /> } onClick={ onSaveSet } >{ set.latest ? "Save Changes" : "Overwrite" }</Menu.Item>
+					<Menu.Item leftSection={ <IconElement path={ mdiPencil } /> } onClick={ toggleEditing } >Rename</Menu.Item>
+					<Menu.Item color="red" leftSection={ <IconElement path={ mdiTrashCan } /> } onClick={ onDeleteSet } >Delete</Menu.Item>
 				</Menu.Dropdown>
 			</Menu>
 		</Group>

@@ -15,14 +15,12 @@
     "preversion": "next lint"
   },
   "dependencies": {
-    "@fortawesome/fontawesome-svg-core": "^6.4.2",
-    "@fortawesome/free-brands-svg-icons": "^6.4.2",
-    "@fortawesome/free-solid-svg-icons": "^6.4.2",
-    "@fortawesome/react-fontawesome": "^0.2.0",
     "@mantine/core": "^7.10.2",
     "@mantine/dropzone": "^7.10.2",
     "@mantine/hooks": "^7.10.2",
     "@mantine/modals": "^7.10.2",
+    "@mdi/js": "^7.4.47",
+    "@mdi/react": "^1.6.1",
     "@types/websocket": "^1.0.2",
     "immutable": "^4.0.0-rc.12",
     "js-base64": "^3.7.7",

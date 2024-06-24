@@ -3,10 +3,10 @@ import classes from "./ports.module.css";
 import { ActionIcon, Group, Menu, TextInput } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { MessagePortRecord } from "../../models/messageport";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCode, faEllipsisVertical } from "@fortawesome/free-solid-svg-icons";
 import { MetaEditorModal } from "../meta/metaEditorModal";
 import { MetadataScope } from "../../lib/constants";
+import { IconElement } from "../elements/icon";
+import { mdiCodeBraces, mdiDotsVertical } from "@mdi/js";
 
 interface MessageOutportEntryProps {
 	port: MessagePortRecord;
@@ -62,12 +62,12 @@ const MessageOutportEntry: FunctionComponent<MessageOutportEntryProps> = memo(fu
 				<Menu position="bottom-end">
 					<Menu.Target>
 						<ActionIcon variant="subtle" color="gray" size="md">
-							<FontAwesomeIcon icon={ faEllipsisVertical } />
+							<IconElement path={ mdiDotsVertical } />
 						</ActionIcon>
 					</Menu.Target>
 					<Menu.Dropdown>
 						<Menu.Label>Actions</Menu.Label>
-						<Menu.Item leftSection={ <FontAwesomeIcon fixedWidth icon={ faCode } /> } onClick={ toggleMetaEditor }>
+						<Menu.Item leftSection={ <IconElement path={ mdiCodeBraces } /> } onClick={ toggleMetaEditor }>
 							Edit Metadata
 						</Menu.Item>
 					</Menu.Dropdown>

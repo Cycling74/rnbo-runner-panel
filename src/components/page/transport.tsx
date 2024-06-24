@@ -4,11 +4,11 @@ import { useAppDispatch, useAppSelector } from "../../hooks/useAppDispatch";
 import { RootStateType } from "../../lib/store";
 import { getShowTransportControl, getTransportControlState } from "../../selectors/transport";
 import { decrementTransportBPMOnRemote, hideTransportControl, incrementTransportBPMOnRemote, setTransportBPMOnRemote, toggleTransportRollingOnRemote, toggleTransportSyncOnRemote } from "../../actions/transport";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faChevronDown, faChevronUp, faPlay } from "@fortawesome/free-solid-svg-icons";
 import classes from "./page.module.css";
 import { clamp } from "../../lib/util";
 import { BPMRange } from "../../lib/constants";
+import { IconElement } from "../elements/icon";
+import { mdiChevronDown, mdiChevronUp, mdiPlay } from "@mdi/js";
 
 type ActivePointer = {
 	id: number;
@@ -100,7 +100,7 @@ const TransportControl: FunctionComponent = memo(function WrappedTransport() {
 			<Group gap="md" align="center">
 				<Tooltip label={ controlState.rolling ? "Click to pause the transport" : "Click to resume the transport" } >
 					<ActionIcon onClick={ onRollToggle } size="lg" variant="transparent" color={ controlState.rolling ? undefined : "gray" } >
-						<FontAwesomeIcon icon={ faPlay } />
+						<IconElement path={ mdiPlay } />
 					</ActionIcon>
 				</Tooltip>
 				<NumberInput
@@ -125,10 +125,10 @@ const TransportControl: FunctionComponent = memo(function WrappedTransport() {
 					rightSection={
 						<div className={ classes.transportTempoControl } >
 							<button onClick={ onIncrementTempo } >
-								<FontAwesomeIcon size="xs" icon={ faChevronUp } />
+								<IconElement path={ mdiChevronUp } size="0.9em"/>
 							</button>
 							<button onClick={ onDecrementTempo }>
-								<FontAwesomeIcon size="xs" icon={ faChevronDown } />
+								<IconElement path={ mdiChevronDown } size="0.9em"/>
 							</button>
 						</div>
 					}

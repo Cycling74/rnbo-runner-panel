@@ -2,10 +2,10 @@ import { FormEvent, FunctionComponent, MouseEvent, memo, useCallback, useEffect,
 import { DataRefRecord } from "../../models/dataref";
 import classes from "./datarefs.module.css";
 import { ActionIcon, Group, Menu, Select, Table, Text, TextInput } from "@mantine/core";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCheck, faClose, faPen, faEraser, faEllipsisVertical } from "@fortawesome/free-solid-svg-icons";
 import { Seq } from "immutable";
 import { DataFileRecord } from "../../models/datafile";
+import { IconElement } from "../elements/icon";
+import { mdiCheck, mdiClose, mdiDotsVertical, mdiEraser, mdiPencil } from "@mdi/js";
 
 interface DataRefEntryProps {
 	dataref: DataRefRecord;
@@ -87,10 +87,10 @@ const DataRefEntry: FunctionComponent<DataRefEntryProps> = memo(function Wrapped
 								/>
 								<ActionIcon.Group>
 									<ActionIcon variant="subtle" size="md" color="gray" onClick={ toggleEditing } >
-										<FontAwesomeIcon icon={ faClose } />
+										<IconElement path={ mdiClose } />
 									</ActionIcon>
 									<ActionIcon variant="subtle" size="md" type="submit">
-										<FontAwesomeIcon icon={ faCheck } />
+										<IconElement path={ mdiCheck } />
 									</ActionIcon>
 								</ActionIcon.Group>
 							</Group>
@@ -99,7 +99,7 @@ const DataRefEntry: FunctionComponent<DataRefEntryProps> = memo(function Wrapped
 						<Group className={ classes.datarefFileLabel } wrap="nowrap" >
 							<TextInput flex={ 1 } pointer variant="unstyled" size="sm" readOnly value={ dataFile?.fileName || "<none>" } onClick={ toggleEditing } />
 							<ActionIcon onClick={ toggleEditing } variant="transparent" size="xs">
-								<FontAwesomeIcon icon={ faPen } />
+								<IconElement path={ mdiPencil } />
 							</ActionIcon>
 						</Group>
 					)
@@ -110,15 +110,15 @@ const DataRefEntry: FunctionComponent<DataRefEntryProps> = memo(function Wrapped
 					<Menu position="bottom-end">
 						<Menu.Target>
 							<ActionIcon variant="subtle" color="gray" >
-								<FontAwesomeIcon icon={ faEllipsisVertical } />
+								<IconElement path={ mdiDotsVertical } />
 							</ActionIcon>
 						</Menu.Target>
 						<Menu.Dropdown>
 							<Menu.Label>Actions</Menu.Label>
-							<Menu.Item onClick={ toggleEditing } leftSection={ <FontAwesomeIcon fixedWidth icon={ faPen } /> } >
+							<Menu.Item onClick={ toggleEditing } leftSection={ <IconElement path={ mdiPencil } /> } >
 								Change Source
 							</Menu.Item>
-							<Menu.Item color="red" leftSection={ <FontAwesomeIcon fixedWidth icon={ faEraser } /> } onClick={ onClearDataRef } disabled={ !dataFile } >
+							<Menu.Item color="red" leftSection={ <IconElement path={ mdiEraser } /> } onClick={ onClearDataRef } disabled={ !dataFile } >
 								Clear Buffer
 							</Menu.Item>
 						</Menu.Dropdown>

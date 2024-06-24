@@ -1,13 +1,13 @@
 import React, { FunctionComponent, MouseEventHandler }  from "react";
 import { Text, Tooltip, UnstyledButton } from "@mantine/core";
 import classes from "./nav.module.css";
-import { FontAwesomeIcon, FontAwesomeIconProps } from "@fortawesome/react-fontawesome";
+import { IconElement } from "../elements/icon";
 
 interface NavLinkProps {
 	isActive: boolean;
 	label: string;
 	onClick: MouseEventHandler<HTMLButtonElement>;
-	icon: FontAwesomeIconProps["icon"];
+	icon: string;
 }
 
 export const NavButton: FunctionComponent<NavLinkProps> = ({ isActive, icon, label, onClick }) => {
@@ -19,7 +19,7 @@ export const NavButton: FunctionComponent<NavLinkProps> = ({ isActive, icon, lab
 				onClick={ onClick }
 				className={ classes.navLink }
 			>
-				<FontAwesomeIcon icon={ icon } />
+				<IconElement path={ icon } />
 				<Text ml="sm" hiddenFrom="sm">{ label }</Text>
 			</UnstyledButton>
 		</Tooltip>

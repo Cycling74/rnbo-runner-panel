@@ -5,11 +5,11 @@ import { RootStateType } from "../../lib/store";
 import { useIsMobileDevice } from "../../hooks/useIsMobileDevice";
 import { getAppStatus, getRunnerInfoRecord, getRunnerEndpoint, getShowEndpointInfoModal } from "../../selectors/appStatus";
 import { hideEndpointInfo } from "../../actions/appStatus";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faInfoCircle, faPlug, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { AppStatus } from "../../lib/constants";
 import { showSettings } from "../../actions/settings";
 import { RunnerInfoKey, RunnerInfoRecord } from "../../models/runnerInfo";
+import { IconElement } from "../elements/icon";
+import { mdiClose, mdiConnection, mdiInformation } from "@mdi/js";
 
 type InfoCardProps = {
 	title: string;
@@ -34,7 +34,7 @@ const InfoCard: FunctionComponent<InfoCardProps> = ({
 						<Popover withArrow position="bottom">
 							<Popover.Target>
 								<ActionIcon size="xs" variant="transparent" color="gray">
-									<FontAwesomeIcon icon={ faInfoCircle } size="xs"/>
+									<IconElement path={ mdiInformation } />
 								</ActionIcon>
 							</Popover.Target>
 							<Popover.Dropdown>
@@ -155,14 +155,14 @@ const EndpointInfo: FunctionComponent = memo(function WrappedSettings() {
 										variant="default"
 										disabled={ !hasChanges }
 										onClick={ onReset }
-										leftSection={ <FontAwesomeIcon icon={ faXmark } /> }
+										leftSection={ <IconElement path={ mdiClose } /> }
 									>
 										Cancel
 									</Button>
 									<Button
 										type="submit"
 										disabled={ !hasChanges }
-										leftSection={ <FontAwesomeIcon icon={ faPlug } /> }
+										leftSection={ <IconElement path={ mdiConnection } /> }
 									>
 										Connect
 									</Button>

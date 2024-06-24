@@ -1,8 +1,8 @@
-import { faDiagramProject } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Button, Flex } from "@mantine/core";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import { IconElement } from "../components/elements/icon";
+import { mdiChartSankeyVariant } from "@mdi/js";
 
 const NotFound = () => {
 
@@ -14,7 +14,7 @@ const NotFound = () => {
 			<Button
 				component={ Link }
 				href={{ pathname: "/", query }}
-				leftSection={ <FontAwesomeIcon icon={ faDiagramProject } /> }
+				leftSection={ <IconElement path={ mdiChartSankeyVariant } /> }
 				variant="outline"
 				color="gray"
 			>

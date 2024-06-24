@@ -2,13 +2,13 @@ import React, { FunctionComponent }  from "react";
 import Link from "next/link";
 import { Text, Tooltip, UnstyledButton } from "@mantine/core";
 import classes from "./nav.module.css";
-import { FontAwesomeIcon, FontAwesomeIconProps } from "@fortawesome/react-fontawesome";
 import { UrlObject } from "url";
+import { IconElement } from "../elements/icon";
 
 interface CommonNavLinkProps {
 	disabled?: boolean;
 	label: string;
-	icon: FontAwesomeIconProps["icon"];
+	icon: string;
 }
 
 interface NavLinkProps extends CommonNavLinkProps {
@@ -26,7 +26,7 @@ export const NavLink: FunctionComponent<NavLinkProps> = ({ disabled = false, hre
 				href={ href }
 				className={ classes.navLink }
 			>
-				<FontAwesomeIcon icon={ icon } />
+				<IconElement path={ icon } />
 				<Text ml="sm" hiddenFrom="sm">{ label }</Text>
 			</UnstyledButton>
 		</Tooltip>
@@ -48,7 +48,7 @@ export const ExternalNavLink: FunctionComponent<ExternalNavLinkProps> = ({ disab
 				target="_blank"
 				rel="noreferrer noopener"
 			>
-				<FontAwesomeIcon icon={ icon } />
+				<IconElement path={ icon } />
 				<Text ml="sm" hiddenFrom="sm">{ label }</Text>
 			</UnstyledButton>
 		</Tooltip>

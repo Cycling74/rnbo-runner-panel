@@ -2,8 +2,6 @@ import React, { FunctionComponent, memo, useCallback } from "react";
 import { ActionIcon, AppShell, Burger, Group, Progress, Tooltip } from "@mantine/core";
 import classes from "./header.module.css";
 import { useThemeColorScheme } from "../../hooks/useTheme";
-import { faPlay, faSatelliteDish } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useAppDispatch, useAppSelector } from "../../hooks/useAppDispatch";
 import { toggleEndpointInfo } from "../../actions/appStatus";
 import { toggleTransportControl } from "../../actions/transport";
@@ -12,6 +10,8 @@ import { RootStateType } from "../../lib/store";
 import { getAppStatus, getRunnerInfoRecord } from "../../selectors/appStatus";
 import { RunnerInfoKey } from "../../models/runnerInfo";
 import { AppStatus } from "../../lib/constants";
+import { IconElement } from "../elements/icon";
+import { mdiMetronome, mdiSatelliteUplink } from "@mdi/js";
 
 export type HeaderProps = {
 	navOpen: boolean;
@@ -51,12 +51,12 @@ export const Header: FunctionComponent<HeaderProps> = memo(function WrappedHeade
 				<Group justify="end" align="center" gap="md">
 					<Tooltip label="Transport Control" >
 						<ActionIcon variant="transparent" color={ isRolling ? undefined : "gray" } onClick={ onToggleTransportControl } >
-							<FontAwesomeIcon icon={ faPlay } />
+							<IconElement path={ mdiMetronome } />
 						</ActionIcon>
 					</Tooltip>
 					<Tooltip label="Runner Info" >
 						<ActionIcon variant="transparent" color="gray" onClick={ onToggleEndpointInfo } >
-							<FontAwesomeIcon icon={ faSatelliteDish } />
+							<IconElement path={ mdiSatelliteUplink } />
 						</ActionIcon>
 					</Tooltip>
 					<Tooltip label={ `${Math.round(cpuLoad?.oscValue as number || 0)}% CPU Usage`}>

@@ -4,10 +4,10 @@ import { GraphPatcherNodeRecord, GraphPortRecord, PortDirection } from "../../mo
 import EditorPort from "./port";
 import classes from "./editor.module.css";
 import { ActionIcon, Paper } from "@mantine/core";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faGears } from "@fortawesome/free-solid-svg-icons";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import { IconElement } from "../elements/icon";
+import { mdiCogs } from "@mdi/js";
 
 const EditorPatcherNode: FunctionComponent<EditorNodeProps> = memo(function WrappedGraphPatcherNode({
 	data: {
@@ -34,7 +34,7 @@ const EditorPatcherNode: FunctionComponent<EditorNodeProps> = memo(function Wrap
 						size="md"
 						variant="transparent"
 					>
-						<FontAwesomeIcon icon={ faGears } />
+						<IconElement path={ mdiCogs } />
 					</ActionIcon>
 				</div>
 			</div>

@@ -2,12 +2,12 @@ import { Divider, Drawer, Group, Stack, Text } from "@mantine/core";
 import { FunctionComponent, memo, useCallback } from "react";
 import { PresetItem } from "./item";
 import { SavePresetForm } from "./save";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCamera } from "@fortawesome/free-solid-svg-icons";
 import { DrawerSectionTitle } from "../page/drawer";
 import { modals } from "@mantine/modals";
 import { PresetRecord } from "../../models/preset";
 import { Seq } from "immutable";
+import { IconElement } from "../elements/icon";
+import { mdiCamera } from "@mdi/js";
 
 export type PresetDrawerProps = {
 	open: boolean;
@@ -51,7 +51,7 @@ const PresetDrawer: FunctionComponent<PresetDrawerProps> = memo(function Wrapped
 			opened={ open }
 			onClose={ onClose }
 			position="right"
-			title={ <Group gap="xs"><FontAwesomeIcon icon={ faCamera }/> Presets</Group> }
+			title={ <Group gap="xs"><IconElement path={ mdiCamera }/> Presets</Group> }
 		>
 			<SavePresetForm onSave={ onSavePreset } />
 			<Divider mt="lg" />

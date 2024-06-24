@@ -1,13 +1,13 @@
-import { faTrash } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Button } from "@mantine/core";
 import { FunctionComponent, memo } from "react";
+import { IconElement } from "../elements/icon";
+import { mdiTrashCan } from "@mdi/js";
 
 const DeviceActions: FunctionComponent = memo(function WrapedDeviceActions() {
 	return (
 		<Button.Group>
 			<Button variant="outline">
-				<FontAwesomeIcon icon={ faTrash } />
+				<IconElement path={ mdiTrashCan } />
 			</Button>
 
 		</Button.Group>

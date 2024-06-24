@@ -2,13 +2,13 @@ import { Button, Divider, Drawer, Flex, Group, Stack, Text } from "@mantine/core
 import { FunctionComponent, MouseEvent, memo, useCallback } from "react";
 import { GraphSetItem } from "./item";
 import { SaveGraphSetForm } from "./save";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faObjectGroup, faEraser } from "@fortawesome/free-solid-svg-icons";
 import { DrawerSectionTitle } from "../page/drawer";
 import { GraphSetRecord } from "../../models/set";
 import { modals } from "@mantine/modals";
 import classes from "./sets.module.css";
 import { Seq } from "immutable";
+import { IconElement } from "../elements/icon";
+import { mdiEraser, mdiGroup } from "@mdi/js";
 
 export type SetsDrawerProps = {
 	onClose: () => any;
@@ -74,7 +74,7 @@ const SetsDrawer: FunctionComponent<SetsDrawerProps> = memo(function WrappedSets
 					<Drawer.Header>
 						<Drawer.Title>
 							<Group gap="xs">
-								<FontAwesomeIcon icon={ faObjectGroup }/>
+								<IconElement path={ mdiGroup } />
 								Graph Sets
 							</Group>
 						</Drawer.Title>
@@ -93,7 +93,7 @@ const SetsDrawer: FunctionComponent<SetsDrawerProps> = memo(function WrappedSets
 								</Stack>
 							</Flex>
 							<Divider />
-							<Button variant="outline" fullWidth={true} leftSection={ <FontAwesomeIcon icon={ faEraser } /> } onClick={ onTriggerClearSet } color="red" >
+							<Button variant="outline" fullWidth={true} leftSection={ <IconElement path={ mdiEraser } /> } onClick={ onTriggerClearSet } color="red" >
 								Clear Set
 							</Button>
 						</Flex>
