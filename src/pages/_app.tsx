@@ -3,8 +3,9 @@ import Head from "next/head";
 import React, { useEffect } from "react";
 import { Provider } from "react-redux";
 
-import { Lato as lato } from "next/font/google";
+import { Lato as lato, Ubuntu_Mono as ubuntuMono  } from "next/font/google";
 const latoFont = lato({ subsets: ["latin-ext"], weight: ["300", "400", "700", "900"], style: ["normal", "italic"] });
+const ubuntuMonoFont = ubuntuMono({display: "block",  subsets: ["latin-ext"], weight: ["400"] });
 
 
 import { library } from "@fortawesome/fontawesome-svg-core";
@@ -49,7 +50,7 @@ function App({ Component, pageProps }: AppProps) {
 			</style>
 			<Provider store={store}>
 				<PageSettings>
-					<PageTheme fontFamily={ latoFont.style.fontFamily } >
+					<PageTheme fontFamily={ latoFont.style.fontFamily } fontFamilyMonospace={ ubuntuMonoFont.style.fontFamily } >
 						<ModalsProvider>
 							<Head>
 								<title>RNBO</title>

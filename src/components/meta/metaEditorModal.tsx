@@ -7,6 +7,7 @@ import { modals } from "@mantine/modals";
 import { JsonMap } from "../../lib/types";
 import { MetadataScope } from "../../lib/constants";
 import { parseParamMetaJSONString } from "../../lib/util";
+import classes from "./metaEditorModal.module.css";
 
 export type MetaEditorModalProps = {
 	name: string;
@@ -241,6 +242,7 @@ export const MetaEditorModal: FC<MetaEditorModalProps> = memo(function WrappedPa
 									value={ value }
 									error={ error?.message }
 									onBlur={ onInputBlur }
+									classNames={{ input: classes.textArea }}
 								/>
 								<Group justify="flex-end">
 									<Button.Group>
