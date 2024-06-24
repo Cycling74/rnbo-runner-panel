@@ -1,7 +1,4 @@
 import { FunctionComponent, PropsWithChildren, ReactNode, memo, useCallback } from "react";
-import { IconDefinition } from "@fortawesome/free-solid-svg-icons";
-import { faCircleNotch, faPlugCircleXmark, faVolumeXmark } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useAppSelector, useAppDispatch } from "../../hooks/useAppDispatch";
 import { RootStateType } from "../../lib/store";
 import { getAppStatus } from "../../selectors/appStatus";
@@ -10,6 +7,8 @@ import { Anchor } from "@mantine/core";
 import { showSettings } from "../../actions/settings";
 
 import classes from "./page.module.css";
+import { IconElement } from "../elements/icon";
+import { mdiLanDisconnect, mdiLoading, mdiVolumeVariantOff } from "@mdi/js";
 
 const AppStatusWrapper: FunctionComponent<PropsWithChildren> = memo(function WrappedStatusWrapper({
 	children
@@ -22,7 +21,7 @@ const AppStatusWrapper: FunctionComponent<PropsWithChildren> = memo(function Wra
 		dispatch(showSettings());
 	}, [dispatch]);
 
-	let icon: IconDefinition;
+	let icon: string;
 	let title: string;
 	let helpText: ReactNode | undefined;
 	switch (status) {
@@ -33,27 +32,27 @@ const AppStatusWrapper: FunctionComponent<PropsWithChildren> = memo(function Wra
 
 		case AppStatus.Connecting:
 			title = "Connecting";
-			icon = faCircleNotch;
+			icon = mdiLoading;
 			break;
 		case AppStatus.InitializingState:
 			title = "Initializing State";
-			icon = faCircleNotch;
+			icon = mdiLoading;
 			break;
 		case AppStatus.Reconnecting:
 			title = "Reconnecting";
-			icon = faCircleNotch;
+			icon = mdiLoading;
 			break;
 		case AppStatus.ResyncingState:
 			title = "Synchronizing State";
-			icon = faCircleNotch;
+			icon = mdiLoading;
 			break;
 		case AppStatus.Closed:
 			title = "Connection Lost";
-			icon = faPlugCircleXmark;
+			icon = mdiLanDisconnect;
 			break;
 		case AppStatus.AudioOff:
 			title = "Audio is Off";
-			icon = faVolumeXmark;
+			icon = mdiVolumeVariantOff;
 			helpText = (
 				<>
 					Go to <Anchor inherit onClick={ openSettings } >Settings</Anchor> to update audio configuration.
@@ -62,7 +61,7 @@ const AppStatusWrapper: FunctionComponent<PropsWithChildren> = memo(function Wra
 			break;
 		case AppStatus.Error:
 			title = "Failed to establish Connection";
-			icon = faPlugCircleXmark;
+			icon = mdiLanDisconnect;
 			helpText = (
 				<>
 					Need help or further documentation?
@@ -82,7 +81,7 @@ const AppStatusWrapper: FunctionComponent<PropsWithChildren> = memo(function Wra
 
 	return (
 		<div className={ classes.appStatus } data-status={ AppStatus[status].toLowerCase() } >
-			<FontAwesomeIcon icon={ icon } size="3x" spin={ icon === faCircleNotch } />
+			<IconElement path={ icon } size={ 3 } spin={ icon === mdiLoading } />
 			<h2>{ title }</h2>
 			{
 				helpText ? (

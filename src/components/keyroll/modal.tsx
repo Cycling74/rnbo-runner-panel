@@ -5,8 +5,8 @@ import { InstanceStateRecord } from "../../models/instance";
 import { triggerInstanceMidiNoteOffEventOnRemote, triggerInstanceMidiNoteOnEventOnRemote } from "../../actions/instances";
 import { Group, Modal } from "@mantine/core";
 import { useIsMobileDevice } from "../../hooks/useIsMobileDevice";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faMusic } from "@fortawesome/free-solid-svg-icons";
+import { IconElement } from "../elements/icon";
+import { mdiPiano } from "@mdi/js";
 
 export type InstanceKeyboardModalProps = {
 	instance: InstanceStateRecord;
@@ -51,7 +51,7 @@ const InstanceKeyboardModal: FunctionComponent<InstanceKeyboardModalProps> = mem
 			<Modal.Content>
 				<Modal.Header>
 					<Group gap="xs">
-						<FontAwesomeIcon icon={ faMusic } />
+						<IconElement path={ mdiPiano } />
 						Virtual Keyboard
 					</Group>
 					<Modal.CloseButton />

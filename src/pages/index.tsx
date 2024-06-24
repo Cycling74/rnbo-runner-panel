@@ -3,8 +3,6 @@ import { FunctionComponent, useCallback } from "react";
 import { useAppDispatch, useAppSelector } from "../hooks/useAppDispatch";
 import { RootStateType } from "../lib/store";
 import { getPatchersSortedByName } from "../selectors/patchers";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faObjectGroup, faCamera, faVectorSquare } from "@fortawesome/free-solid-svg-icons";
 import { getConnections, getNodes } from "../selectors/graph";
 import GraphEditor from "../components/editor";
 import PresetDrawer from "../components/presets";
@@ -25,6 +23,8 @@ import { PatcherRecord } from "../models/patcher";
 import { SortOrder } from "../lib/constants";
 import { GraphSetRecord } from "../models/set";
 import { modals } from "@mantine/modals";
+import { IconElement } from "../components/elements/icon";
+import { mdiCamera, mdiGroup, mdiVectorSquare } from "@mdi/js";
 
 const Index: FunctionComponent<Record<string, never>> = () => {
 
@@ -148,14 +148,14 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 		<>
 			<Stack style={{ height: "100%" }} >
 				<Group justify="space-between" wrap="nowrap">
-					<Button variant="default" leftSection={ <FontAwesomeIcon icon={ faVectorSquare } /> } onClick={ togglePatcherDrawer } >
+					<Button variant="default" leftSection={ <IconElement path={ mdiVectorSquare } /> } onClick={ togglePatcherDrawer } >
 						Patchers
 					</Button>
 					<Group style={{ flex: "0" }} wrap="nowrap" gap="xs" >
-						<Button variant="default" leftSection={ <FontAwesomeIcon icon={ faObjectGroup } /> } onClick={ toggleSetDrawer } >
+						<Button variant="default" leftSection={ <IconElement path={ mdiGroup } /> } onClick={ toggleSetDrawer } >
 							Sets
 						</Button>
-						<Button variant="default" leftSection={ <FontAwesomeIcon icon={ faCamera } /> } onClick={ togglePresetDrawer } >
+						<Button variant="default" leftSection={ <IconElement path={ mdiCamera } /> } onClick={ togglePresetDrawer } >
 							Presets
 						</Button>
 					</Group>

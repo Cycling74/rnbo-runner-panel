@@ -13,11 +13,11 @@ import {
 	activateParameterMIDIMappingFocus
 } from "../../actions/instances";
 import { OrderedSet as ImmuOrderedSet } from "immutable";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArrowDownAZ, faArrowUpAZ, faSearch, faSort, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { setAppSetting } from "../../actions/settings";
 import { AppSetting, AppSettingRecord } from "../../models/settings";
 import { useDebouncedCallback, useDisclosure } from "@mantine/hooks";
+import { IconElement } from "../elements/icon";
+import { mdiClose, mdiMagnify, mdiSort, mdiSortAscending, mdiSortDescending } from "@mdi/js";
 
 type ParameterSearchInputProps = {
 	onSearch: (query: string) => any;
@@ -66,17 +66,17 @@ const ParameterSearchInput: FC<ParameterSearchInputProps> = memo(function Wrappe
 				onKeyDown={ onKeyDown }
 				onBlur={ onBlur }
 				onChange={ onChangeSearchValue }
-				leftSection={ <FontAwesomeIcon icon={ faSearch } size="xs" /> } size="xs"
+				leftSection={ <IconElement path={ mdiMagnify } /> } size="xs"
 				rightSection={(
 					<ActionIcon variant="transparent" color="gray" onClick={ onClear } >
-						<FontAwesomeIcon icon={ faXmark } size="xs" />
+						<IconElement path={ mdiClose } size="1em" />
 					</ActionIcon>
 				)}
 				value={ searchValue }
 			/>
 		) : (
 			<ActionIcon size="md" variant="default" onClick={ showSearchInputActions.open } >
-				<FontAwesomeIcon icon={ faSearch } size="xs" />
+				<IconElement path={ mdiMagnify } />
 			</ActionIcon>
 		)
 	);
@@ -199,7 +199,7 @@ const InstanceParameterTab: FunctionComponent<InstanceParameterTabProps> = memo(
 					<ParameterSearchInput onSearch={ onSearch } />
 					<Popover position="bottom-end" withArrow>
 						<Popover.Target>
-							<Button size="xs" variant="default" leftSection={ <FontAwesomeIcon icon={ faSort } /> } >
+							<Button size="xs" variant="default" leftSection={ <IconElement path={ mdiSort } /> } >
 								Sort
 							</Button>
 						</Popover.Target>
@@ -219,7 +219,7 @@ const InstanceParameterTab: FunctionComponent<InstanceParameterTabProps> = memo(
 										size="xs"
 										fullWidth
 										onChange={ onChangeSortOrder }
-										data={ [{ label: <FontAwesomeIcon icon={ faArrowDownAZ } size="sm" />, value: SortOrder.Asc }, { label: <FontAwesomeIcon icon={ faArrowUpAZ } size="sm" />, value: SortOrder.Desc }] }
+										data={ [{ label: <IconElement path={ mdiSortAscending } />, value: SortOrder.Asc }, { label: <IconElement path={ mdiSortDescending } />, value: SortOrder.Desc }] }
 										value={ sortOrder.value as string }
 									/>
 								</div>

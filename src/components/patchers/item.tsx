@@ -1,10 +1,10 @@
 import { ChangeEvent, FormEvent, FunctionComponent, KeyboardEvent, MouseEvent, memo, useCallback, useEffect, useRef, useState } from "react";
 import { ActionIcon, Button, Group, Menu, TextInput, Tooltip } from "@mantine/core";
 import { PatcherRecord } from "../../models/patcher";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCheck, faClose, faEllipsisVertical, faPen, faPlus, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { keyEventIsValidForName, replaceInvalidNameChars } from "../../lib/util";
 import classes from "./patchers.module.css";
+import { IconElement } from "../elements/icon";
+import { mdiCheck, mdiClose, mdiDotsVertical, mdiPencil, mdiPlus, mdiTrashCan } from "@mdi/js";
 
 export type PatcherItemProps = {
 	patcher: PatcherRecord;
@@ -95,10 +95,10 @@ export const PatcherItem: FunctionComponent<PatcherItemProps> = memo(function Wr
 				/>
 				<ActionIcon.Group>
 					<ActionIcon variant="subtle" size="md" color="gray" onClick={ toggleEditing } >
-						<FontAwesomeIcon icon={ faClose } />
+						<IconElement path={ mdiClose } />
 					</ActionIcon>
 					<ActionIcon variant="subtle" size="md" type="submit">
-						<FontAwesomeIcon icon={ faCheck } />
+						<IconElement path={ mdiCheck } />
 					</ActionIcon>
 				</ActionIcon.Group>
 			</Group>
@@ -112,7 +112,7 @@ export const PatcherItem: FunctionComponent<PatcherItemProps> = memo(function Wr
 					size="sm"
 					variant="default"
 					onClick={ onLoadPatcher }
-					leftSection={ <FontAwesomeIcon icon={ faPlus } /> }
+					leftSection={ <IconElement path={ mdiPlus } /> }
 				>
 					{ patcher.name }
 				</Button>
@@ -120,13 +120,13 @@ export const PatcherItem: FunctionComponent<PatcherItemProps> = memo(function Wr
 			<Menu position="bottom-end" >
 				<Menu.Target>
 					<ActionIcon variant="subtle" color="gray" size="md">
-						<FontAwesomeIcon icon={ faEllipsisVertical } />
+						<IconElement path={ mdiDotsVertical } />
 					</ActionIcon>
 				</Menu.Target>
 				<Menu.Dropdown>
 					<Menu.Label>Actions</Menu.Label>
-					<Menu.Item leftSection={ <FontAwesomeIcon fixedWidth icon={ faPen } /> } onClick={ toggleEditing } >Rename</Menu.Item>
-					<Menu.Item color="red" leftSection={ <FontAwesomeIcon fixedWidth icon={ faTrash } /> } onClick={ onDeletePatcher } >Delete</Menu.Item>
+					<Menu.Item leftSection={ <IconElement path={ mdiPencil } /> } onClick={ toggleEditing } >Rename</Menu.Item>
+					<Menu.Item color="red" leftSection={ <IconElement path={ mdiTrashCan }/> } onClick={ onDeletePatcher } >Delete</Menu.Item>
 				</Menu.Dropdown>
 			</Menu>
 		</Group>

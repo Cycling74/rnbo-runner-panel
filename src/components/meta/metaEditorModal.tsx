@@ -1,13 +1,13 @@
 import { Anchor, Button, Group, Modal, Stack, Text, TextInput, Textarea, Tooltip } from "@mantine/core";
 import { ChangeEvent, FC, FormEvent, memo, useCallback, useEffect, useState } from "react";
 import { useIsMobileDevice } from "../../hooks/useIsMobileDevice";
-import { faCode, faXmark } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { modals } from "@mantine/modals";
 import { JsonMap } from "../../lib/types";
 import { MetadataScope } from "../../lib/constants";
 import { parseParamMetaJSONString } from "../../lib/util";
 import classes from "./metaEditorModal.module.css";
+import { IconElement } from "../elements/icon";
+import { mdiClose, mdiCodeBraces } from "@mdi/js";
 
 export type MetaEditorModalProps = {
 	name: string;
@@ -208,7 +208,7 @@ export const MetaEditorModal: FC<MetaEditorModalProps> = memo(function WrappedPa
 				<Modal.Header>
 					<Modal.Title>
 						<Group gap="xs">
-							<FontAwesomeIcon icon={ faCode } />
+							<IconElement path={ mdiCodeBraces } />
 							{ uiLabels.title }
 						</Group>
 					</Modal.Title>
@@ -250,7 +250,7 @@ export const MetaEditorModal: FC<MetaEditorModalProps> = memo(function WrappedPa
 											variant="default"
 											color="gray"
 											disabled={ !hasChanges }
-											leftSection={ <FontAwesomeIcon icon={ faXmark } /> }
+											leftSection={ <IconElement path={ mdiClose } /> }
 											onClick={ onCancel }
 										>
 											Cancel

@@ -7,14 +7,14 @@ import { getRunnerOwnsJackServer, getSettingsItemsForTab, getShowSettingsModal }
 import { hideSettings, setAppSetting, setRunnerConfig, updateRunnerAudio } from "../../actions/settings";
 import { useIsMobileDevice } from "../../hooks/useIsMobileDevice";
 import { SettingTarget, SettingsTab } from "../../lib/constants";
-import { faArrowLeft, faRotateRight } from "@fortawesome/free-solid-svg-icons";
 import { SettingActionProps, SettingsItemType, SettingsItemValue } from "./item";
 import { AppSetting, AppSettingRecord, AppSettingType } from "../../models/settings";
 import { ConfigKey, ConfigRecord } from "../../models/config";
 import { OSCQueryValueType } from "../../lib/types";
 import AboutInfo from "../page/about";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import classes from "./settings.module.css";
+import { IconElement } from "../elements/icon";
+import { mdiArrowLeft, mdiRestart } from "@mdi/js";
 
 type TabConfig = {
 	actions?: Array<SettingActionProps>;
@@ -115,7 +115,7 @@ const SettingsTabPanel: FunctionComponent<SettingsTabPanelProps> = memo(function
 										key={ i }
 										variant="default"
 										onClick={ () => dispatch(info.action()) }
-										leftSection={ info.icon ? <FontAwesomeIcon icon={ info.icon } /> : null }
+										leftSection={ info.icon ? <IconElement path={ info.icon } /> : null }
 									>
 										{ info.label }
 									</Button>
@@ -146,7 +146,7 @@ const tabConfigByTab: Record<SettingsTab, TabConfig> = {
 			{
 				action: updateRunnerAudio,
 				description: "Restarts the Jack Server with the updated configuration",
-				icon: faRotateRight,
+				icon: mdiRestart,
 				label: "Apply Configuration"
 			}
 		]
@@ -193,7 +193,7 @@ const Settings: FunctionComponent = memo(function WrappedSettings() {
 				showAbout ? (
 					<Stack gap="md">
 						<Group>
-							<Button onClick={ onCloseAbout } size="xs" variant="outline" leftSection={ <FontAwesomeIcon icon={ faArrowLeft } /> } >
+							<Button onClick={ onCloseAbout } size="xs" variant="outline" leftSection={ <IconElement path={ mdiArrowLeft }  /> } >
 								Back to Settings
 							</Button>
 						</Group>

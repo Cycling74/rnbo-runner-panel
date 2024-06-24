@@ -5,8 +5,6 @@ import InstanceComponent from "../../components/instance";
 import { useRouter } from "next/router";
 import { ActionIcon, Button, Group, NativeSelect, Stack, Text } from "@mantine/core";
 import classes from "../../components/instance/instance.module.css";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCamera, faDiagramProject, faMusic, faTrash, faVectorSquare } from "@fortawesome/free-solid-svg-icons";
 import { getAppStatus } from "../../selectors/appStatus";
 import { AppStatus, SortOrder } from "../../lib/constants";
 import Link from "next/link";
@@ -21,6 +19,8 @@ import { useDisclosure } from "@mantine/hooks";
 import { getDataFilesSortedByName } from "../../selectors/datafiles";
 import InstanceKeyboardModal from "../../components/keyroll/modal";
 import { modals } from "@mantine/modals";
+import { IconElement } from "../../components/elements/icon";
+import { mdiCamera, mdiChartSankeyVariant, mdiPiano, mdiTrashCan, mdiVectorSquare } from "@mdi/js";
 
 export default function Instance() {
 
@@ -109,7 +109,7 @@ export default function Instance() {
 				<Button
 					component={ Link }
 					href={{ pathname: "/", query: restQuery }}
-					leftSection={ <FontAwesomeIcon icon={ faDiagramProject } /> }
+					leftSection={ <IconElement path={ mdiChartSankeyVariant } /> }
 					variant="outline"
 					color="gray"
 				>
@@ -125,7 +125,7 @@ export default function Instance() {
 				<div style={{ flex: "1 2 50%" }} >
 					<NativeSelect
 						data={ instances.valueSeq().sortBy(n => n.index).toArray().map(d => ({ value: `${d.index}`, label: `${d.index}: ${d.patcher}` })) }
-						leftSection={ <FontAwesomeIcon icon={ faVectorSquare } /> }
+						leftSection={ <IconElement path={ mdiVectorSquare } /> }
 						onChange={ onChangeInstance }
 						value={ currentInstance.index }
 						style={{ maxWidth: 300, width: "100%" }}
@@ -133,12 +133,12 @@ export default function Instance() {
 				</div>
 				<Group style={{ flex: "0" }} wrap="nowrap" gap="xs" >
 					<ActionIcon variant="outline" color="red" size="lg" onClick={ onUnloadInstance } >
-						<FontAwesomeIcon icon={ faTrash } />
+						<IconElement path={ mdiTrashCan } />
 					</ActionIcon>
 					<ActionIcon variant="default" size="lg" onClick={ toggleKeyboardModal }>
-						<FontAwesomeIcon icon={ faMusic } />
+						<IconElement path={ mdiPiano } />
 					</ActionIcon>
-					<Button variant="default" leftSection={ <FontAwesomeIcon icon={ faCamera } /> } onClick={ togglePresetDrawer } >
+					<Button variant="default" leftSection={ <IconElement path={ mdiCamera } /> } onClick={ togglePresetDrawer } >
 						Presets
 					</Button>
 				</Group>

@@ -1,11 +1,11 @@
 import { Alert, Drawer, Group, Stack, Text } from "@mantine/core";
 import { FunctionComponent, memo, useCallback } from "react";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faVectorSquare } from "@fortawesome/free-solid-svg-icons";
 import { Seq } from "immutable";
 import { PatcherRecord } from "../../models/patcher";
 import { PatcherItem } from "./item";
 import { modals } from "@mantine/modals";
+import { IconElement } from "../elements/icon";
+import { mdiVectorSquare } from "@mdi/js";
 
 export type PatcherDrawerProps = {
 	open: boolean;
@@ -45,7 +45,7 @@ const PatcherDrawer: FunctionComponent<PatcherDrawerProps> = memo(function Wrapp
 			opened={ open }
 			onClose={ onClose }
 			position="left"
-			title={ <Group gap="xs"><FontAwesomeIcon icon={ faVectorSquare }/>Patchers</Group> }
+			title={ <Group gap="xs"><IconElement path={ mdiVectorSquare } />Patchers</Group> }
 		>
 			<Stack gap="sm">
 				{

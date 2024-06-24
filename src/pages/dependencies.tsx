@@ -4,8 +4,6 @@ import { useAppDispatch, useAppSelector } from "../hooks/useAppDispatch";
 import { RootStateType } from "../lib/store";
 import { getDataFilesSortedByName } from "../selectors/datafiles";
 import classes from "../components/datafile/datafile.module.css";
-import { faArrowDownAZ, faArrowUpAZ, faUpload } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { SortOrder } from "../lib/constants";
 import { useCallback, useState } from "react";
 import { DataFileUploadModal, UploadFile } from "../components/datafile/uploadModal";
@@ -15,6 +13,8 @@ import { DataFileRecord } from "../models/datafile";
 import { modals } from "@mantine/modals";
 import { NotificationLevel } from "../models/notification";
 import { showNotification } from "../actions/notifications";
+import { IconElement } from "../components/elements/icon";
+import { mdiSortAlphabeticalAscending, mdiSortAlphabeticalDescending, mdiUpload } from "@mdi/js";
 
 const SampleDependencies = () => {
 
@@ -53,7 +53,7 @@ const SampleDependencies = () => {
 	return (
 		<Stack className={ classes.dataFileWrap } >
 			<Group justify="space-between" wrap="nowrap">
-				<Button variant="default" leftSection={ <FontAwesomeIcon icon={ faUpload } /> } onClick={ uploadModalHandlers.open } >
+				<Button variant="default" leftSection={ <IconElement path={ mdiUpload } /> } onClick={ uploadModalHandlers.open } >
 					Upload Files
 				</Button>
 			</Group>
@@ -65,7 +65,7 @@ const SampleDependencies = () => {
 							<UnstyledButton onClick={ onToggleSort } className={ classes.control } >
 								<Group justify="space-between" align="center">
 									<Text fw="bold" fz="sm">Filename</Text>
-									<FontAwesomeIcon icon={ sortOrder === SortOrder.Asc ? faArrowDownAZ : faArrowUpAZ } />
+									<IconElement path={ sortOrder === SortOrder.Asc ? mdiSortAlphabeticalAscending : mdiSortAlphabeticalDescending } />
 								</Group>
 							</UnstyledButton>
 						</Table.Th>

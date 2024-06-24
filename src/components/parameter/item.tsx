@@ -2,11 +2,11 @@ import React, { memo, useState, useCallback } from "react";
 import { ParameterRecord } from "../../models/parameter";
 import classes from "./parameters.module.css";
 import { ActionIcon, Group, Menu, Indicator, Slider, Tooltip } from "@mantine/core";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCode, faEllipsisVertical, faEraser } from "@fortawesome/free-solid-svg-icons";
 import { useDisclosure } from "@mantine/hooks";
 import { MetaEditorModal } from "../meta/metaEditorModal";
 import { MetadataScope } from "../../lib/constants";
+import { IconElement } from "../elements/icon";
+import { mdiCodeBraces, mdiDotsVertical, mdiEraser } from "@mdi/js";
 
 export const parameterBoxHeight = 87 + 6; // 87px + 6px margin
 const formatParamValueForDisplay = (value: number | string) => {
@@ -119,15 +119,15 @@ const Parameter = memo(function WrappedParameter({
 				<Menu position="bottom-end" disabled={ instanceIsMIDIMapping } >
 					<Menu.Target>
 						<ActionIcon variant="subtle" color="gray" size="md" className={ classes.parameterItemActionMenuTarget } >
-							<FontAwesomeIcon icon={ faEllipsisVertical } />
+							<IconElement path={ mdiDotsVertical } />
 						</ActionIcon>
 					</Menu.Target>
 					<Menu.Dropdown>
 						<Menu.Label>Actions</Menu.Label>
-						<Menu.Item leftSection={ <FontAwesomeIcon fixedWidth icon={ faCode } /> } onClick={ toggleMetaEditor }>
+						<Menu.Item leftSection={ <IconElement path={ mdiCodeBraces } /> } onClick={ toggleMetaEditor }>
 							Edit Metadata
 						</Menu.Item>
-						<Menu.Item leftSection={ <FontAwesomeIcon icon={ faEraser } /> } onClick={ onClearMidiMap } disabled={ !param.isMidiMapped } >
+						<Menu.Item leftSection={ <IconElement path={ mdiEraser } /> } onClick={ onClearMidiMap } disabled={ !param.isMidiMapped } >
 							Clear Midi Mapping
 						</Menu.Item>
 					</Menu.Dropdown>

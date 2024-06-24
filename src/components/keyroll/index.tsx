@@ -7,8 +7,8 @@ import { Breakpoints } from "../../lib/constants";
 import { useElementSize, useViewportSize } from "@mantine/hooks";
 import { Orientation } from "../../lib/constants";
 import { ActionIcon, Group } from "@mantine/core";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faChevronDown, faChevronUp } from "@fortawesome/free-solid-svg-icons";
+import { IconElement } from "../elements/icon";
+import { mdiChevronDown, mdiChevronUp } from "@mdi/js";
 
 const baseOctave = 4;
 const ignoredKeyboardTargets = new Set(["A", "INPUT", "TEXTAREA", "BUTTON"]);
@@ -139,10 +139,10 @@ export const KeyRoll: FunctionComponent<KeyRollProps> = memo(function WrappedKey
 				<div className={ classes.octaveLabel } >C{octave}</div>
 				<ActionIcon.Group>
 					<ActionIcon variant="default" aria-label="Octave Down" onClick={ onDecrementOctave } >
-						<FontAwesomeIcon icon={ faChevronDown } />
+						<IconElement path={ mdiChevronDown } />
 					</ActionIcon>
 					<ActionIcon variant="default" aria-label="Octave Up" onClick={ onIncrementOctave } >
-						<FontAwesomeIcon icon={ faChevronUp } />
+						<IconElement path={ mdiChevronUp } />
 					</ActionIcon>
 				</ActionIcon.Group>
 			</Group>

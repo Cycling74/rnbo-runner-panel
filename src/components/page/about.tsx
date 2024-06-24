@@ -1,9 +1,9 @@
 import { FunctionComponent } from "react";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faGithub } from "@fortawesome/free-brands-svg-icons";
 import { ActionIcon, Anchor, Group, Pill } from "@mantine/core";
 import classes from "./page.module.css";
 import { useThemeColorScheme } from "../../hooks/useTheme";
+import { IconElement } from "../elements/icon";
+import { mdiGithub } from "@mdi/js";
 
 const AboutInfo: FunctionComponent = () => {
 
@@ -32,7 +32,7 @@ const AboutInfo: FunctionComponent = () => {
 					target="_blank"
 					rel="noreferrer noopener"
 				>
-					<FontAwesomeIcon icon={ faGithub } />
+					<IconElement path={ mdiGithub } />
 				</ActionIcon>
 				<Pill>v{ process.env.appVersion }</Pill>
 			</Group>

@@ -7,16 +7,7 @@ import { Lato as lato, Ubuntu_Mono as ubuntuMono  } from "next/font/google";
 const latoFont = lato({ subsets: ["latin-ext"], weight: ["300", "400", "700", "900"], style: ["normal", "italic"] });
 const ubuntuMonoFont = ubuntuMono({display: "block",  subsets: ["latin-ext"], weight: ["400"] });
 
-
-import { library } from "@fortawesome/fontawesome-svg-core";
-import { faAngleDown, faAngleUp, faBars, faTimes } from "@fortawesome/free-solid-svg-icons";
-library.add(faAngleDown, faAngleUp, faBars, faTimes);
-
 import "@mantine/core/styles.css";
-
-// https://github.com/vercel/next.js/issues/20682
-// required when using next/head
-import "@fortawesome/fontawesome-svg-core/styles.css";
 
 import { oscQueryBridge, parseConnectionQueryString } from "../controller/oscqueryBridgeController";
 import { store } from "../lib/store";
