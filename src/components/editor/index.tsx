@@ -109,6 +109,8 @@ const GraphEditor: FunctionComponent<GraphEditorProps> = memo(function WrappedFl
 				edgeTypes={ edgeTypes }
 				edgesUpdatable={ false }
 				fitView
+				minZoom={ 0.1 }
+				maxZoom={ 5 }
 			>
 				<Controls />
 			</ReactFlow>
