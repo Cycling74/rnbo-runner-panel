@@ -1,5 +1,5 @@
-import { ActionIcon, Button, Group, Popover, SegmentedControl, Select, Stack, Switch, Text, TextInput } from "@mantine/core";
-import { ChangeEvent, FC, FunctionComponent, KeyboardEvent as ReactKeyboardEvent, memo, useCallback, useEffect, useRef, useState } from "react";
+import { ActionIcon, Button, Group, Popover, SegmentedControl, Select, Stack, Switch, Text, TextInput, Tooltip } from "@mantine/core";
+import { ChangeEvent, FC, FunctionComponent, MouseEvent, KeyboardEvent as ReactKeyboardEvent, memo, useCallback, useEffect, useRef, useState } from "react";
 import { ParameterSortAttr, SortOrder } from "../../lib/constants";
 import ParameterList from "../parameter/list";
 import { ParameterRecord } from "../../models/parameter";
@@ -17,7 +17,7 @@ import { setAppSetting } from "../../actions/settings";
 import { AppSetting, AppSettingRecord } from "../../models/settings";
 import { useDebouncedCallback, useDisclosure } from "@mantine/hooks";
 import { IconElement } from "../elements/icon";
-import { mdiClose, mdiMagnify, mdiSort, mdiSortAscending, mdiSortDescending } from "@mdi/js";
+import { mdiClose, mdiMagnify, mdiMidiPort, mdiSort, mdiSortAscending, mdiSortDescending } from "@mdi/js";
 
 type ParameterSearchInputProps = {
 	onSearch: (query: string) => any;
@@ -147,10 +147,9 @@ const InstanceParameterTab: FunctionComponent<InstanceParameterTabProps> = memo(
 		dispatch(restoreDefaultParameterMetaOnRemote(instance, param));
 	}, [dispatch, instance]);
 
-	const onToggleMIDIMapping = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-		e.preventDefault();
+	const onToggleMIDIMapping = useCallback((e: MouseEvent<HTMLButtonElement>) => {
 		e.currentTarget.blur();
-		dispatch(setInstanceWaitingForMidiMappingOnRemote(instance.id, e.currentTarget.checked));
+		dispatch(setInstanceWaitingForMidiMappingOnRemote(instance.id, !instance.waitingForMidiMapping));
 	}, [dispatch, instance]);
 
 	const onActivateParameterMIDIMapping = useCallback((param: ParameterRecord) => {
@@ -194,7 +193,15 @@ const InstanceParameterTab: FunctionComponent<InstanceParameterTabProps> = memo(
 	return (
 		<Stack gap="md" h="100%">
 			<Group justify="space-between">
-				<Switch size="xs" variant="default" color="violet.4" label="MIDI Map" checked={ instance.waitingForMidiMapping } onChange={ onToggleMIDIMapping } />
+				<Tooltip label={ instance.waitingForMidiMapping ? "Disable MIDI Mapping" : "Enable MIDI Mapping" } >
+					<ActionIcon
+						onClick={ onToggleMIDIMapping }
+						variant={ instance.waitingForMidiMapping ? "filled" : "default" }
+						color={ instance.waitingForMidiMapping ? "violet.4" : undefined }
+					>
+						<IconElement path={ mdiMidiPort } />
+					</ActionIcon>
+				</Tooltip>
 				<Group justify="flex-end" gap="xs">
 					<ParameterSearchInput onSearch={ onSearch } />
 					<Popover position="bottom-end" withArrow>
