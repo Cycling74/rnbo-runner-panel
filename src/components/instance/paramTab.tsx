@@ -1,4 +1,4 @@
-import { ActionIcon, Button, Group, Popover, SegmentedControl, Select, Stack, Switch, Text, TextInput, Tooltip } from "@mantine/core";
+import { ActionIcon, Button, Group, Popover, SegmentedControl, Select, Stack, Text, TextInput, Tooltip } from "@mantine/core";
 import { ChangeEvent, FC, FunctionComponent, MouseEvent, KeyboardEvent as ReactKeyboardEvent, memo, useCallback, useEffect, useRef, useState } from "react";
 import { ParameterSortAttr, SortOrder } from "../../lib/constants";
 import ParameterList from "../parameter/list";
