@@ -4,8 +4,9 @@ import { useIsMobileDevice } from "../../hooks/useIsMobileDevice";
 import { faCode, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { modals } from "@mantine/modals";
-import { AnyJson } from "../../lib/types";
+import { JsonMap } from "../../lib/types";
 import { MetadataScope } from "../../lib/constants";
+import { parseParamMetaJSONString } from "../../lib/util";
 
 export type MetaEditorModalProps = {
 	name: string;
@@ -125,13 +126,12 @@ export const MetaEditorModal: FC<MetaEditorModalProps> = memo(function WrappedPa
 				onConfirm: () => {
 					setValue(meta);
 					setHasChanges(false);
+
 					try {
-						if (meta) {
-							JSON.parse(meta); // ensure valid
-						}
+						if (meta) parseParamMetaJSONString(meta); // ensure valid
 						setError(undefined);
-					} catch (err) {
-						setError(new Error("Invalid JSON."));
+					} catch (err: unknown) {
+						setError(err instanceof Error ? err : new Error("Invalid JSON format."));
 					}
 				}
 			});
@@ -139,10 +139,10 @@ export const MetaEditorModal: FC<MetaEditorModalProps> = memo(function WrappedPa
 			setValue(meta);
 			setHasChanges(false);
 			try {
-				JSON.parse(meta); // ensure valid
+				parseParamMetaJSONString(meta); // ensure valid
 				setError(undefined);
-			} catch (err) {
-				setError(new Error("Invalid JSON."));
+			} catch (err: unknown) {
+				setError(err instanceof Error ? err : new Error("Invalid JSON format."));
 			}
 		}
 	}, [setValue, hasChanges, setHasChanges, meta, setError]);
@@ -151,12 +151,10 @@ export const MetaEditorModal: FC<MetaEditorModalProps> = memo(function WrappedPa
 		if (error) {
 			try {
 				const v = e.currentTarget.value;
-				if (v) {
-					JSON.parse(v); // ensure valid
-				}
+				if (v) parseParamMetaJSONString(v); // ensure valid
 				setError(undefined);
-			} catch (err) {
-				setError(new Error("Invalid JSON."));
+			} catch (err: unknown) {
+				setError(err instanceof Error ? err : new Error("Invalid JSON format."));
 			}
 		}
 		setValue(e.currentTarget.value);
@@ -166,25 +164,23 @@ export const MetaEditorModal: FC<MetaEditorModalProps> = memo(function WrappedPa
 	const onInputBlur = useCallback(() => {
 		try {
 			if (value) {
-				const j: AnyJson = JSON.parse(value); // ensure valid
+				const j: JsonMap = parseParamMetaJSONString(value); // ensure valid
 				setValue(JSON.stringify(j, null, 2));
 			}
 			setError(undefined);
-		} catch (err) {
-			setError(new Error("Invalid JSON."));
+		} catch (err: unknown) {
+			setError(err instanceof Error ? err : new Error("Invalid JSON format."));
 		}
 	}, [value, setError, setValue]);
 
 	const onSaveValue = useCallback((e: FormEvent) => {
 		e.preventDefault();
 		try {
-			if (value) {
-				JSON.parse(value); // ensure valid
-			}
+			if (value) parseParamMetaJSONString(value); // ensure valid
 			setHasChanges(false);
 			onSaveMeta(value);
-		} catch (err) {
-			setError(new Error("Invalid JSON."));
+		} catch (err: unknown) {
+			setError(err instanceof Error ? err : new Error("Invalid JSON format."));
 		}
 	}, [setError, setHasChanges, onSaveMeta, value]);
 
@@ -238,7 +234,7 @@ export const MetaEditorModal: FC<MetaEditorModalProps> = memo(function WrappedPa
 							<Stack gap="md">
 								<Textarea
 									label="Metadata"
-									description="Metadata in JSON format"
+									description="Metadata in JSON object format"
 									autosize
 									minRows={ 10 }
 									onChange={ onInputChange }
