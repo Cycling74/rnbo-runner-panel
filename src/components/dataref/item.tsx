@@ -1,7 +1,7 @@
 import { FormEvent, FunctionComponent, MouseEvent, memo, useCallback, useEffect, useState } from "react";
 import { DataRefRecord } from "../../models/dataref";
 import classes from "./datarefs.module.css";
-import { ActionIcon, Group, Menu, Select, Table, Text, TextInput } from "@mantine/core";
+import { ActionIcon, Group, Menu, Select, Table, Text, TextInput, Tooltip } from "@mantine/core";
 import { Seq } from "immutable";
 import { DataFileRecord } from "../../models/datafile";
 import { IconElement } from "../elements/icon";
@@ -109,17 +109,19 @@ const DataRefEntry: FunctionComponent<DataRefEntryProps> = memo(function Wrapped
 				<Group justify="flex-end">
 					<Menu position="bottom-end">
 						<Menu.Target>
-							<ActionIcon variant="subtle" color="gray" >
-								<IconElement path={ mdiDotsVertical } />
-							</ActionIcon>
+							<Tooltip label="Open Buffer Action Menu">
+								<ActionIcon variant="subtle" color="gray" >
+									<IconElement path={ mdiDotsVertical } />
+								</ActionIcon>
+							</Tooltip>
 						</Menu.Target>
 						<Menu.Dropdown>
-							<Menu.Label>Actions</Menu.Label>
+							<Menu.Label>Buffer Actions</Menu.Label>
 							<Menu.Item onClick={ toggleEditing } leftSection={ <IconElement path={ mdiPencil } /> } >
 								Change Source
 							</Menu.Item>
 							<Menu.Item color="red" leftSection={ <IconElement path={ mdiEraser } /> } onClick={ onClearDataRef } disabled={ !dataFile } >
-								Clear Buffer
+								Clear Buffer Content
 							</Menu.Item>
 						</Menu.Dropdown>
 					</Menu>

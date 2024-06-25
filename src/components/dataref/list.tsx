@@ -21,7 +21,7 @@ const DataRefList: FunctionComponent<DataRefListProps> = memo(function WrappedDa
 	options
 }) {
 	return (
-		<Table layout="fixed" className={ classes.dataRefTable } verticalSpacing="sm" maw="100%">
+		<Table layout="fixed" className={ classes.dataRefTable } verticalSpacing="sm" maw="100%" highlightOnHover>
 			<Table.Thead>
 				<Table.Tr>
 					<Table.Th>Buffer</Table.Th>

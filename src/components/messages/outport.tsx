@@ -1,6 +1,6 @@
 import { FunctionComponent, memo, useCallback } from "react";
 import classes from "./ports.module.css";
-import { ActionIcon, Group, Menu, TextInput } from "@mantine/core";
+import { ActionIcon, Group, Menu, TextInput, Tooltip } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { MessagePortRecord } from "../../models/messageport";
 import { MetaEditorModal } from "../meta/metaEditorModal";
@@ -61,12 +61,14 @@ const MessageOutportEntry: FunctionComponent<MessageOutportEntryProps> = memo(fu
 				/>
 				<Menu position="bottom-end">
 					<Menu.Target>
-						<ActionIcon variant="subtle" color="gray" size="md">
-							<IconElement path={ mdiDotsVertical } />
-						</ActionIcon>
+						<Tooltip label="Open Outport Action Menu">
+							<ActionIcon variant="subtle" color="gray" size="md">
+								<IconElement path={ mdiDotsVertical } />
+							</ActionIcon>
+						</Tooltip>
 					</Menu.Target>
 					<Menu.Dropdown>
-						<Menu.Label>Actions</Menu.Label>
+						<Menu.Label>Outport Actions</Menu.Label>
 						<Menu.Item leftSection={ <IconElement path={ mdiCodeBraces } /> } onClick={ toggleMetaEditor }>
 							Edit Metadata
 						</Menu.Item>

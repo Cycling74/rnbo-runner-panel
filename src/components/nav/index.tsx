@@ -47,16 +47,16 @@ const AppNav: FunctionComponent = memo(function WrappedNav() {
 					/>
 					<NavLink
 						icon={ mdiFileMusic }
-						label="Sample Dependencies"
-						href={{ pathname: "/dependencies", query: restQuery }}
-						isActive={ pathname === "/dependencies" }
+						label="Audio Files"
+						href={{ pathname: "/files", query: restQuery }}
+						isActive={ pathname === "/files" }
 					/>
 				</Stack>
 				<Stack className={ classes.navMenu } >
 					<ExternalNavLink
 						icon={ mdiHelpCircle }
 						label="Help & Documentation"
-						href="https://rnbo.cycling74.com/learn/raspberry-pi-target-overview"
+						href="https://rnbo.cycling74.com/learn/raspberry-pi-web-interface-guide"
 					/>
 					<NavButton onClick={ onToggleSettings } label="Settings" icon={ mdiCog } isActive={ settingsAreShown } />
 				</Stack>

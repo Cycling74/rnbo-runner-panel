@@ -85,7 +85,7 @@ const SetsDrawer: FunctionComponent<SetsDrawerProps> = memo(function WrappedSets
 							<SaveGraphSetForm onSave={ onSaveSet } />
 							<Divider />
 							<Flex className={ classes.setListWrapper } direction="column">
-								<DrawerSectionTitle>Saved Sets</DrawerSectionTitle>
+								<DrawerSectionTitle>Saved Graph Sets</DrawerSectionTitle>
 								<Stack gap="sm" >
 									{
 										sets.map(set => <GraphSetItem key={ set.id } set={ set } onRename={ onRenameSet } onLoad={ onLoadSet } onDelete={ onTriggerDeleteSet } onSave={ onSaveSetAs }/> )
@@ -94,7 +94,7 @@ const SetsDrawer: FunctionComponent<SetsDrawerProps> = memo(function WrappedSets
 							</Flex>
 							<Divider />
 							<Button variant="outline" fullWidth={true} leftSection={ <IconElement path={ mdiEraser } /> } onClick={ onTriggerClearSet } color="red" >
-								Clear Set
+								Clear Graph Set
 							</Button>
 						</Flex>
 					</Drawer.Body>

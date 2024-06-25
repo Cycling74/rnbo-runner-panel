@@ -1,8 +1,9 @@
-import { ActionIcon, Group, Table, Text } from "@mantine/core";
+import { ActionIcon, Group, Table, Text, Tooltip } from "@mantine/core";
 import { DataFileRecord } from "../../models/datafile";
 import { FC, memo, useCallback } from "react";
 import { IconElement } from "../elements/icon";
 import { mdiTrashCan } from "@mdi/js";
+import { modals } from "@mantine/modals";
 
 export type DataFileListItemProps = {
 	dataFile: DataFileRecord;
@@ -15,7 +16,18 @@ export const DataFileListItem: FC<DataFileListItemProps> = memo(function Wrapped
 }) {
 
 	const onTriggerDelete = useCallback(() => {
-		onDelete(dataFile);
+		modals.openConfirmModal({
+			title: "Delete Audio File",
+			centered: true,
+			children: (
+				<Text size="sm">
+					Are you sure you want to delete the audio file { `"${dataFile.fileName}"` } from the runner?
+				</Text>
+			),
+			labels: { confirm: "Delete", cancel: "Cancel" },
+			confirmProps: { color: "red" },
+			onConfirm: () => onDelete(dataFile)
+		});
 	}, [onDelete, dataFile]);
 
 	return (
@@ -27,9 +39,11 @@ export const DataFileListItem: FC<DataFileListItemProps> = memo(function Wrapped
 			</Table.Td>
 			<Table.Td>
 				<Group justify="flex-end">
-					<ActionIcon color="red" variant="outline" onClick={ onTriggerDelete } >
-						<IconElement path={ mdiTrashCan } />
-					</ActionIcon>
+					<Tooltip label="Delete File">
+						<ActionIcon color="red" variant="outline" onClick={ onTriggerDelete } >
+							<IconElement path={ mdiTrashCan } />
+						</ActionIcon>
+					</Tooltip>
 				</Group>
 			</Table.Td>
 		</Table.Tr>

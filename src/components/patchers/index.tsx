@@ -5,7 +5,7 @@ import { PatcherRecord } from "../../models/patcher";
 import { PatcherItem } from "./item";
 import { modals } from "@mantine/modals";
 import { IconElement } from "../elements/icon";
-import { mdiVectorSquare } from "@mdi/js";
+import { mdiFileExport } from "@mdi/js";
 
 export type PatcherDrawerProps = {
 	open: boolean;
@@ -45,7 +45,7 @@ const PatcherDrawer: FunctionComponent<PatcherDrawerProps> = memo(function Wrapp
 			opened={ open }
 			onClose={ onClose }
 			position="left"
-			title={ <Group gap="xs"><IconElement path={ mdiVectorSquare } />Patchers</Group> }
+			title={ <Group gap="xs"><IconElement path={ mdiFileExport } />Patchers</Group> }
 		>
 			<Stack gap="sm">
 				{

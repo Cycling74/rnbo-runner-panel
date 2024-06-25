@@ -1,4 +1,4 @@
-import { Button, Drawer, MantineTheme, MantineThemeOther, Modal, Tabs, TextInput, createTheme, rem } from "@mantine/core";
+import { Button, Drawer, MantineTheme, MantineThemeOther, Modal, Tabs, TextInput, Tooltip, createTheme, rem } from "@mantine/core";
 
 export type CustomThemeProps = {
 	headerHeight: number | string;
@@ -58,6 +58,11 @@ export const rnboTheme = createTheme({
 		TextInput: TextInput.extend({
 			styles: {
 				label: { fontWeight: "700" }
+			}
+		}),
+		Tooltip: Tooltip.extend({
+			defaultProps: {
+				openDelay: 500
 			}
 		})
 	},

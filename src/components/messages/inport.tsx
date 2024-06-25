@@ -72,12 +72,14 @@ const MessageInportEntry: FunctionComponent<MessageInportEntryProps> = memo(func
 				</Tooltip>
 				<Menu position="bottom-end">
 					<Menu.Target>
-						<ActionIcon variant="subtle" color="gray" size="md">
-							<IconElement path={ mdiDotsVertical } />
-						</ActionIcon>
+						<Tooltip label="Open Inport Action Menu">
+							<ActionIcon variant="subtle" color="gray" size="md">
+								<IconElement path={ mdiDotsVertical } />
+							</ActionIcon>
+						</Tooltip>
 					</Menu.Target>
 					<Menu.Dropdown>
-						<Menu.Label>Actions</Menu.Label>
+						<Menu.Label>Inport Actions</Menu.Label>
 						<Menu.Item leftSection={ <IconElement path={ mdiCodeBraces } /> } onClick={ toggleMetaEditor }>
 							Edit Metadata
 						</Menu.Item>

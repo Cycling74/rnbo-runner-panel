@@ -1,4 +1,4 @@
-import { Button, Group, Stack, Text } from "@mantine/core";
+import { Button, Group, Stack, Text, Tooltip } from "@mantine/core";
 import { FunctionComponent, useCallback } from "react";
 import { useAppDispatch, useAppSelector } from "../hooks/useAppDispatch";
 import { RootStateType } from "../lib/store";
@@ -24,7 +24,8 @@ import { SortOrder } from "../lib/constants";
 import { GraphSetRecord } from "../models/set";
 import { modals } from "@mantine/modals";
 import { IconElement } from "../components/elements/icon";
-import { mdiCamera, mdiGroup, mdiVectorSquare } from "@mdi/js";
+import { mdiCamera, mdiFileExport, mdiGroup } from "@mdi/js";
+import { ResponsiveButton } from "../components/elements/responsiveButton";
 
 const Index: FunctionComponent<Record<string, never>> = () => {
 
@@ -148,16 +149,24 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 		<>
 			<Stack style={{ height: "100%" }} >
 				<Group justify="space-between" wrap="nowrap">
-					<Button variant="default" leftSection={ <IconElement path={ mdiVectorSquare } /> } onClick={ togglePatcherDrawer } >
-						Patchers
-					</Button>
+					<Tooltip label="Open Exported Patcher Menu">
+						<Button variant="default" leftSection={ <IconElement path={ mdiFileExport } /> } onClick={ togglePatcherDrawer } >
+							Patchers
+						</Button>
+					</Tooltip>
 					<Group style={{ flex: "0" }} wrap="nowrap" gap="xs" >
-						<Button variant="default" leftSection={ <IconElement path={ mdiGroup } /> } onClick={ toggleSetDrawer } >
-							Sets
-						</Button>
-						<Button variant="default" leftSection={ <IconElement path={ mdiCamera } /> } onClick={ togglePresetDrawer } >
-							Presets
-						</Button>
+						<ResponsiveButton
+							label="Graph Sets"
+							tooltip="Open Graph Set Menu"
+							icon={ mdiGroup }
+							onClick={ toggleSetDrawer }
+						/>
+						<ResponsiveButton
+							label="Presets"
+							tooltip="Open Graph Preset Menu"
+							icon={ mdiCamera }
+							onClick={ togglePresetDrawer }
+						/>
 					</Group>
 				</Group>
 				<GraphEditor

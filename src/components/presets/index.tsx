@@ -55,7 +55,7 @@ const PresetDrawer: FunctionComponent<PresetDrawerProps> = memo(function Wrapped
 		>
 			<SavePresetForm onSave={ onSavePreset } />
 			<Divider mt="lg" />
-			<DrawerSectionTitle>Presets</DrawerSectionTitle>
+			<DrawerSectionTitle>Saved Presets</DrawerSectionTitle>
 			<Stack gap="sm">
 				{
 					presets.map(preset => <PresetItem key={ preset.id } preset={ preset } onLoad={ onLoadPreset } onDelete={ onTriggerDeletePreset } onRename = { onRenamePreset } onSetInitial = { onSetInitialPreset }/> )
