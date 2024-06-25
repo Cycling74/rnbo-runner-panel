@@ -3,7 +3,7 @@ import { EditorNodeProps, calcPortOffset } from "./util";
 import { GraphPatcherNodeRecord, GraphPortRecord, PortDirection } from "../../models/graph";
 import EditorPort from "./port";
 import classes from "./editor.module.css";
-import { ActionIcon, Paper } from "@mantine/core";
+import { ActionIcon, Paper, Tooltip } from "@mantine/core";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { IconElement } from "../elements/icon";
@@ -28,14 +28,16 @@ const EditorPatcherNode: FunctionComponent<EditorNodeProps> = memo(function Wrap
 					{ (node as GraphPatcherNodeRecord).index }: { (node as GraphPatcherNodeRecord).patcher }
 				</div>
 				<div>
-					<ActionIcon
-						component={ Link }
-						href={{ pathname: "/instances/[index]", query: { ...query, index: (node as GraphPatcherNodeRecord).index } }}
-						size="md"
-						variant="transparent"
-					>
-						<IconElement path={ mdiCogs } />
-					</ActionIcon>
+					<Tooltip label="Open Patcher Instance Control">
+						<ActionIcon
+							component={ Link }
+							href={{ pathname: "/instances/[index]", query: { ...query, index: (node as GraphPatcherNodeRecord).index } }}
+							size="md"
+							variant="transparent"
+						>
+							<IconElement path={ mdiCogs } />
+						</ActionIcon>
+					</Tooltip>
 				</div>
 			</div>
 			<div className={ classes.nodeContent } style={{ height: `${node.contentHeight}px` }} >

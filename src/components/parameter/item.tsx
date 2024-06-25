@@ -1,12 +1,13 @@
 import React, { memo, useState, useCallback } from "react";
 import { ParameterRecord } from "../../models/parameter";
 import classes from "./parameters.module.css";
-import { ActionIcon, Group, Menu, Indicator, Slider, Tooltip } from "@mantine/core";
+import { ActionIcon, Group, Menu, Indicator, Slider, Tooltip, Text } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { MetaEditorModal } from "../meta/metaEditorModal";
 import { MetadataScope } from "../../lib/constants";
 import { IconElement } from "../elements/icon";
 import { mdiCodeBraces, mdiDotsVertical, mdiEraser } from "@mdi/js";
+import { modals } from "@mantine/modals";
 
 export const parameterBoxHeight = 87 + 6; // 87px + 6px margin
 const formatParamValueForDisplay = (value: number | string) => {
@@ -56,7 +57,22 @@ const Parameter = memo(function WrappedParameter({
 
 	const onSaveMeta = useCallback((meta: string) => onSaveMetadata(param, meta), [param, onSaveMetadata]);
 	const onRestoreMeta = useCallback(() => onRestoreMetadata(param), [param, onRestoreMetadata]);
-	const onClearMidiMap = useCallback(() => onClearMidiMapping(param), [param, onClearMidiMapping]);
+
+
+	const onClearMidiMap = useCallback(() => {
+		modals.openConfirmModal({
+			title: "Clear Parameter MIDI Mapping",
+			centered: true,
+			children: (
+				<Text size="sm" id="red">
+					Are you sure you want to clear the active MIDI mapping for { `"${param.name}"` }?
+				</Text>
+			),
+			labels: { confirm: "Clear", cancel: "Cancel" },
+			confirmProps: { color: "red" },
+			onConfirm: () => onClearMidiMapping(param)
+		});
+	}, [param, onClearMidiMapping]);
 
 	const currentValue = useLocalValue ? localValue : param.normalizedValue;
 	const value = param.getValueForNormalizedValue(currentValue);
@@ -118,17 +134,19 @@ const Parameter = memo(function WrappedParameter({
 				/>
 				<Menu position="bottom-end" disabled={ instanceIsMIDIMapping } >
 					<Menu.Target>
-						<ActionIcon variant="subtle" color="gray" size="md" className={ classes.parameterItemActionMenuTarget } >
-							<IconElement path={ mdiDotsVertical } />
-						</ActionIcon>
+						<Tooltip label="Open Parameter Action Menu">
+							<ActionIcon variant="subtle" color="gray" size="md" className={ classes.parameterItemActionMenuTarget } >
+								<IconElement path={ mdiDotsVertical } />
+							</ActionIcon>
+						</Tooltip>
 					</Menu.Target>
 					<Menu.Dropdown>
-						<Menu.Label>Actions</Menu.Label>
+						<Menu.Label>Parameter Actions</Menu.Label>
 						<Menu.Item leftSection={ <IconElement path={ mdiCodeBraces } /> } onClick={ toggleMetaEditor }>
 							Edit Metadata
 						</Menu.Item>
 						<Menu.Item leftSection={ <IconElement path={ mdiEraser } /> } onClick={ onClearMidiMap } disabled={ !param.isMidiMapped } >
-							Clear Midi Mapping
+							Clear MIDI Mapping
 						</Menu.Item>
 					</Menu.Dropdown>
 				</Menu>

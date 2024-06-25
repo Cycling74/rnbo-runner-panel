@@ -232,7 +232,7 @@ export const DataFileUploadModal: FC<DataFileUploadModalProps> = memo(function W
 						{
 							step === UploadStep.Confirm || step === UploadStep.Uploading || step === UploadStep.Error ? (
 								<>
-									<Table verticalSpacing="sm">
+									<Table verticalSpacing="sm" highlightOnHover>
 										<Table.Thead>
 											<Table.Tr>
 												<Table.Th>Filename</Table.Th>

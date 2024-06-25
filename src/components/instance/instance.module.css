@@ -46,7 +46,7 @@
 	display: none;
 }
 
-@media (min-width: $mantine-breakpoint-sm) {
+@media (min-width: $mantine-breakpoint-xs) {
 	.tabLabel {
 		display: block;
 	}

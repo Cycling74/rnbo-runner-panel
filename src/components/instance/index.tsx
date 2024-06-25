@@ -5,7 +5,6 @@ import { InstanceTab } from "../../lib/constants";
 import InstanceParameterTab from "./paramTab";
 import InstanceMessagesTab from "./messageTab";
 import InstanceDataRefsTab from "./datarefTab";
-import { useIsMobileDevice } from "../../hooks/useIsMobileDevice";
 import { InstanceStateRecord } from "../../models/instance";
 import { AppSettingRecord } from "../../models/settings";
 import { DataFileRecord } from "../../models/datafile";
@@ -36,7 +35,6 @@ const Instance: FunctionComponent<InstanceProps> = memo(function WrappedInstance
 }) {
 
 	const [activeTab, setActiveTab] = useState<InstanceTab>(InstanceTab.Parameters);
-	const isMobile = useIsMobileDevice();
 
 	useEffect(() => {
 		if (document.activeElement && document.activeElement instanceof HTMLElement) {
@@ -51,7 +49,7 @@ const Instance: FunctionComponent<InstanceProps> = memo(function WrappedInstance
 			onChange={ t => setActiveTab(t as InstanceTab) }
 			keepMounted={ false }
 		>
-			<Tabs.List grow={ isMobile } >
+			<Tabs.List grow>
 				{
 					tabs.map(({ icon, label, value }) => (
 						<Tabs.Tab key={ value } value={ value } leftSection={ <IconElement path={ icon } /> } >

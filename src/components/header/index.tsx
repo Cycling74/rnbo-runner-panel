@@ -49,12 +49,12 @@ export const Header: FunctionComponent<HeaderProps> = memo(function WrappedHeade
 					<img src={ scheme === "light" ? "/c74-dark.svg" : "/c74-light.svg" } alt="Cycling '74 Logo" />
 				</Group>
 				<Group justify="end" align="center" gap="md">
-					<Tooltip label="Transport Control" >
+					<Tooltip label="Open Transport Control" >
 						<ActionIcon variant="transparent" color={ isRolling ? undefined : "gray" } onClick={ onToggleTransportControl } >
 							<IconElement path={ mdiMetronome } />
 						</ActionIcon>
 					</Tooltip>
-					<Tooltip label="Runner Info" >
+					<Tooltip label="Open Runner Info" >
 						<ActionIcon variant="transparent" color="gray" onClick={ onToggleEndpointInfo } >
 							<IconElement path={ mdiSatelliteUplink } />
 						</ActionIcon>

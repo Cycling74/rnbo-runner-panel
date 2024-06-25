@@ -131,7 +131,7 @@ const EndpointInfo: FunctionComponent = memo(function WrappedSettings() {
 		>
 			<Stack gap="xl">
 				<form onSubmit={ onSubmit } ref={ formRef } >
-					<Fieldset legend="Connection Endpoint">
+					<Fieldset legend="Runner Connection Endpoint">
 						<Stack gap="md">
 							<TextInput
 								onChange={ onChangeConfig }

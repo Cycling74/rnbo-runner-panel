@@ -133,16 +133,21 @@ export default function Instance() {
 				</div>
 				<Group style={{ flex: "0" }} wrap="nowrap" gap="xs" >
 					<Tooltip label="Unload Patcher Instance">
-						<ActionIcon variant="outline" color="red" size="lg" onClick={ onUnloadInstance } >
+						<ActionIcon hiddenFrom="sm" variant="outline" color="red" size="lg" onClick={ onUnloadInstance } >
 							<IconElement path={ mdiVectorSquareRemove } />
 						</ActionIcon>
+					</Tooltip>
+					<Tooltip label="Unload Patcher Instance">
+						<Button visibleFrom="sm" variant="outline" color="red" onClick={ onUnloadInstance } leftSection={ <IconElement path={ mdiVectorSquareRemove } /> } >
+							Unload Instance
+						</Button>
 					</Tooltip>
 					<Tooltip label="Open Virtual Keyboard">
 						<ActionIcon variant="default" size="lg" onClick={ toggleKeyboardModal }>
 							<IconElement path={ mdiPiano } />
 						</ActionIcon>
 					</Tooltip>
-					<Tooltip label="Open Preset Menu">
+					<Tooltip label="Open Instance Preset Menu">
 						<Button variant="default" leftSection={ <IconElement path={ mdiCamera } /> } onClick={ togglePresetDrawer } >
 							Presets
 						</Button>
