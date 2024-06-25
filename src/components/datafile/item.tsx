@@ -17,11 +17,11 @@ export const DataFileListItem: FC<DataFileListItemProps> = memo(function Wrapped
 
 	const onTriggerDelete = useCallback(() => {
 		modals.openConfirmModal({
-			title: "Delete Sample Dependency",
+			title: "Delete Audio File",
 			centered: true,
 			children: (
 				<Text size="sm">
-					Are you sure you want to delete the sample dependency { `"${dataFile.fileName}"` } from the runner?
+					Are you sure you want to delete the audio file { `"${dataFile.fileName}"` } from the runner?
 				</Text>
 			),
 			labels: { confirm: "Delete", cancel: "Cancel" },

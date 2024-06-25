@@ -47,9 +47,9 @@ const AppNav: FunctionComponent = memo(function WrappedNav() {
 					/>
 					<NavLink
 						icon={ mdiFileMusic }
-						label="Sample Dependencies"
-						href={{ pathname: "/dependencies", query: restQuery }}
-						isActive={ pathname === "/dependencies" }
+						label="Audio Files"
+						href={{ pathname: "/files", query: restQuery }}
+						isActive={ pathname === "/files" }
 					/>
 				</Stack>
 				<Stack className={ classes.navMenu } >
