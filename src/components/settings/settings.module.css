@@ -7,6 +7,10 @@
 
 
 .item {
+
+	display: flex;
+	flex-direction: column;
+
 	padding: 0 0 var(--mantine-spacing-xs) 0;
 	border-bottom: 1px solid var(--mantine-color-default-border);
 	gap: var(--mantine-spacing-xs);
@@ -14,19 +18,29 @@
 	&:last-child {
 		border-bottom: none;
 	}
+
+	@media (min-width: $mantine-breakpoint-sm) {
+		flex-direction: row;
+	}
 }
 
 .itemInputWrap {
-	display: flex;
-	align-items: center;
-	justify-content: flex-end;
-	min-width: 100px;
-	max-width: 250px;
-	height: 100%;
-	padding: var(--mantine-spacing-xs) 0;
+	display: block;
+	width: 100%;
+
 
 	> * {
 		max-width: 100%;
+	}
+
+	@media (min-width: $mantine-breakpoint-sm) {
+		display: flex;
+		align-items: center;
+		justify-content: flex-end;
+		min-width: 100px;
+		max-width: 250px;
+		height: 100%;
+		padding: var(--mantine-spacing-xs) 0;
 	}
 }
 

@@ -150,7 +150,7 @@ export const SettingsItem: FunctionComponent<BaseSettingsItemProps> = memo(funct
 	}
 
 	return (
-		<Group className={ classes.item } >
+		<div className={ classes.item } >
 			<div className={ classes.itemTitleWrap } >
 				<label htmlFor={ props.name } className={ classes.itemTitle } >{ props.title }</label>
 				{
@@ -160,7 +160,7 @@ export const SettingsItem: FunctionComponent<BaseSettingsItemProps> = memo(funct
 			<div className={ classes.itemInputWrap }>
 				{ el }
 			</div>
-		</Group>
+		</div>
 	);
 });
 
