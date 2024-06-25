@@ -51,7 +51,7 @@ const MessageInportEntry: FunctionComponent<MessageInportEntryProps> = memo(func
 						onSaveMeta={ onSaveMeta }
 						meta={ port.meta }
 						name={ port.name }
-						scope={ MetadataScope.Outport }
+						scope={ MetadataScope.Inport }
 					/>
 				) : null
 			}
