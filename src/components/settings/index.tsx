@@ -129,30 +129,6 @@ const SettingsTabPanel: FunctionComponent<SettingsTabPanelProps> = memo(function
 	);
 });
 
-const tabConfigByTab: Record<SettingsTab, TabConfig> = {
-	[SettingsTab.UI]: {
-		title: "UI",
-		description: "UI settings are device scoped, saved to the local storage and restored on page load."
-	},
-	[SettingsTab.Control]: {
-		title: "Control"
-	},
-	[SettingsTab.Instance]: {
-		title: "Instance"
-	},
-	[SettingsTab.Audio]: {
-		title: "Audio",
-		actions: [
-			{
-				action: updateRunnerAudio,
-				description: "Restarts the Jack Server with the updated configuration",
-				icon: mdiRestart,
-				label: "Apply Configuration"
-			}
-		]
-	}
-};
-
 const Settings: FunctionComponent = memo(function WrappedSettings() {
 
 	const [activeTab, setActiveTab] = useState<SettingsTab>(SettingsTab.UI);
@@ -160,6 +136,7 @@ const Settings: FunctionComponent = memo(function WrappedSettings() {
 	const dispatch = useAppDispatch();
 
 	const showFullScreen = useIsMobileDevice();
+	const isMobile = useIsMobileDevice();
 
 	const [
 		doShowSettings,
@@ -180,6 +157,30 @@ const Settings: FunctionComponent = memo(function WrappedSettings() {
 
 	const onOpenAbout = useCallback(() => setShowAbout(true), [setShowAbout]);
 	const onCloseAbout = useCallback(() => setShowAbout(false), [setShowAbout]);
+
+	const tabConfigByTab: Record<SettingsTab, TabConfig> = {
+		[SettingsTab.UI]: {
+			title: "UI",
+			description: "UI settings are device scoped, saved to the local storage and restored on page load."
+		},
+		[SettingsTab.Control]: {
+			title: "Control"
+		},
+		[SettingsTab.Instance]: {
+			title: isMobile ? "Instance" : "Patcher Instance"
+		},
+		[SettingsTab.Audio]: {
+			title: "Audio",
+			actions: [
+				{
+					action: updateRunnerAudio,
+					description: "Restarts the Jack Server with the updated configuration",
+					icon: mdiRestart,
+					label: "Apply Configuration"
+				}
+			]
+		}
+	};
 
 	return (
 		<Modal
