@@ -3,7 +3,7 @@ import { useAppDispatch, useAppSelector } from "../../hooks/useAppDispatch";
 import { RootStateType } from "../../lib/store";
 import InstanceComponent from "../../components/instance";
 import { useRouter } from "next/router";
-import { ActionIcon, Button, Group, NativeSelect, Stack, Text } from "@mantine/core";
+import { ActionIcon, Button, Group, NativeSelect, Stack, Text, Tooltip } from "@mantine/core";
 import classes from "../../components/instance/instance.module.css";
 import { getAppStatus } from "../../selectors/appStatus";
 import { AppStatus, SortOrder } from "../../lib/constants";
@@ -20,7 +20,7 @@ import { getDataFilesSortedByName } from "../../selectors/datafiles";
 import InstanceKeyboardModal from "../../components/keyroll/modal";
 import { modals } from "@mantine/modals";
 import { IconElement } from "../../components/elements/icon";
-import { mdiCamera, mdiChartSankeyVariant, mdiPiano, mdiTrashCan, mdiVectorSquare } from "@mdi/js";
+import { mdiCamera, mdiChartSankeyVariant, mdiPiano, mdiVectorSquare, mdiVectorSquareRemove } from "@mdi/js";
 
 export default function Instance() {
 
@@ -132,15 +132,21 @@ export default function Instance() {
 					/>
 				</div>
 				<Group style={{ flex: "0" }} wrap="nowrap" gap="xs" >
-					<ActionIcon variant="outline" color="red" size="lg" onClick={ onUnloadInstance } >
-						<IconElement path={ mdiTrashCan } />
-					</ActionIcon>
-					<ActionIcon variant="default" size="lg" onClick={ toggleKeyboardModal }>
-						<IconElement path={ mdiPiano } />
-					</ActionIcon>
-					<Button variant="default" leftSection={ <IconElement path={ mdiCamera } /> } onClick={ togglePresetDrawer } >
-						Presets
-					</Button>
+					<Tooltip label="Unload Instance">
+						<ActionIcon variant="outline" color="red" size="lg" onClick={ onUnloadInstance } >
+							<IconElement path={ mdiVectorSquareRemove } />
+						</ActionIcon>
+					</Tooltip>
+					<Tooltip label="Open Virtual Keyboard">
+						<ActionIcon variant="default" size="lg" onClick={ toggleKeyboardModal }>
+							<IconElement path={ mdiPiano } />
+						</ActionIcon>
+					</Tooltip>
+					<Tooltip label="Open Preset Menu">
+						<Button variant="default" leftSection={ <IconElement path={ mdiCamera } /> } onClick={ togglePresetDrawer } >
+							Presets
+						</Button>
+					</Tooltip>
 				</Group>
 			</Group>
 			<InstanceComponent
