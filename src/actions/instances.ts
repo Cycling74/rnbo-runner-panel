@@ -250,7 +250,7 @@ export const setInstanceParameterValueNormalizedOnRemote = (instance: InstanceSt
 		oscQueryBridge.sendPacket(writePacket(message));
 		// optimistic local state update
 		dispatch(setInstance(instance.setParameterNormalizedValue(param.id, value)));
-	}
+	};
 
 export const setInstanceDataRefValueOnRemote = (instance: InstanceStateRecord, dataref: DataRefRecord, file?: DataFileRecord): AppThunk =>
 	() => {
