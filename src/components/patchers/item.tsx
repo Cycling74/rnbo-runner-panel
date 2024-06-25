@@ -105,7 +105,7 @@ export const PatcherItem: FunctionComponent<PatcherItemProps> = memo(function Wr
 		</form>
 	) : (
 		<Group gap="xs">
-			<Tooltip label={ `Click to create a new instance of ${patcher.name}` } openDelay={ 500 } >
+			<Tooltip label={ `Click to create a new instance of ${patcher.name}` } >
 				<Button
 					className={ classes.patcherItemButton }
 					justify="flex-start"

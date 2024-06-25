@@ -108,7 +108,7 @@ export const PresetItem: FunctionComponent<PresetItemProps> = memo(function Wrap
 				color="yellow"
 				disabled={ !preset.initial }
 				label={(
-					<Tooltip label="This preset loads on startup" openDelay={ 500 } >
+					<Tooltip label="This preset loads on startup" >
 						<IconElement path={ mdiStar } size="0.8em" />
 					</Tooltip>
 				)}
@@ -120,7 +120,7 @@ export const PresetItem: FunctionComponent<PresetItemProps> = memo(function Wrap
 					justify="flex-start"
 					size="sm"
 					leftSection={ preset?.latest ? (
-						<Tooltip label="This preset was loaded last" openDelay={ 500 }>
+						<Tooltip label="This preset was loaded last" >
 							<IconElement path={ mdiHistory } size="xs" />
 						</Tooltip>
 					) : null }

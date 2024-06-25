@@ -83,7 +83,7 @@ const Parameter = memo(function WrappedParameter({
 				) : null
 			}
 			<Group justify="space-between">
-				<Tooltip label={ indicatorText } openDelay={ 500 } disabled={ !indicatorText }>
+				<Tooltip label={ indicatorText } disabled={ !indicatorText }>
 					<Indicator
 						position="middle-end"
 						disabled={ !indicatorText }

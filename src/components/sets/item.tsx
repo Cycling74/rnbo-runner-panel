@@ -118,7 +118,7 @@ export const GraphSetItem: FunctionComponent<GraphSetItemProps> = memo(function 
 				size="sm"
 				variant="default"
 				leftSection={ set?.latest ? (
-					<Tooltip label="This set was loaded last" openDelay={ 500 }>
+					<Tooltip label="This set was loaded last" >
 						<IconElement path={ mdiHistory } />
 					</Tooltip>
 				) : null }

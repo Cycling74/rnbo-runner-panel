@@ -223,7 +223,7 @@ export const MetaEditorModal: FC<MetaEditorModalProps> = memo(function WrappedPa
 							<TextInput size="xs" readOnly label={ uiLabels.nameField.label } name={ uiLabels.nameField.name } value={ name } flex={ 1 } />
 							{
 								onRestore ? (
-									<Tooltip label={ uiLabels.restoreTooltip } openDelay={ 500 } >
+									<Tooltip label={ uiLabels.restoreTooltip } >
 										<Button onClick={ onTriggerRestore } size="xs" variant="default">
 											Restore Default
 										</Button>
