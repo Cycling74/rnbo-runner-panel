@@ -132,7 +132,7 @@ export default function Instance() {
 					/>
 				</div>
 				<Group style={{ flex: "0" }} wrap="nowrap" gap="xs" >
-					<Tooltip label="Unload Instance">
+					<Tooltip label="Unload Patcher Instance">
 						<ActionIcon variant="outline" color="red" size="lg" onClick={ onUnloadInstance } >
 							<IconElement path={ mdiVectorSquareRemove } />
 						</ActionIcon>
