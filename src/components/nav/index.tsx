@@ -56,7 +56,7 @@ const AppNav: FunctionComponent = memo(function WrappedNav() {
 					<ExternalNavLink
 						icon={ mdiHelpCircle }
 						label="Help & Documentation"
-						href="https://rnbo.cycling74.com/learn/raspberry-pi-target-overview"
+						href="https://rnbo.cycling74.com/learn/raspberry-pi-web-interface-guide"
 					/>
 					<NavButton onClick={ onToggleSettings } label="Settings" icon={ mdiCog } isActive={ settingsAreShown } />
 				</Stack>
