@@ -10,7 +10,6 @@ import { OSCArgument, writePacket } from "osc";
 import { showNotification } from "./notifications";
 import { NotificationLevel } from "../models/notification";
 import { oscQueryBridge } from "../controller/oscqueryBridgeController";
-import throttle from "lodash.throttle";
 import { PresetRecord } from "../models/preset";
 import { AppSetting } from "../models/settings";
 import { DataRefRecord } from "../models/dataref";
@@ -238,7 +237,7 @@ export const triggerInstanceMidiNoteOffEventOnRemote = (instance: InstanceStateR
 		oscQueryBridge.sendPacket(writePacket(message));
 	};
 
-export const setInstanceParameterValueNormalizedOnRemote = throttle((instance: InstanceStateRecord, param: ParameterRecord, value: number): AppThunk =>
+export const setInstanceParameterValueNormalizedOnRemote = (instance: InstanceStateRecord, param: ParameterRecord, value: number): AppThunk =>
 	(dispatch) => {
 
 		const message = {
@@ -251,7 +250,7 @@ export const setInstanceParameterValueNormalizedOnRemote = throttle((instance: I
 		oscQueryBridge.sendPacket(writePacket(message));
 		// optimistic local state update
 		dispatch(setInstance(instance.setParameterNormalizedValue(param.id, value)));
-	}, 100);
+	};
 
 export const setInstanceDataRefValueOnRemote = (instance: InstanceStateRecord, dataref: DataRefRecord, file?: DataFileRecord): AppThunk =>
 	() => {
