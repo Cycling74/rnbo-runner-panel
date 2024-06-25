@@ -53,52 +53,52 @@ const instanceConfigDetails: Partial<Record<ConfigKey, Omit<ConfigRecordProps, "
 	[ConfigKey.AutoStartLast]: {
 		path: `/rnbo/inst/config/${ConfigKey.AutoStartLast}`,
 		tab: SettingsTab.Instance,
-		title: "Startup: Auto Start Last Set"
+		title: "Auto Start Last Set"
 	},
 	[ConfigKey.AutoConnectAudio]: {
 		path: `/rnbo/inst/config/${ConfigKey.AutoConnectAudio}`,
 		tab: SettingsTab.Instance,
-		title: "Instance: Auto Connect Audio"
+		title: "Auto Connect Audio"
 	},
 	[ConfigKey.AutoConnectAudioIndexed]: {
 		path: `/rnbo/inst/config/${ConfigKey.AutoConnectAudioIndexed}`,
 		tab: SettingsTab.Instance,
-		title: "Instance: Auto Connect Audio by i/o Index number"
+		title: "Auto Connect Audio by i/o Index number"
 	},
 	[ConfigKey.AutoConnectMIDI]: {
 		path: `/rnbo/inst/config/${ConfigKey.AutoConnectMIDI}`,
 		tab: SettingsTab.Instance,
-		title: "Instance: Auto Connect MIDI"
+		title: "Auto Connect MIDI"
 	},
 	[ConfigKey.AutoConnectMIDIHardware]: {
 		path: `/rnbo/inst/config/${ConfigKey.AutoConnectMIDIHardware}`,
 		tab: SettingsTab.Instance,
-		title: "Instance: Auto Connect MIDI Hardware"
+		title: "Auto Connect MIDI Hardware"
 	},
 	[ConfigKey.AudioFadeIn]: {
 		min: 0,
 		max: 2000,
 		path: `/rnbo/inst/config/${ConfigKey.AudioFadeIn}`,
 		tab: SettingsTab.Instance,
-		title: "Instance: Fade In Milliseconds"
+		title: "Fade In Milliseconds"
 	},
 	[ConfigKey.AudioFadeOut]: {
 		min: 0,
 		max: 2000,
 		path: `/rnbo/inst/config/${ConfigKey.AudioFadeOut}`,
 		tab: SettingsTab.Instance,
-		title: "Instance: Fade Out Milliseconds"
+		title: "Fade Out Milliseconds"
 	},
 	[ConfigKey.PortToOsc]: {
 		path: `/rnbo/inst/config/${ConfigKey.PortToOsc}`,
 		tab: SettingsTab.Instance,
-		title: "Instance: Port To OSC"
+		title: "Port To OSC"
 	},
 	[ConfigKey.PresetMIDIProgramChangeChannel]: {
 		options: DEFAULT_MIDI_RANGE,
 		path: `/rnbo/inst/config/${ConfigKey.AudioFadeOut}`,
 		tab: SettingsTab.Instance,
-		title: "Preset: MIDI Program Change Channel"
+		title: "MIDI Program Change Channel: Load Instance Preset"
 	}
 };
 
@@ -107,35 +107,35 @@ const jackConfigDetails: Partial<Record<ConfigKey, Omit<ConfigRecordProps, "id" 
 		options: [2],
 		path: `/rnbo/jack/config/${ConfigKey.NumPeriods}`,
 		tab: SettingsTab.Audio,
-		title: "Audio: Num Periods"
+		title: "Num Periods"
 	},
 	[ConfigKey.PeriodFrames]: {
 		options: [512],
 		path: `/rnbo/jack/config/${ConfigKey.PeriodFrames}`,
 		tab: SettingsTab.Audio,
-		title: "Audio: Period Frames"
+		title: "Period Frames"
 	},
 	[ConfigKey.SampleRate]: {
 		options: DEFAULT_SAMPLE_RATES,
 		path: `/rnbo/jack/config/${ConfigKey.SampleRate}`,
 		tab: SettingsTab.Audio,
-		title: "Audio: Sample Rate"
+		title: "Sample Rate"
 	},
 	[ConfigKey.Card]: {
 		path: `/rnbo/jack/config/${ConfigKey.Card}`,
 		tab: SettingsTab.Audio,
-		title: "Audio: Interface"
+		title: "Interface"
 	},
 	[ConfigKey.MIDISystem]: {
 		options: ["seq", "raw"],
 		path: `/rnbo/jack/config/${ConfigKey.MIDISystem}`,
 		tab: SettingsTab.Audio,
-		title: "Audio: MIDI System"
+		title: "MIDI System"
 	},
 	[ConfigKey.JackExtraArgs]: {
 		path: `/rnbo/jack/config/${ConfigKey.JackExtraArgs}`,
 		tab: SettingsTab.Audio,
-		title: "Audio: Extra Args"
+		title: "Extra Args"
 	}
 };
 
@@ -144,24 +144,24 @@ const controlConfigDetails: Partial<Record<ConfigKey, Omit<ConfigRecordProps, "i
 		options: DEFAULT_MIDI_RANGE,
 		path: `/rnbo/config/${ConfigKey.SetMIDIProgramChangeChannel}`,
 		tab: SettingsTab.Control,
-		title: "Set Select: MIDI Program Change Channel"
+		title: "MIDI Program Change Channel: Select Set"
 	},
 	[ConfigKey.SetPresetMIDIProgramChangeChannel]: {
 		options: DEFAULT_MIDI_RANGE,
 		path: `/rnbo/config/${ConfigKey.SetPresetMIDIProgramChangeChannel}`,
 		tab: SettingsTab.Control,
-		title: "Set Preset Select: MIDI Program Change Channel"
+		title: "MIDI Program Change Channel: Select Set Preset"
 	},
 	[ConfigKey.PatcherMIDIProgramChangeChannel]: {
 		options: DEFAULT_MIDI_RANGE,
 		path: `/rnbo/config/${ConfigKey.PatcherMIDIProgramChangeChannel}`,
 		tab: SettingsTab.Control,
-		title: "Patcher Select: MIDI Program Change Channel"
+		title: "MIDI Program Change Channel: Select Patcher"
 	},
 	[ConfigKey.ControlAutoConnectMIDI]: {
 		path: `/rnbo/config/${ConfigKey.ControlAutoConnectMIDI}`,
 		tab: SettingsTab.Control,
-		title: "RNBO Control: Auto Connect MIDI"
+		title: "Auto Connect MIDI"
 	}
 };
 
