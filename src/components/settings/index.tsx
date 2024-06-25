@@ -1,4 +1,4 @@
-import { Anchor, Button, Group, Modal, Stack, Tabs } from "@mantine/core";
+import { Anchor, Button, Group, Modal, Stack, Tabs, Text } from "@mantine/core";
 import SettingsList from "./list";
 import { FunctionComponent, memo, useCallback, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../../hooks/useAppDispatch";
@@ -113,7 +113,8 @@ const SettingsTabPanel: FunctionComponent<SettingsTabPanelProps> = memo(function
 								actions.map((info, i) => (
 									<Button
 										key={ i }
-										variant="default"
+										variant="outline"
+										c="blue.6"
 										onClick={ () => dispatch(info.action()) }
 										leftSection={ info.icon ? <IconElement path={ info.icon } /> : null }
 									>
@@ -128,30 +129,6 @@ const SettingsTabPanel: FunctionComponent<SettingsTabPanelProps> = memo(function
 		</Tabs.Panel>
 	);
 });
-
-const tabConfigByTab: Record<SettingsTab, TabConfig> = {
-	[SettingsTab.UI]: {
-		title: "UI",
-		description: "UI settings are device scoped, saved to the local storage and restored on page load."
-	},
-	[SettingsTab.Control]: {
-		title: "Control"
-	},
-	[SettingsTab.Instance]: {
-		title: "Instance"
-	},
-	[SettingsTab.Audio]: {
-		title: "Audio",
-		actions: [
-			{
-				action: updateRunnerAudio,
-				description: "Restarts the Jack Server with the updated configuration",
-				icon: mdiRestart,
-				label: "Apply Configuration"
-			}
-		]
-	}
-};
 
 const Settings: FunctionComponent = memo(function WrappedSettings() {
 
@@ -181,6 +158,30 @@ const Settings: FunctionComponent = memo(function WrappedSettings() {
 	const onOpenAbout = useCallback(() => setShowAbout(true), [setShowAbout]);
 	const onCloseAbout = useCallback(() => setShowAbout(false), [setShowAbout]);
 
+	const tabConfigByTab: Record<SettingsTab, TabConfig> = {
+		[SettingsTab.UI]: {
+			title: "UI",
+			description: "UI settings are device scoped, saved to the local storage and restored on page load."
+		},
+		[SettingsTab.Control]: {
+			title: "Control"
+		},
+		[SettingsTab.Instance]: {
+			title: "Patcher Instance"
+		},
+		[SettingsTab.Audio]: {
+			title: "Audio",
+			actions: [
+				{
+					action: updateRunnerAudio,
+					description: "Restarts the Jack Server with the updated configuration",
+					icon: mdiRestart,
+					label: "Apply Configuration"
+				}
+			]
+		}
+	};
+
 	return (
 		<Modal
 			onClose={ onCloseSettingsModal }
@@ -206,7 +207,11 @@ const Settings: FunctionComponent = memo(function WrappedSettings() {
 								<Tabs.List grow>
 									{
 										Object.values(SettingsTab).map(id => (
-											<Tabs.Tab key={ id } value={ id } >{ tabConfigByTab[id].title }</Tabs.Tab>
+											<Tabs.Tab key={ id } value={ id } >
+												<Text fz={{ base: "sm", sm: "md" }} lh={{ base: "sm", sm: "md" }}>
+													{ tabConfigByTab[id].title }
+												</Text>
+											</Tabs.Tab>
 										))
 									}
 								</Tabs.List>
