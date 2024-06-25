@@ -3,7 +3,7 @@ import { useAppDispatch, useAppSelector } from "../../hooks/useAppDispatch";
 import { RootStateType } from "../../lib/store";
 import InstanceComponent from "../../components/instance";
 import { useRouter } from "next/router";
-import { ActionIcon, Button, Group, NativeSelect, Stack, Text, Tooltip } from "@mantine/core";
+import { Button, Group, NativeSelect, Stack, Text } from "@mantine/core";
 import classes from "../../components/instance/instance.module.css";
 import { getAppStatus } from "../../selectors/appStatus";
 import { AppStatus, SortOrder } from "../../lib/constants";
@@ -21,6 +21,7 @@ import InstanceKeyboardModal from "../../components/keyroll/modal";
 import { modals } from "@mantine/modals";
 import { IconElement } from "../../components/elements/icon";
 import { mdiCamera, mdiChartSankeyVariant, mdiPiano, mdiVectorSquare, mdiVectorSquareRemove } from "@mdi/js";
+import { ResponsiveButton } from "../../components/elements/responsiveButton";
 
 export default function Instance() {
 
@@ -132,26 +133,26 @@ export default function Instance() {
 					/>
 				</div>
 				<Group style={{ flex: "0" }} wrap="nowrap" gap="xs" >
-					<Tooltip label="Unload Patcher Instance">
-						<ActionIcon hiddenFrom="sm" variant="outline" color="red" size="lg" onClick={ onUnloadInstance } >
-							<IconElement path={ mdiVectorSquareRemove } />
-						</ActionIcon>
-					</Tooltip>
-					<Tooltip label="Unload Patcher Instance">
-						<Button visibleFrom="sm" variant="outline" color="red" onClick={ onUnloadInstance } leftSection={ <IconElement path={ mdiVectorSquareRemove } /> } >
-							Unload Instance
-						</Button>
-					</Tooltip>
-					<Tooltip label="Open Virtual Keyboard">
-						<ActionIcon variant="default" size="lg" onClick={ toggleKeyboardModal }>
-							<IconElement path={ mdiPiano } />
-						</ActionIcon>
-					</Tooltip>
-					<Tooltip label="Open Instance Preset Menu">
-						<Button variant="default" leftSection={ <IconElement path={ mdiCamera } /> } onClick={ togglePresetDrawer } >
-							Presets
-						</Button>
-					</Tooltip>
+					<ResponsiveButton
+						label="Unload Instance"
+						tooltip="Unload Patcher Instance"
+						icon={ mdiVectorSquareRemove }
+						onClick={ onUnloadInstance }
+						variant="outline"
+						color="red"
+					/>
+					<ResponsiveButton
+						label="Keyboard"
+						tooltip="Open Virtual Keyboard"
+						icon={ mdiPiano }
+						onClick={ toggleKeyboardModal }
+					/>
+					<ResponsiveButton
+						label="Presets"
+						tooltip="Open Instance Preset Menu"
+						icon={ mdiCamera }
+						onClick={ togglePresetDrawer }
+					/>
 				</Group>
 			</Group>
 			<InstanceComponent

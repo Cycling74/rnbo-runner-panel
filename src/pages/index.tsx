@@ -25,6 +25,7 @@ import { GraphSetRecord } from "../models/set";
 import { modals } from "@mantine/modals";
 import { IconElement } from "../components/elements/icon";
 import { mdiCamera, mdiFileExport, mdiGroup } from "@mdi/js";
+import { ResponsiveButton } from "../components/elements/responsiveButton";
 
 const Index: FunctionComponent<Record<string, never>> = () => {
 
@@ -154,16 +155,18 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 						</Button>
 					</Tooltip>
 					<Group style={{ flex: "0" }} wrap="nowrap" gap="xs" >
-						<Tooltip label="Open Graph Set Menu">
-							<Button variant="default" leftSection={ <IconElement path={ mdiGroup } /> } onClick={ toggleSetDrawer } >
-								Graph Sets
-							</Button>
-						</Tooltip>
-						<Tooltip label="Open Graph Preset Menu">
-							<Button variant="default" leftSection={ <IconElement path={ mdiCamera } /> } onClick={ togglePresetDrawer } >
-								Presets
-							</Button>
-						</Tooltip>
+						<ResponsiveButton
+							label="Graph Sets"
+							tooltip="Open Graph Set Menu"
+							icon={ mdiGroup }
+							onClick={ toggleSetDrawer }
+						/>
+						<ResponsiveButton
+							label="Presets"
+							tooltip="Open Graph Preset Menu"
+							icon={ mdiCamera }
+							onClick={ togglePresetDrawer }
+						/>
 					</Group>
 				</Group>
 				<GraphEditor
