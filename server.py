@@ -56,7 +56,13 @@ class MyRequestHandler(SimpleHTTPRequestHandler):
 		return SimpleHTTPRequestHandler.do_GET(self)
 
 Handler = MyRequestHandler
+
+# if we restart the socket is sometimes still bound
+# https://stackoverflow.com/questions/19071512/socket-error-errno-48-address-already-in-use
+TCPServer.allow_reuse_address=True
+
 server = TCPServer(('0.0.0.0', args.port), Handler)
+
 
 try:
 	server.serve_forever()
