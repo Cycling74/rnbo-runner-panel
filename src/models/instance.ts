@@ -25,6 +25,16 @@ export type InstanceStateProps = {
 
 const collator = new Intl.Collator("en-US");
 
+function sortPresets(left: PresetRecord, right: PresetRecord) : number {
+	if (left.initial) {
+		return -1;
+	}
+	if (right.initial) {
+		return 1;
+	}
+	return collator.compare(left.name, right.name);
+}
+
 export class InstanceStateRecord extends ImmuRecord<InstanceStateProps>({
 
 	index: 0,
@@ -112,13 +122,7 @@ export class InstanceStateRecord extends ImmuRecord<InstanceStateProps>({
 				const pr = PresetRecord.fromDescription(name, name === initial, name === latest);
 				map.set(pr.id, pr);
 			}
-		}).sort((left: PresetRecord, right: PresetRecord) => {
-			if (left.initial)
-			{return -1;}
-			if (right.initial)
-			{return 1;}
-			return collator.compare(left.name, right.name);
-		});
+		}).sort(sortPresets);
 	}
 
 	public setPresetLatest(latest: string): InstanceStateRecord {
@@ -126,7 +130,7 @@ export class InstanceStateRecord extends ImmuRecord<InstanceStateProps>({
 	}
 
 	public setPresetInitial(initial: string): InstanceStateRecord {
-		return this.set("presets", this.presets.map(preset => preset.setInitial(preset.name === initial))).set("presetInitial", initial);
+		return this.set("presetInitial", initial).set("presets", this.presets.map(preset => preset.setInitial(preset.name === initial)).sort(sortPresets));
 	}
 
 	public updatePresets(entries: OSCQueryRNBOInstancePresetEntries): InstanceStateRecord {
