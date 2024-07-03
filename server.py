@@ -58,4 +58,7 @@ class MyRequestHandler(SimpleHTTPRequestHandler):
 Handler = MyRequestHandler
 server = TCPServer(('0.0.0.0', args.port), Handler)
 
-server.serve_forever()
+try:
+	server.serve_forever()
+finally:
+	server.server_close()
