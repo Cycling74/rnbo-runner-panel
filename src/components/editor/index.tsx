@@ -13,6 +13,7 @@ import GraphEdge, { RNBOGraphEdgeType } from "./edge";
 import { useRouter } from "next/router";
 import EditorControlNode from "./controlNode";
 import { useMantineColorScheme } from "@mantine/core";
+import { FitView } from "./fitView";
 
 export type GraphEditorProps = {
 	connections: RootStateType["graph"]["connections"];
@@ -113,6 +114,7 @@ const GraphEditor: FunctionComponent<GraphEditorProps> = memo(function WrappedFl
 				maxZoom={ 5 }
 			>
 				<Controls />
+				<FitView />
 			</ReactFlow>
 		</div>
 	);
