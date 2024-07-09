@@ -1,6 +1,6 @@
 {
   "name": "rnbo-runner-panel",
-  "version": "2.0.2-beta.6",
+  "version": "2.0.2-beta.7",
   "private": true,
   "engines": {
     "node": ">=20 <21"
