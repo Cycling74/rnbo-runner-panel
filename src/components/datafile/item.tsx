@@ -3,7 +3,6 @@ import { DataFileRecord } from "../../models/datafile";
 import { FC, memo, useCallback } from "react";
 import { IconElement } from "../elements/icon";
 import { mdiTrashCan } from "@mdi/js";
-import { modals } from "@mantine/modals";
 
 export type DataFileListItemProps = {
 	dataFile: DataFileRecord;
@@ -15,21 +14,7 @@ export const DataFileListItem: FC<DataFileListItemProps> = memo(function Wrapped
 	onDelete
 }) {
 
-	const onTriggerDelete = useCallback(() => {
-		modals.openConfirmModal({
-			title: "Delete Audio File",
-			centered: true,
-			children: (
-				<Text size="sm">
-					Are you sure you want to delete the audio file { `"${dataFile.fileName}"` } from the runner?
-				</Text>
-			),
-			labels: { confirm: "Delete", cancel: "Cancel" },
-			confirmProps: { color: "red" },
-			onConfirm: () => onDelete(dataFile)
-		});
-	}, [onDelete, dataFile]);
-
+	const onTriggerDelete = useCallback(() => onDelete(dataFile), [onDelete, dataFile]);
 	return (
 		<Table.Tr>
 			<Table.Td>
