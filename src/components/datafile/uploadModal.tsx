@@ -15,8 +15,10 @@ import { mdiAlertCircleOutline, mdiCheckCircleOutline, mdiClose, mdiFileMusic, m
 const AUDIO_MIME_TYPE: string[] = [
 	"audio/aiff", "audio/x-aiff",
 	"audio/wav", "audio/wave", "audio/x-wav", "audio/x-pn-wav",
-	"audio/flac", "audio/x-flac"
-	// TODO more formats, mpeg, etc?
+	"audio/flac", "audio/x-flac",
+	"audio/mpeg", 
+	"audio/ogg", "video/ogg" //for some reason dropzone is seeing .ogg audio as video/ogg
+	// TODO does libsndfile support other formats?
 ];
 
 export type UploadFile = {
