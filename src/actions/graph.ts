@@ -19,13 +19,17 @@ import { getPatchers } from "../selectors/patchers";
 const defaultNodeSpacing = 150;
 const getPatcherOrControlNodeCoordinates = (node: GraphPatcherNodeRecord | GraphControlNodeRecord, nodes: GraphNodeRecord[]): { x: number, y: number } => {
 
-	const bottomNode: GraphNodeRecord | undefined = nodes.reduce((n, current) => {
-		if (current.type === NodeType.System) return n;
-		if (!n) return current;
-		return current.y > n.y ? current : n;
-	}, undefined as GraphNodeRecord | undefined);
+	let y = 0;
+	if (node instanceof GraphControlNodeRecord) {
+		const bottomNode: GraphNodeRecord | undefined = nodes.reduce((n, current) => {
+			if (current.type === NodeType.System) return n;
+			if (!n) return current;
+			return current.y > n.y ? current : n;
+		}, undefined as GraphNodeRecord | undefined);
 
-	const y = bottomNode ? bottomNode.y + bottomNode.height + defaultNodeSpacing : 0;
+		y = bottomNode ? bottomNode.y + bottomNode.height + defaultNodeSpacing : 0;
+	}
+
 	return { x: 435 + defaultNodeSpacing, y };
 };
 
@@ -38,12 +42,15 @@ const serializeSetMeta = (nodes: GraphNodeRecord[]): string => {
 };
 
 const deserializeSetMeta = (metaString: string): OSCQuerySetMeta => {
-	try {
-		return JSON.parse(metaString || '{ "nodes": {} }') as OSCQuerySetMeta;
-	} catch (err) {
-		console.warn(`Failed to parse Set Meta when creating new node: ${err.message}`);
-		return { nodes: {} };
+	// I don't know why we're getting strings of length 1 but, they can't be valid JSON anyway
+	if (metaString && metaString.length > 1) {
+		try {
+			return JSON.parse(metaString) as OSCQuerySetMeta;
+		} catch (err) {
+			console.warn(`Failed to parse Set Meta when creating new node: ${err.message}`);
+		}
 	}
+	return { nodes: {} };
 };
 
 export enum GraphActionType {
@@ -375,12 +382,8 @@ export const initNodes = (jackPortsInfo: OSCQueryRNBOJackPortInfo, instanceInfo:
 			const info = value as OSCQueryRNBOInstance;
 			let node = GraphPatcherNodeRecord.fromDescription(info);
 			const nodeMeta = meta.nodes[node.id];
-			if (nodeMeta) {
-				node = node.updatePosition(nodeMeta.position.x, nodeMeta.position.y);
-			} else {
-				const { x, y } = getPatcherOrControlNodeCoordinates(node, patcherAndControlNodes);
-				node = node.updatePosition(x, y);
-			}
+			const { x, y } = nodeMeta?.position || getPatcherOrControlNodeCoordinates(node, patcherAndControlNodes);
+			node = node.updatePosition(x, y);
 
 			patcherAndControlNodes.push(node);
 			instances.push(InstanceStateRecord.fromDescription(info));
@@ -895,16 +898,13 @@ export const updateSourcePortConnections = (source: string, sinks: string[]): Ap
 	};
 
 export const addPatcherNode = (desc: OSCQueryRNBOInstance, metaString: string): AppThunk =>
-	(dispatch, getState) => {
-		const state = getState();
-		const existingNodes = getNodes(state).valueSeq().toArray();
-
+	(dispatch) => {
 		// Create Node
 		let node = GraphPatcherNodeRecord.fromDescription(desc);
 		const setMeta: OSCQuerySetMeta = deserializeSetMeta(metaString);
 		const nodeMeta: OSCQuerySetNodeMeta | undefined = setMeta?.nodes?.[node.id];
 
-		const { x, y } = nodeMeta?.position || getPatcherOrControlNodeCoordinates(node, existingNodes);
+		const { x, y } = nodeMeta?.position || getPatcherOrControlNodeCoordinates(node, []);
 		node = node.updatePosition(x, y);
 
 		dispatch(setNode(node));

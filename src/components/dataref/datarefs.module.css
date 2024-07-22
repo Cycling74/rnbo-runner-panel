@@ -1,0 +1,20 @@
+.dataref {
+	width: 100%;
+}
+
+.datarefItemFileName {
+	flex: 1;
+}
+
+.datarefFileLabel {
+
+	cursor: pointer;
+
+	> button {
+		visibility: hidden;
+	}
+
+	&:hover > button {
+		visibility: visible;
+	}
+}

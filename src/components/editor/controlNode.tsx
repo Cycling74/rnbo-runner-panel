@@ -7,8 +7,7 @@ import { Paper } from "@mantine/core";
 
 const EditorControlNode: FunctionComponent<EditorNodeProps> = memo(function WrappedGraphControlNode({
 	data: {
-		node,
-		contentHeight
+		node
 	},
 	selected
 }) {
@@ -18,11 +17,11 @@ const EditorControlNode: FunctionComponent<EditorNodeProps> = memo(function Wrap
 	}, { sinks: [], sources: [] } as { sinks: GraphPortRecord[]; sources: GraphPortRecord[]; });
 
 	return (
-		<Paper className={ classes.node } shadow="sm" withBorder data-selected={ selected } >
+		<Paper className={ classes.node } shadow="md" withBorder data-selected={ selected } >
 			<div className={ classes.nodeHeader } >
 				{ node.id }
 			</div>
-			<div className={ classes.nodeContent } style={{ height: `${contentHeight}px` }} >
+			<div className={ classes.nodeContent } style={{ height: `${node.contentHeight}px` }} >
 				{
 					sinks.map((port, i) => <EditorPort key={ port.id } port={ port } offset={ calcPortOffset(sinks.length, i)}/>)
 				}

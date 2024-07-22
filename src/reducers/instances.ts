@@ -9,6 +9,7 @@ export interface InstanceInstancesState {
 export const instances = (state: InstanceInstancesState = {
 
 	instances: ImmuMap<InstanceStateRecord["id"], InstanceStateRecord>()
+
 }, action: InstanceAction): InstanceInstancesState => {
 
 	switch(action.type) {

@@ -49,7 +49,9 @@ export const SavePresetForm: FunctionComponent<SavePresetFormProps> = memo(funct
 					size="sm"
 					onKeyDown={ onKeyDown }
 				/>
-				<Button variant="outline" size="sm" type="submit">Save</Button>
+				<Button variant="outline" size="sm" type="submit">
+					Save
+				</Button>
 			</Group>
 		</form>
 	);

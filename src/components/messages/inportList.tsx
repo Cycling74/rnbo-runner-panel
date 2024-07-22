@@ -1,22 +1,33 @@
 import { FunctionComponent, memo } from "react";
 import InportEntry from "./inport";
 import classes from "./ports.module.css";
-import { InstanceStateRecord } from "../../models/instance";
+import { Seq } from "immutable";
+import { MessagePortRecord } from "../../models/messageport";
 
 export type MessageInportListProps = {
-	inports: InstanceStateRecord["messageInputs"];
-	onSendMessage: (id: string, value: string) => any;
+	inports: Seq.Indexed<MessagePortRecord>;
+	onSendMessage: (port: MessagePortRecord, value: string) => any;
+	onRestoreMetadata: (param: MessagePortRecord) => any;
+	onSaveMetadata: (param: MessagePortRecord, meta: string) => any;
 }
 
 const MessageInportList: FunctionComponent<MessageInportListProps> = memo(function WrappedMessageInportList({
 	inports,
-	onSendMessage
+	onSendMessage,
+	onRestoreMetadata,
+	onSaveMetadata
 }) {
 
 	return (
 		<div className={ classes.portList }>
 			{
-				inports.keySeq().map((id) => <InportEntry key={id} id={ id } onSend={ onSendMessage } />)
+				inports.map(port => <InportEntry
+					key={port.id}
+					port={ port }
+					onSend={ onSendMessage }
+					onSaveMetadata={ onSaveMetadata }
+					onRestoreMetadata={ onRestoreMetadata }
+				/>)
 			}
 		</div>
 	);

@@ -43,14 +43,28 @@ class MyRequestHandler(SimpleHTTPRequestHandler):
 		fext = path.splitext(self.path)[1]
 		normPath = path.normpath(self.path).split('/')
 		normPath.remove('')
+
 		fpath = path.join(args.directory, '{os.sep}'.join(normPath))
+		# handle /instances/12 -> /instances/[index].html  mapping
+		ipath = path.join(normPath[0], "[index].html")
 
 		if not path.isfile(fpath) and not fext and path.isfile(fpath + '.html'):
 			self.path = self.path + '.html'
+		elif len(normPath) == 2 and path.isfile(path.join(args.directory, ipath)):
+			self.path = path.join("/", ipath)
 
 		return SimpleHTTPRequestHandler.do_GET(self)
 
 Handler = MyRequestHandler
+
+# if we restart the socket is sometimes still bound
+# https://stackoverflow.com/questions/19071512/socket-error-errno-48-address-already-in-use
+TCPServer.allow_reuse_address=True
+
 server = TCPServer(('0.0.0.0', args.port), Handler)
 
-server.serve_forever()
+
+try:
+	server.serve_forever()
+finally:
+	server.server_close()

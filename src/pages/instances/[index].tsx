@@ -3,26 +3,31 @@ import { useAppDispatch, useAppSelector } from "../../hooks/useAppDispatch";
 import { RootStateType } from "../../lib/store";
 import InstanceComponent from "../../components/instance";
 import { useRouter } from "next/router";
-import { Button, Group, NativeSelect, Stack } from "@mantine/core";
+import { Button, Group, NativeSelect, Stack, Text } from "@mantine/core";
 import classes from "../../components/instance/instance.module.css";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCamera, faDiagramProject, faTrash, faVectorSquare } from "@fortawesome/free-solid-svg-icons";
 import { getAppStatus } from "../../selectors/appStatus";
-import { AppStatus } from "../../lib/constants";
+import { AppStatus, SortOrder } from "../../lib/constants";
 import Link from "next/link";
 import { getInstanceByIndex, getInstances } from "../../selectors/instances";
 import { unloadPatcherNodeByIndexOnRemote } from "../../actions/graph";
-import { getAppSettingValue } from "../../selectors/settings";
+import { getAppSetting } from "../../selectors/settings";
 import { AppSetting } from "../../models/settings";
-import InstancePresetDrawer from "../../components/presets";
+import PresetDrawer from "../../components/presets";
 import { PresetRecord } from "../../models/preset";
-import { destroyPresetOnRemoteInstance, loadPresetOnRemoteInstance, savePresetToRemoteInstance } from "../../actions/instances";
+import { destroyPresetOnRemoteInstance, renamePresetOnRemoteInstance, setInitialPresetOnRemoteInstance, loadPresetOnRemoteInstance, savePresetToRemoteInstance } from "../../actions/instances";
 import { useDisclosure } from "@mantine/hooks";
+import { getDataFilesSortedByName } from "../../selectors/datafiles";
+import InstanceKeyboardModal from "../../components/keyroll/modal";
+import { modals } from "@mantine/modals";
+import { IconElement } from "../../components/elements/icon";
+import { mdiCamera, mdiChartSankeyVariant, mdiPiano, mdiVectorSquare, mdiVectorSquareRemove } from "@mdi/js";
+import { ResponsiveButton } from "../../components/elements/responsiveButton";
 
 export default function Instance() {
 
 	const { query, isReady, pathname, push } = useRouter();
 	const [presetDrawerIsOpen, { close: closePresetDrawer, toggle: togglePresetDrawer }] = useDisclosure();
+	const [keyboardModalIsOpen, { close: closeKeyboardModal, toggle: toggleKeyboardModal }] = useDisclosure();
 
 	const { index, ...restQuery } = query;
 	const instanceIndex = parseInt(Array.isArray(index) ? index.join("") : index || "0", 10);
@@ -33,16 +38,23 @@ export default function Instance() {
 		currentInstance,
 		appStatus,
 		instances,
+		datafiles,
 		enabledMessageOuput,
-		enabledMIDIKeyboard
+		enabledMIDIKeyboard,
+		sortAttr,
+		sortOrder
 	] = useAppSelector((state: RootStateType) => {
 		const currentInstance = getInstanceByIndex(state, instanceIndex);
+
 		return [
 			currentInstance,
 			getAppStatus(state),
 			getInstances(state),
-			getAppSettingValue<boolean>(state, AppSetting.debugMessageOutput),
-			getAppSettingValue<boolean>(state, AppSetting.keyboardMIDIInput)
+			getDataFilesSortedByName(state, SortOrder.Asc),
+			getAppSetting(state, AppSetting.debugMessageOutput),
+			getAppSetting(state, AppSetting.keyboardMIDIInput),
+			getAppSetting(state, AppSetting.paramSortAttribute),
+			getAppSetting(state, AppSetting.paramSortOrder)
 		];
 	});
 
@@ -51,8 +63,21 @@ export default function Instance() {
 	}, [push, pathname, query]);
 
 	const onUnloadInstance = useCallback((e: MouseEvent<HTMLButtonElement>) => {
-		dispatch(unloadPatcherNodeByIndexOnRemote(currentInstance.index));
-		push({ pathname: "/", query: restQuery });
+		modals.openConfirmModal({
+			title: "Unload Patcher Instance",
+			centered: true,
+			children: (
+				<Text size="sm">
+					Are you sure you want to unload the Patcher Instance { currentInstance?.patcher } at index {currentInstance?.index}?
+				</Text>
+			),
+			labels: { confirm: "Unload", cancel: "Cancel" },
+			confirmProps: { color: "red" },
+			onConfirm: () => {
+				dispatch(unloadPatcherNodeByIndexOnRemote(currentInstance.index));
+				push({ pathname: "/", query: restQuery });
+			}
+		});
 	}, [dispatch, currentInstance, push, restQuery]);
 
 	const onLoadPreset = useCallback((preset: PresetRecord) => {
@@ -67,6 +92,14 @@ export default function Instance() {
 		dispatch(destroyPresetOnRemoteInstance(currentInstance, preset));
 	}, [dispatch, currentInstance]);
 
+	const onRenamePreset = useCallback((preset: PresetRecord, name: string) => {
+		dispatch(renamePresetOnRemoteInstance(currentInstance, preset, name));
+	}, [dispatch, currentInstance]);
+
+	const onSetInitialPreset = useCallback((preset: PresetRecord) => {
+		dispatch(setInitialPresetOnRemoteInstance(currentInstance, preset));
+	}, [dispatch, currentInstance]);
+
 	if (!isReady || appStatus !== AppStatus.Ready) return null;
 
 	if (!currentInstance) {
@@ -77,7 +110,7 @@ export default function Instance() {
 				<Button
 					component={ Link }
 					href={{ pathname: "/", query: restQuery }}
-					leftSection={ <FontAwesomeIcon icon={ faDiagramProject } /> }
+					leftSection={ <IconElement path={ mdiChartSankeyVariant } /> }
 					variant="outline"
 					color="gray"
 				>
@@ -93,33 +126,57 @@ export default function Instance() {
 				<div style={{ flex: "1 2 50%" }} >
 					<NativeSelect
 						data={ instances.valueSeq().sortBy(n => n.index).toArray().map(d => ({ value: `${d.index}`, label: `${d.index}: ${d.patcher}` })) }
-						leftSection={ <FontAwesomeIcon icon={ faVectorSquare } /> }
+						leftSection={ <IconElement path={ mdiVectorSquare } /> }
 						onChange={ onChangeInstance }
 						value={ currentInstance.index }
 						style={{ maxWidth: 300, width: "100%" }}
 					/>
 				</div>
 				<Group style={{ flex: "0" }} wrap="nowrap" gap="xs" >
-					<Button variant="outline" color="red" onClick={ onUnloadInstance } >
-						<FontAwesomeIcon icon={ faTrash } />
-					</Button>
-					<Button variant="default" leftSection={ <FontAwesomeIcon icon={ faCamera } /> } onClick={ togglePresetDrawer } >
-						Presets
-					</Button>
+					<ResponsiveButton
+						label="Unload Instance"
+						tooltip="Unload Patcher Instance"
+						icon={ mdiVectorSquareRemove }
+						onClick={ onUnloadInstance }
+						variant="outline"
+						color="red"
+					/>
+					<ResponsiveButton
+						label="Keyboard"
+						tooltip="Open Virtual Keyboard"
+						icon={ mdiPiano }
+						onClick={ toggleKeyboardModal }
+					/>
+					<ResponsiveButton
+						label="Presets"
+						tooltip="Open Instance Preset Menu"
+						icon={ mdiCamera }
+						onClick={ togglePresetDrawer }
+					/>
 				</Group>
 			</Group>
 			<InstanceComponent
 				instance={ currentInstance }
+				datafiles={ datafiles }
 				enabledMessageOuput={ enabledMessageOuput }
-				enabledMIDIKeyboard={ enabledMIDIKeyboard }
+				paramSortAttr={ sortAttr }
+				paramSortOrder={ sortOrder }
 			/>
-			<InstancePresetDrawer
+			<PresetDrawer
 				open={ presetDrawerIsOpen }
 				onClose={ closePresetDrawer }
 				onDeletePreset={ onDeletePreset }
 				onLoadPreset={ onLoadPreset }
 				onSavePreset={ onSavePreset }
+				onRenamePreset={ onRenamePreset }
+				onSetInitialPreset={ onSetInitialPreset }
 				presets={ currentInstance.presets.valueSeq() }
+			/>
+			<InstanceKeyboardModal
+				open={ keyboardModalIsOpen }
+				onClose={ closeKeyboardModal }
+				instance={ currentInstance }
+				keyboardEnabled= { enabledMIDIKeyboard.value as boolean }
 			/>
 		</Stack>
 	);

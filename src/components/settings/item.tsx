@@ -1,16 +1,16 @@
-import { Group, SegmentedControl, Switch, NumberInput, Select, ActionIcon } from "@mantine/core";
+import { Group, SegmentedControl, Switch, NumberInput, TextInput, Select, ActionIcon } from "@mantine/core";
 import { ChangeEvent, FunctionComponent, ReactNode, memo } from "react";
 import classes from "./settings.module.css";
 import { SettingTarget } from "../../lib/constants";
 import { useAppDispatch } from "../../hooks/useAppDispatch";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { IconDefinition } from "@fortawesome/free-solid-svg-icons";
+import { IconElement } from "../elements/icon";
 
 export enum SettingsItemType {
 	OnOff,
 	Select,
 	Switch,
-	Numeric
+	Numeric,
+	Text
 }
 
 export type SettingsItemValue = string | number | boolean;
@@ -34,6 +34,11 @@ export interface SettingsNumericProps extends BaseSettingsItemProps {
 	value: number;
 }
 
+export interface SettingsTextProps extends BaseSettingsItemProps {
+	type: SettingsItemType.Text;
+	value: string;
+}
+
 export interface SettingsOnOffProps extends BaseSettingsItemProps {
 	type: SettingsItemType.OnOff,
 	value: boolean;
@@ -51,7 +56,7 @@ export interface SettingsToggleProps extends BaseSettingsItemProps {
 	value: string;
 }
 
-export type SettingsItemProps = SettingsNumericProps | SettingsOnOffProps | SettingsSelectProps | SettingsToggleProps;
+export type SettingsItemProps = SettingsNumericProps | SettingsTextProps | SettingsOnOffProps | SettingsSelectProps | SettingsToggleProps;
 
 const SettingsNumericInput = ({ onChange, min, max, name, target, value }: Pick<SettingsNumericProps, "max" | "min" | "name" | "onChange" | "target" | "value">) => {
 	return (
@@ -59,6 +64,16 @@ const SettingsNumericInput = ({ onChange, min, max, name, target, value }: Pick<
 			min ={ min }
 			max={ max }
 			onChange={ (v: number) => onChange(target, name, v) }
+			name={ name }
+			value={ value }
+		/>
+	);
+};
+
+const SettingsTextInput = ({ onChange, name, target, value }: Pick<SettingsTextProps, "name" | "onChange" | "target" | "value">) => {
+	return (
+		<TextInput
+			onChange={ (ev: ChangeEvent<HTMLInputElement>) => onChange(target, name, ev.currentTarget.value) }
 			name={ name }
 			value={ value }
 		/>
@@ -110,6 +125,11 @@ export const SettingsItem: FunctionComponent<BaseSettingsItemProps> = memo(funct
 			el = <SettingsNumericInput { ...commonProps } max={ compProps.max } min={ compProps.min } value={ compProps.value } />;
 			break;
 		}
+		case SettingsItemType.Text: {
+			const compProps = props as SettingsTextProps;
+			el = <SettingsTextInput { ...commonProps } value={ compProps.value } />;
+			break;
+		}
 		case SettingsItemType.OnOff: {
 			const compProps = props as SettingsOnOffProps;
 			el = <SettingOnOffInput { ...commonProps } value={ compProps.value } />;
@@ -130,7 +150,7 @@ export const SettingsItem: FunctionComponent<BaseSettingsItemProps> = memo(funct
 	}
 
 	return (
-		<Group className={ classes.item } >
+		<div className={ classes.item } >
 			<div className={ classes.itemTitleWrap } >
 				<label htmlFor={ props.name } className={ classes.itemTitle } >{ props.title }</label>
 				{
@@ -140,14 +160,14 @@ export const SettingsItem: FunctionComponent<BaseSettingsItemProps> = memo(funct
 			<div className={ classes.itemInputWrap }>
 				{ el }
 			</div>
-		</Group>
+		</div>
 	);
 });
 
 export type SettingActionProps = {
 	action: () => any;
 	description?: string;
-	icon: IconDefinition;
+	icon: string;
 	label: string;
 }
 
@@ -168,7 +188,7 @@ export const SettingsAction: FunctionComponent<SettingActionProps> = memo(functi
 					variant="outline"
 					onClick={ () => dispatch(props.action()) }
 				>
-					<FontAwesomeIcon icon={ props.icon } />
+					<IconElement path={ props.icon } />
 				</ActionIcon>
 			</div>
 		</Group>

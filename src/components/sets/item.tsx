@@ -1,23 +1,25 @@
 import { ChangeEvent, FormEvent, FunctionComponent, KeyboardEvent, MouseEvent, memo, useCallback, useEffect, useRef, useState } from "react";
 import { GraphSetRecord } from "../../models/set";
-import { ActionIcon, Group, TextInput } from "@mantine/core";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCheck, faClose, faPen, faTrash, faUpload } from "@fortawesome/free-solid-svg-icons";
+import { ActionIcon, Button, Group, Menu, TextInput, Tooltip } from "@mantine/core";
 import classes from "./sets.module.css";
 import { keyEventIsValidForName, replaceInvalidNameChars } from "../../lib/util";
+import { IconElement } from "../elements/icon";
+import { mdiCheck, mdiClose, mdiContentSave, mdiDotsVertical, mdiHistory, mdiPencil, mdiTrashCan } from "@mdi/js";
 
 export type GraphSetItemProps = {
 	set: GraphSetRecord;
 	onDelete: (set: GraphSetRecord) => any;
 	onLoad: (set: GraphSetRecord) => any;
 	onRename: (set: GraphSetRecord, name: string) => any;
+	onSave: (set: GraphSetRecord) => any;
 };
 
 export const GraphSetItem: FunctionComponent<GraphSetItemProps> = memo(function WrappedGraphSet({
 	set,
 	onDelete,
 	onLoad,
-	onRename
+	onRename,
+	onSave
 }: GraphSetItemProps) {
 
 	const [isEditing, setIsEditing] = useState<boolean>(false);
@@ -48,6 +50,10 @@ export const GraphSetItem: FunctionComponent<GraphSetItemProps> = memo(function 
 	const onDeleteSet = useCallback((e: MouseEvent<HTMLButtonElement>) => {
 		onDelete(set);
 	}, [onDelete, set]);
+
+	const onSaveSet = useCallback((_e: MouseEvent<HTMLButtonElement>) => {
+		onSave(set);
+	}, [onSave, set]);
 
 	const onChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
 		setName(replaceInvalidNameChars(e.target.value));
@@ -84,7 +90,7 @@ export const GraphSetItem: FunctionComponent<GraphSetItemProps> = memo(function 
 		<form onSubmit={ onRenameSet } >
 			<Group align="flex-start">
 				<TextInput
-					className={ classes.setItemName }
+					className={ classes.setItemNameInput }
 					onChange={ onChange }
 					onKeyDown={ onKeyDown }
 					ref={ inputRef }
@@ -95,28 +101,44 @@ export const GraphSetItem: FunctionComponent<GraphSetItemProps> = memo(function 
 				/>
 				<ActionIcon.Group>
 					<ActionIcon variant="subtle" size="md" color="gray" onClick={ toggleEditing } >
-						<FontAwesomeIcon icon={ faClose } />
+						<IconElement path={ mdiClose } />
 					</ActionIcon>
 					<ActionIcon variant="subtle" size="md" type="submit">
-						<FontAwesomeIcon icon={ faCheck } />
+						<IconElement path={ mdiCheck } />
 					</ActionIcon>
 				</ActionIcon.Group>
 			</Group>
 		</form>
 	) : (
-		<Group>
-			<TextInput className={ classes.setItemName } readOnly variant="unstyled" value={ name } size="sm" />
-			<ActionIcon.Group>
-				<ActionIcon variant="subtle" color="red" size="md" onClick={ onDeleteSet } >
-					<FontAwesomeIcon icon={ faTrash } />
-				</ActionIcon>
-				<ActionIcon variant="subtle" size="md" color="gray" onClick={ toggleEditing } >
-					<FontAwesomeIcon icon={ faPen } />
-				</ActionIcon>
-				<ActionIcon variant="subtle" size="md" onClick={ onLoadSet } >
-					<FontAwesomeIcon icon={ faUpload } />
-				</ActionIcon>
-			</ActionIcon.Group>
+
+		<Group gap="xs">
+			<Button
+				className={ classes.setItemButton }
+				justify="flex-start"
+				size="sm"
+				variant="default"
+				leftSection={ set?.latest ? (
+					<Tooltip label="This set was loaded last" >
+						<IconElement path={ mdiHistory } />
+					</Tooltip>
+				) : null }
+				onClick={ onLoadSet }
+			>
+				{ name }
+			</Button>
+			<Menu position="bottom-end" >
+				<Menu.Target>
+					<ActionIcon variant="subtle" color="gray">
+						<IconElement path={ mdiDotsVertical } />
+					</ActionIcon>
+				</Menu.Target>
+				<Menu.Dropdown>
+					<Menu.Label>Graph Set Actions</Menu.Label>
+					<Menu.Item leftSection={ <IconElement path={ mdiContentSave } /> } onClick={ onSaveSet } >{ set.latest ? "Save Changes" : "Overwrite" }</Menu.Item>
+					<Menu.Item leftSection={ <IconElement path={ mdiPencil } /> } onClick={ toggleEditing } >Rename</Menu.Item>
+					<Menu.Item color="red" leftSection={ <IconElement path={ mdiTrashCan } /> } onClick={ onDeleteSet } >Delete</Menu.Item>
+				</Menu.Dropdown>
+			</Menu>
 		</Group>
 	);
 });

@@ -3,19 +3,11 @@ import Head from "next/head";
 import React, { useEffect } from "react";
 import { Provider } from "react-redux";
 
-import { Lato as lato } from "next/font/google";
+import { Lato as lato, Ubuntu_Mono as ubuntuMono  } from "next/font/google";
 const latoFont = lato({ subsets: ["latin-ext"], weight: ["300", "400", "700", "900"], style: ["normal", "italic"] });
-
-
-import { library } from "@fortawesome/fontawesome-svg-core";
-import { faAngleDown, faAngleUp, faBars, faTimes } from "@fortawesome/free-solid-svg-icons";
-library.add(faAngleDown, faAngleUp, faBars, faTimes);
+const ubuntuMonoFont = ubuntuMono({display: "block",  subsets: ["latin-ext"], weight: ["400"] });
 
 import "@mantine/core/styles.css";
-
-// https://github.com/vercel/next.js/issues/20682
-// required when using next/head
-import "@fortawesome/fontawesome-svg-core/styles.css";
 
 import { oscQueryBridge, parseConnectionQueryString } from "../controller/oscqueryBridgeController";
 import { store } from "../lib/store";
@@ -49,7 +41,7 @@ function App({ Component, pageProps }: AppProps) {
 			</style>
 			<Provider store={store}>
 				<PageSettings>
-					<PageTheme fontFamily={ latoFont.style.fontFamily } >
+					<PageTheme fontFamily={ latoFont.style.fontFamily } fontFamilyMonospace={ ubuntuMonoFont.style.fontFamily } >
 						<ModalsProvider>
 							<Head>
 								<title>RNBO</title>

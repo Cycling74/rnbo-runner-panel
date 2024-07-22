@@ -1,7 +1,7 @@
 import React, { FunctionComponent, useCallback } from "react";
 import { getBezierPath, EdgeLabelRenderer, BaseEdge } from "reactflow";
 import classes from "./editor.module.css";
-import { ActionIcon, CloseIcon } from "@mantine/core";
+import { ActionIcon, CloseIcon, Tooltip } from "@mantine/core";
 import { EditorEdgeProps } from "./util";
 
 export const RNBOGraphEdgeType = "rnbo-edge";
@@ -40,9 +40,11 @@ const GraphEdge: FunctionComponent<EditorEdgeProps> = ({
 						transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`
 					}}
 				>
-					<ActionIcon onClick={ onTriggerDelete } >
-						<CloseIcon />
-					</ActionIcon>
+					<Tooltip label="Delete Connection">
+						<ActionIcon onClick={ onTriggerDelete } >
+							<CloseIcon />
+						</ActionIcon>
+					</Tooltip>
 				</div>
 			</EdgeLabelRenderer>
 		</>

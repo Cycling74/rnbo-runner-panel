@@ -3,16 +3,15 @@ import { EditorNodeProps, calcPortOffset } from "./util";
 import { GraphPatcherNodeRecord, GraphPortRecord, PortDirection } from "../../models/graph";
 import EditorPort from "./port";
 import classes from "./editor.module.css";
-import { ActionIcon, Paper } from "@mantine/core";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faGears } from "@fortawesome/free-solid-svg-icons";
+import { ActionIcon, Paper, Tooltip } from "@mantine/core";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import { IconElement } from "../elements/icon";
+import { mdiCogs } from "@mdi/js";
 
 const EditorPatcherNode: FunctionComponent<EditorNodeProps> = memo(function WrappedGraphPatcherNode({
 	data: {
-		node,
-		contentHeight
+		node
 	},
 	selected
 }) {
@@ -23,23 +22,25 @@ const EditorPatcherNode: FunctionComponent<EditorNodeProps> = memo(function Wrap
 	}, { sinks: [], sources: [] } as { sinks: GraphPortRecord[]; sources: GraphPortRecord[]; });
 
 	return (
-		<Paper className={ classes.node } shadow="sm" withBorder data-selected={ selected } >
+		<Paper className={ classes.node } shadow="md" withBorder data-selected={ selected } >
 			<div className={ classes.nodeHeader } >
 				<div>
 					{ (node as GraphPatcherNodeRecord).index }: { (node as GraphPatcherNodeRecord).patcher }
 				</div>
 				<div>
-					<ActionIcon
-						component={ Link }
-						href={{ pathname: "/instances/[index]", query: { ...query, index: (node as GraphPatcherNodeRecord).index } }}
-						size="md"
-						variant="transparent"
-					>
-						<FontAwesomeIcon icon={ faGears } />
-					</ActionIcon>
+					<Tooltip label="Open Patcher Instance Control">
+						<ActionIcon
+							component={ Link }
+							href={{ pathname: "/instances/[index]", query: { ...query, index: (node as GraphPatcherNodeRecord).index } }}
+							size="md"
+							variant="transparent"
+						>
+							<IconElement path={ mdiCogs } />
+						</ActionIcon>
+					</Tooltip>
 				</div>
 			</div>
-			<div className={ classes.nodeContent } style={{ height: `${contentHeight}px` }} >
+			<div className={ classes.nodeContent } style={{ height: `${node.contentHeight}px` }} >
 				{
 					sinks.map((port, i) => <EditorPort key={ port.id } port={ port } offset={ calcPortOffset(sinks.length, i)}/>)
 				}

@@ -1,35 +1,40 @@
-import { Tabs } from "@mantine/core";
+import { Tabs, Text } from "@mantine/core";
 import { FunctionComponent, memo, useEffect, useState } from "react";
-import { faArrowRightArrowLeft, faMusic, faSliders } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import classes from "./instance.module.css";
 import { InstanceTab } from "../../lib/constants";
 import InstanceParameterTab from "./paramTab";
 import InstanceMessagesTab from "./messageTab";
-import InstanceMIDITab from "./midiTab";
-import { useIsMobileDevice } from "../../hooks/useIsMobileDevice";
+import InstanceDataRefsTab from "./datarefTab";
 import { InstanceStateRecord } from "../../models/instance";
+import { AppSettingRecord } from "../../models/settings";
+import { DataFileRecord } from "../../models/datafile";
+import { Seq } from "immutable";
+import { IconElement } from "../elements/icon";
+import { mdiFileMusic, mdiSwapHorizontal, mdiTune } from "@mdi/js";
 
 const tabs = [
-	{ icon: faSliders, value: InstanceTab.Parameters, label: "Parameters" },
-	{ icon: faArrowRightArrowLeft, value: InstanceTab.MessagePorts, label: "Ports" },
-	{ icon: faMusic, value: InstanceTab.MIDI, label: "MIDI" }
+	{ icon: mdiTune, value: InstanceTab.Parameters, label: "Parameters" },
+	{ icon: mdiSwapHorizontal, value: InstanceTab.MessagePorts, label: "Ports" },
+	{ icon: mdiFileMusic, value: InstanceTab.DataRefs, label: "Buffers" }
 ];
 
 export type InstanceProps = {
 	instance: InstanceStateRecord;
-	enabledMessageOuput: boolean;
-	enabledMIDIKeyboard: boolean;
+	datafiles: Seq.Indexed<DataFileRecord>
+	enabledMessageOuput: AppSettingRecord;
+	paramSortOrder: AppSettingRecord;
+	paramSortAttr: AppSettingRecord;
 }
 
 const Instance: FunctionComponent<InstanceProps> = memo(function WrappedInstance({
 	instance,
+	datafiles,
 	enabledMessageOuput,
-	enabledMIDIKeyboard
+	paramSortOrder,
+	paramSortAttr
 }) {
 
 	const [activeTab, setActiveTab] = useState<InstanceTab>(InstanceTab.Parameters);
-	const isMobile = useIsMobileDevice();
 
 	useEffect(() => {
 		if (document.activeElement && document.activeElement instanceof HTMLElement) {
@@ -44,19 +49,25 @@ const Instance: FunctionComponent<InstanceProps> = memo(function WrappedInstance
 			onChange={ t => setActiveTab(t as InstanceTab) }
 			keepMounted={ false }
 		>
-			<Tabs.List grow={ isMobile } >
+			<Tabs.List grow>
 				{
 					tabs.map(({ icon, label, value }) => (
-						<Tabs.Tab key={ value } value={ value } leftSection={ <FontAwesomeIcon icon={ icon } /> } >
-							{ label }
+						<Tabs.Tab key={ value } value={ value } leftSection={ <IconElement path={ icon } /> } >
+							<Text fz="sm" className={ classes.tabLabel } >{ label }</Text>
 						</Tabs.Tab>
 					))
 				}
 			</Tabs.List>
 			<div className={ classes.instanceTabContentWrap } >
-				<InstanceParameterTab instance={ instance } />
-				<InstanceMessagesTab instance={ instance } outputEnabled={ enabledMessageOuput } />
-				<InstanceMIDITab instance={ instance } keyboardEnabled={ enabledMIDIKeyboard } />
+				<Tabs.Panel value={ InstanceTab.Parameters } >
+					<InstanceParameterTab instance={ instance } sortAttr={ paramSortAttr } sortOrder={ paramSortOrder } />
+				</Tabs.Panel>
+				<Tabs.Panel value={ InstanceTab.MessagePorts } >
+					<InstanceMessagesTab instance={ instance } outputEnabled={ enabledMessageOuput.value as boolean } />
+				</Tabs.Panel>
+				<Tabs.Panel value={ InstanceTab.DataRefs } >
+					<InstanceDataRefsTab instance={ instance } datafiles={ datafiles } />
+				</Tabs.Panel>
 			</div>
 		</Tabs>
 	);

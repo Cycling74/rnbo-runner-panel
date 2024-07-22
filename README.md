@@ -42,7 +42,7 @@ You can export the whole site as a static page by running `npm run export`. This
   * `brew install dpkg`
 
 ```shell
-npm run build && npm run export && npm run package-debian
+npm run package-debian
 ```
 
 You should then see a `.deb` file in your working directory.

@@ -1,0 +1,33 @@
+.dataFileWrap {
+	height: 100%;
+	gap: var(--mantine-spacing-md);
+}
+
+.fileDropZone {
+	border: 1px dashed var(--mantine-color-default-border);
+	border-radius: var(--dropzone-radius);
+	cursor: pointer;
+
+	&[data-idle]:hover {
+		background-color: var(--mantine-color-default-hover);
+	}
+
+	&[data-accept] {
+		background-color: var(--dropzone-accept-bg);
+		color: var(--dropzone-accept-color);
+  }
+
+	&[data-reject] {
+		background-color: var(--dropzone-reject-bg);
+		color: var(--dropzone-reject-color);
+	}
+
+
+}
+
+.fileDropGroup {
+	justify-content: center;
+	gap: var(--mantine-spacing-xl);
+	min-height: 200px;
+	pointer-events: none;
+}

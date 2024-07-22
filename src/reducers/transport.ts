@@ -7,10 +7,16 @@ export interface TransportState {
 	show: boolean;
 }
 
-export const transport = (state: TransportState = {
+const transportDefaults = {
 	bpm: 100,
 	rolling: false,
-	sync: true,
+	sync: true
+};
+
+export const transport = (state: TransportState = {
+	bpm: transportDefaults.bpm,
+	rolling: transportDefaults.rolling,
+	sync: transportDefaults.sync,
 	show: false
 
 }, action: TransportAction): TransportState => {
@@ -22,16 +28,20 @@ export const transport = (state: TransportState = {
 
 			return {
 				...state,
-				bpm,
-				rolling,
-				sync
+				bpm: bpm || transportDefaults.bpm,
+				rolling: rolling || transportDefaults.rolling,
+				sync: sync || transportDefaults.sync
 			};
 		}
 
 		case TransportActionType.UPDATE_TRANSPORT: {
+			const { bpm, rolling, sync } = action.payload;
+
 			return {
 				...state,
-				...action.payload
+				bpm: bpm === undefined ? state.bpm : bpm,
+				rolling: rolling === undefined ? state.rolling : rolling,
+				sync: sync === undefined ? state.sync : sync
 			};
 		}
 

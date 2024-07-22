@@ -30,6 +30,7 @@
 .emptySection {
 	color: var(--mantine-color-dimmed);
 	font-size: var(--mantine-font-size-sm);
+	flex: 1;
 }
 
 .disabledMessageOutput {
@@ -37,8 +38,16 @@
 	font-size: var(--mantine-font-size-sm);
 }
 
-
 .paramSectionWrap {
-	height: 100%;
+	flex: 1;
 }
 
+.tabLabel {
+	display: none;
+}
+
+@media (min-width: $mantine-breakpoint-xs) {
+	.tabLabel {
+		display: block;
+	}
+}

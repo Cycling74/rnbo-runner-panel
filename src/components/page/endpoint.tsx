@@ -1,22 +1,92 @@
-import { Button, Group, Modal, Stack, TextInput } from "@mantine/core";
+import { ActionIcon, Alert, Anchor, Button, Fieldset, Grid, Group, Modal, Paper, Popover, Skeleton, Stack, Text, TextInput } from "@mantine/core";
 import { ChangeEvent, FormEvent, FunctionComponent, MouseEvent, memo, useCallback, useEffect, useRef, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../../hooks/useAppDispatch";
 import { RootStateType } from "../../lib/store";
 import { useIsMobileDevice } from "../../hooks/useIsMobileDevice";
-import { getRunnerEndpoint, getShowEndpointInfoModal } from "../../selectors/appStatus";
+import { getAppStatus, getRunnerInfoRecord, getRunnerEndpoint, getShowEndpointInfoModal } from "../../selectors/appStatus";
 import { hideEndpointInfo } from "../../actions/appStatus";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPlug, faXmark } from "@fortawesome/free-solid-svg-icons";
+import { AppStatus } from "../../lib/constants";
+import { showSettings } from "../../actions/settings";
+import { RunnerInfoKey, RunnerInfoRecord } from "../../models/runnerInfo";
+import { IconElement } from "../elements/icon";
+import { mdiClose, mdiConnection, mdiInformation } from "@mdi/js";
+
+type InfoCardProps = {
+	title: string;
+	description?: string;
+	value: string
+}
+
+const InfoCard: FunctionComponent<InfoCardProps> = ({
+	title,
+	description,
+	value
+}) => {
+
+	return (
+		<Paper withBorder radius="sm" p="xs">
+			<Group align="center" gap="xs">
+				<Text c="dimmed" tt="uppercase" fw="bold" size="xs">
+					{ title }
+				</Text>
+				{
+					description?.length ? (
+						<Popover withArrow position="bottom">
+							<Popover.Target>
+								<ActionIcon size="xs" variant="transparent" color="gray">
+									<IconElement path={ mdiInformation } />
+								</ActionIcon>
+							</Popover.Target>
+							<Popover.Dropdown>
+								<Text size="xs">
+									{ description }
+								</Text>
+							</Popover.Dropdown>
+						</Popover>
+					) : null
+				}
+			</Group>
+			<Text fw="bold" size="sm" mt="x">
+				{ value }
+			</Text>
+		</Paper>
+	);
+};
+
+const InfoCardSkeleton: FunctionComponent<Pick<InfoCardProps, "title">> = ({ title }) => (
+	<Paper withBorder radius="sm" p="xs">
+		<Text c="dimmed" tt="uppercase" fw="bold" size="xs">
+			{ title }
+		</Text>
+		<Skeleton h={ 20 } />
+	</Paper>
+);
+
+const infoKeyOrder: Partial<Record<RunnerInfoKey, { title: string; }>> = {
+	[RunnerInfoKey.RunnerVersion]: {
+		title: "Runner Version"
+	},
+	[RunnerInfoKey.XRunCount]: {
+		title: "xrun Count"
+	}
+};
 
 const EndpointInfo: FunctionComponent = memo(function WrappedSettings() {
 
 	const dispatch = useAppDispatch();
 	const [
 		doShow,
-		appEndpoint
+		appEndpoint,
+		appStatus,
+		runnerInfoRecords
 	] = useAppSelector((state: RootStateType) => [
 		getShowEndpointInfoModal(state),
-		getRunnerEndpoint(state)
+		getRunnerEndpoint(state),
+		getAppStatus(state),
+		new Map<RunnerInfoKey, RunnerInfoRecord>([
+			[RunnerInfoKey.XRunCount, getRunnerInfoRecord(state, RunnerInfoKey.XRunCount)],
+			[RunnerInfoKey.RunnerVersion, getRunnerInfoRecord(state, RunnerInfoKey.RunnerVersion)]
+		])
 	]);
 
 	const [{ hostname, port }, setEndpoint] = useState<{ hostname: string; port: string; }>({ ...appEndpoint });
@@ -38,6 +108,11 @@ const EndpointInfo: FunctionComponent = memo(function WrappedSettings() {
 		window.location.href = `${window.location.protocol}//${window.location.host}?h=${encodeURIComponent(hostname)}&p=${encodeURIComponent(port)}`;
 	}, [hostname, port]);
 
+	const openSettings = useCallback(() => {
+		dispatch(hideEndpointInfo());
+		dispatch(showSettings());
+	}, [dispatch]);
+
 	useEffect(() => {
 		if (!doShow) {
 			setEndpoint({ ...appEndpoint });
@@ -52,48 +127,78 @@ const EndpointInfo: FunctionComponent = memo(function WrappedSettings() {
 			opened={ doShow }
 			fullScreen={ showFullScreen }
 			size="lg"
-			title="OSCQuery Runner Endpoint"
+			title="OSCQuery Runner"
 		>
-			<form onSubmit={ onSubmit } ref={ formRef } >
-				<Stack gap="md">
-					<TextInput
-						onChange={ onChangeConfig }
-						name="hostname"
-						label="Hostname"
-						description="The hostname or IP address of the device that runs the OSCQuery Runner"
-						value={ hostname }
-					/>
-					<TextInput
-						onChange={ onChangeConfig }
-						name="port"
-						label="Port"
-						inputMode="numeric"
-						pattern="[0-9]*"
-						description="The port of the OSCQuery Runner Websocket"
-						value={ port }
-					/>
-					<Group justify="flex-end">
-						<Button.Group>
-							<Button
-								variant="light"
-								color="gray"
-								disabled={ !hasChanges }
-								onClick={ onReset }
-								leftSection={ <FontAwesomeIcon icon={ faXmark } /> }
-							>
-								Reset
-							</Button>
-							<Button
-								type="submit"
-								disabled={ !hasChanges }
-								leftSection={ <FontAwesomeIcon icon={ faPlug } /> }
-							>
-								Connect
-							</Button>
-						</Button.Group>
-					</Group>
-				</Stack>
-			</form>
+			<Stack gap="xl">
+				<form onSubmit={ onSubmit } ref={ formRef } >
+					<Fieldset legend="Runner Connection Endpoint">
+						<Stack gap="md">
+							<TextInput
+								onChange={ onChangeConfig }
+								name="hostname"
+								label="Hostname"
+								description="The hostname or IP address of the device that runs the OSCQuery Runner"
+								value={ hostname }
+							/>
+							<TextInput
+								onChange={ onChangeConfig }
+								name="port"
+								label="Port"
+								inputMode="numeric"
+								pattern="[0-9]*"
+								description="The port of the OSCQuery Runner Websocket"
+								value={ port }
+							/>
+							<Group justify="flex-end">
+								<Button.Group>
+									<Button
+										variant="default"
+										disabled={ !hasChanges }
+										onClick={ onReset }
+										leftSection={ <IconElement path={ mdiClose } /> }
+									>
+										Cancel
+									</Button>
+									<Button
+										type="submit"
+										disabled={ !hasChanges }
+										leftSection={ <IconElement path={ mdiConnection } /> }
+									>
+										Connect
+									</Button>
+								</Button.Group>
+							</Group>
+						</Stack>
+					</Fieldset>
+				</form>
+				<Fieldset legend="Info">
+					<Grid grow>
+						{
+							appStatus === AppStatus.AudioOff ? (
+								<Alert variant="light" color="yellow" title="Audio is Off">
+									Go to <Anchor inherit onClick={ openSettings } >Settings</Anchor> to update audio configuration.
+								</Alert>
+							) : null
+						}
+						{
+							Object.entries(infoKeyOrder).map(([key, props]) => {
+								const rec = runnerInfoRecords.get(key as RunnerInfoKey);
+								return (
+									<Grid.Col span={ 6 } key={ key } >
+										{
+											rec ? (
+												<InfoCard { ...props } value={ `${rec.oscValue}` } description={ rec.description } />
+											) : (
+												<InfoCardSkeleton { ...props } />
+											)
+										}
+									</Grid.Col>
+								);
+							})
+						}
+					</Grid>
+				</Fieldset>
+			</Stack>
 		</Modal>
 	);
 });

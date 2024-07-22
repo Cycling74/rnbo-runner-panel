@@ -4,12 +4,12 @@ import classes from "./nav.module.css";
 import { NavButton } from "./button";
 import { useAppDispatch, useAppSelector } from "../../hooks/useAppDispatch";
 import { toggleShowSettings } from "../../actions/settings";
-import { faDiagramProject, faGear, faQuestionCircle, faVectorSquare } from "@fortawesome/free-solid-svg-icons";
 import { RootStateType } from "../../lib/store";
 import { getShowSettingsModal } from "../../selectors/settings";
 import { ExternalNavLink, NavLink } from "./link";
 import { useRouter } from "next/router";
 import { getFirstPatcherNodeIndex } from "../../selectors/graph";
+import { mdiChartSankeyVariant, mdiCog, mdiFileMusic, mdiHelpCircle, mdiVectorSquare } from "@mdi/js";
 
 const AppNav: FunctionComponent = memo(function WrappedNav() {
 
@@ -33,26 +33,32 @@ const AppNav: FunctionComponent = memo(function WrappedNav() {
 			<Stack className={ classes.navWrapper } >
 				<Stack className={ classes.navMenu } >
 					<NavLink
-						icon={ faDiagramProject }
+						icon={ mdiChartSankeyVariant }
 						label="Graph Editor"
 						href={{ pathname: "/", query: restQuery }}
 						isActive={ pathname === "/" }
 					/>
 					<NavLink
 						disabled={ instanceIndex === undefined }
-						icon={ faVectorSquare }
+						icon={ mdiVectorSquare }
 						label="Patcher Instance Control"
 						href={{ pathname: "/instances/[index]", query: { ...restQuery, index: instanceIndex } }}
 						isActive={ pathname === "/instances/[index]" }
 					/>
+					<NavLink
+						icon={ mdiFileMusic }
+						label="Audio Files"
+						href={{ pathname: "/files", query: restQuery }}
+						isActive={ pathname === "/files" }
+					/>
 				</Stack>
 				<Stack className={ classes.navMenu } >
 					<ExternalNavLink
-						icon={ faQuestionCircle }
+						icon={ mdiHelpCircle }
 						label="Help & Documentation"
-						href="https://rnbo.cycling74.com/learn/raspberry-pi-target-overview"
+						href="https://rnbo.cycling74.com/learn/raspberry-pi-web-interface-guide"
 					/>
-					<NavButton onClick={ onToggleSettings } label="Settings" icon={ faGear } isActive={ settingsAreShown } />
+					<NavButton onClick={ onToggleSettings } label="Settings" icon={ mdiCog } isActive={ settingsAreShown } />
 				</Stack>
 			</Stack>
 		</AppShell.Navbar>

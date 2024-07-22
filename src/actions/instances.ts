@@ -2,9 +2,10 @@ import Router from "next/router";
 import { ActionBase, AppThunk } from "../lib/store";
 import { OSCQueryRNBOInstance, OSCQueryRNBOInstancePresetEntries, OSCValue } from "../lib/types";
 import { InstanceStateRecord } from "../models/instance";
-import { getInstanceByIndex } from "../selectors/instances";
-import { getAppSettingValue } from "../selectors/settings";
+import { getInstanceByIndex, getInstance } from "../selectors/instances";
+import { getAppSetting } from "../selectors/settings";
 import { ParameterRecord } from "../models/parameter";
+import { MessagePortRecord } from "../models/messageport";
 import { OSCArgument, writePacket } from "osc";
 import { showNotification } from "./notifications";
 import { NotificationLevel } from "../models/notification";
@@ -12,6 +13,8 @@ import { oscQueryBridge } from "../controller/oscqueryBridgeController";
 import throttle from "lodash.throttle";
 import { PresetRecord } from "../models/preset";
 import { AppSetting } from "../models/settings";
+import { DataRefRecord } from "../models/dataref";
+import { DataFileRecord } from "../models/datafile";
 
 export enum InstanceActionType {
 	SET_INSTANCE = "SET_INSTANCE",
@@ -93,7 +96,7 @@ export const loadPresetOnRemoteInstance = (instance: InstanceStateRecord, preset
 			dispatch(showNotification({
 				level: NotificationLevel.error,
 				title: `Error while trying to load preset ${preset.name}`,
-				message: "Please check the consolor for further details."
+				message: "Please check the console for further details."
 			}));
 			console.log(err);
 		}
@@ -113,7 +116,7 @@ export const savePresetToRemoteInstance = (instance: InstanceStateRecord, name: 
 			dispatch(showNotification({
 				level: NotificationLevel.error,
 				title: `Error while trying to save preset ${name}`,
-				message: "Please check the consolor for further details."
+				message: "Please check the console for further details."
 			}));
 			console.log(err);
 		}
@@ -133,7 +136,48 @@ export const destroyPresetOnRemoteInstance = (instance: InstanceStateRecord, pre
 			dispatch(showNotification({
 				level: NotificationLevel.error,
 				title: `Error while trying to delete preset ${preset.name}`,
-				message: "Please check the consolor for further details."
+				message: "Please check the console for further details."
+			}));
+			console.log(err);
+		}
+	};
+
+export const renamePresetOnRemoteInstance = (instance: InstanceStateRecord, preset: PresetRecord, name: string): AppThunk =>
+	(dispatch) => {
+		try {
+			const message = {
+				address: `${instance.path}/presets/rename`,
+				args: [
+					{ type: "s", value: preset.name },
+					{ type: "s", value: name }
+				]
+			};
+			oscQueryBridge.sendPacket(writePacket(message));
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: `Error while trying to rename preset ${preset.name} to ${name}`,
+				message: "Please check the console for further details."
+			}));
+			console.log(err);
+		}
+	};
+
+export const setInitialPresetOnRemoteInstance = (instance: InstanceStateRecord, preset: PresetRecord): AppThunk =>
+	(dispatch) => {
+		try {
+			const message = {
+				address: `${instance.path}/presets/initial`,
+				args: [
+					{ type: "s", value: preset.name }
+				]
+			};
+			oscQueryBridge.sendPacket(writePacket(message));
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: `Error while trying to set initial preset to ${preset.name}`,
+				message: "Please check the console for further details."
 			}));
 			console.log(err);
 		}
@@ -194,7 +238,7 @@ export const triggerInstanceMidiNoteOffEventOnRemote = (instance: InstanceStateR
 		oscQueryBridge.sendPacket(writePacket(message));
 	};
 
-export const seInstanceParameterValueNormalizedOnRemote = throttle((instance: InstanceStateRecord, param: ParameterRecord, value: number): AppThunk =>
+export const setInstanceParameterValueNormalizedOnRemote = throttle((instance: InstanceStateRecord, param: ParameterRecord, value: number): AppThunk =>
 	(dispatch) => {
 
 		const message = {
@@ -205,11 +249,96 @@ export const seInstanceParameterValueNormalizedOnRemote = throttle((instance: In
 		};
 
 		oscQueryBridge.sendPacket(writePacket(message));
-
 		// optimistic local state update
 		dispatch(setInstance(instance.setParameterNormalizedValue(param.id, value)));
-	}, 100);
+	}, 25);
 
+export const setInstanceDataRefValueOnRemote = (instance: InstanceStateRecord, dataref: DataRefRecord, file?: DataFileRecord): AppThunk =>
+	() => {
+
+		const message = {
+			address: `${instance.path}/data_refs/${dataref.id}`,
+			args: [
+				{ type: "s", value: file?.fileName || "" } // no files unsets
+			]
+		};
+
+		oscQueryBridge.sendPacket(writePacket(message));
+	};
+
+export const setInstanceParameterMetaOnRemote = (_instance: InstanceStateRecord, param: ParameterRecord, value: string): AppThunk =>
+	() => {
+		const message = {
+			address: `${param.path}/meta`,
+			args: [
+				{ type: "s", value }
+			]
+		};
+
+		oscQueryBridge.sendPacket(writePacket(message));
+	};
+
+export const restoreDefaultParameterMetaOnRemote = (_instance: InstanceStateRecord, param: ParameterRecord): AppThunk =>
+	() => {
+		const message = {
+			address: `${param.path}/meta`,
+			args: [
+				{ type: "s", value: "" }
+			]
+		};
+
+		oscQueryBridge.sendPacket(writePacket(message));
+	};
+
+export const activateParameterMIDIMappingFocus = (instance: InstanceStateRecord, param: ParameterRecord): AppThunk =>
+	(dispatch) => {
+		dispatch(setInstance(instance.setParameterWaitingForMidiMapping(param.id)));
+	};
+
+export const clearParameterMidiMappingOnRemote = (id: InstanceStateRecord["id"], paramId: ParameterRecord["id"]): AppThunk =>
+	(_dispatch, getState) => {
+		const state = getState();
+		const instance = getInstance(state, id);
+		if (!instance) return;
+
+		const param = instance.parameters.get(paramId);
+		if (!param) return;
+
+		const meta = param.getParsedMetaObject();
+		delete meta.midi;
+		const message = {
+			address: `${param.path}/meta`,
+			args: [
+				{ type: "s", value: JSON.stringify(meta) }
+			]
+		};
+
+		oscQueryBridge.sendPacket(writePacket(message));
+	};
+
+export const setInstanceMessagePortMetaOnRemote = (_instance: InstanceStateRecord, port: MessagePortRecord, value: string): AppThunk =>
+	() => {
+		const message = {
+			address: `${port.path}/meta`,
+			args: [
+				{ type: "s", value }
+			]
+		};
+
+		oscQueryBridge.sendPacket(writePacket(message));
+	};
+
+export const restoreDefaultMessagePortMetaOnRemote = (_instance: InstanceStateRecord, port: MessagePortRecord): AppThunk =>
+	() => {
+		const message = {
+			address: `${port.path}/meta`,
+			args: [
+				{ type: "s", value: "" }
+			]
+		};
+
+		oscQueryBridge.sendPacket(writePacket(message));
+	};
 
 // Updates in response to remote OSCQuery Updates
 export const updateInstancePresetEntries = (index: number, entries: OSCQueryRNBOInstancePresetEntries): AppThunk =>
@@ -219,7 +348,33 @@ export const updateInstancePresetEntries = (index: number, entries: OSCQueryRNBO
 			const instance = getInstanceByIndex(state, index);
 			if (!instance) return;
 
-			dispatch(setInstance(instance.set("presets", InstanceStateRecord.presetsFromDescription(entries))));
+			dispatch(setInstance(instance.updatePresets(entries)));
+		} catch (e) {
+			console.log(e);
+		}
+	};
+
+export const updateInstancePresetLatest = (index: number, name: string): AppThunk =>
+	(dispatch, getState) => {
+		try {
+			const state = getState();
+			const instance = getInstanceByIndex(state, index);
+			if (!instance) return;
+
+			dispatch(setInstance(instance.setPresetLatest(name)));
+		} catch (e) {
+			console.log(e);
+		}
+	};
+
+export const updateInstancePresetInitial = (index: number, name: string): AppThunk =>
+	(dispatch, getState) => {
+		try {
+			const state = getState();
+			const instance = getInstanceByIndex(state, index);
+			if (!instance) return;
+
+			dispatch(setInstance(instance.setPresetInitial(name)));
 		} catch (e) {
 			console.log(e);
 		}
@@ -232,26 +387,26 @@ export const updateInstanceMessages = (index: number, desc: OSCQueryRNBOInstance
 
 			const state = getState();
 			const instance = getInstanceByIndex(state, index);
-			if (instance) return;
+			if (!instance) return;
 
 			dispatch(setInstance(
 				instance
-					.set("messageInputs", InstanceStateRecord.messageInputsFromDescription(desc))
-					.set("messageOutputs", InstanceStateRecord.messageOutputsFromDescription(desc))
+					.set("messageInports", InstanceStateRecord.messagesFromDescription(desc.CONTENTS?.in))
+					.set("messageOutports", InstanceStateRecord.messagesFromDescription(desc.CONTENTS?.out))
 			));
 		} catch (e) {
 			console.log(e);
 		}
 	};
 
-export const updateInstanceMessageOutputValue = (index: number, name: string, value: OSCValue | OSCValue[]): AppThunk =>
+export const updateInstanceMessageOutportValue = (index: number, name: string, value: OSCValue | OSCValue[]): AppThunk =>
 	(dispatch, getState) => {
 		try {
 
 			const state = getState();
 
 			// Debug enabled?!
-			const enabled = getAppSettingValue<boolean>(state, AppSetting.debugMessageOutput);
+			const enabled = getAppSetting(state, AppSetting.debugMessageOutput)?.value || false;
 			if (!enabled) return;
 
 			// Active Instance view?!
@@ -285,6 +440,22 @@ export const updateInstanceParameters = (index: number, desc: OSCQueryRNBOInstan
 		}
 	};
 
+export const updateInstanceDataRefValue = (index: number, name: string, value: string): AppThunk =>
+	(dispatch, getState) => {
+		try {
+			const state = getState();
+
+			const instance = getInstanceByIndex(state, index);
+			if (!instance) return;
+
+			dispatch(setInstance(
+				instance.setDataRefValue(name, value)
+			));
+		} catch (e) {
+			console.log(e);
+		}
+	};
+
 export const updateInstanceParameterValue = (index: number, id: ParameterRecord["id"], value: number): AppThunk =>
 	(dispatch, getState) => {
 		try {
@@ -311,3 +482,120 @@ export const updateInstanceParameterValueNormalized = (index: number, id: Parame
 		}
 	};
 
+export const setInstanceWaitingForMidiMappingOnRemote = (id: InstanceStateRecord["id"], value: boolean): AppThunk =>
+	(dispatch, getState) => {
+		try {
+			const state = getState();
+			const instance = getInstance(state, id);
+			if (!instance) return;
+
+			dispatch(setInstance(instance.setWaitingForMapping(value)));
+
+			try {
+				const message = {
+					address: `${instance.path}/midi/last/report`,
+					args: [
+						{ type: value ? "T" : "F", value: value ? "true" : "false" }
+					]
+				};
+				oscQueryBridge.sendPacket(writePacket(message));
+			} catch (err) {
+				dispatch(showNotification({
+					level: NotificationLevel.error,
+					title: "Error while trying set midi mapping mode on remote",
+					message: "Please check the console for further details."
+				}));
+				console.log(err);
+			}
+		} catch (e) {
+			console.log(e);
+		}
+	};
+
+export const updateInstanceMIDIReport = (index: number, value: boolean): AppThunk =>
+	(dispatch, getState) => {
+		try {
+			const state = getState();
+			const instance = getInstanceByIndex(state, index);
+			if (!instance) return;
+			dispatch(setInstance(instance.setWaitingForMapping(value)));
+		} catch (e) {
+			console.log(e);
+		}
+	};
+
+export const updateInstanceMIDILastValue = (index: number, value: string): AppThunk =>
+	(dispatch, getState) => {
+		try {
+
+			const state = getState();
+
+			let instance = getInstanceByIndex(state, index);
+			if (!instance?.waitingForMidiMapping) return;
+
+			const midiMeta = JSON.parse(value);
+
+			// find waiting, update their meta, set them no longer waiting and update map
+			instance = instance.set("parameters", instance.parameters.map(param => {
+				if (param.waitingForMidiMapping) {
+					const meta = param.getParsedMetaObject();
+					meta.midi = midiMeta;
+
+					const message = {
+						address: `${param.path}/meta`,
+						args: [
+							{ type: "s", value: JSON.stringify(meta) }
+						]
+					};
+
+					oscQueryBridge.sendPacket(writePacket(message));
+					return param.setWaitingForMidiMapping(false);
+				}
+				return param;
+			}));
+
+			dispatch(setInstance(instance));
+
+		} catch (e) {
+			console.log(e);
+		}
+	};
+
+export const updateInstanceParameterMeta = (index: number, id: ParameterRecord["id"], value: string): AppThunk =>
+	(dispatch, getState) => {
+		try {
+			const state = getState();
+			const instance = getInstanceByIndex(state, index);
+			if (!instance) return;
+
+			dispatch(setInstance(instance.setParameterMeta(id, value)));
+		} catch (e) {
+			console.log(e);
+		}
+	};
+
+export const updateInstanceMessageOutportMeta = (index: number, id: MessagePortRecord["id"], value: string): AppThunk =>
+	(dispatch, getState) => {
+		try {
+			const state = getState();
+			const instance = getInstanceByIndex(state, index);
+			if (!instance) return;
+
+			dispatch(setInstance(instance.setMessageOutportMeta(id, value)));
+		} catch (e) {
+			console.log(e);
+		}
+	};
+
+export const updateInstanceMessageInportMeta = (index: number, id: MessagePortRecord["id"], value: string): AppThunk =>
+	(dispatch, getState) => {
+		try {
+			const state = getState();
+			const instance = getInstanceByIndex(state, index);
+			if (!instance) return;
+
+			dispatch(setInstance(instance.setMessageInportMeta(id, value)));
+		} catch (e) {
+			console.log(e);
+		}
+	};

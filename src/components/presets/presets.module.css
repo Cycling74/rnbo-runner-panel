@@ -1,3 +1,7 @@
-.presetItemName {
+.presetButton {
+	flex: 1;
+}
+
+.presetNameInput {
 	flex: 1;
 }

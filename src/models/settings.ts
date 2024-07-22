@@ -1,10 +1,12 @@
 import { Record as ImmuRecord } from "immutable";
-import { SettingsTab } from "../lib/constants";
+import { ParameterSortAttr, SettingsTab, SortOrder } from "../lib/constants";
 
 export enum AppSetting {
 	colorScheme = "colorscheme",
 	debugMessageOutput = "message_out_debug",
-	keyboardMIDIInput = "keyboard_midi_input"
+	keyboardMIDIInput = "keyboard_midi_input",
+	paramSortAttribute = "parameter_sort_attribute",
+	paramSortOrder = "parameter_sort_order"
 }
 
 export enum AppSettingType {
@@ -13,7 +15,7 @@ export enum AppSettingType {
 	Switch
 }
 
-export type AppSettingOptions = string[];
+export type AppSettingOptions = string[] | Array<{ value: string; label: string; }>;
 export type AppSettingValue = string | number | boolean;
 
 export type AppSettingRecordProps = {
@@ -31,12 +33,12 @@ export const appSettingDefaults: Record<AppSetting, Omit<AppSettingRecordProps, 
 		description: "Select the color scheme of the user interface",
 		tab: SettingsTab.UI,
 		options: ["light", "dark"],
-		title: "Theme",
+		title: "Color Scheme",
 		type: AppSettingType.String,
 		value: "light"
 	},
 	[AppSetting.keyboardMIDIInput]: {
-		description: "Activate this Setting to play MIDI notes into an instance using your computer's keyboard, when displaying the MIDI control tab",
+		description: "Activate this Setting to play MIDI notes into an instance using your computer's keyboard, when displaying the Virtual MIDI Keyboard",
 		tab: SettingsTab.UI,
 		title: "Computer MIDI Keyboard",
 		type: AppSettingType.Boolean,
@@ -48,6 +50,22 @@ export const appSettingDefaults: Record<AppSetting, Omit<AppSettingRecordProps, 
 		title: "Monitor Output Ports",
 		type: AppSettingType.Boolean,
 		value: true
+	},
+	[AppSetting.paramSortAttribute]: {
+		description: "Configure whether to sort instance parameters by name or 'displayorder'",
+		tab: SettingsTab.UI,
+		options: [{ label: "Displayorder", value: ParameterSortAttr.Index }, { label: "Name", value: ParameterSortAttr.Name }],
+		title: "Parameter List: Sort Attribute",
+		type: AppSettingType.String,
+		value: ParameterSortAttr.Name
+	},
+	[AppSetting.paramSortOrder]: {
+		description: "Configure in which order to sort instance parameters",
+		tab: SettingsTab.UI,
+		options: [{ label: "Ascending", value: SortOrder.Asc }, { label: "Descending", value: SortOrder.Desc }],
+		title: "Parameter List: Sort Order",
+		type: AppSettingType.String,
+		value: SortOrder.Asc
 	}
 };
 

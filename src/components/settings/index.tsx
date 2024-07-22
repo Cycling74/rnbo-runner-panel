@@ -1,4 +1,4 @@
-import { Anchor, Button, Group, Modal, Stack, Tabs } from "@mantine/core";
+import { Anchor, Button, Group, Modal, Stack, Tabs, Text } from "@mantine/core";
 import SettingsList from "./list";
 import { FunctionComponent, memo, useCallback, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../../hooks/useAppDispatch";
@@ -7,14 +7,14 @@ import { getRunnerOwnsJackServer, getSettingsItemsForTab, getShowSettingsModal }
 import { hideSettings, setAppSetting, setRunnerConfig, updateRunnerAudio } from "../../actions/settings";
 import { useIsMobileDevice } from "../../hooks/useIsMobileDevice";
 import { SettingTarget, SettingsTab } from "../../lib/constants";
-import { faArrowLeft, faRotateRight } from "@fortawesome/free-solid-svg-icons";
 import { SettingActionProps, SettingsItemType, SettingsItemValue } from "./item";
 import { AppSetting, AppSettingRecord, AppSettingType } from "../../models/settings";
 import { ConfigKey, ConfigRecord } from "../../models/config";
 import { OSCQueryValueType } from "../../lib/types";
 import AboutInfo from "../page/about";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import classes from "./settings.module.css";
+import { IconElement } from "../elements/icon";
+import { mdiArrowLeft, mdiRestart } from "@mdi/js";
 
 type TabConfig = {
 	actions?: Array<SettingActionProps>;
@@ -35,7 +35,7 @@ const getSettingUITypeForConfig = (config: ConfigRecord): SettingsItemType => {
 
 	switch (config.oscType) {
 		case OSCQueryValueType.String:
-			return SettingsItemType.Select;
+			return config.options ? SettingsItemType.Select : SettingsItemType.Text;
 		case OSCQueryValueType.True:
 		case OSCQueryValueType.False:
 			return SettingsItemType.OnOff;
@@ -113,9 +113,10 @@ const SettingsTabPanel: FunctionComponent<SettingsTabPanelProps> = memo(function
 								actions.map((info, i) => (
 									<Button
 										key={ i }
-										variant="default"
+										variant="outline"
+										c="blue.6"
 										onClick={ () => dispatch(info.action()) }
-										leftSection={ info.icon ? <FontAwesomeIcon icon={ info.icon } /> : null }
+										leftSection={ info.icon ? <IconElement path={ info.icon } /> : null }
 									>
 										{ info.label }
 									</Button>
@@ -128,30 +129,6 @@ const SettingsTabPanel: FunctionComponent<SettingsTabPanelProps> = memo(function
 		</Tabs.Panel>
 	);
 });
-
-const tabConfigByTab: Record<SettingsTab, TabConfig> = {
-	[SettingsTab.UI]: {
-		title: "UI",
-		description: "UI settings are device scoped, saved to the local storage and restored on page load."
-	},
-	[SettingsTab.Control]: {
-		title: "Control"
-	},
-	[SettingsTab.Instance]: {
-		title: "Instance"
-	},
-	[SettingsTab.Audio]: {
-		title: "Audio",
-		actions: [
-			{
-				action: updateRunnerAudio,
-				description: "Restarts the Jack Server with the updated configuration",
-				icon: faRotateRight,
-				label: "Apply Configuration"
-			}
-		]
-	}
-};
 
 const Settings: FunctionComponent = memo(function WrappedSettings() {
 
@@ -181,6 +158,30 @@ const Settings: FunctionComponent = memo(function WrappedSettings() {
 	const onOpenAbout = useCallback(() => setShowAbout(true), [setShowAbout]);
 	const onCloseAbout = useCallback(() => setShowAbout(false), [setShowAbout]);
 
+	const tabConfigByTab: Record<SettingsTab, TabConfig> = {
+		[SettingsTab.UI]: {
+			title: "UI",
+			description: "UI settings are device scoped, saved to the local storage and restored on page load."
+		},
+		[SettingsTab.Control]: {
+			title: "Control"
+		},
+		[SettingsTab.Instance]: {
+			title: "Patcher Instance"
+		},
+		[SettingsTab.Audio]: {
+			title: "Audio",
+			actions: [
+				{
+					action: updateRunnerAudio,
+					description: "Restarts the Jack Server with the updated configuration",
+					icon: mdiRestart,
+					label: "Apply Configuration"
+				}
+			]
+		}
+	};
+
 	return (
 		<Modal
 			onClose={ onCloseSettingsModal }
@@ -193,7 +194,7 @@ const Settings: FunctionComponent = memo(function WrappedSettings() {
 				showAbout ? (
 					<Stack gap="md">
 						<Group>
-							<Button onClick={ onCloseAbout } size="xs" variant="outline" leftSection={ <FontAwesomeIcon icon={ faArrowLeft } /> } >
+							<Button onClick={ onCloseAbout } size="xs" variant="outline" leftSection={ <IconElement path={ mdiArrowLeft }  /> } >
 								Back to Settings
 							</Button>
 						</Group>
@@ -206,7 +207,11 @@ const Settings: FunctionComponent = memo(function WrappedSettings() {
 								<Tabs.List grow>
 									{
 										Object.values(SettingsTab).map(id => (
-											<Tabs.Tab key={ id } value={ id } >{ tabConfigByTab[id].title }</Tabs.Tab>
+											<Tabs.Tab key={ id } value={ id } >
+												<Text fz={{ base: "sm", sm: "md" }} lh={{ base: "sm", sm: "md" }}>
+													{ tabConfigByTab[id].title }
+												</Text>
+											</Tabs.Tab>
 										))
 									}
 								</Tabs.List>

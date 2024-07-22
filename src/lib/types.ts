@@ -108,7 +108,7 @@ export type OSCQueryRNBOInfoState = OSCQueryBaseNode & {
 				supported: OSCQueryBooleanValue;
 			};
 		}
-		version: OSCQueryListValue;
+		version: OSCQueryStringValue;
 	};
 };
 
@@ -169,6 +169,7 @@ export type OSCQueryRNBOJackConfig = OSCQueryBaseNode & {
 		num_periods?: OSCQueryIntValue & OSCQueryValueRange;
 		card?: OSCQueryStringValue & OSCQueryStringValueRange;
 		midi_system?: OSCQueryStringValue & OSCQueryStringValueRange;
+		extra?: OSCQueryStringValue;
 	};
 };
 
@@ -180,20 +181,25 @@ export type OSCQueryRNBOJackTransport =  OSCQueryBaseNode & {
 	}
 }
 
+export type OSCQueryRNBOJackInfoState =  OSCQueryBaseNode & {
+	CONTENTS: {
+		is_realtime?: OSCQueryBooleanValue;
+		owns_server?: OSCQueryBooleanValue;
+		ports?: OSCQueryRNBOJackPortInfo;
+		is_active?: OSCQueryBooleanValue;
+		xrun_count?: OSCQueryIntValue;
+		cpu_load?: OSCQueryFloatValue;
+	};
+};
+
 export type OSCQueryRNBOJackState = OSCQueryBaseNode & {
 	CONTENTS: {
 		active: OSCQueryBooleanValue;
-		connections: OSCQueryRNBOJackConnections,
-		info: OSCQueryBaseNode & {
-			CONTENTS: {
-				is_realtime: OSCQueryBooleanValue;
-				owns_server: OSCQueryBooleanValue;
-				ports: OSCQueryRNBOJackPortInfo;
-			};
-		};
+		connections?: OSCQueryRNBOJackConnections,
+		info?: OSCQueryRNBOJackInfoState;
 		config: OSCQueryRNBOJackConfig;
 		control: any;
-		transport: OSCQueryRNBOJackTransport;
+		transport?: OSCQueryRNBOJackTransport;
 	};
 };
 
@@ -211,6 +217,8 @@ export type OSCQueryRNBOPatchersState = OSCQueryBaseNode & {
 
 export type OSCQueryRNBOInstanceParameterValue = OSCQueryBaseNode & OSCQueryFloatValue & OSCQueryValueRange & {
 	CONTENTS: {
+		index: OSCQueryIntValue;
+		meta: OSCQueryStringValue;
 		normalized: OSCQueryFloatValue & OSCQueryValueRange & { VALUE: number; }
 	};
 	VALUE: number | string;
@@ -219,6 +227,22 @@ export type OSCQueryRNBOInstanceParameterValue = OSCQueryBaseNode & OSCQueryFloa
 export type OSCQueryRNBOInstanceParameterInfo = OSCQueryRNBOInstanceParameterValue | {
 	CONTENTS: Record<string, OSCQueryRNBOInstanceParameterInfo>;
 	VALUE: undefined;
+};
+
+export type OSCQueryRNBOInstanceMessageValue = OSCQueryBaseNode & OSCQueryListValue<string> & {
+	CONTENTS: {
+		meta: OSCQueryStringValue;
+	};
+	VALUE: string[];
+};
+
+export type OSCQueryRNBOInstanceMessageInfo = OSCQueryRNBOInstanceMessageValue | {
+	CONTENTS: Record<string, OSCQueryRNBOInstanceMessageInfo>;
+	VALUE: undefined;
+};
+
+export type OSCQueryRNBOInstanceMessages = OSCQueryBaseNode & {
+	CONTENTS: Record<string, OSCQueryRNBOInstanceMessageInfo>;
 };
 
 export type OSCQueryRNBOInstancePresetEntries = OSCQueryListValue<string, string[]>;
@@ -267,17 +291,14 @@ export type OSCQueryRNBOInstance = OSCQueryBaseNode & {
 				delete: OSCQueryStringValue;
 				initial: OSCQueryStringValue;
 				load: OSCQueryStringValue;
+				loaded: OSCQueryStringValue;
 				save: OSCQueryStringValue;
 			};
 		};
 		messages?: OSCQueryBaseNode & {
 			CONTENTS: {
-				in: OSCQueryBaseNode & {
-					CONTENTS: Record<string, OSCQueryUnknownValue>;
-				};
-				out: OSCQueryBaseNode & {
-					CONTENTS: Record<string, OSCQueryValue>;
-				};
+				in?: OSCQueryRNBOInstanceMessages;
+				out?: OSCQueryRNBOInstanceMessages;
 			};
 		};
 		midi: OSCQueryBaseNode & {
@@ -303,7 +324,21 @@ export type OSCQueryRNBOInstancesControlState = OSCQueryBaseNode & {
 				save: OSCQuerySingleValue<OSCQueryValueType.String, string>;
 				load: OSCQuerySingleValue<OSCQueryValueType.String, string> & {
 					RANGE: Array<{ VALS: string[]; }>;
-				}
+				};
+				presets?: OSCQueryBaseNode & {
+					CONTENTS: {
+						save: OSCQuerySingleValue<OSCQueryValueType.String, string>;
+						load: OSCQuerySingleValue<OSCQueryValueType.String, string> & {
+							RANGE: Array<{ VALS: string[]; }>;
+						};
+						loaded?: OSCQueryStringValue;
+					}
+				};
+				current?: OSCQueryBaseNode & {
+					CONTENTS: {
+						name: OSCQuerySingleValue<OSCQueryValueType.String, string>;
+					}
+				};
 			}
 		};
 	};
@@ -322,6 +357,7 @@ export type OSCQueryRNBOState = OSCQueryBaseNode & {
 		jack: OSCQueryRNBOJackState;
 		patchers: OSCQueryRNBOPatchersState;
 		inst: OSCQueryRNBOInstancesState;
+		info: OSCQueryRNBOInfoState;
 	};
 };
 

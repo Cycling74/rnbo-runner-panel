@@ -12,6 +12,7 @@ import classes from "./editor.module.css";
 import GraphEdge, { RNBOGraphEdgeType } from "./edge";
 import { useRouter } from "next/router";
 import EditorControlNode from "./controlNode";
+import { useMantineColorScheme } from "@mantine/core";
 
 export type GraphEditorProps = {
 	connections: RootStateType["graph"]["connections"];
@@ -43,6 +44,7 @@ const GraphEditor: FunctionComponent<GraphEditorProps> = memo(function WrappedFl
 	onEdgesDelete
 }) {
 
+	const { colorScheme } = useMantineColorScheme();
 	const { push, query } = useRouter();
 
 	// Validate Connection Directions and Types
@@ -73,7 +75,6 @@ const GraphEditor: FunctionComponent<GraphEditorProps> = memo(function WrappedFl
 		selected: node.selected,
 		type: node?.type,
 		data: {
-			contentHeight: node.contentHeight,
 			node
 		}
 	}));
@@ -93,7 +94,7 @@ const GraphEditor: FunctionComponent<GraphEditorProps> = memo(function WrappedFl
 	}));
 
 	return (
-		<div className={ classes.editor } >
+		<div className={ classes.editor } data-color-scheme={ colorScheme } >
 			<ReactFlow
 				isValidConnection={ validateConnection }
 				edges={ flowEdges }
@@ -108,6 +109,8 @@ const GraphEditor: FunctionComponent<GraphEditorProps> = memo(function WrappedFl
 				edgeTypes={ edgeTypes }
 				edgesUpdatable={ false }
 				fitView
+				minZoom={ 0.1 }
+				maxZoom={ 5 }
 			>
 				<Controls />
 			</ReactFlow>

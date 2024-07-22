@@ -2,67 +2,102 @@ import { writePacket } from "osc";
 import { oscQueryBridge } from "../controller/oscqueryBridgeController";
 import { ActionBase, AppThunk } from "../lib/store";
 import { GraphSetRecord } from "../models/set";
-import { getShowGraphSetsDrawer } from "../selectors/sets";
+import { PresetRecord } from "../models/preset";
 import { showNotification } from "./notifications";
 import { NotificationLevel } from "../models/notification";
 
 export enum GraphSetActionType {
-	INIT = "INIT_SETS",
-	SET_SHOW_GRAPH_SETS = "SET_SHOW_GRAPH_SET"
+	INIT_SETS = "INIT_SETS",
+	SET_SET_PRESET_LATEST = "SET_SET_PRESET_LATEST",
+	INIT_SET_PRESETS = "INIT_SET_PRESETS",
+	SET_SET_LATEST = "SET_PRESET_LATEST",
 }
 
 export interface IInitGraphSets extends ActionBase {
-	type: GraphSetActionType.INIT;
+	type: GraphSetActionType.INIT_SETS;
 	payload: {
 		sets: GraphSetRecord[]
 	}
 }
 
-export interface IShowGraphSets extends ActionBase {
-	type: GraphSetActionType.SET_SHOW_GRAPH_SETS;
+export interface ISetGraphSetsLatest extends ActionBase {
+	type: GraphSetActionType.SET_SET_LATEST;
 	payload: {
-		show: boolean;
-	};
+		name: string
+	}
 }
 
-export type GraphSetAction = IInitGraphSets | IShowGraphSets;
+export interface IInitGraphSetPresets extends ActionBase {
+	type: GraphSetActionType.INIT_SET_PRESETS;
+	payload: {
+		presets: PresetRecord[]
+	}
+}
+
+export interface ISetGraphSetPresetsLatest extends ActionBase {
+	type: GraphSetActionType.SET_SET_PRESET_LATEST;
+	payload: {
+		name: string
+	}
+}
+
+export type GraphSetAction = IInitGraphSets | ISetGraphSetsLatest | IInitGraphSetPresets | ISetGraphSetPresetsLatest;
 
 export const initSets = (names: string[]): GraphSetAction => {
-
 	return {
-		type: GraphSetActionType.INIT,
+		type: GraphSetActionType.INIT_SETS,
 		payload: {
 			sets: names.map(n => GraphSetRecord.fromDescription(n))
 		}
 	};
 };
 
-
-export const showGraphSets = (): GraphSetAction => {
+export const setGraphSetLatest = (name: string): GraphSetAction => {
 	return {
-		type: GraphSetActionType.SET_SHOW_GRAPH_SETS,
+		type: GraphSetActionType.SET_SET_LATEST,
 		payload: {
-			show: true
+			name
 		}
 	};
 };
 
-export const hideGraphSets = (): GraphSetAction => {
+export const initSetPresets = (names: string[]): GraphSetAction => {
 	return {
-		type: GraphSetActionType.SET_SHOW_GRAPH_SETS,
+		type: GraphSetActionType.INIT_SET_PRESETS,
 		payload: {
-			show: false
+			presets: names.map(n => PresetRecord.fromDescription(n, n === "initial"))
 		}
 	};
 };
 
-export const toggleShowGraphSets = () : AppThunk =>
-	(dispatch, getState) => {
-		const state = getState();
-		const isShown = getShowGraphSetsDrawer(state);
-		dispatch({ type: GraphSetActionType.SET_SHOW_GRAPH_SETS, payload: { show: !isShown } });
+export const setGraphSetPresetLatest = (name: string): GraphSetAction => {
+	return {
+		type: GraphSetActionType.SET_SET_PRESET_LATEST,
+		payload: {
+			name
+		}
 	};
+};
 
+export const clearGraphSetOnRemote = (): AppThunk =>
+	(dispatch) => {
+		try {
+			const message = {
+				address: "/rnbo/inst/control/unload",
+				args: [
+					{ type: "i", value: -1 }
+				]
+			};
+			oscQueryBridge.sendPacket(writePacket(message));
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: "Error while trying to clear the set",
+				message: "Please check the consolor for further details."
+			}));
+			console.error(err);
+		}
+	};
 
 export const loadGraphSetOnRemote = (set: GraphSetRecord): AppThunk =>
 	(dispatch) => {
@@ -142,5 +177,86 @@ export const renameGraphSetOnRemote = (set: GraphSetRecord, newName: string): Ap
 				message: "Please check the consolor for further details."
 			}));
 			console.error(err);
+		}
+	};
+
+export const loadSetPresetOnRemote = (preset: PresetRecord): AppThunk =>
+	(dispatch) => {
+		try {
+			const message = {
+				address: "/rnbo/inst/control/sets/presets/load",
+				args: [
+					{ type: "s", value: preset.name }
+				]
+			};
+			oscQueryBridge.sendPacket(writePacket(message));
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: `Error while trying to load preset ${preset.name}`,
+				message: "Please check the consolor for further details."
+			}));
+			console.log(err);
+		}
+	};
+
+export const saveSetPresetToRemote = (name: string): AppThunk =>
+	(dispatch) => {
+		try {
+			const message = {
+				address: "/rnbo/inst/control/sets/presets/save",
+				args: [
+					{ type: "s", value: name }
+				]
+			};
+			oscQueryBridge.sendPacket(writePacket(message));
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: `Error while trying to save preset ${name}`,
+				message: "Please check the consolor for further details."
+			}));
+			console.log(err);
+		}
+	};
+
+export const destroySetPresetOnRemote = (preset: PresetRecord): AppThunk =>
+	(dispatch) => {
+		try {
+			const message = {
+				address: "/rnbo/inst/control/sets/presets/destroy",
+				args: [
+					{ type: "s", value: preset.name }
+				]
+			};
+			oscQueryBridge.sendPacket(writePacket(message));
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: `Error while trying to delete preset ${preset.name}`,
+				message: "Please check the consolor for further details."
+			}));
+			console.log(err);
+		}
+	};
+
+export const renameSetPresetOnRemote = (preset: PresetRecord, newname: string): AppThunk =>
+	(dispatch) => {
+		try {
+			const message = {
+				address: "/rnbo/inst/control/sets/presets/rename",
+				args: [
+					{ type: "s", value: preset.name },
+					{ type: "s", value: newname }
+				]
+			};
+			oscQueryBridge.sendPacket(writePacket(message));
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: `Error while trying to rename preset ${preset.name} to ${newname}`,
+				message: "Please check the consolor for further details."
+			}));
+			console.log(err);
 		}
 	};
