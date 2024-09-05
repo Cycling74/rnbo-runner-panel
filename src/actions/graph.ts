@@ -444,7 +444,7 @@ export const initNodes = (jackPortsInfo: OSCQueryRNBOJackPortInfo, instanceInfo:
 			});
 
 		const portAliases: Array<{ portName: GraphPortRecord["portName"]; aliases: string []; }> = [];
-		for (const [portName, aliasInfo] of Object.entries(jackPortsInfo.CONTENTS.aliases.CONTENTS)) {
+		for (const [portName, aliasInfo] of Object.entries(jackPortsInfo.CONTENTS.aliases?.CONTENTS || {})) {
 			portAliases.push({ portName, aliases: aliasInfo.VALUE });
 		}
 
