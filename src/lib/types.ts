@@ -146,7 +146,7 @@ export type OSCQueryRNBOJackPortInfo = OSCQueryBaseNode & {
 			};
 		};
 		aliases: OSCQueryBaseNode & {
-			CONTENTS: Record<string, OSCQueryListValue<string, string[]>>;
+			CONTENTS?: Record<string, OSCQueryListValue<string, string[]>>;
 		};
 	};
 };
