@@ -267,7 +267,7 @@ export const deletePortsAliases = (portNames: Array<GraphPortRecord["portName"]>
 	};
 };
 
-const isSystemNodeName = (name: string): boolean => name.startsWith("system");
+const isSystemNodeName = (name: string): boolean => (name.startsWith("system") || name.startsWith("Midi-Bridge"));
 
 const filterSystemNodeNames = (portNames: string[], nodes: Array<GraphPatcherNodeRecord | GraphControlNodeRecord>): string[] => {
 	const pNodeIds = new Set(nodes.map(pn => pn.id));
@@ -459,7 +459,8 @@ const createConnectionRecordsFromSinkList = (state: RootStateType, sourceNode: G
 	const connectionRecords: GraphConnectionRecord[] = [];
 
 	for (const sink of sinks) {
-		const [sinkNodeName, sinkPortId] = sink.split(":");
+		const [sinkNodeName, ...rest] = sink.split(":");
+		const sinkPortId = rest.join(":");
 
 		const sinkNode = getNode(state, sinkNodeName) || getSystemNodeByJackNameAndDirection(state, sinkNodeName, PortDirection.Sink);
 		if (!sinkNode) continue;
@@ -486,7 +487,8 @@ export const initConnections = (connectionsInfo: OSCQueryRNBOJackConnections): A
 		const connectionRecords: GraphConnectionRecord[] = [];
 
 		for (const [source, connections] of Object.entries(connectionsInfo.CONTENTS.audio?.CONTENTS || {})) {
-			const [sourceNodeName, sourcePortId] = source.split(":");
+			const [sourceNodeName, ...rest] = source.split(":");
+			const sourcePortId = rest.join(":");
 
 			const sourceNode = getNode(state, sourceNodeName) || getSystemNodeByJackNameAndDirection(state, sourceNodeName, PortDirection.Source);
 			if (!sourceNode) continue;
@@ -498,7 +500,8 @@ export const initConnections = (connectionsInfo: OSCQueryRNBOJackConnections): A
 		}
 
 		for (const [source, connections] of Object.entries(connectionsInfo.CONTENTS.midi?.CONTENTS || {})) {
-			const [sourceNodeName, sourcePortId] = source.split(":");
+			const [sourceNodeName, ...rest] = source.split(":");
+			const sourcePortId = rest.join(":");
 
 			const sourceNode = getNode(state, sourceNodeName) || getSystemNodeByJackNameAndDirection(state, sourceNodeName, PortDirection.Source);
 			if (!sourceNode) continue;
@@ -876,7 +879,8 @@ export const updateSourcePortConnections = (source: string, sinks: string[]): Ap
 		try {
 			const state = getState();
 
-			const [sourceNodeName, sourcePortId] = source.split(":");
+			const [sourceNodeName, ...rest] = source.split(":");
+			const sourcePortId = rest.join(":");
 
 			const sourceNode = getNode(state, sourceNodeName) || getSystemNodeByJackNameAndDirection(state, sourceNodeName, PortDirection.Source);
 			if (!sourceNode) return;
