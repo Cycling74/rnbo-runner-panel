@@ -29,7 +29,7 @@ const EditorPort: FunctionComponent<PortProps> = memo(function WrappedPort({
 			id={ port.id }
 			position={ handlePositionByPortDirection[port.direction] }
 			data-c74-type={ port.type }
-			data-c74-name={ (alias || port.id.replace(/\((capture|playback)_[0-9+]\)/, "")) }
+			data-c74-name={ (alias || port.id.replace(/\((capture|playback)_[0-9]+\)/, "")) }
 			type={ handleTypeByPortDirection[port.direction] }
 			style={{ top: `${offset}%` }}
 		/>
