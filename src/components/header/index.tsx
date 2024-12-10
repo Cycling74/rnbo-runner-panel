@@ -1,5 +1,5 @@
 import React, { FunctionComponent, memo, useCallback } from "react";
-import { ActionIcon, AppShell, Burger, Group, Progress, Tooltip } from "@mantine/core";
+import { ActionIcon, AppShell, Burger, Group, Tooltip } from "@mantine/core";
 import classes from "./header.module.css";
 import { useThemeColorScheme } from "../../hooks/useTheme";
 import { useAppDispatch, useAppSelector } from "../../hooks/useAppDispatch";
@@ -12,6 +12,7 @@ import { RunnerInfoKey } from "../../models/runnerInfo";
 import { AppStatus } from "../../lib/constants";
 import { IconElement } from "../elements/icon";
 import { mdiMetronome, mdiSatelliteUplink } from "@mdi/js";
+import { CPUStatus } from "./cpu";
 
 export type HeaderProps = {
 	navOpen: boolean;
@@ -59,8 +60,8 @@ export const Header: FunctionComponent<HeaderProps> = memo(function WrappedHeade
 							<IconElement path={ mdiSatelliteUplink } />
 						</ActionIcon>
 					</Tooltip>
-					<Tooltip label={ `${Math.round(cpuLoad?.oscValue as number || 0)}% CPU Usage`}>
-						<Progress value={ cpuLoad?.oscValue as number || 0 } w={ 25 } size="lg" radius="xs" />
+					<Tooltip label="CPU Usage">
+						<CPUStatus load={ cpuLoad?.oscValue as number || 0  } />
 					</Tooltip>
 				</Group>
 			</Group>

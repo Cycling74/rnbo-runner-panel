@@ -1,0 +1,36 @@
+.cpuRoot {
+	border-radius: var(--mantine-radius-sm);
+	background-color: var(--mantine-color-dark-3);
+	overflow: hidden;
+	position: relative;
+	height: 28px;
+	width: 40px;
+}
+
+.cpuBar {
+	background-color: var(--mantine-primary-color-filled);
+	border-bottom-left-radius: var(--mantine-radius-sm);
+	border-top-left-radius: var(--mantine-radius-sm);
+	height: 100%;
+	left: 0;
+	top: 0;
+	position: absolute;
+	width: 100%;
+	z-index: 2;
+}
+
+.cpuLabel {
+	color: var(--mantine-primary-color-contrast);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: var(--mantine-font-size-xs);
+	font-weight: bold;
+	left: 0;
+	padding: 0 var(--mantine-spacing-xs);
+	position: absolute;
+	top: 0;
+	width: 100%;
+	height: 100%;
+	z-index: 3;
+}
