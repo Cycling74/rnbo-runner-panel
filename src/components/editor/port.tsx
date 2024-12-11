@@ -1,4 +1,4 @@
-import React, { FunctionComponent, memo } from "react";
+import React, { CSSProperties, FunctionComponent, memo } from "react";
 import { GraphPortRecord, PortDirection } from "../../models/graph";
 import { Handle, HandleType, Position } from "reactflow";
 
@@ -6,6 +6,7 @@ export type PortProps = {
 	offset: number;
 	alias?: string;
 	port: GraphPortRecord;
+	maxWidth: number;
 };
 
 const handleTypeByPortDirection: Record<PortDirection, HandleType> = {
@@ -20,6 +21,7 @@ const handlePositionByPortDirection: Record<PortDirection, Position> = {
 
 const EditorPort: FunctionComponent<PortProps> = memo(function WrappedPort({
 	port,
+	maxWidth,
 	alias,
 	offset
 }) {
@@ -31,7 +33,7 @@ const EditorPort: FunctionComponent<PortProps> = memo(function WrappedPort({
 			data-c74-type={ port.type }
 			data-c74-name={ (alias || port.id.replace(/\((capture|playback)_[0-9]+\)/, "")) }
 			type={ handleTypeByPortDirection[port.direction] }
-			style={{ top: `${offset}%` }}
+			style={{ top: `${offset}%`, "--label-max-width": `${maxWidth}px` } as CSSProperties }
 		/>
 	);
 });

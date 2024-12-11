@@ -21,6 +21,8 @@ const EditorPatcherNode: FunctionComponent<EditorNodeProps> = memo(function Wrap
 		return result;
 	}, { sinks: [], sources: [] } as { sinks: GraphPortRecord[]; sources: GraphPortRecord[]; });
 
+	const portSizeLimit = sinks.length && sources.length ? Math.round(300 / 2) : 300;
+
 	return (
 		<Paper className={ classes.node } shadow="md" withBorder data-selected={ selected } >
 			<div className={ classes.nodeHeader } >
@@ -40,12 +42,26 @@ const EditorPatcherNode: FunctionComponent<EditorNodeProps> = memo(function Wrap
 					</Tooltip>
 				</div>
 			</div>
-			<div className={ classes.nodeContent } style={{ height: `${node.contentHeight}px` }} >
+			<div className={ classes.nodeContent } style={{ height: `${node.contentHeight}px`, minWidth: 300 }} >
 				{
-					sinks.map((port, i) => <EditorPort key={ port.id } port={ port } offset={ calcPortOffset(sinks.length, i)}/>)
+					sinks.map((port, i) => (
+						<EditorPort
+							key={ port.id }
+							port={ port }
+							offset={ calcPortOffset(sinks.length, i)}
+							maxWidth={ portSizeLimit }
+						/>
+					))
 				}
 				{
-					sources.map((port, i) => <EditorPort key={ port.id } port={ port } offset={ calcPortOffset(sources.length, i) } />)
+					sources.map((port, i) => (
+						<EditorPort
+							key={ port.id }
+							port={ port }
+							offset={ calcPortOffset(sources.length, i) }
+							maxWidth={ portSizeLimit }
+						/>
+					))
 				}
 			</div>
 		</Paper>

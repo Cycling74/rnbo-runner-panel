@@ -25,17 +25,36 @@ const EditorSystemNode: FunctionComponent<EditorNodeProps> = memo(function Wrapp
 		return alias.length > result ? alias.length : result;
 	}, 0);
 
+	const width = 300 + Math.max(0, (longestAliasCharCount - 10) * 5);
+	const portSizeLimit = sinks.length && sources.length ? Math.round(width / 2) : width;
+
 	return (
 		<Paper className={ classes.node }  shadow="md" withBorder data-selected={ selected } >
 			<div className={ classes.nodeHeader } >
 				{ node.jackName }
 			</div>
-			<div className={ classes.nodeContent } style={{ height: `${node.contentHeight}px`, minWidth: `${300 + Math.max(0, (longestAliasCharCount - 10) * 5)}px` }} >
+			<div className={ classes.nodeContent } style={{ height: `${node.contentHeight}px`, minWidth: `${width}px` }} >
 				{
-					sinks.map((port, i) => <EditorPort key={ port.id }  port={ port } offset={ calcPortOffset(sinks.length, i) } alias={ aliases.get(port.portName) } />)
+					sinks.map((port, i) => (
+						<EditorPort
+							key={ port.id }
+							port={ port }
+							offset={ calcPortOffset(sinks.length, i) }
+							alias={ aliases.get(port.portName) }
+							maxWidth={ portSizeLimit }
+						/>
+					))
 				}
 				{
-					sources.map((port, i) => <EditorPort key={ port.id } port={ port } offset={ calcPortOffset(sources.length, i) } alias={ aliases.get(port.portName) } />)
+					sources.map((port, i) => (
+						<EditorPort
+							key={ port.id }
+							port={ port }
+							offset={ calcPortOffset(sources.length, i) }
+							alias={ aliases.get(port.portName) }
+							maxWidth={ portSizeLimit }
+						/>
+					))
 				}
 			</div>
 		</Paper>
