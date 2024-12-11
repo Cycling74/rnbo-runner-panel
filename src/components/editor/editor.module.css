@@ -141,12 +141,13 @@
 
 			&:hover {
 
+				z-index: 50000;
+
 				&:before,
 				&:after {
 					background-color: var(--node-background-color);
 					box-shadow: var(--mantine-shadow-xs);
 					max-width: fit-content;
-					z-index: 50;
 				}
 			}
 		}
