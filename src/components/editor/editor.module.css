@@ -129,7 +129,6 @@
 			&:after {
 				background-clip: padding-box;
 				border-radius: var(--mantine-radius-sm);
-				direction: rtl;
 				font-size: var(--mantine-font-size-sm);
 				max-width: calc(var(--label-max-width) - var(--label-offset));
 				overflow: hidden;
@@ -159,8 +158,8 @@
 
 			&:before {
 				content: attr(data-c74-name);
-				margin-right: var(--label-offset);
-				right: 0;
+				direction: rtl;
+				right: var(--label-offset);
 			}
 		}
 
@@ -170,24 +169,7 @@
 
 			&:after {
 				content: attr(data-c74-name);
-				margin-left: var(--label-offset);
-				left: 0;
-			}
-		}
-
-		.react-flow__handle[data-c74-type="audio"] {
-			border: 2px solid var(--mantine-color-green-outline);
-
-			&:hover {
-				background-color: var(--mantine-color-green-outline);
-			}
-		}
-
-		.react-flow__handle[data-c74-type="midi"] {
-			border: 2px solid var(--mantine-color-orange-outline);
-
-			&:hover {
-				background-color: var(--mantine-color-orange-outline);
+				left: var(--label-offset);
 			}
 		}
 	}
