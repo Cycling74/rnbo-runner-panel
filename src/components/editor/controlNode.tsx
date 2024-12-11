@@ -1,5 +1,5 @@
 import React, { FunctionComponent, memo } from "react";
-import { EditorNodeProps, calcPortOffset } from "./util";
+import { EditorNodeProps, calcPortOffset, defaultNodeWidth } from "./util";
 import { GraphPortRecord, PortDirection } from "../../models/graph";
 import EditorPort from "./port";
 import classes from "./editor.module.css";
@@ -16,17 +16,33 @@ const EditorControlNode: FunctionComponent<EditorNodeProps> = memo(function Wrap
 		return result;
 	}, { sinks: [], sources: [] } as { sinks: GraphPortRecord[]; sources: GraphPortRecord[]; });
 
+	const portSizeLimit = sinks.length && sources.length ? Math.round(defaultNodeWidth / 2) : defaultNodeWidth;
+
 	return (
 		<Paper className={ classes.node } shadow="md" withBorder data-selected={ selected } >
 			<div className={ classes.nodeHeader } >
 				{ node.id }
 			</div>
-			<div className={ classes.nodeContent } style={{ height: `${node.contentHeight}px` }} >
+			<div className={ classes.nodeContent } style={{ height: `${node.contentHeight}px`, minWidth: defaultNodeWidth }} >
 				{
-					sinks.map((port, i) => <EditorPort key={ port.id } port={ port } offset={ calcPortOffset(sinks.length, i)}/>)
+					sinks.map((port, i) => (
+						<EditorPort
+							key={ port.id }
+							port={ port }
+							offset={ calcPortOffset(sinks.length, i)}
+							maxWidth={ portSizeLimit }
+						/>
+					))
 				}
 				{
-					sources.map((port, i) => <EditorPort key={ port.id } port={ port } offset={ calcPortOffset(sources.length, i) } />)
+					sources.map((port, i) => (
+						<EditorPort
+							key={ port.id }
+							port={ port }
+							offset={ calcPortOffset(sources.length, i) }
+							maxWidth={ portSizeLimit }
+						/>
+					))
 				}
 			</div>
 		</Paper>

@@ -1,5 +1,5 @@
 import React, { FunctionComponent, memo } from "react";
-import { EditorNodeProps, calcPortOffset } from "./util";
+import { EditorNodeProps, calcPortOffset, defaultNodeWidth } from "./util";
 import { GraphPatcherNodeRecord, GraphPortRecord, PortDirection } from "../../models/graph";
 import EditorPort from "./port";
 import classes from "./editor.module.css";
@@ -21,7 +21,7 @@ const EditorPatcherNode: FunctionComponent<EditorNodeProps> = memo(function Wrap
 		return result;
 	}, { sinks: [], sources: [] } as { sinks: GraphPortRecord[]; sources: GraphPortRecord[]; });
 
-	const portSizeLimit = sinks.length && sources.length ? Math.round(300 / 2) : 300;
+	const portSizeLimit = sinks.length && sources.length ? Math.round(defaultNodeWidth / 2) : defaultNodeWidth;
 
 	return (
 		<Paper className={ classes.node } shadow="md" withBorder data-selected={ selected } >
@@ -42,7 +42,7 @@ const EditorPatcherNode: FunctionComponent<EditorNodeProps> = memo(function Wrap
 					</Tooltip>
 				</div>
 			</div>
-			<div className={ classes.nodeContent } style={{ height: `${node.contentHeight}px`, minWidth: 300 }} >
+			<div className={ classes.nodeContent } style={{ height: `${node.contentHeight}px`, minWidth: defaultNodeWidth }} >
 				{
 					sinks.map((port, i) => (
 						<EditorPort
