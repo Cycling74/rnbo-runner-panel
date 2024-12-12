@@ -675,8 +675,8 @@ export const addPatcherNode = (desc: OSCQueryRNBOInstance, metaString: string): 
 
 		const state = getState();
 		const { x, y } = nodeMeta?.position || getGraphEditorInstance(state)?.project({
-			y: 10,
-			x: 10
+			y: 0,
+			x: 0
 		}) || getPatcherOrControlNodeCoordinates(node, []);
 
 		node = node.updatePosition(x, y);
