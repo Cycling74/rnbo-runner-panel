@@ -912,9 +912,13 @@ export const addPatcherNode = (desc: OSCQueryRNBOInstance, metaString: string): 
 		const setMeta: OSCQuerySetMeta = deserializeSetMeta(metaString);
 		const nodeMeta: OSCQuerySetNodeMeta | undefined = setMeta?.nodes?.[node.id];
 
-		const { x, y } = nodeMeta?.position || getPatcherOrControlNodeCoordinates(node, []);
-		node = node.updatePosition(x, y);
+		const state = getState();
+		const { x, y } = nodeMeta?.position || state.editor.instance?.project({
+			y: 10,
+			x: 10
+		}) || getPatcherOrControlNodeCoordinates(node, []);
 
+		node = node.updatePosition(x, y);
 		dispatch(setNode(node));
 
 		// Create Instance State
