@@ -1,12 +1,12 @@
 import { Button, Group, Stack, Text, Tooltip } from "@mantine/core";
-import { FunctionComponent, useCallback } from "react";
+import { FunctionComponent, useCallback, useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "../hooks/useAppDispatch";
 import { RootStateType } from "../lib/store";
 import { getPatchersSortedByName } from "../selectors/patchers";
 import { getConnections, getNodes } from "../selectors/graph";
 import GraphEditor from "../components/editor";
 import PresetDrawer from "../components/presets";
-import { Connection, Edge, EdgeChange, Node, NodeChange } from "reactflow";
+import { Connection, Edge, EdgeChange, Node, NodeChange, ReactFlowInstance } from "reactflow";
 import {
 	applyEditorEdgeChanges, applyEditorNodeChanges, createEditorConnection,
 	removeEditorConnectionsById, removeEditorNodesById,
@@ -26,6 +26,7 @@ import { modals } from "@mantine/modals";
 import { IconElement } from "../components/elements/icon";
 import { mdiCamera, mdiFileExport, mdiGroup } from "@mdi/js";
 import { ResponsiveButton } from "../components/elements/responsiveButton";
+import { initEditor, unmountEditor } from "../actions/editor";
 
 const Index: FunctionComponent<Record<string, never>> = () => {
 
@@ -53,6 +54,11 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 		dispatch(loadPatcherNodeOnRemote(patcher));
 		closePatcherDrawer();
 	}, [dispatch, closePatcherDrawer]);
+
+	// Editor
+	const onEditorInit = useCallback((instance: ReactFlowInstance) => {
+		dispatch(initEditor(instance));
+	}, [dispatch]);
 
 	// Nodes
 	const onConnectNodes = useCallback((connection: Connection) => {
@@ -145,6 +151,10 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 		dispatch(renamePatcherOnRemote(p, name));
 	}, [dispatch]);
 
+	useEffect(() => {
+		return () => dispatch(unmountEditor());
+	}, [dispatch]);
+
 	return (
 		<>
 			<Stack style={{ height: "100%" }} >
@@ -177,6 +187,7 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 					onNodesDelete={ onNodesDelete }
 					onEdgesChange={ onEdgesChange }
 					onEdgesDelete={ onEdgesDelete }
+					onInit={ onEditorInit }
 				/>
 			</Stack>
 			<PatcherDrawer
