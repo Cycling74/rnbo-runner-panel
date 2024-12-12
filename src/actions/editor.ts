@@ -1,7 +1,8 @@
+import Dagre from "@dagrejs/dagre";
 import { Connection, EdgeChange, NodeChange, ReactFlowInstance } from "reactflow";
 import { Map as ImmuMap } from "immutable";
 import { ActionBase, AppThunk } from "../lib/store";
-import { getConnection, getConnectionByNodesAndPorts, getNode, getNodes } from "../selectors/graph";
+import { getConnection, getConnectionByNodesAndPorts, getConnections, getControlNodes, getNode, getNodes, getPatcherNodes, getSystemNodes } from "../selectors/graph";
 import { GraphConnectionRecord, GraphNode, GraphNodeRecord, GraphPatcherNode, NodeType } from "../models/graph";
 import { showNotification } from "./notifications";
 import { NotificationLevel } from "../models/notification";
@@ -10,8 +11,9 @@ import { oscQueryBridge } from "../controller/oscqueryBridgeController";
 import { isValidConnection } from "../lib/editorUtils";
 import throttle from "lodash.throttle";
 import { OSCQuerySetMeta } from "../lib/types";
-import { setConnection, setNode, unloadPatcherNodeByIndexOnRemote } from "./graph";
+import { setConnection, setNode, setNodes, unloadPatcherNodeByIndexOnRemote } from "./graph";
 import { getGraphEditorInstance, getGraphEditorLockedState } from "../selectors/editor";
+import { defaultNodeGap } from "../lib/constants";
 
 export enum EditorActionType {
 	INIT = "EDITOR_INIT",
@@ -322,6 +324,40 @@ export const editorZoomOut = (): AppThunk =>
 	(_, getState) => {
 		const state = getState();
 		getGraphEditorInstance(state)?.zoomOut();
+	};
+
+export const generateEditorLayout = (): AppThunk =>
+	(dispatch, getState) => {
+
+		const state = getState();
+
+		const g = new Dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
+		g.setGraph({ align: "UL", ranksep: defaultNodeGap, nodesep: defaultNodeGap, rankdir: "LR" });
+
+		const connections = getConnections(state);
+		connections.valueSeq().forEach(conn => g.setEdge(conn.sourceNodeId, conn.sinkNodeId));
+
+		const nodes = getNodes(state);
+
+		nodes.valueSeq().forEach(n => g.setNode(n.id, {
+			height: n.height,
+			width: n.width
+		}));
+
+		Dagre.layout(g);
+
+		const layoutedNodes = nodes.valueSeq().toArray().map((node: GraphNodeRecord): GraphNodeRecord => {
+			const pos = g.node(node.id);
+			// Shift from dagre anchor (center center) to reactflow anchor (top left)
+			return node.updatePosition(
+				pos.x - (node.width / 2),
+				pos.y - (node.height / 2)
+			);
+		});
+
+		dispatch(setNodes(layoutedNodes));
+		dispatch(updateSetMetaOnRemote());
+		window.requestAnimationFrame(() => getGraphEditorInstance(getState())?.fitView());
 	};
 
 

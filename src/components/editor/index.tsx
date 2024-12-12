@@ -14,7 +14,7 @@ import { useRouter } from "next/router";
 import EditorControlNode from "./controlNode";
 import { ActionIcon, Tooltip, useMantineColorScheme } from "@mantine/core";
 import { IconElement } from "../elements/icon";
-import { mdiFitToScreen, mdiLock, mdiLockOpen, mdiMinus, mdiPlus } from "@mdi/js";
+import { mdiFitToScreen, mdiLock, mdiLockOpen, mdiMinus, mdiPlus, mdiSitemap } from "@mdi/js";
 import { maxEditorZoom, minEditorZoom } from "../../lib/constants";
 
 export type GraphEditorProps = {
@@ -31,6 +31,7 @@ export type GraphEditorProps = {
 	locked: boolean;
 	onInit: (instance: ReactFlowInstance) => void;
 	onFitView: () => void;
+	onAutoLayout: () => void;
 	onToggleLocked: () => void;
 	onZoomIn: () => void;
 	onZoomOut: () => void;
@@ -58,6 +59,7 @@ const GraphEditor: FunctionComponent<GraphEditorProps> = memo(function WrappedFl
 	nodes,
 	onInit,
 	onFitView,
+	onAutoLayout,
 	locked,
 	onToggleLocked,
 	zoom,
@@ -157,6 +159,11 @@ const GraphEditor: FunctionComponent<GraphEditorProps> = memo(function WrappedFl
 					<Tooltip label={ locked ? "Unlock graph" : "Lock graph" } position="right" >
 						<ActionIcon variant="default" onClick={ onToggleLocked } >
 							<IconElement path={ locked ? mdiLock : mdiLockOpen } />
+						</ActionIcon>
+					</Tooltip>
+					<Tooltip label="Auto Layout" position="right" >
+						<ActionIcon variant="default" onClick={ onAutoLayout } >
+							<IconElement path={ mdiSitemap } rotate={ -90 } />
 						</ActionIcon>
 					</Tooltip>
 				</ActionIcon.Group>

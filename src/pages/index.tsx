@@ -12,6 +12,7 @@ import {
 	applyEditorEdgeChanges, applyEditorNodeChanges, createEditorConnection,
 	editorZoomIn,
 	editorZoomOut,
+	generateEditorLayout,
 	removeEditorConnectionsById, removeEditorNodesById,
 	toggleEditorLockedState,
 	triggerEditorFitView
@@ -74,6 +75,20 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 	const onEditorToggleLocked = useCallback(() => {
 		dispatch(toggleEditorLockedState());
 	}, [dispatch]);
+
+	const onEditorAutoLayout = useCallback(() => {
+		modals.openConfirmModal({
+			title: "Rerrange Graph",
+			centered: true,
+			children: (
+				<Text size="sm">
+					Are you sure you want to automatically layout the current graph? This action cannot be undone.
+				</Text>
+			),
+			labels: { confirm: "Confirm", cancel: "Cancel" },
+			onConfirm: () => dispatch(generateEditorLayout())
+		});
+	}, []);
 
 	const onEditorZoomIn = useCallback(() => {
 		dispatch(editorZoomIn());
@@ -213,6 +228,7 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 					onEdgesDelete={ onEdgesDelete }
 
 					onInit={ onEditorInit }
+					onAutoLayout={ onEditorAutoLayout }
 					onFitView={ onEditorFitView }
 					onToggleLocked={ onEditorToggleLocked }
 					locked={ editorLocked }

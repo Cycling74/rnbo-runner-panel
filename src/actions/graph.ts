@@ -12,10 +12,9 @@ import { deleteInstance, setInstance, setInstances } from "./instances";
 import { getInstance } from "../selectors/instances";
 import { PatcherRecord } from "../models/patcher";
 import { getPatchers } from "../selectors/patchers";
-import { nodeDefaultWidth, nodeHeaderHeight } from "../lib/constants";
+import { defaultNodeGap, nodeDefaultWidth, nodeHeaderHeight } from "../lib/constants";
 import { getGraphEditorInstance } from "../selectors/editor";
 
-const defaultNodeSpacing = 150;
 const getPatcherOrControlNodeCoordinates = (node: GraphPatcherNodeRecord | GraphControlNodeRecord, nodes: GraphNodeRecord[]): { x: number, y: number } => {
 
 	let y = 0;
@@ -26,10 +25,10 @@ const getPatcherOrControlNodeCoordinates = (node: GraphPatcherNodeRecord | Graph
 			return current.y > n.y ? current : n;
 		}, undefined as GraphNodeRecord | undefined);
 
-		y = bottomNode ? bottomNode.y + bottomNode.height + defaultNodeSpacing : 0;
+		y = bottomNode ? bottomNode.y + bottomNode.height + defaultNodeGap : 0;
 	}
 
-	return { x: 435 + defaultNodeSpacing, y };
+	return { x: nodeDefaultWidth + defaultNodeGap, y };
 };
 
 const deserializeSetMeta = (metaString: string): OSCQuerySetMeta => {
@@ -385,8 +384,8 @@ export const initNodes = (jackPortsInfo: OSCQueryRNBOJackPortInfo, instanceInfo:
 		// as we assume moving forward that they are SystemNames
 		const systemJackNames = ImmuSet<string>(getSystemNodeJackNamesFromPortInfo(jackPortsInfo, patcherAndControlNodes));
 
-		let systemInputY = -defaultNodeSpacing;
-		let systemOutputY = -defaultNodeSpacing;
+		let systemInputY = -defaultNodeGap;
+		let systemOutputY = -defaultNodeGap;
 
 		const systemNodes: GraphSystemNodeRecord[] = GraphSystemNodeRecord
 			.fromDescription(systemJackNames, jackPortsInfo)
@@ -400,13 +399,13 @@ export const initNodes = (jackPortsInfo: OSCQueryRNBOJackPortInfo, instanceInfo:
 				if (node.id.endsWith(GraphSystemNodeRecord.inputSuffix)) {
 					node = node.updatePosition(
 						0,
-						systemInputY + defaultNodeSpacing
+						systemInputY + defaultNodeGap
 					);
 					systemInputY = node.y + node.contentHeight;
 				} else {
 					node = node.updatePosition(
-						node.width + 300 + defaultNodeSpacing * 2,
-						systemOutputY + defaultNodeSpacing
+						node.width + 300 + defaultNodeGap * 2,
+						systemOutputY + defaultNodeGap
 					);
 					systemOutputY = node.y + node.contentHeight;
 				}
@@ -531,8 +530,8 @@ export const updateSystemOrControlPortInfo = (type: ConnectionType, direction: P
 		}
 
 		// Create New Nodes
-		let systemInputY = -defaultNodeSpacing;
-		let systemOutputY = -defaultNodeSpacing;
+		let systemInputY = -defaultNodeGap;
+		let systemOutputY = -defaultNodeGap;
 
 		const patchers = getPatchers(state).valueSeq();
 		const missingSystemOrControlJackName = Array.from(systemOrControlJackNames.values())
@@ -562,13 +561,13 @@ export const updateSystemOrControlPortInfo = (type: ConnectionType, direction: P
 				if (direction === PortDirection.Source) {
 					node = node.updatePosition(
 						0,
-						systemInputY + defaultNodeSpacing
+						systemInputY + defaultNodeGap
 					);
 					systemInputY = node.y + node.contentHeight;
 				} else {
 					node = node.updatePosition(
-						node.width + 300 + defaultNodeSpacing * 2,
-						systemOutputY + defaultNodeSpacing
+						node.width + 300 + defaultNodeGap * 2,
+						systemOutputY + defaultNodeGap
 					);
 					systemOutputY = node.y + node.contentHeight;
 				}
