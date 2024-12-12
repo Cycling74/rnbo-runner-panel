@@ -82,7 +82,7 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 			centered: true,
 			children: (
 				<Text size="sm">
-					Are you sure you want to automatically layout the current graph? This action cannot be undone.
+					Are you sure you want to rearrange and auto-layout the current graph? This action cannot be undone.
 				</Text>
 			),
 			labels: { confirm: "Confirm", cancel: "Cancel" },
