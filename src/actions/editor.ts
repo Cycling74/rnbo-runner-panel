@@ -2,7 +2,7 @@ import Dagre from "@dagrejs/dagre";
 import { Connection, EdgeChange, NodeChange, ReactFlowInstance } from "reactflow";
 import { Map as ImmuMap } from "immutable";
 import { ActionBase, AppThunk } from "../lib/store";
-import { getConnection, getConnectionByNodesAndPorts, getConnections, getControlNodes, getNode, getNodes, getPatcherNodes, getSystemNodes } from "../selectors/graph";
+import { getConnection, getConnectionByNodesAndPorts, getConnections, getNode, getNodes } from "../selectors/graph";
 import { GraphConnectionRecord, GraphNode, GraphNodeRecord, GraphPatcherNode, NodeType } from "../models/graph";
 import { showNotification } from "./notifications";
 import { NotificationLevel } from "../models/notification";

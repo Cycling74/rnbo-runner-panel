@@ -88,7 +88,7 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 			labels: { confirm: "Confirm", cancel: "Cancel" },
 			onConfirm: () => dispatch(generateEditorLayout())
 		});
-	}, []);
+	}, [dispatch]);
 
 	const onEditorZoomIn = useCallback(() => {
 		dispatch(editorZoomIn());

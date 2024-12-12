@@ -4,7 +4,7 @@ import { parseThemeColor, useMantineTheme } from "@mantine/core";
 import { forwardRef, RefObject } from "react";
 import { IconProps } from "@mdi/react/dist/IconProps";
 
-export const IconElement = forwardRef<SVGSVGElement, IconProps>(({ color, ...props }, ref) => {
+export const IconElement = forwardRef<SVGSVGElement, IconProps>(function WrappedIconElement({ color, ...props }, ref) {
 	const theme = useMantineTheme();
 
 	let iconColor: string | undefined = undefined;
