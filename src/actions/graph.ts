@@ -15,6 +15,7 @@ import { Connection, EdgeChange, NodeChange } from "reactflow";
 import { isValidConnection } from "../lib/editorUtils";
 import throttle from "lodash.throttle";
 import { getPatchers } from "../selectors/patchers";
+import { nodeDefaultWidth, nodeHeaderHeight } from "../lib/constants";
 
 const defaultNodeSpacing = 150;
 const getPatcherOrControlNodeCoordinates = (node: GraphPatcherNodeRecord | GraphControlNodeRecord, nodes: GraphNodeRecord[]): { x: number, y: number } => {
@@ -580,10 +581,12 @@ export const updateSystemOrControlPortInfo = (type: ConnectionType, direction: P
 					direction,
 					id: `${jackName}${direction === PortDirection.Source ? GraphSystemNodeRecord.inputSuffix : GraphSystemNodeRecord.outputSuffix}`,
 					ports,
-					contentHeight,
 					selected: false,
 					x: 0,
-					y: 0
+					y: 0,
+					width: nodeDefaultWidth,
+					height: contentHeight + nodeHeaderHeight
+
 				});
 
 				if (direction === PortDirection.Source) {
@@ -605,10 +608,11 @@ export const updateSystemOrControlPortInfo = (type: ConnectionType, direction: P
 				node = new GraphControlNodeRecord({
 					jackName,
 					ports,
-					contentHeight,
 					selected: false,
 					x: 0,
-					y: 0
+					y: 0,
+					width: nodeDefaultWidth,
+					height: contentHeight + nodeHeaderHeight
 				});
 				const { x, y } = getPatcherOrControlNodeCoordinates(node, [...patcherNodes, ...controlNodes]);
 				node = node.updatePosition(x, y);
@@ -902,7 +906,7 @@ export const updateSourcePortConnections = (source: string, sinks: string[]): Ap
 	};
 
 export const addPatcherNode = (desc: OSCQueryRNBOInstance, metaString: string): AppThunk =>
-	(dispatch) => {
+	(dispatch, getState) => {
 		// Create Node
 		let node = GraphPatcherNodeRecord.fromDescription(desc);
 		const setMeta: OSCQuerySetMeta = deserializeSetMeta(metaString);

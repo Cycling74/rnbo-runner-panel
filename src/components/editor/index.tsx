@@ -1,5 +1,5 @@
 import React, { ComponentType, FunctionComponent, memo, useCallback } from "react";
-import ReactFlow, { Connection, Controls, Edge, EdgeChange, Node, NodeChange } from "reactflow";
+import ReactFlow, { Connection, Controls, Edge, EdgeChange, Node, NodeChange, ReactFlowInstance } from "reactflow";
 import { GraphConnectionRecord, GraphPatcherNodeRecord, NodeType } from "../../models/graph";
 import EditorPatcherNode from "./patcherNode";
 import EditorSystemNode from "./systemNode";
@@ -17,6 +17,7 @@ import { useMantineColorScheme } from "@mantine/core";
 export type GraphEditorProps = {
 	connections: RootStateType["graph"]["connections"];
 	nodes: RootStateType["graph"]["nodes"];
+	onInit: (instance: ReactFlowInstance) => void;
 	onConnect: (connection: Connection) => any;
 	onNodesDelete: (nodes: Pick<Edge, "id">[]) => void;
 	onNodesChange: (changes: NodeChange[]) => void;
@@ -37,6 +38,7 @@ const edgeTypes: Record<typeof RNBOGraphEdgeType, ComponentType<EditorEdgeProps>
 const GraphEditor: FunctionComponent<GraphEditorProps> = memo(function WrappedFlowGraph({
 	connections,
 	nodes,
+	onInit,
 	onConnect,
 	onNodesChange,
 	onNodesDelete,
@@ -74,11 +76,9 @@ const GraphEditor: FunctionComponent<GraphEditorProps> = memo(function WrappedFl
 		deletable: node.type === NodeType.Patcher,
 		selected: node.selected,
 		type: node?.type,
-		data: {
-			node
-		}
+		data: { node },
+		style: { height: node.height, width: node.width }
 	}));
-
 
 	const flowEdges: Edge<EdgeDataProps>[] = connections.valueSeq().toArray().map(connection => ({
 		id: connection.id,
@@ -109,6 +109,7 @@ const GraphEditor: FunctionComponent<GraphEditorProps> = memo(function WrappedFl
 				edgeTypes={ edgeTypes }
 				edgesUpdatable={ false }
 				fitView
+				onInit={ onInit }
 				minZoom={ 0.1 }
 				maxZoom={ 5 }
 			>
