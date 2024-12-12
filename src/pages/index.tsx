@@ -7,11 +7,15 @@ import { getConnections, getNodes } from "../selectors/graph";
 import GraphEditor from "../components/editor";
 import PresetDrawer from "../components/presets";
 import { Connection, Edge, EdgeChange, Node, NodeChange, ReactFlowInstance } from "reactflow";
+import { loadPatcherNodeOnRemote } from "../actions/graph";
 import {
 	applyEditorEdgeChanges, applyEditorNodeChanges, createEditorConnection,
+	editorZoomIn,
+	editorZoomOut,
 	removeEditorConnectionsById, removeEditorNodesById,
-	loadPatcherNodeOnRemote
-} from "../actions/graph";
+	toggleEditorLockedState,
+	triggerEditorFitView
+} from "../actions/editor";
 import SetsDrawer from "../components/sets";
 import { destroySetPresetOnRemote, loadSetPresetOnRemote, saveSetPresetToRemote, renameSetPresetOnRemote, clearGraphSetOnRemote, destroyGraphSetOnRemote, loadGraphSetOnRemote, renameGraphSetOnRemote, saveGraphSetOnRemote } from "../actions/sets";
 import { destroyPatcherOnRemote, renamePatcherOnRemote } from "../actions/patchers";
@@ -27,6 +31,7 @@ import { IconElement } from "../components/elements/icon";
 import { mdiCamera, mdiFileExport, mdiGroup } from "@mdi/js";
 import { ResponsiveButton } from "../components/elements/responsiveButton";
 import { initEditor, unmountEditor } from "../actions/editor";
+import { getGraphEditorLockedState } from "../selectors/editor";
 
 const Index: FunctionComponent<Record<string, never>> = () => {
 
@@ -36,13 +41,15 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 		nodes,
 		connections,
 		graphSets,
-		graphPresets
+		graphPresets,
+		editorLocked
 	] = useAppSelector((state: RootStateType) => [
 		getPatchersSortedByName(state, SortOrder.Asc),
 		getNodes(state),
 		getConnections(state),
 		getGraphSetsSortedByName(state, SortOrder.Asc),
-		getGraphSetPresetsSortedByName(state, SortOrder.Asc)
+		getGraphSetPresetsSortedByName(state, SortOrder.Asc),
+		getGraphEditorLockedState(state)
 	]);
 
 	const [patcherDrawerIsOpen, { close: closePatcherDrawer, toggle: togglePatcherDrawer }] = useDisclosure();
@@ -58,6 +65,22 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 	// Editor
 	const onEditorInit = useCallback((instance: ReactFlowInstance) => {
 		dispatch(initEditor(instance));
+	}, [dispatch]);
+
+	const onEditorFitView = useCallback(() => {
+		dispatch(triggerEditorFitView());
+	}, [dispatch]);
+
+	const onEditorToggleLocked = useCallback(() => {
+		dispatch(toggleEditorLockedState());
+	}, [dispatch]);
+
+	const onEditorZoomIn = useCallback(() => {
+		dispatch(editorZoomIn());
+	}, [dispatch]);
+
+	const onEditorZoomOut = useCallback(() => {
+		dispatch(editorZoomOut());
 	}, [dispatch]);
 
 	// Nodes
@@ -182,12 +205,20 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 				<GraphEditor
 					nodes={ nodes }
 					connections={ connections }
+
 					onConnect={ onConnectNodes }
 					onNodesChange={ onNodesChange }
 					onNodesDelete={ onNodesDelete }
 					onEdgesChange={ onEdgesChange }
 					onEdgesDelete={ onEdgesDelete }
+
 					onInit={ onEditorInit }
+					onFitView={ onEditorFitView }
+					onToggleLocked={ onEditorToggleLocked }
+					locked={ editorLocked }
+					zoom={ 1 }
+					onZoomIn={ onEditorZoomIn }
+					onZoomOut={ onEditorZoomOut }
 				/>
 			</Stack>
 			<PatcherDrawer

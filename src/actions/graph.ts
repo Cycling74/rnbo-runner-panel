@@ -3,19 +3,17 @@ import { writePacket } from "osc";
 import { oscQueryBridge } from "../controller/oscqueryBridgeController";
 import { ActionBase, AppThunk, RootStateType } from "../lib/store";
 import { OSCQueryRNBOInstance, OSCQueryRNBOInstancesState, OSCQueryRNBOJackConnections, OSCQueryRNBOJackPortInfo, OSCQuerySetMeta, OSCQuerySetNodeMeta } from "../lib/types";
-import { ConnectionType, GraphConnectionRecord, GraphControlNodeRecord, GraphNode, GraphNodeRecord, GraphPatcherNode, GraphPatcherNodeRecord, GraphPortRecord, GraphSystemNodeRecord, NodeType, PortDirection, calculateNodeContentHeight, createNodePorts } from "../models/graph";
-import { getConnection, getConnectionByNodesAndPorts, getConnectionsForSourceNodeAndPort, getNode, getPatcherNodeByIndex, getNodes, getSystemNodeByJackNameAndDirection, getConnections, getPatcherNodes, getSystemNodes, getControlNodes } from "../selectors/graph";
+import { ConnectionType, GraphConnectionRecord, GraphControlNodeRecord, GraphNodeRecord, GraphPatcherNodeRecord, GraphPortRecord, GraphSystemNodeRecord, NodeType, PortDirection, calculateNodeContentHeight, createNodePorts } from "../models/graph";
+import { getConnectionsForSourceNodeAndPort, getNode, getPatcherNodeByIndex, getNodes, getSystemNodeByJackNameAndDirection, getConnections, getPatcherNodes, getSystemNodes, getControlNodes } from "../selectors/graph";
 import { showNotification } from "./notifications";
 import { NotificationLevel } from "../models/notification";
 import { InstanceStateRecord } from "../models/instance";
 import { deleteInstance, setInstance, setInstances } from "./instances";
 import { getInstance } from "../selectors/instances";
 import { PatcherRecord } from "../models/patcher";
-import { Connection, EdgeChange, NodeChange } from "reactflow";
-import { isValidConnection } from "../lib/editorUtils";
-import throttle from "lodash.throttle";
 import { getPatchers } from "../selectors/patchers";
 import { nodeDefaultWidth, nodeHeaderHeight } from "../lib/constants";
+import { getGraphEditorInstance } from "../selectors/editor";
 
 const defaultNodeSpacing = 150;
 const getPatcherOrControlNodeCoordinates = (node: GraphPatcherNodeRecord | GraphControlNodeRecord, nodes: GraphNodeRecord[]): { x: number, y: number } => {
@@ -32,14 +30,6 @@ const getPatcherOrControlNodeCoordinates = (node: GraphPatcherNodeRecord | Graph
 	}
 
 	return { x: 435 + defaultNodeSpacing, y };
-};
-
-const serializeSetMeta = (nodes: GraphNodeRecord[]): string => {
-	const result: OSCQuerySetMeta = { nodes: {} };
-	for (const node of nodes) {
-		result.nodes[node.id] = { position: { x: node.x, y: node.y } };
-	}
-	return JSON.stringify(result);
 };
 
 const deserializeSetMeta = (metaString: string): OSCQuerySetMeta => {
@@ -336,26 +326,6 @@ export const updateSetMetaFromRemote = (metaString: string): AppThunk =>
 		}
 	};
 
-
-const doUpdateNodesMeta = throttle((nodes: ImmuMap<GraphNodeRecord["id"], GraphNodeRecord>) => {
-	try {
-		const value = serializeSetMeta(nodes.valueSeq().toArray());
-
-		const message = {
-			address: "/rnbo/inst/control/sets/meta",
-			args: [
-				{ type: "s", value }
-			]
-		};
-		oscQueryBridge.sendPacket(writePacket(message));
-	} catch (err) {
-		console.warn(`Failed to update Set Meta on remote: ${err.message}`);
-	}
-
-}, 150, { leading: true, trailing: true });
-
-const updateSetMetaOnRemote = (): AppThunk =>
-	(dispatch, getState) => doUpdateNodesMeta(getNodes(getState()));
 
 const requestMetaUpdateFromRemote = (): AppThunk =>
 	async (dispatch) => {
@@ -669,214 +639,6 @@ export const loadPatcherNodeOnRemote = (patcher: PatcherRecord): AppThunk =>
 		}
 	};
 
-// Editor Actions
-export const createEditorConnection = (connection: Connection): AppThunk =>
-	(dispatch, getState) => {
-		try {
-			const state = getState();
-
-			if (!connection.source || !connection.target || !connection.sourceHandle || !connection.targetHandle) {
-				throw new Error(`Invalid Connection Description (${connection.source}:${connection.sourceHandle} => ${connection.target}:${connection.targetHandle})`);
-			}
-
-			// Valid Connection?
-			const { sourceNode, sourcePort, sinkNode, sinkPort } = isValidConnection(connection, state.graph.nodes);
-
-			// Does it already exist?
-			const existingConnection = getConnectionByNodesAndPorts(
-				state,
-				{
-					sourceNodeId: sourceNode.id,
-					sinkNodeId: sinkNode.id,
-					sourcePortId: sourcePort.id,
-					sinkPortId: sinkPort.id
-				}
-			);
-
-			if (existingConnection) {
-				return void dispatch(showNotification({
-					title: "Skipped creating connection",
-					level: NotificationLevel.warn,
-					message: `A connection between ${connection.source}:${connection.sourceHandle} and ${connection.target}:${connection.targetHandle} already exists`
-				}));
-			}
-
-			const message = {
-				address: "/rnbo/jack/connections/connect",
-				args: [
-					{ type: "s", value: `${sourceNode.jackName}:${sourcePort.id}` },
-					{ type: "s", value: `${sinkNode.jackName}:${sinkPort.id}` }
-				]
-			};
-
-			oscQueryBridge.sendPacket(writePacket(message));
-		} catch (err) {
-			dispatch(showNotification({
-				title: "Failed to create connection",
-				level: NotificationLevel.error,
-				message: err.message
-			}));
-			console.error(err);
-		}
-	};
-
-export const removeEditorConnectionById = (id: GraphConnectionRecord["id"]): AppThunk =>
-	(dispatch, getState) => {
-
-		try {
-			const state = getState();
-			const connection = getConnection(state, id);
-			if (!connection) throw new Error(`Connection with id ${id} does not exist.`);
-
-			const sourceNode = getNode(state, connection.sourceNodeId);
-			if (!sourceNode) throw new Error(`Node with id ${connection.sourceNodeId} does not exist.`);
-
-			const sourcePort = sourceNode.getPort(connection.sourcePortId);
-			if (!sourcePort) throw new Error(`Port with id ${connection.sourcePortId} does not exist on node ${sourceNode.id}.`);
-
-			const sinkNode = getNode(state, connection.sinkNodeId);
-			if (!sinkNode) throw new Error(`Node with id ${connection.sinkNodeId} does not exist.`);
-
-			const sinkPort = sinkNode.getPort(connection.sinkPortId);
-			if (!sinkPort) throw new Error(`Port with id ${connection.sinkPortId} does not exist on node ${sinkNode.id}.`);
-
-			const message = {
-				address: "/rnbo/jack/connections/disconnect",
-				args: [
-					{ type: "s", value: `${sourceNode.jackName}:${sourcePort.id}` },
-					{ type: "s", value: `${sinkNode.jackName}:${sinkPort.id}` }
-				]
-			};
-
-			oscQueryBridge.sendPacket(writePacket(message));
-
-		} catch (err) {
-			dispatch(showNotification({
-				title: "Failed to delete connection",
-				level: NotificationLevel.error,
-				message: err.message
-			}));
-			console.error(err);
-		}
-	};
-
-
-export const removeEditorNodeById = (id: GraphNode["id"], updateSetMeta = true): AppThunk =>
-	(dispatch, getState) => {
-		try {
-			const state = getState();
-			const node = getNode(state, id);
-
-			if (!node) {
-				throw new Error(`Node with id ${id} does not exist.`);
-			}
-
-			if (node.type === NodeType.System || node.type === NodeType.Control) {
-				throw new Error(`System nodes cannot be removed (id: ${id}).`);
-			}
-
-			dispatch(unloadPatcherNodeByIndexOnRemote(node.index));
-			if (updateSetMeta) doUpdateNodesMeta(getNodes(state).delete(node.id));
-
-		} catch (err) {
-			dispatch(showNotification({
-				title: "Failed to node",
-				level: NotificationLevel.error,
-				message: err.message
-			}));
-			console.error(err);
-		}
-	};
-
-export const removeEditorNodesById = (ids: GraphPatcherNode["id"][]): AppThunk =>
-	(dispatch, getState) => {
-		for (const id of ids) {
-			dispatch(removeEditorNodeById(id, false));
-		}
-		// Only at the end update the meta to ensure all coord data has been removed
-		doUpdateNodesMeta(getNodes(getState()).deleteAll(ids));
-	};
-
-export const removeEditorConnectionsById = (ids: GraphConnectionRecord["id"][]): AppThunk =>
-	(dispatch) => {
-		for (const id of ids) {
-			dispatch(removeEditorConnectionById(id));
-		}
-	};
-
-export const changeNodePosition = (id: GraphNode["id"], x: number, y: number): AppThunk =>
-	(dispatch, getState) => {
-		const state = getState();
-		const node = getNode(state, id);
-		if (!node) return;
-		dispatch(setNode(node.updatePosition(x, y)));
-		dispatch(updateSetMetaOnRemote());
-	};
-
-export const changeNodeSelection = (id: GraphNode["id"], selected: boolean): AppThunk =>
-	(dispatch, getState) => {
-		const state = getState();
-		const node = getNode(state, id);
-		if (!node) return;
-		dispatch(setNode(selected ? node.select() : node.unselect()));
-	};
-
-export const changeEdgeSelection = (id: GraphConnectionRecord["id"], selected: boolean): AppThunk =>
-	(dispatch, getState) => {
-		const state = getState();
-		const connection = getConnection(state, id);
-		if (!connection) return;
-		dispatch(setConnection(selected ? connection.select() : connection.unselect()));
-	};
-
-export const applyEditorNodeChanges = (changes: NodeChange[]): AppThunk =>
-	(dispatch) => {
-		for (const change of changes) {
-			switch (change.type) {
-				case "position": {
-					if (change.position) {
-						dispatch(changeNodePosition(
-							change.id,
-							change.position.x,
-							change.position.y
-						));
-					}
-					break;
-				}
-
-				case "select": {
-					dispatch(changeNodeSelection(change.id, change.selected));
-					break;
-				}
-
-				case "remove": // handled separetely via dedicated action
-				case "add":
-				case "reset":
-				case "dimensions":
-				default:
-					// no-op
-			}
-		}
-	};
-
-export const applyEditorEdgeChanges = (changes: EdgeChange[]): AppThunk =>
-	(dispatch) => {
-		for (const change of changes) {
-			switch (change.type) {
-				case "select": {
-					dispatch(changeEdgeSelection(change.id, change.selected));
-					break;
-				}
-
-				case "remove": // handled separetely via dedicated action
-				case "add":
-				case "reset":
-				default:
-					// no-op
-			}
-		}
-	};
-
 // Updates from OSCQuery Runner Remote
 export const updateSourcePortConnections = (source: string, sinks: string[]): AppThunk =>
 	(dispatch, getState) => {
@@ -913,7 +675,7 @@ export const addPatcherNode = (desc: OSCQueryRNBOInstance, metaString: string): 
 		const nodeMeta: OSCQuerySetNodeMeta | undefined = setMeta?.nodes?.[node.id];
 
 		const state = getState();
-		const { x, y } = nodeMeta?.position || state.editor.instance?.project({
+		const { x, y } = nodeMeta?.position || getGraphEditorInstance(state)?.project({
 			y: 10,
 			x: 10
 		}) || getPatcherOrControlNodeCoordinates(node, []);

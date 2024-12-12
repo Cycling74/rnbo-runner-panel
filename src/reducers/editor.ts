@@ -3,9 +3,12 @@ import { ReactFlowInstance } from "reactflow";
 
 export type EditorState = {
 	instance?: ReactFlowInstance;
+	isLocked: boolean;
 };
 
-export const editor = (state: EditorState = {}, action: EditorAction): EditorState => {
+export const editor = (state: EditorState = {
+	isLocked: false
+}, action: EditorAction): EditorState => {
 	switch (action.type) {
 
 		case EditorActionType.INIT: {
@@ -19,6 +22,13 @@ export const editor = (state: EditorState = {}, action: EditorAction): EditorSta
 			return {
 				...state,
 				instance: undefined
+			};
+		}
+
+		case EditorActionType.SET_LOCKED: {
+			return {
+				...state,
+				isLocked: action.payload.locked
 			};
 		}
 

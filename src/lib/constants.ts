@@ -29,6 +29,9 @@ export const nodeHeaderHeight = 50;
 export const nodePortSpacing = 30;
 export const nodePortHeight = 20;
 
+export const maxEditorZoom = 5;
+export const minEditorZoom = 0.25;
+
 export enum Breakpoints {
 	xs = 36 * 16,
 	sm = 48 * 16,

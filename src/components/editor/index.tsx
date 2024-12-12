@@ -1,5 +1,5 @@
 import React, { ComponentType, FunctionComponent, memo, useCallback } from "react";
-import ReactFlow, { Connection, Controls, Edge, EdgeChange, Node, NodeChange, ReactFlowInstance } from "reactflow";
+import ReactFlow, { Connection, Edge, EdgeChange, Node, NodeChange, ReactFlowInstance } from "reactflow";
 import { GraphConnectionRecord, GraphPatcherNodeRecord, NodeType } from "../../models/graph";
 import EditorPatcherNode from "./patcherNode";
 import EditorSystemNode from "./systemNode";
@@ -12,17 +12,28 @@ import classes from "./editor.module.css";
 import GraphEdge, { RNBOGraphEdgeType } from "./edge";
 import { useRouter } from "next/router";
 import EditorControlNode from "./controlNode";
-import { useMantineColorScheme } from "@mantine/core";
+import { ActionIcon, Tooltip, useMantineColorScheme } from "@mantine/core";
+import { IconElement } from "../elements/icon";
+import { mdiFitToScreen, mdiLock, mdiLockOpen, mdiMinus, mdiPlus } from "@mdi/js";
+import { maxEditorZoom, minEditorZoom } from "../../lib/constants";
 
 export type GraphEditorProps = {
 	connections: RootStateType["graph"]["connections"];
 	nodes: RootStateType["graph"]["nodes"];
-	onInit: (instance: ReactFlowInstance) => void;
+
 	onConnect: (connection: Connection) => any;
 	onNodesDelete: (nodes: Pick<Edge, "id">[]) => void;
 	onNodesChange: (changes: NodeChange[]) => void;
 	onEdgesDelete: (edges: Pick<Edge, "id">[]) => void;
 	onEdgesChange: (changes: EdgeChange[]) => void;
+
+	zoom: number;
+	locked: boolean;
+	onInit: (instance: ReactFlowInstance) => void;
+	onFitView: () => void;
+	onToggleLocked: () => void;
+	onZoomIn: () => void;
+	onZoomOut: () => void;
 };
 
 const nodeTypes: Record<NodeType, ComponentType<EditorNodeProps>> = {
@@ -37,13 +48,21 @@ const edgeTypes: Record<typeof RNBOGraphEdgeType, ComponentType<EditorEdgeProps>
 
 const GraphEditor: FunctionComponent<GraphEditorProps> = memo(function WrappedFlowGraph({
 	connections,
-	nodes,
-	onInit,
+
 	onConnect,
 	onNodesChange,
 	onNodesDelete,
 	onEdgesChange,
-	onEdgesDelete
+	onEdgesDelete,
+
+	nodes,
+	onInit,
+	onFitView,
+	locked,
+	onToggleLocked,
+	zoom,
+	onZoomIn,
+	onZoomOut
 }) {
 
 	const { colorScheme } = useMantineColorScheme();
@@ -110,11 +129,38 @@ const GraphEditor: FunctionComponent<GraphEditorProps> = memo(function WrappedFl
 				edgesUpdatable={ false }
 				fitView
 				onInit={ onInit }
-				minZoom={ 0.1 }
-				maxZoom={ 5 }
-			>
-				<Controls />
-			</ReactFlow>
+				minZoom={ minEditorZoom }
+				maxZoom={ maxEditorZoom }
+				nodesFocusable={ !locked }
+				nodesDraggable={ !locked }
+				nodesConnectable={ !locked }
+				edgesFocusable={ !locked }
+				elementsSelectable={ !locked }
+			/>
+			<div className={ classes.controls } >
+				<ActionIcon.Group orientation="vertical">
+					<Tooltip label="Zoom in" position="right" >
+						<ActionIcon variant="default" disabled={ zoom >= maxEditorZoom } onClick={ onZoomIn } >
+							<IconElement path={ mdiPlus } />
+						</ActionIcon>
+					</Tooltip>
+					<Tooltip label="Zoom out" position="right" >
+						<ActionIcon variant="default" disabled={ zoom <= minEditorZoom } onClick={ onZoomOut } >
+							<IconElement path={ mdiMinus } />
+						</ActionIcon>
+					</Tooltip>
+					<Tooltip label="Fit graph into view" position="right" >
+						<ActionIcon variant="default" onClick={ onFitView }>
+							<IconElement path={ mdiFitToScreen } />
+						</ActionIcon>
+					</Tooltip>
+					<Tooltip label={ locked ? "Unlock graph" : "Lock graph" } position="right" >
+						<ActionIcon variant="default" onClick={ onToggleLocked } >
+							<IconElement path={ locked ? mdiLock : mdiLockOpen } />
+						</ActionIcon>
+					</Tooltip>
+				</ActionIcon.Group>
+			</div>
 		</div>
 	);
 });
