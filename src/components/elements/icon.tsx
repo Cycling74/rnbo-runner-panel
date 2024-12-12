@@ -1,8 +1,10 @@
 import Icon  from "@mdi/react";
 import classes from "./elements.module.css";
 import { parseThemeColor, useMantineTheme } from "@mantine/core";
+import { forwardRef, RefObject } from "react";
+import { IconProps } from "@mdi/react/dist/IconProps";
 
-export const IconElement: typeof Icon = ({ color, ...props }) => {
+export const IconElement = forwardRef<SVGSVGElement, IconProps>(({ color, ...props }, ref) => {
 	const theme = useMantineTheme();
 
 	let iconColor: string | undefined = undefined;
@@ -12,6 +14,6 @@ export const IconElement: typeof Icon = ({ color, ...props }) => {
 	}
 
 	return (
-		<Icon { ...props } className={ classes.icon } color={ iconColor } />
+		<Icon { ...props } className={ classes.icon } color={ iconColor } ref={ ref as RefObject<SVGSVGElement> } />
 	);
-};
+});
