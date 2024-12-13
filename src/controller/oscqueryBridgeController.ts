@@ -17,7 +17,8 @@ import {
 	updateInstanceMessageOutportValue, updateInstanceMessages, updateInstanceMessageOutportMeta, updateInstanceMessageInportMeta,
 	updateInstanceParameterValue, updateInstanceParameterValueNormalized, updateInstanceParameters, updateInstanceParameterMeta,
 	updateInstancePresetEntries, updateInstancePresetLatest, updateInstancePresetInitial,
-	updateInstanceMIDILastValue, updateInstanceMIDIReport
+	updateInstanceMIDILastValue, updateInstanceMIDIReport,
+	removeInstanceParameterByPath
 } from "../actions/instances";
 import { ConnectionType, PortDirection } from "../models/graph";
 import { showNotification } from "../actions/notifications";
@@ -417,10 +418,11 @@ export class OSCQueryBridgeControllerPrivate {
 		// Removed Parameter
 		if (
 			instInfoMatch.groups.content === "params" &&
+			!instInfoMatch.groups.rest.endsWith("/index") &&
+			!instInfoMatch.groups.rest.endsWith("/meta") &&
 			!instInfoMatch.groups.rest.endsWith("/normalized")
 		) {
-			const paramInfo = await this._requestState< OSCQueryRNBOInstance["CONTENTS"]["params"]>(`/rnbo/inst/${index}/params`);
-			return void dispatch(updateInstanceParameters(index, paramInfo));
+			return void dispatch(removeInstanceParameterByPath(path));
 		}
 
 		// Removed Message Inport

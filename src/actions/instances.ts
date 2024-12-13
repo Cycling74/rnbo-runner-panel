@@ -490,6 +490,19 @@ export const updateInstanceMessageOutportValue = (index: number, name: string, v
 		}
 	};
 
+export const removeInstanceParameterByPath = (path: string): AppThunk =>
+	(dispatch, getState) => {
+		try {
+			const state = getState();
+			const param = getParameterByPath(state, path);
+			if (!param) return;
+
+			dispatch(deleteInstanceParameters([param]));
+		} catch (e) {
+			console.log(e);
+		}
+	};
+
 export const updateInstanceParameters = (index: number, desc: OSCQueryRNBOInstance["CONTENTS"]["params"]): AppThunk =>
 	(dispatch, getState) => {
 		try {
