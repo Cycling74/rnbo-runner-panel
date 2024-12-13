@@ -8,7 +8,7 @@ import classes from "../../components/instance/instance.module.css";
 import { getAppStatus } from "../../selectors/appStatus";
 import { AppStatus, SortOrder } from "../../lib/constants";
 import Link from "next/link";
-import { getInstanceByIndex, getInstances } from "../../selectors/instances";
+import { getInstanceByIndex, getInstanceParameters, getInstances } from "../../selectors/instances";
 import { unloadPatcherNodeByIndexOnRemote } from "../../actions/graph";
 import { getAppSetting } from "../../selectors/settings";
 import { AppSetting } from "../../models/settings";
@@ -36,6 +36,7 @@ export default function Instance() {
 
 	const [
 		currentInstance,
+		parameters,
 		appStatus,
 		instances,
 		datafiles,
@@ -48,6 +49,7 @@ export default function Instance() {
 
 		return [
 			currentInstance,
+			currentInstance ? getInstanceParameters(state, currentInstance.index) : undefined,
 			getAppStatus(state),
 			getInstances(state),
 			getDataFilesSortedByName(state, SortOrder.Asc),
@@ -102,7 +104,7 @@ export default function Instance() {
 
 	if (!isReady || appStatus !== AppStatus.Ready) return null;
 
-	if (!currentInstance) {
+	if (!currentInstance || !parameters) {
 		// Instance not found / doesn't exist
 		return (
 			<div className={ classes.instanceNotFound } >
@@ -157,6 +159,7 @@ export default function Instance() {
 			</Group>
 			<InstanceComponent
 				instance={ currentInstance }
+				parameters={ parameters }
 				datafiles={ datafiles }
 				enabledMessageOuput={ enabledMessageOuput }
 				paramSortAttr={ sortAttr }

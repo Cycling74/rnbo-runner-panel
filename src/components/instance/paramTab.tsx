@@ -12,7 +12,7 @@ import {
 	setInstanceWaitingForMidiMappingOnRemote, clearParameterMidiMappingOnRemote,
 	activateParameterMIDIMappingFocus
 } from "../../actions/instances";
-import { OrderedSet as ImmuOrderedSet } from "immutable";
+import { OrderedSet as ImmuOrderedSet, Map as ImmuMap } from "immutable";
 import { setAppSetting } from "../../actions/settings";
 import { AppSetting, AppSettingRecord } from "../../models/settings";
 import { useDebouncedCallback, useDisclosure } from "@mantine/hooks";
@@ -106,24 +106,26 @@ const parameterComparators: Record<ParameterSortAttr, Record<SortOrder, (a: Para
 	}
 };
 
-const getSortedParameterIds = (params: InstanceStateRecord["parameters"], attr: ParameterSortAttr, order: SortOrder): ImmuOrderedSet<string> => {
-	return ImmuOrderedSet<string>(params.valueSeq().sort(parameterComparators[attr][order]).map(p => p.id));
+const getSortedParameterIds = (params: ImmuMap<ParameterRecord["id"], ParameterRecord>, attr: ParameterSortAttr, order: SortOrder): ImmuOrderedSet<ParameterRecord["id"]> => {
+	return ImmuOrderedSet<ParameterRecord["id"]>(params.valueSeq().sort(parameterComparators[attr][order]).map(p => p.id));
 };
 
 export type InstanceParameterTabProps = {
 	instance: InstanceStateRecord;
+	parameters: ImmuMap<ParameterRecord["id"], ParameterRecord>;
 	sortAttr: AppSettingRecord;
 	sortOrder: AppSettingRecord;
 }
 
 const InstanceParameterTab: FunctionComponent<InstanceParameterTabProps> = memo(function WrappedInstanceParameterTab({
 	instance,
+	parameters,
 	sortAttr,
 	sortOrder
 }) {
 
 	const [searchValue, setSearchValue] = useState<string>("");
-	const [sortedParamIds, setSortedParamIds] = useState<ImmuOrderedSet<ParameterRecord["id"]>>(getSortedParameterIds(instance.parameters, sortAttr.value as ParameterSortAttr, sortOrder.value as SortOrder));
+	const [sortedParameterIds, setSortedParameterIds] = useState<ImmuOrderedSet<ParameterRecord["id"]>>(ImmuOrderedSet<ParameterRecord["id"]>());
 
 	const dispatch = useAppDispatch();
 
@@ -165,8 +167,8 @@ const InstanceParameterTab: FunctionComponent<InstanceParameterTabProps> = memo(
 	}, 150);
 
 	useEffect(() => {
-		setSortedParamIds(getSortedParameterIds(instance.parameters, sortAttr.value as ParameterSortAttr, sortOrder.value as SortOrder));
-	}, [instance, sortAttr, sortOrder]);
+		setSortedParameterIds(getSortedParameterIds(parameters, sortAttr.value as ParameterSortAttr, sortOrder.value as SortOrder));
+	}, [instance, parameters.size, sortAttr, sortOrder]);
 
 	useEffect(() => {
 		const onKeyDown = (e: KeyboardEvent) => {
@@ -187,8 +189,14 @@ const InstanceParameterTab: FunctionComponent<InstanceParameterTabProps> = memo(
 		};
 	}, [instance.id, dispatch]);
 
-	let parameters = sortedParamIds.map(id => instance.parameters.get(id)).filter(p => !!p);
-	if (searchValue?.length) parameters = parameters.filter(p => p.matchesQuery(searchValue));
+	const displayParameters = ImmuOrderedSet<ParameterRecord>().withMutations(set => {
+		sortedParameterIds.forEach(id => {
+			const p = parameters.get(id);
+			if (p && (!searchValue?.length || p.matchesQuery(searchValue))) {
+				set.add(p);
+			}
+		});
+	});
 
 	return (
 		<Stack gap="md" h="100%">
@@ -236,14 +244,14 @@ const InstanceParameterTab: FunctionComponent<InstanceParameterTabProps> = memo(
 				</Group>
 			</Group>
 			{
-				!instance.parameters.size ? (
+				!parameters.size ? (
 					<div className={ classes.emptySection }>
 						This patcher instance has no parameters
 					</div>
 				) : (
 					<div className={ classes.paramSectionWrap } >
 						<ParameterList
-							parameters={ parameters }
+							parameters={ displayParameters }
 							isMIDIMapping={ instance.waitingForMidiMapping }
 							onActivateMIDIMapping={ onActivateParameterMIDIMapping }
 							onSetNormalizedValue={ onSetNormalizedParamValue }

@@ -8,9 +8,10 @@ import InstanceDataRefsTab from "./datarefTab";
 import { InstanceStateRecord } from "../../models/instance";
 import { AppSettingRecord } from "../../models/settings";
 import { DataFileRecord } from "../../models/datafile";
-import { Seq } from "immutable";
+import { Map as ImmuMap, Seq } from "immutable";
 import { IconElement } from "../elements/icon";
 import { mdiFileMusic, mdiSwapHorizontal, mdiTune } from "@mdi/js";
+import { ParameterRecord } from "../../models/parameter";
 
 const tabs = [
 	{ icon: mdiTune, value: InstanceTab.Parameters, label: "Parameters" },
@@ -22,6 +23,7 @@ export type InstanceProps = {
 	instance: InstanceStateRecord;
 	datafiles: Seq.Indexed<DataFileRecord>
 	enabledMessageOuput: AppSettingRecord;
+	parameters: ImmuMap<ParameterRecord["id"], ParameterRecord>;
 	paramSortOrder: AppSettingRecord;
 	paramSortAttr: AppSettingRecord;
 }
@@ -30,6 +32,7 @@ const Instance: FunctionComponent<InstanceProps> = memo(function WrappedInstance
 	instance,
 	datafiles,
 	enabledMessageOuput,
+	parameters,
 	paramSortOrder,
 	paramSortAttr
 }) {
@@ -60,7 +63,7 @@ const Instance: FunctionComponent<InstanceProps> = memo(function WrappedInstance
 			</Tabs.List>
 			<div className={ classes.instanceTabContentWrap } >
 				<Tabs.Panel value={ InstanceTab.Parameters } >
-					<InstanceParameterTab instance={ instance } sortAttr={ paramSortAttr } sortOrder={ paramSortOrder } />
+					<InstanceParameterTab instance={ instance } parameters={ parameters } sortAttr={ paramSortAttr } sortOrder={ paramSortOrder } />
 				</Tabs.Panel>
 				<Tabs.Panel value={ InstanceTab.MessagePorts } >
 					<InstanceMessagesTab instance={ instance } outputEnabled={ enabledMessageOuput.value as boolean } />

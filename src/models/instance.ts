@@ -1,5 +1,4 @@
 import { Map as ImmuMap, Record as ImmuRecord, OrderedMap as ImmuOrderedMap } from "immutable";
-import { ParameterRecord } from "./parameter";
 import { PresetRecord } from "./preset";
 import { DataRefRecord } from "./dataref";
 import { MessagePortRecord } from "./messageport";
@@ -16,7 +15,6 @@ export type InstanceStateProps = {
 
 	messageInports: ImmuMap<MessagePortRecord["id"], MessagePortRecord>;
 	messageOutports: ImmuMap<MessagePortRecord["id"], MessagePortRecord>;
-	parameters: ImmuMap<ParameterRecord["id"], ParameterRecord>;
 	presets: ImmuOrderedMap<PresetRecord["id"], PresetRecord>;
 	datarefs: ImmuOrderedMap<DataRefRecord["id"], DataRefRecord>;
 
@@ -46,7 +44,6 @@ export class InstanceStateRecord extends ImmuRecord<InstanceStateProps>({
 
 	messageInports: ImmuMap<MessagePortRecord["id"], MessagePortRecord>(),
 	messageOutports: ImmuMap<MessagePortRecord["id"], MessagePortRecord>(),
-	parameters: ImmuMap<ParameterRecord["id"], ParameterRecord>(),
 	presets: ImmuMap<PresetRecord["id"], PresetRecord>(),
 	datarefs: ImmuMap<DataRefRecord["id"], DataRefRecord>(),
 
@@ -56,6 +53,10 @@ export class InstanceStateRecord extends ImmuRecord<InstanceStateProps>({
 
 	public get id(): string {
 		return this.name;
+	}
+
+	public setWaitingForMapping(value: boolean): InstanceStateRecord {
+		return this.set("waitingForMidiMapping", value);
 	}
 
 	public setMessageOutportValue(id: string, value: string): InstanceStateRecord {
@@ -82,38 +83,6 @@ export class InstanceStateRecord extends ImmuRecord<InstanceStateProps>({
 		if (!dataref) return this;
 
 		return this.set("datarefs", this.datarefs.set(dataref.id, dataref.setFileId(fileId)));
-	}
-
-	public setParameterValue(id: ParameterRecord["id"], value: number): InstanceStateRecord {
-		const param = this.parameters.get(id);
-		if (!param) return this;
-
-		return this.set("parameters", this.parameters.set(param.id, param.setValue(value)));
-	}
-
-	public setWaitingForMapping(value: boolean): InstanceStateRecord {
-		return this.set("waitingForMidiMapping", value).clearParametersWaitingForMidiMapping();
-	}
-
-	public clearParametersWaitingForMidiMapping(): InstanceStateRecord {
-		return this.set("parameters", this.parameters.map(p => p.setWaitingForMidiMapping(false)));
-	}
-
-	public setParameterWaitingForMidiMapping(id: ParameterRecord["id"]): InstanceStateRecord {
-		return this.set("parameters", this.parameters.map(p => p.setWaitingForMidiMapping(p.id === id)));
-	}
-
-	public setParameterNormalizedValue(id: ParameterRecord["id"], value: number): InstanceStateRecord {
-		const param = this.parameters.get(id);
-		if (!param) return this;
-
-		return this.set("parameters", this.parameters.set(param.id, param.setNormalizedValue(value)));
-	}
-
-	public setParameterMeta(id: ParameterRecord["id"], value: string): InstanceStateRecord {
-		const param = this.parameters.get(id);
-		if (!param) return this;
-		return this.set("parameters", this.parameters.set(param.id, param.setMeta(value)));
 	}
 
 	public static presetsFromDescription(entries: OSCQueryRNBOInstancePresetEntries, latest: string, initial: string): ImmuMap<PresetRecord["id"], PresetRecord> {
@@ -159,15 +128,6 @@ export class InstanceStateRecord extends ImmuRecord<InstanceStateProps>({
 		});
 	}
 
-	public static parametersFromDescription(paramsDesc: OSCQueryRNBOInstance["CONTENTS"]["params"]): ImmuMap<ParameterRecord["id"], ParameterRecord> {
-		return ImmuMap<ParameterRecord["id"], ParameterRecord>().withMutations((map) => {
-			for (const [name, desc] of Object.entries(paramsDesc.CONTENTS || {})) {
-				const params = ParameterRecord.arrayFromDescription(desc, name);
-				params.forEach(pr => map.set(pr.id, pr));
-			}
-		});
-	}
-
 	public static datarefsFromDescription(datarefsDesc: OSCQueryRNBOInstance["CONTENTS"]["data_refs"]): ImmuMap<DataRefRecord["id"], DataRefRecord> {
 		return ImmuMap<DataRefRecord["id"], DataRefRecord>().withMutations((map) => {
 			for (const [name, desc] of Object.entries(datarefsDesc.CONTENTS || {})) {
@@ -194,7 +154,6 @@ export class InstanceStateRecord extends ImmuRecord<InstanceStateProps>({
 			path: desc.FULL_PATH,
 			messageInports: this.messagesFromDescription(desc.CONTENTS.messages?.CONTENTS?.in),
 			messageOutports: this.messagesFromDescription(desc.CONTENTS.messages?.CONTENTS?.out),
-			parameters: this.parametersFromDescription(desc.CONTENTS.params),
 			presets: this.presetsFromDescription(desc.CONTENTS.presets.CONTENTS.entries, latestPreset, initialPreset),
 			datarefs: this.datarefsFromDescription(desc.CONTENTS.data_refs)
 		});

@@ -8,12 +8,13 @@ import { getConnectionsForSourceNodeAndPort, getNode, getPatcherNodeByIndex, get
 import { showNotification } from "./notifications";
 import { NotificationLevel } from "../models/notification";
 import { InstanceStateRecord } from "../models/instance";
-import { deleteInstance, setInstance, setInstances } from "./instances";
+import { deleteInstance, setInstance, setInstanceParameters, setInstances } from "./instances";
 import { getInstance } from "../selectors/instances";
 import { PatcherRecord } from "../models/patcher";
 import { getPatchers } from "../selectors/patchers";
 import { defaultNodeGap, nodeDefaultWidth, nodeHeaderHeight } from "../lib/constants";
 import { getGraphEditorInstance } from "../selectors/editor";
+import { ParameterRecord } from "../models/parameter";
 
 const getPatcherOrControlNodeCoordinates = (node: GraphPatcherNodeRecord | GraphControlNodeRecord, nodes: GraphNodeRecord[]): { x: number, y: number } => {
 
@@ -343,6 +344,7 @@ export const initNodes = (jackPortsInfo: OSCQueryRNBOJackPortInfo, instanceInfo:
 		const existingNodes = getNodes(state);
 
 		const instances: InstanceStateRecord[] = [];
+		const instanceParameters: ParameterRecord[] = [];
 		const patcherAndControlNodes: Array<GraphPatcherNodeRecord | GraphControlNodeRecord> = [];
 
 		const meta: OSCQuerySetMeta = deserializeSetMeta(instanceInfo.CONTENTS.control.CONTENTS.sets.CONTENTS.meta.VALUE as string);
@@ -356,7 +358,9 @@ export const initNodes = (jackPortsInfo: OSCQueryRNBOJackPortInfo, instanceInfo:
 			node = node.updatePosition(x, y);
 
 			patcherAndControlNodes.push(node);
-			instances.push(InstanceStateRecord.fromDescription(info));
+			const instance = InstanceStateRecord.fromDescription(info);
+			instances.push(instance);
+			instanceParameters.push(...ParameterRecord.fromDescription(instance.index, info.CONTENTS.params));
 		}
 
 		// Build a list of all Jack generated names that have not been used for PatcherNodes above
@@ -421,6 +425,7 @@ export const initNodes = (jackPortsInfo: OSCQueryRNBOJackPortInfo, instanceInfo:
 		dispatch(deleteNodes(existingNodes.valueSeq().toArray()));
 		dispatch(setNodes([...systemNodes, ...patcherAndControlNodes]));
 		dispatch(setInstances(instances));
+		dispatch(setInstanceParameters(instanceParameters));
 		dispatch(setPortsAliases(portAliases));
 	};
 
@@ -684,7 +689,9 @@ export const addPatcherNode = (desc: OSCQueryRNBOInstance, metaString: string): 
 
 		// Create Instance State
 		const instance = InstanceStateRecord.fromDescription(desc);
+		const parameters = ParameterRecord.fromDescription(instance.index, desc.CONTENTS.params);
 		dispatch(setInstance(instance));
+		dispatch(setInstanceParameters(parameters));
 	};
 
 export const removePatcherNode = (index: number): AppThunk =>
@@ -698,6 +705,7 @@ export const removePatcherNode = (index: number): AppThunk =>
 
 			const instance = getInstance(state, node.id);
 			if (!instance) return;
+
 			dispatch(deleteInstance(instance));
 		} catch (e) {
 			console.log(e);

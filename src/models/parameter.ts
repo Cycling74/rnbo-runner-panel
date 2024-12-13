@@ -1,10 +1,12 @@
 import { Record as ImmuRecord } from "immutable";
-import { AnyJson, JsonMap, OSCQueryRNBOInstanceParameterInfo, OSCQueryRNBOInstanceParameterValue } from "../lib/types";
+import { AnyJson, JsonMap, OSCQueryRNBOInstance, OSCQueryRNBOInstanceParameterInfo, OSCQueryRNBOInstanceParameterValue } from "../lib/types";
 import { parseParamMetaJSONString } from "../lib/util";
 
 export type ParameterRecordProps = {
+
 	enumVals: Array<string | number>;
 	index: number;
+	instanceIndex: number;
 	min: number;
 	max: number;
 	meta: string;
@@ -20,6 +22,7 @@ export class ParameterRecord extends ImmuRecord<ParameterRecordProps>({
 
 	enumVals: [],
 	index: 0,
+	instanceIndex: 0,
 	min: 0,
 	max: 1,
 	meta: "",
@@ -32,7 +35,11 @@ export class ParameterRecord extends ImmuRecord<ParameterRecordProps>({
 	isMidiMapped: false
 }) {
 
-	public static arrayFromDescription(desc: OSCQueryRNBOInstanceParameterInfo, name?: string): ParameterRecord[] {
+	private static arrayFromDescription(
+		instanceIndex: number,
+		desc: OSCQueryRNBOInstanceParameterInfo,
+		name?: string
+	): ParameterRecord[] {
 		const result: ParameterRecord[] = [];
 		if (typeof desc.VALUE !== "undefined") {
 			const paramInfo = desc as OSCQueryRNBOInstanceParameterValue;
@@ -41,6 +48,7 @@ export class ParameterRecord extends ImmuRecord<ParameterRecordProps>({
 			result.push((new ParameterRecord({
 				enumVals: paramInfo.RANGE?.[0]?.VALS || [],
 				index: paramInfo.CONTENTS?.index?.VALUE || 0,
+				instanceIndex,
 				min: paramInfo.RANGE?.[0]?.MIN,
 				max: paramInfo.RANGE?.[0]?.MAX,
 				name,
@@ -53,14 +61,22 @@ export class ParameterRecord extends ImmuRecord<ParameterRecordProps>({
 			// Polyphonic params
 			for (const [subParamName, subDesc] of Object.entries(desc.CONTENTS) as Array<[string, OSCQueryRNBOInstanceParameterInfo]>) {
 				const subPrefix = name ? `${name}/${subParamName}` : subParamName;
-				result.push(...this.arrayFromDescription(subDesc, subPrefix));
+				result.push(...this.arrayFromDescription(instanceIndex, subDesc, subPrefix));
 			}
 		}
 		return result;
 	}
 
+	public static fromDescription(instanceIndex: number, paramsDesc: OSCQueryRNBOInstance["CONTENTS"]["params"]): ParameterRecord[] {
+		const params: ParameterRecord[] = [];
+		for (const [name, desc] of Object.entries(paramsDesc.CONTENTS || {})) {
+			params.push(...ParameterRecord.arrayFromDescription(instanceIndex, desc, name));
+		}
+		return params;
+	}
+
 	public get id(): string {
-		return this.name;
+		return this.path;
 	}
 
 	public get isEnum(): boolean {
