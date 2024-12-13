@@ -12,6 +12,7 @@ import { Map as ImmuMap, Seq } from "immutable";
 import { IconElement } from "../elements/icon";
 import { mdiFileMusic, mdiSwapHorizontal, mdiTune } from "@mdi/js";
 import { ParameterRecord } from "../../models/parameter";
+import { MessagePortRecord } from "../../models/messageport";
 
 const tabs = [
 	{ icon: mdiTune, value: InstanceTab.Parameters, label: "Parameters" },
@@ -23,6 +24,8 @@ export type InstanceProps = {
 	instance: InstanceStateRecord;
 	datafiles: Seq.Indexed<DataFileRecord>
 	enabledMessageOuput: AppSettingRecord;
+	messageInports: ImmuMap<MessagePortRecord["id"], MessagePortRecord>;
+	messageOutports: ImmuMap<MessagePortRecord["id"], MessagePortRecord>;
 	parameters: ImmuMap<ParameterRecord["id"], ParameterRecord>;
 	paramSortOrder: AppSettingRecord;
 	paramSortAttr: AppSettingRecord;
@@ -32,6 +35,8 @@ const Instance: FunctionComponent<InstanceProps> = memo(function WrappedInstance
 	instance,
 	datafiles,
 	enabledMessageOuput,
+	messageInports,
+	messageOutports,
 	parameters,
 	paramSortOrder,
 	paramSortAttr
@@ -66,7 +71,7 @@ const Instance: FunctionComponent<InstanceProps> = memo(function WrappedInstance
 					<InstanceParameterTab instance={ instance } parameters={ parameters } sortAttr={ paramSortAttr } sortOrder={ paramSortOrder } />
 				</Tabs.Panel>
 				<Tabs.Panel value={ InstanceTab.MessagePorts } >
-					<InstanceMessagesTab instance={ instance } outputEnabled={ enabledMessageOuput.value as boolean } />
+					<InstanceMessagesTab instance={ instance } messageInports={ messageInports } messageOutports={ messageOutports } outputEnabled={ enabledMessageOuput.value as boolean } />
 				</Tabs.Panel>
 				<Tabs.Panel value={ InstanceTab.DataRefs } >
 					<InstanceDataRefsTab instance={ instance } datafiles={ datafiles } />

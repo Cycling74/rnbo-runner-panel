@@ -1,8 +1,7 @@
 import { Map as ImmuMap, Record as ImmuRecord, OrderedMap as ImmuOrderedMap } from "immutable";
 import { PresetRecord } from "./preset";
 import { DataRefRecord } from "./dataref";
-import { MessagePortRecord } from "./messageport";
-import { OSCQueryRNBOInstance, OSCQueryRNBOInstanceMessages, OSCQueryRNBOInstanceMessageInfo, OSCQueryRNBOInstanceMessageValue, OSCQueryRNBOInstancePresetEntries } from "../lib/types";
+import { OSCQueryRNBOInstance, OSCQueryRNBOInstancePresetEntries } from "../lib/types";
 
 export type InstanceStateProps = {
 	index: number;
@@ -13,8 +12,6 @@ export type InstanceStateProps = {
 	presetInitial: string;
 	presetLatest: string;
 
-	messageInports: ImmuMap<MessagePortRecord["id"], MessagePortRecord>;
-	messageOutports: ImmuMap<MessagePortRecord["id"], MessagePortRecord>;
 	presets: ImmuOrderedMap<PresetRecord["id"], PresetRecord>;
 	datarefs: ImmuOrderedMap<DataRefRecord["id"], DataRefRecord>;
 
@@ -41,9 +38,6 @@ export class InstanceStateRecord extends ImmuRecord<InstanceStateProps>({
 	path: "",
 	presetInitial: "",
 	presetLatest: "",
-
-	messageInports: ImmuMap<MessagePortRecord["id"], MessagePortRecord>(),
-	messageOutports: ImmuMap<MessagePortRecord["id"], MessagePortRecord>(),
 	presets: ImmuMap<PresetRecord["id"], PresetRecord>(),
 	datarefs: ImmuMap<DataRefRecord["id"], DataRefRecord>(),
 
@@ -57,25 +51,6 @@ export class InstanceStateRecord extends ImmuRecord<InstanceStateProps>({
 
 	public setWaitingForMapping(value: boolean): InstanceStateRecord {
 		return this.set("waitingForMidiMapping", value);
-	}
-
-	public setMessageOutportValue(id: string, value: string): InstanceStateRecord {
-		const p = this.messageOutports.get(id);
-		if (!p) return this;
-
-		return this.set("messageOutports", this.messageOutports.set(p.id, p.setValue(value)));
-	}
-
-	public setMessageOutportMeta(id: MessagePortRecord["id"], value: string): InstanceStateRecord {
-		const p = this.messageOutports.get(id);
-		if (!p) return this;
-		return this.set("messageOutports", this.messageOutports.set(p.id, p.setMeta(value)));
-	}
-
-	public setMessageInportMeta(id: MessagePortRecord["id"], value: string): InstanceStateRecord {
-		const p = this.messageInports.get(id);
-		if (!p) return this;
-		return this.set("messageInports", this.messageInports.set(p.id, p.setMeta(value)));
 	}
 
 	public setDataRefValue(id: string, fileId: string): InstanceStateRecord {
@@ -106,28 +81,6 @@ export class InstanceStateRecord extends ImmuRecord<InstanceStateProps>({
 		return this.set("presets", InstanceStateRecord.presetsFromDescription(entries, this.presetLatest, this.presetInitial));
 	}
 
-	private static messagesArrayFromDescription(desc: OSCQueryRNBOInstanceMessageInfo, name: string): MessagePortRecord[] {
-		if (typeof desc.VALUE !== "undefined") {
-			return [MessagePortRecord.fromDescription(name, desc as OSCQueryRNBOInstanceMessageValue)];
-		}
-
-		const result: MessagePortRecord[] = [];
-		for (const [subKey, subDesc] of Object.entries(desc.CONTENTS)) {
-			const subPrefix = name ? `${name}/${subKey}` : subKey;
-			result.push(...this.messagesArrayFromDescription(subDesc, subPrefix));
-		}
-		return result;
-	}
-
-	public static messagesFromDescription(messagesDesc?: OSCQueryRNBOInstanceMessages): ImmuMap<MessagePortRecord["id"], MessagePortRecord> {
-		return ImmuMap<MessagePortRecord["id"], MessagePortRecord>().withMutations((map) => {
-			for (const [name, desc] of Object.entries(messagesDesc?.CONTENTS || {})) {
-				const ports = this.messagesArrayFromDescription(desc, name);
-				ports.forEach(n => map.set(n.id, n));
-			}
-		});
-	}
-
 	public static datarefsFromDescription(datarefsDesc: OSCQueryRNBOInstance["CONTENTS"]["data_refs"]): ImmuMap<DataRefRecord["id"], DataRefRecord> {
 		return ImmuMap<DataRefRecord["id"], DataRefRecord>().withMutations((map) => {
 			for (const [name, desc] of Object.entries(datarefsDesc.CONTENTS || {})) {
@@ -146,14 +99,11 @@ export class InstanceStateRecord extends ImmuRecord<InstanceStateProps>({
 		const initialPreset: string = desc.CONTENTS.presets.CONTENTS?.initial?.VALUE || "";
 		const latestPreset: string = desc.CONTENTS.presets.CONTENTS?.loaded?.VALUE || "";
 
-
 		return new InstanceStateRecord({
 			index: parseInt(desc.FULL_PATH.split("/").pop(), 10),
 			name: this.getJackName(desc.CONTENTS.jack),
 			patcher: desc.CONTENTS.name.VALUE,
 			path: desc.FULL_PATH,
-			messageInports: this.messagesFromDescription(desc.CONTENTS.messages?.CONTENTS?.in),
-			messageOutports: this.messagesFromDescription(desc.CONTENTS.messages?.CONTENTS?.out),
 			presets: this.presetsFromDescription(desc.CONTENTS.presets.CONTENTS.entries, latestPreset, initialPreset),
 			datarefs: this.datarefsFromDescription(desc.CONTENTS.data_refs)
 		});

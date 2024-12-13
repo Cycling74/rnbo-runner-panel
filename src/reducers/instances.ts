@@ -2,15 +2,20 @@ import { Map as ImmuMap } from "immutable";
 import { InstanceStateRecord } from "../models/instance";
 import { InstanceAction, InstanceActionType } from "../actions/instances";
 import { ParameterRecord } from "../models/parameter";
+import { MessagePortRecord } from "../models/messageport";
 
 export interface InstanceInstancesState {
 	instances: ImmuMap<InstanceStateRecord["id"], InstanceStateRecord>;
+	messageInports: ImmuMap<MessagePortRecord["id"], MessagePortRecord>;
+	messageOutports: ImmuMap<MessagePortRecord["id"], MessagePortRecord>;
 	parameters: ImmuMap<ParameterRecord["id"], ParameterRecord>;
 }
 
 export const instances = (state: InstanceInstancesState = {
 
 	instances: ImmuMap<InstanceStateRecord["id"], InstanceStateRecord>(),
+	messageInports: ImmuMap<MessagePortRecord["id"], MessagePortRecord>(),
+	messageOutports: ImmuMap<MessagePortRecord["id"], MessagePortRecord>(),
 	parameters: ImmuMap<ParameterRecord["id"], ParameterRecord>()
 
 }, action: InstanceAction): InstanceInstancesState => {
@@ -45,7 +50,9 @@ export const instances = (state: InstanceInstancesState = {
 			return {
 				...state,
 				instances: state.instances.delete(instance.id),
-				parameters: state.parameters.filter(param => param.instanceIndex !== instance.index)
+				parameters: state.parameters.filter(param => param.instanceIndex !== instance.index),
+				messageInports: state.messageInports.filter(port => port.instanceIndex !== instance.index),
+				messageOutports: state.messageOutports.filter(port => port.instanceIndex !== instance.index)
 			};
 		}
 
@@ -56,7 +63,9 @@ export const instances = (state: InstanceInstancesState = {
 			return {
 				...state,
 				instances: state.instances.deleteAll(instances.map(d => d.id)),
-				parameters: state.parameters.filter(param => !indexSet.has(param.instanceIndex))
+				parameters: state.parameters.filter(param => !indexSet.has(param.instanceIndex)),
+				messageInports: state.messageInports.filter(port => !indexSet.has(port.instanceIndex)),
+				messageOutports: state.messageOutports.filter(port => !indexSet.has(port.instanceIndex))
 			};
 		}
 
@@ -97,6 +106,86 @@ export const instances = (state: InstanceInstancesState = {
 			return {
 				...state,
 				parameters: state.parameters.deleteAll(parameters.map(d => d.id))
+			};
+		}
+
+		case InstanceActionType.SET_MESSAGE_INPORT: {
+			const { port } = action.payload;
+
+			return {
+				...state,
+				messageInports: state.messageInports.set(port.id, port)
+			};
+		}
+
+		case InstanceActionType.SET_MESSAGE_INPORTS: {
+			const { ports } = action.payload;
+
+			return {
+				...state,
+				messageInports: state.messageInports.withMutations(map => {
+					for (const port of ports) {
+						map.set(port.id, port);
+					}
+				})
+			};
+		}
+
+		case InstanceActionType.DELETE_MESSAGE_INPORT: {
+			const { port } = action.payload;
+
+			return {
+				...state,
+				messageInports: state.messageInports.delete(port.id)
+			};
+		}
+
+		case InstanceActionType.DELETE_MESSAGE_INPORTS: {
+			const { ports } = action.payload;
+
+			return {
+				...state,
+				messageInports: state.messageInports.deleteAll(ports.map(d => d.id))
+			};
+		}
+
+		case InstanceActionType.SET_MESSAGE_OUTPORT: {
+			const { port } = action.payload;
+
+			return {
+				...state,
+				messageOutports: state.messageOutports.set(port.id, port)
+			};
+		}
+
+		case InstanceActionType.SET_MESSAGE_OUTPORTS: {
+			const { ports } = action.payload;
+
+			return {
+				...state,
+				messageOutports: state.messageOutports.withMutations(map => {
+					for (const port of ports) {
+						map.set(port.id, port);
+					}
+				})
+			};
+		}
+
+		case InstanceActionType.DELETE_MESSAGE_OUTPORT: {
+			const { port } = action.payload;
+
+			return {
+				...state,
+				messageOutports: state.messageOutports.delete(port.id)
+			};
+		}
+
+		case InstanceActionType.DELETE_MESSAGE_OUTPORTS: {
+			const { ports } = action.payload;
+
+			return {
+				...state,
+				messageOutports: state.messageOutports.deleteAll(ports.map(d => d.id))
 			};
 		}
 

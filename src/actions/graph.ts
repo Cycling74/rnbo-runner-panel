@@ -8,13 +8,14 @@ import { getConnectionsForSourceNodeAndPort, getNode, getPatcherNodeByIndex, get
 import { showNotification } from "./notifications";
 import { NotificationLevel } from "../models/notification";
 import { InstanceStateRecord } from "../models/instance";
-import { deleteInstance, setInstance, setInstanceParameters, setInstances } from "./instances";
+import { deleteInstance, setInstance, setInstanceMessageInports, setInstanceMessageOutports, setInstanceParameters, setInstances } from "./instances";
 import { getInstance } from "../selectors/instances";
 import { PatcherRecord } from "../models/patcher";
 import { getPatchers } from "../selectors/patchers";
 import { defaultNodeGap, nodeDefaultWidth, nodeHeaderHeight } from "../lib/constants";
 import { getGraphEditorInstance } from "../selectors/editor";
 import { ParameterRecord } from "../models/parameter";
+import { MessagePortRecord } from "../models/messageport";
 
 const getPatcherOrControlNodeCoordinates = (node: GraphPatcherNodeRecord | GraphControlNodeRecord, nodes: GraphNodeRecord[]): { x: number, y: number } => {
 
@@ -345,6 +346,8 @@ export const initNodes = (jackPortsInfo: OSCQueryRNBOJackPortInfo, instanceInfo:
 
 		const instances: InstanceStateRecord[] = [];
 		const instanceParameters: ParameterRecord[] = [];
+		const instanceMessageInports: MessagePortRecord[] = [];
+		const instanceMessageOutports: MessagePortRecord[] = [];
 		const patcherAndControlNodes: Array<GraphPatcherNodeRecord | GraphControlNodeRecord> = [];
 
 		const meta: OSCQuerySetMeta = deserializeSetMeta(instanceInfo.CONTENTS.control.CONTENTS.sets.CONTENTS.meta.VALUE as string);
@@ -361,6 +364,8 @@ export const initNodes = (jackPortsInfo: OSCQueryRNBOJackPortInfo, instanceInfo:
 			const instance = InstanceStateRecord.fromDescription(info);
 			instances.push(instance);
 			instanceParameters.push(...ParameterRecord.fromDescription(instance.index, info.CONTENTS.params));
+			instanceMessageInports.push(...MessagePortRecord.fromDescription(info.CONTENTS.messages?.CONTENTS?.in));
+			instanceMessageOutports.push(...MessagePortRecord.fromDescription(info.CONTENTS.messages?.CONTENTS?.out));
 		}
 
 		// Build a list of all Jack generated names that have not been used for PatcherNodes above
@@ -426,6 +431,8 @@ export const initNodes = (jackPortsInfo: OSCQueryRNBOJackPortInfo, instanceInfo:
 		dispatch(setNodes([...systemNodes, ...patcherAndControlNodes]));
 		dispatch(setInstances(instances));
 		dispatch(setInstanceParameters(instanceParameters));
+		dispatch(setInstanceMessageInports(instanceMessageInports));
+		dispatch(setInstanceMessageOutports(instanceMessageOutports));
 		dispatch(setPortsAliases(portAliases));
 	};
 
@@ -690,8 +697,13 @@ export const addPatcherNode = (desc: OSCQueryRNBOInstance, metaString: string): 
 		// Create Instance State
 		const instance = InstanceStateRecord.fromDescription(desc);
 		const parameters = ParameterRecord.fromDescription(instance.index, desc.CONTENTS.params);
+		const messageInports = MessagePortRecord.fromDescription(desc.CONTENTS.messages?.CONTENTS?.in);
+		const messageOutports = MessagePortRecord.fromDescription(desc.CONTENTS.messages?.CONTENTS?.out);
+
 		dispatch(setInstance(instance));
 		dispatch(setInstanceParameters(parameters));
+		dispatch(setInstanceMessageInports(messageInports));
+		dispatch(setInstanceMessageOutports(messageOutports));
 	};
 
 export const removePatcherNode = (index: number): AppThunk =>

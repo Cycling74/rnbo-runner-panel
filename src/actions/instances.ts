@@ -2,7 +2,7 @@ import Router from "next/router";
 import { ActionBase, AppThunk } from "../lib/store";
 import { OSCQueryRNBOInstance, OSCQueryRNBOInstancePresetEntries, OSCValue } from "../lib/types";
 import { InstanceStateRecord } from "../models/instance";
-import { getInstanceByIndex, getInstance, getParameter, getInstanceParameters, getInstanceParameterByName, getParameterByPath } from "../selectors/instances";
+import { getInstanceByIndex, getInstance, getParameter, getInstanceParameters, getInstanceParameterByName, getParameterByPath, getInstanceMessageInports, getInstanceMessageOutports, getInstanceMessageOutportByTag, getInstanceMessageInportByTag, getMessageInportByPath, getMessageOutportByPath } from "../selectors/instances";
 import { getAppSetting } from "../selectors/settings";
 import { ParameterRecord } from "../models/parameter";
 import { MessagePortRecord } from "../models/messageport";
@@ -21,10 +21,21 @@ export enum InstanceActionType {
 	SET_INSTANCES = "SET_INSTANCES",
 	DELETE_INSTANCE = "DELETE_INSTANCE",
 	DELETE_INSTANCES = "DELETE_INSTANCES",
+
 	SET_PARAMETER = "SET_PARAMETER",
 	SET_PARAMETERS = "SET_PARAMETERS",
 	DELETE_PARAMETER = "DELETE_PARAMETER",
-	DELETE_PARAMETERS = "DELETE_PARAMETERS"
+	DELETE_PARAMETERS = "DELETE_PARAMETERS",
+
+	SET_MESSAGE_INPORT = "SET_MESSAGE_INPORT",
+	SET_MESSAGE_INPORTS = "SET_MESSAGE_INPORTS",
+	DELETE_MESSAGE_INPORT = "DELETE_MESSAGE_INPORT",
+	DELETE_MESSAGE_INPORTS = "DELETE_MESSAGE_INPORTS",
+
+	SET_MESSAGE_OUTPORT = "SET_MESSAGE_OUTPORT",
+	SET_MESSAGE_OUTPORTS = "SET_MESSAGE_OUTPORTS",
+	DELETE_MESSAGE_OUTPORT = "DELETE_MESSAGE_OUTPORT",
+	DELETE_MESSAGE_OUTPORTS = "DELETE_MESSAGE_OUTPORTS"
 }
 
 export interface ISetInstance extends ActionBase {
@@ -83,8 +94,66 @@ export interface IDeleteInstanceParameters extends ActionBase {
 	};
 }
 
+export interface ISetInstanceMessageInport extends ActionBase {
+	type: InstanceActionType.SET_MESSAGE_INPORT;
+	payload: {
+		port: MessagePortRecord;
+	};
+}
+
+export interface ISetInstanceMessageInports extends ActionBase {
+	type: InstanceActionType.SET_MESSAGE_INPORTS;
+	payload: {
+		ports: MessagePortRecord[];
+	};
+}
+
+export interface IDeleteInstanceMessageInport extends ActionBase {
+	type: InstanceActionType.DELETE_MESSAGE_INPORT;
+	payload: {
+		port: MessagePortRecord;
+	};
+}
+
+export interface IDeleteInstanceMessageInports extends ActionBase {
+	type: InstanceActionType.DELETE_MESSAGE_INPORTS;
+	payload: {
+		ports: MessagePortRecord[];
+	};
+}
+
+export interface ISetInstanceMessageOutport extends ActionBase {
+	type: InstanceActionType.SET_MESSAGE_OUTPORT;
+	payload: {
+		port: MessagePortRecord;
+	};
+}
+
+export interface ISetInstanceMessageOutports extends ActionBase {
+	type: InstanceActionType.SET_MESSAGE_OUTPORTS;
+	payload: {
+		ports: MessagePortRecord[];
+	};
+}
+
+export interface IDeleteInstanceMessageOutport extends ActionBase {
+	type: InstanceActionType.DELETE_MESSAGE_OUTPORT;
+	payload: {
+		port: MessagePortRecord;
+	};
+}
+
+export interface IDeleteInstanceMessageOutports extends ActionBase {
+	type: InstanceActionType.DELETE_MESSAGE_OUTPORTS;
+	payload: {
+		ports: MessagePortRecord[];
+	};
+}
+
 export type InstanceAction = ISetInstance | ISetInstances | IDeleteInstance | IDeleteInstances |
-ISetInstanceParameter | ISetInstanceParameters | IDeleteInstanceParameter | IDeleteInstanceParameters;
+ISetInstanceParameter | ISetInstanceParameters | IDeleteInstanceParameter | IDeleteInstanceParameters |
+ISetInstanceMessageInport | ISetInstanceMessageInports | IDeleteInstanceMessageInport | IDeleteInstanceMessageInports |
+ISetInstanceMessageOutport | ISetInstanceMessageOutports | IDeleteInstanceMessageOutport | IDeleteInstanceMessageOutports
 
 export const setInstance = (instance: InstanceStateRecord): ISetInstance => ({
 	type: InstanceActionType.SET_INSTANCE,
@@ -139,6 +208,62 @@ export const deleteInstanceParameters = (params: ParameterRecord[]): IDeleteInst
 	type: InstanceActionType.DELETE_PARAMETERS,
 	payload: {
 		parameters: params
+	}
+});
+
+export const setInstanceMessageInport = (port: MessagePortRecord): ISetInstanceMessageInport => ({
+	type: InstanceActionType.SET_MESSAGE_INPORT,
+	payload: {
+		port
+	}
+});
+
+export const setInstanceMessageInports = (ports: MessagePortRecord[]): ISetInstanceMessageInports => ({
+	type: InstanceActionType.SET_MESSAGE_INPORTS,
+	payload: {
+		ports
+	}
+});
+
+export const deleteInstanceMessageInport = (port: MessagePortRecord): IDeleteInstanceMessageInport => ({
+	type: InstanceActionType.DELETE_MESSAGE_INPORT,
+	payload: {
+		port
+	}
+});
+
+export const deleteInstanceMessageInports = (ports: MessagePortRecord[]): IDeleteInstanceMessageInports => ({
+	type: InstanceActionType.DELETE_MESSAGE_INPORTS,
+	payload: {
+		ports
+	}
+});
+
+export const setInstanceMessageOutport = (port: MessagePortRecord): ISetInstanceMessageOutport => ({
+	type: InstanceActionType.SET_MESSAGE_OUTPORT,
+	payload: {
+		port
+	}
+});
+
+export const setInstanceMessageOutports = (ports: MessagePortRecord[]): ISetInstanceMessageOutports => ({
+	type: InstanceActionType.SET_MESSAGE_OUTPORTS,
+	payload: {
+		ports
+	}
+});
+
+export const deleteInstanceMessageOutport = (port: MessagePortRecord): IDeleteInstanceMessageOutport => ({
+	type: InstanceActionType.DELETE_MESSAGE_OUTPORT,
+	payload: {
+		port
+	}
+});
+
+export const deleteInstanceMessageOutports = (ports: MessagePortRecord[]): IDeleteInstanceMessageOutports => ({
+	type: InstanceActionType.DELETE_MESSAGE_OUTPORTS,
+	payload: {
+		ports
 	}
 });
 
@@ -456,17 +581,49 @@ export const updateInstanceMessages = (index: number, desc: OSCQueryRNBOInstance
 			const instance = getInstanceByIndex(state, index);
 			if (!instance) return;
 
-			dispatch(setInstance(
-				instance
-					.set("messageInports", InstanceStateRecord.messagesFromDescription(desc.CONTENTS?.in))
-					.set("messageOutports", InstanceStateRecord.messagesFromDescription(desc.CONTENTS?.out))
-			));
+			const currentMessageInports = getInstanceMessageInports(state, instance.index);
+			const currentMessageOutports = getInstanceMessageOutports(state, instance.index);
+			dispatch(deleteInstanceMessageInports(currentMessageInports.valueSeq().toArray()));
+			dispatch(deleteInstanceMessageOutports(currentMessageOutports.valueSeq().toArray()));
+
+			const messageInports = MessagePortRecord.fromDescription(desc.CONTENTS?.in);
+			const messageOutports = MessagePortRecord.fromDescription(desc.CONTENTS?.out);
+
+			dispatch(setInstanceMessageInports(messageInports));
+			dispatch(setInstanceMessageOutports(messageOutports));
+
 		} catch (e) {
 			console.log(e);
 		}
 	};
 
-export const updateInstanceMessageOutportValue = (index: number, name: string, value: OSCValue | OSCValue[]): AppThunk =>
+export const removeInstanceMessageInportByPath = (path: string): AppThunk =>
+	(dispatch, getState) => {
+		try {
+			const state = getState();
+			const port = getMessageInportByPath(state, path);
+			if (!port) return;
+
+			dispatch(deleteInstanceMessageInport(port));
+		} catch (e) {
+			console.log(e);
+		}
+	};
+
+export const removeInstanceMessageOutportByPath = (path: string): AppThunk =>
+	(dispatch, getState) => {
+		try {
+			const state = getState();
+			const port = getMessageOutportByPath(state, path);
+			if (!port) return;
+
+			dispatch(deleteInstanceMessageOutport(port));
+		} catch (e) {
+			console.log(e);
+		}
+	};
+
+export const updateInstanceMessageOutportValue = (index: number, tag: MessagePortRecord["tag"], value: OSCValue | OSCValue[]): AppThunk =>
 	(dispatch, getState) => {
 		try {
 
@@ -482,9 +639,10 @@ export const updateInstanceMessageOutportValue = (index: number, name: string, v
 			const instance = getInstanceByIndex(state, index);
 			if (!instance) return;
 
-			dispatch(setInstance(
-				instance.setMessageOutportValue(name, Array.isArray(value) ? value.join(", ") : `${value}`)
-			));
+			const port = getInstanceMessageOutportByTag(state, instance.index, tag);
+			if (!port) return;
+
+			dispatch(setInstanceMessageOutport(port.setValue(Array.isArray(value) ? value.join(", ") : `${value}`)));
 		} catch (e) {
 			console.log(e);
 		}
@@ -497,7 +655,7 @@ export const removeInstanceParameterByPath = (path: string): AppThunk =>
 			const param = getParameterByPath(state, path);
 			if (!param) return;
 
-			dispatch(deleteInstanceParameters([param]));
+			dispatch(deleteInstanceParameter(param));
 		} catch (e) {
 			console.log(e);
 		}
@@ -660,27 +818,33 @@ export const updateInstanceParameterMeta = (index: number, name: ParameterRecord
 		}
 	};
 
-export const updateInstanceMessageOutportMeta = (index: number, id: MessagePortRecord["id"], value: string): AppThunk =>
+export const updateInstanceMessageOutportMeta = (index: number, tag: MessagePortRecord["tag"], value: string): AppThunk =>
 	(dispatch, getState) => {
 		try {
 			const state = getState();
 			const instance = getInstanceByIndex(state, index);
 			if (!instance) return;
 
-			dispatch(setInstance(instance.setMessageOutportMeta(id, value)));
+			const port = getInstanceMessageOutportByTag(state, instance.index, tag);
+			if (!port) return;
+
+			dispatch(setInstanceMessageOutport(port.setMeta(value)));
 		} catch (e) {
 			console.log(e);
 		}
 	};
 
-export const updateInstanceMessageInportMeta = (index: number, id: MessagePortRecord["id"], value: string): AppThunk =>
+export const updateInstanceMessageInportMeta = (index: number, tag: MessagePortRecord["tag"], value: string): AppThunk =>
 	(dispatch, getState) => {
 		try {
 			const state = getState();
 			const instance = getInstanceByIndex(state, index);
 			if (!instance) return;
 
-			dispatch(setInstance(instance.setMessageInportMeta(id, value)));
+			const port = getInstanceMessageInportByTag(state, instance.index, tag);
+			if (!port) return;
+
+			dispatch(setInstanceMessageInport(port.setMeta(value)));
 		} catch (e) {
 			console.log(e);
 		}

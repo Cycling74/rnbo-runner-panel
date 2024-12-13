@@ -4,6 +4,7 @@ import { InstanceStateRecord } from "../models/instance";
 import { createSelector } from "reselect";
 import { getPatcherIdsByIndex } from "./graph";
 import { ParameterRecord } from "../models/parameter";
+import { MessagePortRecord } from "../models/messageport";
 
 export const getInstances = (state: RootStateType): ImmuMap<InstanceStateRecord["id"], InstanceStateRecord> => state.instances.instances;
 
@@ -81,5 +82,95 @@ export const getInstanceParameterByName = createSelector(
 	],
 	(parameters, instanceIndex, name): ParameterRecord | undefined => {
 		return parameters.find(p => p.instanceIndex === instanceIndex && p.name === name);
+	}
+);
+
+export const getMessageInports = (state: RootStateType): ImmuMap<MessagePortRecord["id"], MessagePortRecord> => state.instances.messageInports;
+
+export const getMessageInport = createSelector(
+	[
+		getMessageInports,
+		(state: RootStateType, id: MessagePortRecord["id"]): MessagePortRecord["id"] => id
+	],
+	(ports, id): MessagePortRecord | undefined => {
+		return ports.get(id);
+	}
+);
+
+export const getMessageInportByPath = createSelector(
+	[
+		getMessageInports,
+		(state: RootStateType, path: MessagePortRecord["path"]): MessagePortRecord["path"] => path
+	],
+	(ports, path): MessagePortRecord | undefined => {
+		return ports.find(p => p.path === path);
+	}
+);
+
+export const getInstanceMessageInports = createSelector(
+	[
+		getMessageInports,
+		(state: RootStateType, instanceIndex: InstanceStateRecord["index"]): InstanceStateRecord["index"] => instanceIndex
+	],
+	(ports, instanceIndex): ImmuMap<MessagePortRecord["id"], MessagePortRecord> => {
+		return ports.filter(p => {
+			return p.instanceIndex === instanceIndex;
+		});
+	}
+);
+
+export const getInstanceMessageInportByTag = createSelector(
+	[
+		getMessageInports,
+		(state: RootStateType, instanceIndex: InstanceStateRecord["index"]): InstanceStateRecord["index"] => instanceIndex,
+		(state: RootStateType, instanceIndex: InstanceStateRecord["index"], tag: MessagePortRecord["tag"]): MessagePortRecord["tag"] => tag
+	],
+	(ports, instanceIndex, tag): MessagePortRecord | undefined => {
+		return ports.find(p => p.instanceIndex === instanceIndex && p.tag === tag);
+	}
+);
+
+export const getMessageOutports = (state: RootStateType): ImmuMap<MessagePortRecord["id"], MessagePortRecord> => state.instances.messageOutports;
+
+export const getMessageOutport = createSelector(
+	[
+		getMessageOutports,
+		(state: RootStateType, id: MessagePortRecord["id"]): MessagePortRecord["id"] => id
+	],
+	(ports, id): MessagePortRecord | undefined => {
+		return ports.get(id);
+	}
+);
+
+export const getMessageOutportByPath = createSelector(
+	[
+		getMessageOutports,
+		(state: RootStateType, path: MessagePortRecord["path"]): MessagePortRecord["path"] => path
+	],
+	(ports, path): MessagePortRecord | undefined => {
+		return ports.find(p => p.path === path);
+	}
+);
+
+export const getInstanceMessageOutports = createSelector(
+	[
+		getMessageOutports,
+		(state: RootStateType, instanceIndex: InstanceStateRecord["index"]): InstanceStateRecord["index"] => instanceIndex
+	],
+	(ports, instanceIndex): ImmuMap<MessagePortRecord["id"], MessagePortRecord> => {
+		return ports.filter(p => {
+			return p.instanceIndex === instanceIndex;
+		});
+	}
+);
+
+export const getInstanceMessageOutportByTag = createSelector(
+	[
+		getMessageOutports,
+		(state: RootStateType, instanceIndex: InstanceStateRecord["index"]): InstanceStateRecord["index"] => instanceIndex,
+		(state: RootStateType, instanceIndex: InstanceStateRecord["index"], tag: MessagePortRecord["tag"]): MessagePortRecord["tag"] => tag
+	],
+	(ports, instanceIndex, tag): MessagePortRecord | undefined => {
+		return ports.find(p => p.instanceIndex === instanceIndex && p.tag === tag);
 	}
 );
