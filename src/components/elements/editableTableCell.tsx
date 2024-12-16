@@ -1,5 +1,5 @@
-import { Group, NumberInput, Table } from "@mantine/core";
-import { FC, memo, useCallback, useEffect, useState } from "react"
+import { NumberInput, Table } from "@mantine/core";
+import { FC, memo, useCallback, useEffect, useState } from "react";
 
 export type EditableTableNumberCellProps = {
 	className?: string;
@@ -8,7 +8,7 @@ export type EditableTableNumberCellProps = {
 	name: string;
 	onUpdate: (val: number) => void;
 	value: number;
-}
+};
 
 export const EditableTableNumberCell: FC<EditableTableNumberCellProps> = memo(function WrappedEditableMIDIField({
 	className = "",
@@ -60,5 +60,5 @@ export const EditableTableNumberCell: FC<EditableTableNumberCellProps> = memo(fu
 			}
 
 		</Table.Td>
-	)
-})
+	);
+});

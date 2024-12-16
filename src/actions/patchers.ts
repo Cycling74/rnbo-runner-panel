@@ -576,27 +576,27 @@ export const clearParameterMIDIMappingOnRemote = (id: PatcherInstanceRecord["id"
 	};
 
 export const setParameterMIDIChannelOnRemote = (id: PatcherInstanceRecord["id"], paramId: ParameterRecord["id"], channel: number): AppThunk =>
-		(_dispatch, getState) => {
-			const state = getState();
-			const instance = getPatcherInstance(state, id);
-			if (!instance) return;
+	(_dispatch, getState) => {
+		const state = getState();
+		const instance = getPatcherInstance(state, id);
+		if (!instance) return;
 
-			const param = getPatcherInstanceParameter(state, paramId);
-			if (!param) return;
+		const param = getPatcherInstanceParameter(state, paramId);
+		if (!param) return;
 
-			const meta: ParameterMetaJsonMap = cloneJSON(param.meta);
-			meta.midi = (meta.midi || {});
-			meta.midi.chan = channel;
+		const meta: ParameterMetaJsonMap = cloneJSON(param.meta);
+		meta.midi = (meta.midi || {});
+		meta.midi.chan = channel;
 
-			const message = {
-				address: `${param.path}/meta`,
-				args: [
-					{ type: "s", value: JSON.stringify(meta) }
-				]
-			};
-
-			oscQueryBridge.sendPacket(writePacket(message));
+		const message = {
+			address: `${param.path}/meta`,
+			args: [
+				{ type: "s", value: JSON.stringify(meta) }
+			]
 		};
+
+		oscQueryBridge.sendPacket(writePacket(message));
+	};
 
 export const setParameterMIDIControlOnRemote = (id: PatcherInstanceRecord["id"], paramId: ParameterRecord["id"], control: number): AppThunk =>
 	(_dispatch, getState) => {
