@@ -64,3 +64,5 @@ export const formatParamValueForDisplay = (value: number | string) => {
 	if (typeof value === "number") return Number.isInteger(value) ? value : value.toFixed(2);
 	return value;
 };
+
+export const cloneJSON = (value: JsonMap): JsonMap => JSON.parse(JSON.stringify(value));
