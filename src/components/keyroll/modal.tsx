@@ -2,7 +2,7 @@ import { FunctionComponent, memo, useCallback, useEffect } from "react";
 import { useAppDispatch } from "../../hooks/useAppDispatch";
 import KeyRoll from "../keyroll";
 import { PatcherInstanceRecord } from "../../models/instance";
-import { triggerInstanceMidiNoteOffEventOnRemote, triggerInstanceMidiNoteOnEventOnRemote } from "../../actions/instances";
+import { triggerInstanceMidiNoteOffEventOnRemote, triggerInstanceMidiNoteOnEventOnRemote } from "../../actions/patchers";
 import { Group, Modal } from "@mantine/core";
 import { useIsMobileDevice } from "../../hooks/useIsMobileDevice";
 import { IconElement } from "../elements/icon";

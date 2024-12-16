@@ -11,7 +11,7 @@ import {
 	setInstanceParameterValueNormalizedOnRemote,
 	setInstanceWaitingForMidiMappingOnRemote, clearParameterMidiMappingOnRemote,
 	activateParameterMIDIMappingFocus
-} from "../../actions/instances";
+} from "../../actions/patchers";
 import { OrderedSet as ImmuOrderedSet, Map as ImmuMap } from "immutable";
 import { setAppSetting } from "../../actions/settings";
 import { AppSetting, AppSettingRecord } from "../../models/settings";

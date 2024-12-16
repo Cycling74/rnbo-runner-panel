@@ -1,7 +1,7 @@
 import { Alert, Drawer, Group, Stack, Text } from "@mantine/core";
 import { FunctionComponent, memo, useCallback } from "react";
 import { Seq } from "immutable";
-import { PatcherRecord } from "../../models/patcher";
+import { PatcherExportRecord } from "../../models/patcher";
 import { PatcherItem } from "./item";
 import { modals } from "@mantine/modals";
 import { IconElement } from "../elements/icon";
@@ -10,10 +10,10 @@ import { mdiFileExport } from "@mdi/js";
 export type PatcherDrawerProps = {
 	open: boolean;
 	onClose: () => any;
-	onLoadPatcher: (patcher: PatcherRecord) => any;
-	onDeletePatcher: (patcher: PatcherRecord) => any;
-	onRenamePatcher: (patcher: PatcherRecord, newName: string) => any;
-	patchers: Seq.Indexed<PatcherRecord>;
+	onLoadPatcher: (patcher: PatcherExportRecord) => any;
+	onDeletePatcher: (patcher: PatcherExportRecord) => any;
+	onRenamePatcher: (patcher: PatcherExportRecord, newName: string) => any;
+	patchers: Seq.Indexed<PatcherExportRecord>;
 };
 
 const PatcherDrawer: FunctionComponent<PatcherDrawerProps> = memo(function WrappedPatcherDrawer({
@@ -25,7 +25,7 @@ const PatcherDrawer: FunctionComponent<PatcherDrawerProps> = memo(function Wrapp
 	patchers
 }: PatcherDrawerProps) {
 
-	const onTriggerDeletePatcher = useCallback((p: PatcherRecord) => {
+	const onTriggerDeletePatcher = useCallback((p: PatcherExportRecord) => {
 		modals.openConfirmModal({
 			title: "Delete Patcher",
 			centered: true,

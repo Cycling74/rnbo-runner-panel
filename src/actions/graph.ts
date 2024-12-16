@@ -8,10 +8,9 @@ import { getConnectionsForSourceNodeAndPort, getNode, getPatcherNodeByIndex, get
 import { showNotification } from "./notifications";
 import { NotificationLevel } from "../models/notification";
 import { PatcherInstanceRecord } from "../models/instance";
-import { deleteInstance, setInstance, setInstanceMessageInports, setInstanceMessageOutports, setInstanceParameters, setInstances } from "./instances";
-import { getInstance } from "../selectors/instances";
-import { PatcherRecord } from "../models/patcher";
-import { getPatchers } from "../selectors/instances";
+import { deleteInstance, setInstance, setInstanceMessageInports, setInstanceMessageOutports, setInstanceParameters, setInstances } from "./patchers";
+import { getPatcherInstance, getPatcherExports } from "../selectors/patchers";
+import { PatcherExportRecord } from "../models/patcher";
 import { defaultNodeGap, nodeDefaultWidth, nodeHeaderHeight } from "../lib/constants";
 import { getGraphEditorInstance } from "../selectors/editor";
 import { ParameterRecord } from "../models/parameter";
@@ -545,7 +544,7 @@ export const updateSystemOrControlPortInfo = (type: ConnectionType, direction: P
 		let systemInputY = -defaultNodeGap;
 		let systemOutputY = -defaultNodeGap;
 
-		const patchers = getPatchers(state).valueSeq();
+		const patchers = getPatcherExports(state).valueSeq();
 		const missingSystemOrControlJackName = Array.from(systemOrControlJackNames.values())
 			.filter(name => !patchers.find(patcher => name.startsWith(`${patcher.name}-`)));
 
@@ -629,7 +628,7 @@ export const unloadPatcherNodeByIndexOnRemote = (instanceIndex: number): AppThun
 		}
 	};
 
-export const loadPatcherNodeOnRemote = (patcher: PatcherRecord): AppThunk =>
+export const loadPatcherNodeOnRemote = (patcher: PatcherExportRecord): AppThunk =>
 	(dispatch) => {
 		try {
 			const message = {
@@ -715,7 +714,7 @@ export const removePatcherNode = (index: number): AppThunk =>
 			if (node?.type !== NodeType.Patcher) return;
 			dispatch(deleteNode(node));
 
-			const instance = getInstance(state, node.id);
+			const instance = getPatcherInstance(state, node.id);
 			if (!instance) return;
 
 			dispatch(deleteInstance(instance));

@@ -3,7 +3,7 @@ import { combineReducers } from "redux";
 import { appStatus } from "./appStatus";
 import { datafiles } from "./datafiles";
 import { editor } from "./editor";
-import { instances } from "./instances";
+import { patchers } from "./patchers";
 import { graph } from "./graph";
 import { nofitications } from "./notifications";
 import { settings } from "./settings";
@@ -14,9 +14,9 @@ export const rootReducer = combineReducers({
 	appStatus,
 	datafiles,
 	editor,
-	instances,
 	graph,
 	nofitications,
+	patchers,
 	settings,
 	sets,
 	transport

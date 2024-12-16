@@ -4,7 +4,7 @@ import { useAppDispatch } from "../../hooks/useAppDispatch";
 import DataRefList from "../dataref/list";
 import classes from "./instance.module.css";
 import { PatcherInstanceRecord } from "../../models/instance";
-import { setInstanceDataRefValueOnRemote } from "../../actions/instances";
+import { setInstanceDataRefValueOnRemote } from "../../actions/patchers";
 import { DataRefRecord } from "../../models/dataref";
 import { modals } from "@mantine/modals";
 import { DataFileRecord } from "../../models/datafile";

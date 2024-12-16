@@ -7,9 +7,9 @@ import { SectionTitle } from "../page/sectionTitle";
 import MessageOutportList from "../messages/outportList";
 import classes from "./instance.module.css";
 import { PatcherInstanceRecord } from "../../models/instance";
-import { sendInstanceMessageToRemote } from "../../actions/instances";
+import { sendInstanceMessageToRemote } from "../../actions/patchers";
 import { MessagePortRecord } from "../../models/messageport";
-import { restoreDefaultMessagePortMetaOnRemote, setInstanceMessagePortMetaOnRemote } from "../../actions/instances";
+import { restoreDefaultMessagePortMetaOnRemote, setInstanceMessagePortMetaOnRemote } from "../../actions/patchers";
 
 export type InstanceMessageTabProps = {
 	instance: PatcherInstanceRecord;
