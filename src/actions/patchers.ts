@@ -1,6 +1,6 @@
 import Router from "next/router";
 import { ActionBase, AppThunk } from "../lib/store";
-import { OSCQueryRNBOInstance, OSCQueryRNBOInstancePresetEntries, OSCQueryRNBOPatchersState, OSCValue } from "../lib/types";
+import { OSCQueryRNBOInstance, OSCQueryRNBOInstancePresetEntries, OSCQueryRNBOPatchersState, OSCValue, ParameterMetaJsonMap } from "../lib/types";
 import { PatcherInstanceRecord } from "../models/instance";
 import { getPatcherInstanceByIndex, getPatcherInstance, getPatcherInstanceParametersByInstanceIndex, getPatcherInstanceParameter, getPatcherInstanceMessageInportsByInstanceIndex, getPatcherInstanceMesssageOutportsByInstanceIndex, getPatcherInstanceMessageInportByPath, getPatcherInstanceMessageOutportByPath, getPatcherInstanceMesssageOutportsByInstanceIndexAndTag, getPatcherInstanceParameterByPath, getPatcherInstanceParametersByInstanceIndexAndName, getPatcherInstanceMessageInportsByInstanceIndexAndTag } from "../selectors/patchers";
 import { getAppSetting } from "../selectors/settings";
@@ -553,7 +553,7 @@ export const activateParameterMIDIMappingFocus = (instance: PatcherInstanceRecor
 		));
 	};
 
-export const clearParameterMidiMappingOnRemote = (id: PatcherInstanceRecord["id"], paramId: ParameterRecord["id"]): AppThunk =>
+export const clearParameterMIDIMappingOnRemote = (id: PatcherInstanceRecord["id"], paramId: ParameterRecord["id"]): AppThunk =>
 	(_dispatch, getState) => {
 		const state = getState();
 		const instance = getPatcherInstance(state, id);
@@ -564,6 +564,53 @@ export const clearParameterMidiMappingOnRemote = (id: PatcherInstanceRecord["id"
 
 		const meta = cloneJSON(param.meta);
 		delete meta.midi;
+
+		const message = {
+			address: `${param.path}/meta`,
+			args: [
+				{ type: "s", value: JSON.stringify(meta) }
+			]
+		};
+
+		oscQueryBridge.sendPacket(writePacket(message));
+	};
+
+export const setParameterMIDIChannelOnRemote = (id: PatcherInstanceRecord["id"], paramId: ParameterRecord["id"], channel: number): AppThunk =>
+		(_dispatch, getState) => {
+			const state = getState();
+			const instance = getPatcherInstance(state, id);
+			if (!instance) return;
+
+			const param = getPatcherInstanceParameter(state, paramId);
+			if (!param) return;
+
+			const meta: ParameterMetaJsonMap = cloneJSON(param.meta);
+			meta.midi = (meta.midi || {});
+			meta.midi.chan = channel;
+
+			const message = {
+				address: `${param.path}/meta`,
+				args: [
+					{ type: "s", value: JSON.stringify(meta) }
+				]
+			};
+
+			oscQueryBridge.sendPacket(writePacket(message));
+		};
+
+export const setParameterMIDIControlOnRemote = (id: PatcherInstanceRecord["id"], paramId: ParameterRecord["id"], control: number): AppThunk =>
+	(_dispatch, getState) => {
+		const state = getState();
+		const instance = getPatcherInstance(state, id);
+		if (!instance) return;
+
+		const param = getPatcherInstanceParameter(state, paramId);
+		if (!param) return;
+
+		const meta: ParameterMetaJsonMap = cloneJSON(param.meta);
+		meta.midi = (meta.midi || {});
+		meta.midi.ctrl = control;
+
 		const message = {
 			address: `${param.path}/meta`,
 			args: [

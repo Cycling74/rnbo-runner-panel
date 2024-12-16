@@ -11,7 +11,9 @@ import { MIDIMappedParameterSortAttr, SortOrder } from "../../lib/constants";
 export type MIDIMappedParameterListProps = {
 	parameters: ImmuOrderedSet<ParameterRecord>;
 	patcherInstances: ImmuMap<PatcherInstanceRecord["index"], PatcherInstanceRecord>;
-	onClearParameterMidiMapping: (instance: PatcherInstanceRecord, param: ParameterRecord) => void;
+	onClearParameterMIDIMapping: (instance: PatcherInstanceRecord, param: ParameterRecord) => void;
+	onUpdateParameterMIDIChannel: (instance: PatcherInstanceRecord, param: ParameterRecord, channel: number) => void;
+	onUpdateParameterMIDIControl: (instance: PatcherInstanceRecord, param: ParameterRecord, control: number) => void;
 	onSort: (sortAttr: MIDIMappedParameterSortAttr) => void;
 	sortAttr: MIDIMappedParameterSortAttr;
 	sortOrder: SortOrder;
@@ -20,7 +22,9 @@ export type MIDIMappedParameterListProps = {
 const MIDIMappedParameterList: FC<MIDIMappedParameterListProps> = memo(function WrappedMIDIMappedParameterList({
 	patcherInstances,
 	parameters,
-	onClearParameterMidiMapping,
+	onClearParameterMIDIMapping,
+	onUpdateParameterMIDIChannel,
+	onUpdateParameterMIDIControl,
 	onSort,
 	sortAttr,
 	sortOrder
@@ -86,7 +90,9 @@ const MIDIMappedParameterList: FC<MIDIMappedParameterListProps> = memo(function 
 								key={ p.id }
 								instance={ pInstance }
 								param={ p }
-								onClearMIDIMapping={ onClearParameterMidiMapping }
+								onClearMIDIMapping={ onClearParameterMIDIMapping }
+								onUpdateMIDIChannel={ onUpdateParameterMIDIChannel }
+								onUpdateMIDIControl={ onUpdateParameterMIDIControl }
 							/>
 						);
 					})

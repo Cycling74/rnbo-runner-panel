@@ -10,6 +10,7 @@
 
 .parameterValueColumnHeader,
 .parameterValueColumn {
+	cursor: default;
 	display: none;
 	font-size: var(--mantine-font-size-xs);
 
@@ -28,6 +29,7 @@
 }
 
 .patcherInstanceColumn {
+	cursor: default;
 	font-size: var(--mantine-font-size-xs);
 	overflow: hidden;
 	text-overflow: ellipsis;
@@ -44,6 +46,7 @@
 
 .parameterNameColumnHeader {}
 .parameterNameColumn {
+	cursor: default;
 	font-size: var(--mantine-font-size-xs);
 	overflow: hidden;
 	text-overflow: ellipsis;

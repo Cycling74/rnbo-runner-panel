@@ -9,17 +9,22 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import classes from "./midi.module.css";
 import { formatParamValueForDisplay } from "../../lib/util";
+import { EditableTableNumberCell } from "../elements/editableTableCell";
 
 export type MIDIMappedParamProps = {
 	instance: PatcherInstanceRecord;
 	param: ParameterRecord;
 	onClearMIDIMapping: (instance: PatcherInstanceRecord, param: ParameterRecord) => void;
+	onUpdateMIDIChannel: (instance: PatcherInstanceRecord, param: ParameterRecord, channel: number) => void;
+	onUpdateMIDIControl: (instance: PatcherInstanceRecord, param: ParameterRecord, control: number) => void;
 };
 
 const MIDIMappedParameter: FC<MIDIMappedParamProps> = memo(function WrappedMIDIMappedParam({
 	instance,
 	param,
-	onClearMIDIMapping
+	onClearMIDIMapping,
+	onUpdateMIDIChannel,
+	onUpdateMIDIControl
 }) {
 
 	const { query: restQuery } = useRouter();
@@ -39,10 +44,26 @@ const MIDIMappedParameter: FC<MIDIMappedParamProps> = memo(function WrappedMIDIM
 		});
 	}, [param, instance, onClearMIDIMapping]);
 
+	const onUpdateChannel = useCallback((channel: number) => {
+		onUpdateMIDIChannel(instance, param, channel);
+	}, [onUpdateMIDIChannel, instance, param]);
+
+	const onUpdateControl = useCallback((control: number) => {
+		onUpdateMIDIControl(instance, param, control);
+	}, [onUpdateMIDIControl, instance, param]);
+
 	return (
 		<Table.Tr>
-			<Table.Td className={ classes.midiChannelColumn } >{ param.meta.midi?.chan || ""}</Table.Td>
-			<Table.Td className={ classes.midiControlColumn } >{ param.meta.midi?.ctrl || ""}</Table.Td>
+			{
+				param.meta.midi?.chan === undefined
+					? <Table.Td className={ classes.midiChannelColumn } />
+					: <EditableTableNumberCell min={ 1 } max={ 16 } value={ param.meta.midi.chan } name="midi_channel" className={ classes.midiChannelColumn } onUpdate={ onUpdateChannel } />
+			}
+			{
+				param.meta.midi?.ctrl === undefined
+					? <Table.Td className={ classes.midiControlColumn } />
+					: <EditableTableNumberCell min={ 0 } max={ 127 } value={ param.meta.midi.ctrl } name="midi_control" className={ classes.midiControlColumn } onUpdate={ onUpdateControl } />
+			}
 			<Table.Td className={ classes.parameterNameColumn } >{ param.name }</Table.Td>
 			<Table.Td className={ classes.patcherInstanceColumn } >
 				<span className={ classes.patcherInstanceIndex } >{ instance.index }</span>

@@ -8,7 +8,7 @@ import { useCallback, useEffect, useState } from "react";
 import { getPatcherInstanceParametersWithMIDIMapping, getPatcherInstancesByIndex } from "../selectors/patchers";
 import MIDIMappedParameterList from "../components/midi/mappedParameterList";
 import { ParameterRecord } from "../models/parameter";
-import { clearParameterMidiMappingOnRemote } from "../actions/patchers";
+import { clearParameterMIDIMappingOnRemote, setParameterMIDIChannelOnRemote, setParameterMIDIControlOnRemote } from "../actions/patchers";
 import { PatcherInstanceRecord } from "../models/instance";
 
 const collator = new Intl.Collator("en-US");
@@ -88,11 +88,19 @@ const MIDIMappings = () => {
 		getPatcherInstanceParametersWithMIDIMapping(state)
 	]);
 
-	const onClearParameterMidiMapping = useCallback((instance: PatcherInstanceRecord, param: ParameterRecord) => {
-		dispatch(clearParameterMidiMappingOnRemote(instance.id, param.id));
+	const onClearParameterMIDIMapping = useCallback((instance: PatcherInstanceRecord, param: ParameterRecord) => {
+		dispatch(clearParameterMIDIMappingOnRemote(instance.id, param.id));
 	}, [dispatch]);
 
-	const onSort = useCallback((attr: MIDIMappedParameterSortAttr) => {
+	const onUpdateParamterMIDIChannel = useCallback((instance: PatcherInstanceRecord, param: ParameterRecord, channel: number) => {
+		dispatch(setParameterMIDIChannelOnRemote(instance.id, param.id, channel));
+	}, [dispatch]);
+
+	const onUpdateParamterMIDIControl = useCallback((instance: PatcherInstanceRecord, param: ParameterRecord, control: number) => {
+		dispatch(setParameterMIDIControlOnRemote(instance.id, param.id, control));
+	}, [dispatch]);
+
+	const onSort = useCallback((attr: MIDIMappedParameterSortAttr): void => {
 		if (attr === sortAttr) return void setSortOrder(sortOrder === SortOrder.Asc ? SortOrder.Desc : SortOrder.Asc);
 
 		setSortAttr(attr);
@@ -116,7 +124,9 @@ const MIDIMappings = () => {
 			<MIDIMappedParameterList
 				patcherInstances={ patcherInstances }
 				parameters={ displayParameters }
-				onClearParameterMidiMapping={ onClearParameterMidiMapping }
+				onClearParameterMIDIMapping={ onClearParameterMIDIMapping }
+				onUpdateParameterMIDIChannel={ onUpdateParamterMIDIChannel }
+				onUpdateParameterMIDIControl={ onUpdateParamterMIDIControl }
 				onSort={ onSort }
 				sortAttr={ sortAttr }
 				sortOrder={ sortOrder }
