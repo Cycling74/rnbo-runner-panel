@@ -1,11 +1,13 @@
 import { Record as ImmuRecord } from "immutable";
-import { OSCQueryRNBOInstanceMessageInfo, OSCQueryRNBOInstanceMessages, OSCQueryRNBOInstanceMessageValue } from "../lib/types";
+import { JsonMap, OSCQueryRNBOInstanceMessageInfo, OSCQueryRNBOInstanceMessages, OSCQueryRNBOInstanceMessageValue } from "../lib/types";
 import { PatcherInstanceRecord } from "./instance";
+import { parseMetaJSONString } from "../lib/util";
 
 export type MessagePortRecordProps = {
 	instanceIndex: number;
 	tag: string;
-	meta: string;
+	meta: JsonMap;
+	metaString: string;
 	value: string;
 	path: string;
 };
@@ -14,7 +16,8 @@ export type MessagePortRecordProps = {
 export class MessagePortRecord extends ImmuRecord<MessagePortRecordProps>({
 	instanceIndex: 0,
 	tag: "",
-	meta: "",
+	meta: {},
+	metaString: "",
 	value: "",
 	path: ""
 }) {
@@ -25,9 +28,8 @@ export class MessagePortRecord extends ImmuRecord<MessagePortRecordProps>({
 				new MessagePortRecord({
 					instanceIndex,
 					tag: name,
-					path: (desc as OSCQueryRNBOInstanceMessageValue).FULL_PATH,
-					meta: (desc as OSCQueryRNBOInstanceMessageValue).CONTENTS?.meta?.VALUE || ""
-				})
+					path: (desc as OSCQueryRNBOInstanceMessageValue).FULL_PATH
+				}).setMeta((desc as OSCQueryRNBOInstanceMessageValue).CONTENTS?.meta?.VALUE || "")
 			];
 		}
 
@@ -56,7 +58,19 @@ export class MessagePortRecord extends ImmuRecord<MessagePortRecordProps>({
 	}
 
 	public setMeta(value: string): MessagePortRecord {
-		return this.set("meta", value);
+		// detect midi mapping
+		let parsed: JsonMap = {};
+		try {
+			// detection simply looks for a 'midi' entry in the meta
+			parsed = parseMetaJSONString(value);
+		} catch {
+			// ignore
+		}
+		return this.withMutations(p => {
+			return p
+				.set("meta", parsed)
+				.set("metaString", value);
+		});
 	}
 
 	public setValue(value: string): MessagePortRecord {

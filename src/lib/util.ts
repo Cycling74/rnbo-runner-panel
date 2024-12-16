@@ -37,7 +37,7 @@ export const formatFileSize = (size: number): string => {
 	return (size / Math.pow(1000, exp)).toFixed(exp >= 2 ? 2 : 0) + " " + fileSizeUnits[exp];
 };
 
-export const parseParamMetaJSONString = (v: string): JsonMap => {
+export const parseMetaJSONString = (v: string): JsonMap => {
 	if (!v?.length) return {};
 
 	let parsed: AnyJson;
@@ -51,9 +51,9 @@ export const parseParamMetaJSONString = (v: string): JsonMap => {
 	return parsed;
 };
 
-export const validateParamMetaJSONString = (v: string): boolean => {
+export const validateMetaJSONString = (v: string): boolean => {
 	try {
-		parseParamMetaJSONString(v);
+		parseMetaJSONString(v);
 		return true;
 	} catch (err) {
 		return false;

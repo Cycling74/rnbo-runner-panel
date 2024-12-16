@@ -92,7 +92,7 @@ const Parameter = memo(function WrappedParameter({
 						onClose={ closeMetaEditor }
 						onRestore={ onRestoreMeta }
 						onSaveMeta={ onSaveMeta }
-						meta={ param.meta }
+						meta={ param.metaString }
 						name={ param.name }
 						scope={ MetadataScope.Parameter }
 					/>

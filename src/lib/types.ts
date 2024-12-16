@@ -9,6 +9,13 @@ export type AnyJson =
 
 export interface JsonMap {  [key: string]: AnyJson }
 
+export type ParameterMetaJsonMap = JsonMap & {
+	midi?: {
+		chan?: number;
+		ctrl?: number;
+	}
+};
+
 export type OSCValue = string | number | null;
 
 export enum OSCAccess {

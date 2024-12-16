@@ -561,7 +561,7 @@ export const clearParameterMidiMappingOnRemote = (id: PatcherInstanceRecord["id"
 		const param = getPatcherInstanceParameter(state, paramId);
 		if (!param) return;
 
-		const meta = param.getParsedMetaObject();
+		const meta = { ...param.meta };
 		delete meta.midi;
 		const message = {
 			address: `${param.path}/meta`,
@@ -848,7 +848,7 @@ export const updateInstanceMIDILastValue = (index: number, value: string): AppTh
 			const parameters: ParameterRecord[] = [];
 			getPatcherInstanceParametersByInstanceIndex(state, instance.index).forEach(param => {
 				if (param.waitingForMidiMapping) {
-					const meta = param.getParsedMetaObject();
+					const meta = { ...param.meta };
 					meta.midi = midiMeta;
 
 					const message = {
