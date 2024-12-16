@@ -145,7 +145,7 @@ const Parameter = memo(function WrappedParameter({
 						<Menu.Item leftSection={ <IconElement path={ mdiCodeBraces } /> } onClick={ toggleMetaEditor }>
 							Edit Metadata
 						</Menu.Item>
-						<Menu.Item leftSection={ <IconElement path={ mdiEraser } /> } onClick={ onClearMidiMap } disabled={ !param.isMidiMapped } >
+						<Menu.Item color="red" leftSection={ <IconElement path={ mdiEraser } /> } onClick={ onClearMidiMap } disabled={ !param.isMidiMapped } >
 							Clear MIDI Mapping
 						</Menu.Item>
 					</Menu.Dropdown>
