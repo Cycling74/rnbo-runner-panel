@@ -6,13 +6,13 @@ import MessageInportList from "../messages/inportList";
 import { SectionTitle } from "../page/sectionTitle";
 import MessageOutportList from "../messages/outportList";
 import classes from "./instance.module.css";
-import { InstanceStateRecord } from "../../models/instance";
+import { PatcherInstanceRecord } from "../../models/instance";
 import { sendInstanceMessageToRemote } from "../../actions/instances";
 import { MessagePortRecord } from "../../models/messageport";
 import { restoreDefaultMessagePortMetaOnRemote, setInstanceMessagePortMetaOnRemote } from "../../actions/instances";
 
 export type InstanceMessageTabProps = {
-	instance: InstanceStateRecord;
+	instance: PatcherInstanceRecord;
 	messageInports: ImmuMap<MessagePortRecord["id"], MessagePortRecord>;
 	messageOutports: ImmuMap<MessagePortRecord["id"], MessagePortRecord>;
 	outputEnabled: boolean;

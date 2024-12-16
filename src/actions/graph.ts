@@ -7,7 +7,7 @@ import { ConnectionType, GraphConnectionRecord, GraphControlNodeRecord, GraphNod
 import { getConnectionsForSourceNodeAndPort, getNode, getPatcherNodeByIndex, getNodes, getSystemNodeByJackNameAndDirection, getConnections, getPatcherNodes, getSystemNodes, getControlNodes } from "../selectors/graph";
 import { showNotification } from "./notifications";
 import { NotificationLevel } from "../models/notification";
-import { InstanceStateRecord } from "../models/instance";
+import { PatcherInstanceRecord } from "../models/instance";
 import { deleteInstance, setInstance, setInstanceMessageInports, setInstanceMessageOutports, setInstanceParameters, setInstances } from "./instances";
 import { getInstance } from "../selectors/instances";
 import { PatcherRecord } from "../models/patcher";
@@ -344,7 +344,7 @@ export const initNodes = (jackPortsInfo: OSCQueryRNBOJackPortInfo, instanceInfo:
 		const state = getState();
 		const existingNodes = getNodes(state);
 
-		const instances: InstanceStateRecord[] = [];
+		const instances: PatcherInstanceRecord[] = [];
 		const instanceParameters: ParameterRecord[] = [];
 		const instanceMessageInports: MessagePortRecord[] = [];
 		const instanceMessageOutports: MessagePortRecord[] = [];
@@ -361,7 +361,7 @@ export const initNodes = (jackPortsInfo: OSCQueryRNBOJackPortInfo, instanceInfo:
 			node = node.updatePosition(x, y);
 
 			patcherAndControlNodes.push(node);
-			const instance = InstanceStateRecord.fromDescription(info);
+			const instance = PatcherInstanceRecord.fromDescription(info);
 			instances.push(instance);
 			instanceParameters.push(...ParameterRecord.fromDescription(instance.index, info.CONTENTS.params));
 			instanceMessageInports.push(...MessagePortRecord.fromDescription(info.CONTENTS.messages?.CONTENTS?.in));
@@ -695,7 +695,7 @@ export const addPatcherNode = (desc: OSCQueryRNBOInstance, metaString: string): 
 		dispatch(setNode(node));
 
 		// Create Instance State
-		const instance = InstanceStateRecord.fromDescription(desc);
+		const instance = PatcherInstanceRecord.fromDescription(desc);
 		const parameters = ParameterRecord.fromDescription(instance.index, desc.CONTENTS.params);
 		const messageInports = MessagePortRecord.fromDescription(desc.CONTENTS.messages?.CONTENTS?.in);
 		const messageOutports = MessagePortRecord.fromDescription(desc.CONTENTS.messages?.CONTENTS?.out);

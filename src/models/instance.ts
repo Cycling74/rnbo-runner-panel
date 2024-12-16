@@ -30,7 +30,7 @@ function sortPresets(left: PresetRecord, right: PresetRecord) : number {
 	return collator.compare(left.name, right.name);
 }
 
-export class InstanceStateRecord extends ImmuRecord<InstanceStateProps>({
+export class PatcherInstanceRecord extends ImmuRecord<InstanceStateProps>({
 
 	index: 0,
 	name: "",
@@ -49,11 +49,11 @@ export class InstanceStateRecord extends ImmuRecord<InstanceStateProps>({
 		return this.name;
 	}
 
-	public setWaitingForMapping(value: boolean): InstanceStateRecord {
+	public setWaitingForMapping(value: boolean): PatcherInstanceRecord {
 		return this.set("waitingForMidiMapping", value);
 	}
 
-	public setDataRefValue(id: string, fileId: string): InstanceStateRecord {
+	public setDataRefValue(id: string, fileId: string): PatcherInstanceRecord {
 		const dataref = this.datarefs.get(id);
 		if (!dataref) return this;
 
@@ -69,16 +69,16 @@ export class InstanceStateRecord extends ImmuRecord<InstanceStateProps>({
 		}).sort(sortPresets);
 	}
 
-	public setPresetLatest(latest: string): InstanceStateRecord {
+	public setPresetLatest(latest: string): PatcherInstanceRecord {
 		return this.set("presets", this.presets.map(preset => preset.setLatest(preset.name === latest))).set("presetLatest", latest);
 	}
 
-	public setPresetInitial(initial: string): InstanceStateRecord {
+	public setPresetInitial(initial: string): PatcherInstanceRecord {
 		return this.set("presetInitial", initial).set("presets", this.presets.map(preset => preset.setInitial(preset.name === initial)).sort(sortPresets));
 	}
 
-	public updatePresets(entries: OSCQueryRNBOInstancePresetEntries): InstanceStateRecord {
-		return this.set("presets", InstanceStateRecord.presetsFromDescription(entries, this.presetLatest, this.presetInitial));
+	public updatePresets(entries: OSCQueryRNBOInstancePresetEntries): PatcherInstanceRecord {
+		return this.set("presets", PatcherInstanceRecord.presetsFromDescription(entries, this.presetLatest, this.presetInitial));
 	}
 
 	public static datarefsFromDescription(datarefsDesc: OSCQueryRNBOInstance["CONTENTS"]["data_refs"]): ImmuMap<DataRefRecord["id"], DataRefRecord> {
@@ -94,12 +94,12 @@ export class InstanceStateRecord extends ImmuRecord<InstanceStateProps>({
 		return desc.CONTENTS.name.VALUE as string;
 	}
 
-	public static fromDescription(desc: OSCQueryRNBOInstance): InstanceStateRecord {
+	public static fromDescription(desc: OSCQueryRNBOInstance): PatcherInstanceRecord {
 
 		const initialPreset: string = desc.CONTENTS.presets.CONTENTS?.initial?.VALUE || "";
 		const latestPreset: string = desc.CONTENTS.presets.CONTENTS?.loaded?.VALUE || "";
 
-		return new InstanceStateRecord({
+		return new PatcherInstanceRecord({
 			index: parseInt(desc.FULL_PATH.split("/").pop(), 10),
 			name: this.getJackName(desc.CONTENTS.jack),
 			patcher: desc.CONTENTS.name.VALUE,

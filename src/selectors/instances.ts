@@ -1,27 +1,27 @@
 import { Map as ImmuMap } from "immutable";
 import { RootStateType } from "../lib/store";
-import { InstanceStateRecord } from "../models/instance";
+import { PatcherInstanceRecord } from "../models/instance";
 import { createSelector } from "reselect";
 import { getPatcherIdsByIndex } from "./graph";
 import { ParameterRecord } from "../models/parameter";
 import { MessagePortRecord } from "../models/messageport";
 
-export const getInstances = (state: RootStateType): ImmuMap<InstanceStateRecord["id"], InstanceStateRecord> => state.instances.instances;
+export const getInstances = (state: RootStateType): ImmuMap<PatcherInstanceRecord["id"], PatcherInstanceRecord> => state.instances.instances;
 
 export const getInstance = createSelector(
 	[
 		getInstances,
-		(state: RootStateType, id: InstanceStateRecord["id"]): InstanceStateRecord["id"] => id
+		(state: RootStateType, id: PatcherInstanceRecord["id"]): PatcherInstanceRecord["id"] => id
 	],
-	(instances, id): InstanceStateRecord | undefined => instances.get(id)
+	(instances, id): PatcherInstanceRecord | undefined => instances.get(id)
 );
 
 export const getInstanceByIndex = createSelector(
 	[
 		getInstances,
-		(state: RootStateType, index: InstanceStateRecord["index"]): InstanceStateRecord["id"] | undefined => state.graph.patcherNodeIdByIndex.get(index)
+		(state: RootStateType, index: PatcherInstanceRecord["index"]): PatcherInstanceRecord["id"] | undefined => state.graph.patcherNodeIdByIndex.get(index)
 	],
-	(instances, id): InstanceStateRecord | undefined => id ? instances.get(id) : undefined
+	(instances, id): PatcherInstanceRecord | undefined => id ? instances.get(id) : undefined
 );
 
 export const getInstancesByIndex = createSelector(
@@ -29,8 +29,8 @@ export const getInstancesByIndex = createSelector(
 		getInstances,
 		getPatcherIdsByIndex
 	],
-	(instances, idsByIndex): ImmuMap<InstanceStateRecord["index"], InstanceStateRecord> => {
-		return ImmuMap<InstanceStateRecord["index"], InstanceStateRecord>().withMutations(map => {
+	(instances, idsByIndex): ImmuMap<PatcherInstanceRecord["index"], PatcherInstanceRecord> => {
+		return ImmuMap<PatcherInstanceRecord["index"], PatcherInstanceRecord>().withMutations(map => {
 			idsByIndex.forEach((id, index) => {
 				const node = instances.get(id);
 				if (node) map.set(index, node);
@@ -64,7 +64,7 @@ export const getParameterByPath = createSelector(
 export const getInstanceParameters = createSelector(
 	[
 		getParameters,
-		(state: RootStateType, instanceIndex: InstanceStateRecord["index"]): InstanceStateRecord["index"] => instanceIndex
+		(state: RootStateType, instanceIndex: PatcherInstanceRecord["index"]): PatcherInstanceRecord["index"] => instanceIndex
 	],
 	(parameters, instanceIndex): ImmuMap<ParameterRecord["id"], ParameterRecord> => {
 		return parameters.filter(p => {
@@ -77,8 +77,8 @@ export const getInstanceParameters = createSelector(
 export const getInstanceParameterByName = createSelector(
 	[
 		getParameters,
-		(state: RootStateType, instanceIndex: InstanceStateRecord["index"]): InstanceStateRecord["index"] => instanceIndex,
-		(state: RootStateType, instanceIndex: InstanceStateRecord["index"], name: ParameterRecord["name"]): ParameterRecord["name"] => name
+		(state: RootStateType, instanceIndex: PatcherInstanceRecord["index"]): PatcherInstanceRecord["index"] => instanceIndex,
+		(state: RootStateType, instanceIndex: PatcherInstanceRecord["index"], name: ParameterRecord["name"]): ParameterRecord["name"] => name
 	],
 	(parameters, instanceIndex, name): ParameterRecord | undefined => {
 		return parameters.find(p => p.instanceIndex === instanceIndex && p.name === name);
@@ -110,7 +110,7 @@ export const getMessageInportByPath = createSelector(
 export const getInstanceMessageInports = createSelector(
 	[
 		getMessageInports,
-		(state: RootStateType, instanceIndex: InstanceStateRecord["index"]): InstanceStateRecord["index"] => instanceIndex
+		(state: RootStateType, instanceIndex: PatcherInstanceRecord["index"]): PatcherInstanceRecord["index"] => instanceIndex
 	],
 	(ports, instanceIndex): ImmuMap<MessagePortRecord["id"], MessagePortRecord> => {
 		return ports.filter(p => {
@@ -122,8 +122,8 @@ export const getInstanceMessageInports = createSelector(
 export const getInstanceMessageInportByTag = createSelector(
 	[
 		getMessageInports,
-		(state: RootStateType, instanceIndex: InstanceStateRecord["index"]): InstanceStateRecord["index"] => instanceIndex,
-		(state: RootStateType, instanceIndex: InstanceStateRecord["index"], tag: MessagePortRecord["tag"]): MessagePortRecord["tag"] => tag
+		(state: RootStateType, instanceIndex: PatcherInstanceRecord["index"]): PatcherInstanceRecord["index"] => instanceIndex,
+		(state: RootStateType, instanceIndex: PatcherInstanceRecord["index"], tag: MessagePortRecord["tag"]): MessagePortRecord["tag"] => tag
 	],
 	(ports, instanceIndex, tag): MessagePortRecord | undefined => {
 		return ports.find(p => p.instanceIndex === instanceIndex && p.tag === tag);
@@ -155,7 +155,7 @@ export const getMessageOutportByPath = createSelector(
 export const getInstanceMessageOutports = createSelector(
 	[
 		getMessageOutports,
-		(state: RootStateType, instanceIndex: InstanceStateRecord["index"]): InstanceStateRecord["index"] => instanceIndex
+		(state: RootStateType, instanceIndex: PatcherInstanceRecord["index"]): PatcherInstanceRecord["index"] => instanceIndex
 	],
 	(ports, instanceIndex): ImmuMap<MessagePortRecord["id"], MessagePortRecord> => {
 		return ports.filter(p => {
@@ -167,8 +167,8 @@ export const getInstanceMessageOutports = createSelector(
 export const getInstanceMessageOutportByTag = createSelector(
 	[
 		getMessageOutports,
-		(state: RootStateType, instanceIndex: InstanceStateRecord["index"]): InstanceStateRecord["index"] => instanceIndex,
-		(state: RootStateType, instanceIndex: InstanceStateRecord["index"], tag: MessagePortRecord["tag"]): MessagePortRecord["tag"] => tag
+		(state: RootStateType, instanceIndex: PatcherInstanceRecord["index"]): PatcherInstanceRecord["index"] => instanceIndex,
+		(state: RootStateType, instanceIndex: PatcherInstanceRecord["index"], tag: MessagePortRecord["tag"]): MessagePortRecord["tag"] => tag
 	],
 	(ports, instanceIndex, tag): MessagePortRecord | undefined => {
 		return ports.find(p => p.instanceIndex === instanceIndex && p.tag === tag);

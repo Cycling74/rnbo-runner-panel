@@ -1,11 +1,11 @@
 import { Map as ImmuMap } from "immutable";
-import { InstanceStateRecord } from "../models/instance";
+import { PatcherInstanceRecord } from "../models/instance";
 import { InstanceAction, InstanceActionType } from "../actions/instances";
 import { ParameterRecord } from "../models/parameter";
 import { MessagePortRecord } from "../models/messageport";
 
 export interface InstanceInstancesState {
-	instances: ImmuMap<InstanceStateRecord["id"], InstanceStateRecord>;
+	instances: ImmuMap<PatcherInstanceRecord["id"], PatcherInstanceRecord>;
 	messageInports: ImmuMap<MessagePortRecord["id"], MessagePortRecord>;
 	messageOutports: ImmuMap<MessagePortRecord["id"], MessagePortRecord>;
 	parameters: ImmuMap<ParameterRecord["id"], ParameterRecord>;
@@ -13,7 +13,7 @@ export interface InstanceInstancesState {
 
 export const instances = (state: InstanceInstancesState = {
 
-	instances: ImmuMap<InstanceStateRecord["id"], InstanceStateRecord>(),
+	instances: ImmuMap<PatcherInstanceRecord["id"], PatcherInstanceRecord>(),
 	messageInports: ImmuMap<MessagePortRecord["id"], MessagePortRecord>(),
 	messageOutports: ImmuMap<MessagePortRecord["id"], MessagePortRecord>(),
 	parameters: ImmuMap<ParameterRecord["id"], ParameterRecord>()

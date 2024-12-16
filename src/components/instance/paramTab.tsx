@@ -5,7 +5,7 @@ import ParameterList from "../parameter/list";
 import { ParameterRecord } from "../../models/parameter";
 import classes from "./instance.module.css";
 import { useAppDispatch } from "../../hooks/useAppDispatch";
-import { InstanceStateRecord } from "../../models/instance";
+import { PatcherInstanceRecord } from "../../models/instance";
 import {
 	restoreDefaultParameterMetaOnRemote, setInstanceParameterMetaOnRemote,
 	setInstanceParameterValueNormalizedOnRemote,
@@ -111,7 +111,7 @@ const getSortedParameterIds = (params: ImmuMap<ParameterRecord["id"], ParameterR
 };
 
 export type InstanceParameterTabProps = {
-	instance: InstanceStateRecord;
+	instance: PatcherInstanceRecord;
 	parameters: ImmuMap<ParameterRecord["id"], ParameterRecord>;
 	sortAttr: AppSettingRecord;
 	sortOrder: AppSettingRecord;

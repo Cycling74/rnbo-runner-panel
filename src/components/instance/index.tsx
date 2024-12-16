@@ -5,7 +5,7 @@ import { InstanceTab } from "../../lib/constants";
 import InstanceParameterTab from "./paramTab";
 import InstanceMessagesTab from "./messageTab";
 import InstanceDataRefsTab from "./datarefTab";
-import { InstanceStateRecord } from "../../models/instance";
+import { PatcherInstanceRecord } from "../../models/instance";
 import { AppSettingRecord } from "../../models/settings";
 import { DataFileRecord } from "../../models/datafile";
 import { Map as ImmuMap, Seq } from "immutable";
@@ -21,7 +21,7 @@ const tabs = [
 ];
 
 export type InstanceProps = {
-	instance: InstanceStateRecord;
+	instance: PatcherInstanceRecord;
 	datafiles: Seq.Indexed<DataFileRecord>
 	enabledMessageOuput: AppSettingRecord;
 	messageInports: ImmuMap<MessagePortRecord["id"], MessagePortRecord>;

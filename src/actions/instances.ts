@@ -1,7 +1,7 @@
 import Router from "next/router";
 import { ActionBase, AppThunk } from "../lib/store";
 import { OSCQueryRNBOInstance, OSCQueryRNBOInstancePresetEntries, OSCValue } from "../lib/types";
-import { InstanceStateRecord } from "../models/instance";
+import { PatcherInstanceRecord } from "../models/instance";
 import { getInstanceByIndex, getInstance, getParameter, getInstanceParameters, getInstanceParameterByName, getParameterByPath, getInstanceMessageInports, getInstanceMessageOutports, getInstanceMessageOutportByTag, getInstanceMessageInportByTag, getMessageInportByPath, getMessageOutportByPath } from "../selectors/instances";
 import { getAppSetting } from "../selectors/settings";
 import { ParameterRecord } from "../models/parameter";
@@ -41,28 +41,28 @@ export enum InstanceActionType {
 export interface ISetInstance extends ActionBase {
 	type: InstanceActionType.SET_INSTANCE;
 	payload: {
-		instance: InstanceStateRecord;
+		instance: PatcherInstanceRecord;
 	};
 }
 
 export interface ISetInstances extends ActionBase {
 	type: InstanceActionType.SET_INSTANCES;
 	payload: {
-		instances: InstanceStateRecord[];
+		instances: PatcherInstanceRecord[];
 	};
 }
 
 export interface IDeleteInstance extends ActionBase {
 	type: InstanceActionType.DELETE_INSTANCE;
 	payload: {
-		instance: InstanceStateRecord;
+		instance: PatcherInstanceRecord;
 	};
 }
 
 export interface IDeleteInstances extends ActionBase {
 	type: InstanceActionType.DELETE_INSTANCES;
 	payload: {
-		instances: InstanceStateRecord[];
+		instances: PatcherInstanceRecord[];
 	};
 }
 
@@ -155,28 +155,28 @@ ISetInstanceParameter | ISetInstanceParameters | IDeleteInstanceParameter | IDel
 ISetInstanceMessageInport | ISetInstanceMessageInports | IDeleteInstanceMessageInport | IDeleteInstanceMessageInports |
 ISetInstanceMessageOutport | ISetInstanceMessageOutports | IDeleteInstanceMessageOutport | IDeleteInstanceMessageOutports
 
-export const setInstance = (instance: InstanceStateRecord): ISetInstance => ({
+export const setInstance = (instance: PatcherInstanceRecord): ISetInstance => ({
 	type: InstanceActionType.SET_INSTANCE,
 	payload: {
 		instance
 	}
 });
 
-export const setInstances = (instances: InstanceStateRecord[]): ISetInstances => ({
+export const setInstances = (instances: PatcherInstanceRecord[]): ISetInstances => ({
 	type: InstanceActionType.SET_INSTANCES,
 	payload: {
 		instances
 	}
 });
 
-export const deleteInstance = (instance: InstanceStateRecord): IDeleteInstance => ({
+export const deleteInstance = (instance: PatcherInstanceRecord): IDeleteInstance => ({
 	type: InstanceActionType.DELETE_INSTANCE,
 	payload: {
 		instance
 	}
 });
 
-export const deleteInstances = (instances: InstanceStateRecord[]): IDeleteInstances => ({
+export const deleteInstances = (instances: PatcherInstanceRecord[]): IDeleteInstances => ({
 	type: InstanceActionType.DELETE_INSTANCES,
 	payload: {
 		instances
@@ -268,7 +268,7 @@ export const deleteInstanceMessageOutports = (ports: MessagePortRecord[]): IDele
 });
 
 // Trigger Events on Remote OSCQuery Runner
-export const loadPresetOnRemoteInstance = (instance: InstanceStateRecord, preset: PresetRecord): AppThunk =>
+export const loadPresetOnRemoteInstance = (instance: PatcherInstanceRecord, preset: PresetRecord): AppThunk =>
 	(dispatch) => {
 		try {
 			const message = {
@@ -288,7 +288,7 @@ export const loadPresetOnRemoteInstance = (instance: InstanceStateRecord, preset
 		}
 	};
 
-export const savePresetToRemoteInstance = (instance: InstanceStateRecord, name: string): AppThunk =>
+export const savePresetToRemoteInstance = (instance: PatcherInstanceRecord, name: string): AppThunk =>
 	(dispatch) => {
 		try {
 			const message = {
@@ -308,7 +308,7 @@ export const savePresetToRemoteInstance = (instance: InstanceStateRecord, name: 
 		}
 	};
 
-export const destroyPresetOnRemoteInstance = (instance: InstanceStateRecord, preset: PresetRecord): AppThunk =>
+export const destroyPresetOnRemoteInstance = (instance: PatcherInstanceRecord, preset: PresetRecord): AppThunk =>
 	(dispatch) => {
 		try {
 			const message = {
@@ -328,7 +328,7 @@ export const destroyPresetOnRemoteInstance = (instance: InstanceStateRecord, pre
 		}
 	};
 
-export const renamePresetOnRemoteInstance = (instance: InstanceStateRecord, preset: PresetRecord, name: string): AppThunk =>
+export const renamePresetOnRemoteInstance = (instance: PatcherInstanceRecord, preset: PresetRecord, name: string): AppThunk =>
 	(dispatch) => {
 		try {
 			const message = {
@@ -349,7 +349,7 @@ export const renamePresetOnRemoteInstance = (instance: InstanceStateRecord, pres
 		}
 	};
 
-export const setInitialPresetOnRemoteInstance = (instance: InstanceStateRecord, preset: PresetRecord): AppThunk =>
+export const setInitialPresetOnRemoteInstance = (instance: PatcherInstanceRecord, preset: PresetRecord): AppThunk =>
 	(dispatch) => {
 		try {
 			const message = {
@@ -369,7 +369,7 @@ export const setInitialPresetOnRemoteInstance = (instance: InstanceStateRecord, 
 		}
 	};
 
-export const sendInstanceMessageToRemote = (instance: InstanceStateRecord, inportId: string, value: string): AppThunk =>
+export const sendInstanceMessageToRemote = (instance: PatcherInstanceRecord, inportId: string, value: string): AppThunk =>
 	(dispatch) => {
 		const values = value.split(" ").reduce((values, v) => {
 			const fv = parseFloat(v.replaceAll(",", ".").trim());
@@ -394,7 +394,7 @@ export const sendInstanceMessageToRemote = (instance: InstanceStateRecord, inpor
 		oscQueryBridge.sendPacket(writePacket(message));
 	};
 
-export const triggerInstanceMidiNoteOnEventOnRemote = (instance: InstanceStateRecord, note: number): AppThunk =>
+export const triggerInstanceMidiNoteOnEventOnRemote = (instance: PatcherInstanceRecord, note: number): AppThunk =>
 	() => {
 
 		const midiChannel = 0;
@@ -409,7 +409,7 @@ export const triggerInstanceMidiNoteOnEventOnRemote = (instance: InstanceStateRe
 		oscQueryBridge.sendPacket(writePacket(message));
 	};
 
-export const triggerInstanceMidiNoteOffEventOnRemote = (instance: InstanceStateRecord, note: number): AppThunk =>
+export const triggerInstanceMidiNoteOffEventOnRemote = (instance: PatcherInstanceRecord, note: number): AppThunk =>
 	() => {
 
 		const midiChannel = 0;
@@ -424,7 +424,7 @@ export const triggerInstanceMidiNoteOffEventOnRemote = (instance: InstanceStateR
 		oscQueryBridge.sendPacket(writePacket(message));
 	};
 
-export const setInstanceParameterValueNormalizedOnRemote = throttle((instance: InstanceStateRecord, param: ParameterRecord, value: number): AppThunk =>
+export const setInstanceParameterValueNormalizedOnRemote = throttle((instance: PatcherInstanceRecord, param: ParameterRecord, value: number): AppThunk =>
 	(dispatch) => {
 
 		const message = {
@@ -439,7 +439,7 @@ export const setInstanceParameterValueNormalizedOnRemote = throttle((instance: I
 		dispatch(setInstanceParameter(param.setNormalizedValue(value)));
 	}, 10);
 
-export const setInstanceDataRefValueOnRemote = (instance: InstanceStateRecord, dataref: DataRefRecord, file?: DataFileRecord): AppThunk =>
+export const setInstanceDataRefValueOnRemote = (instance: PatcherInstanceRecord, dataref: DataRefRecord, file?: DataFileRecord): AppThunk =>
 	() => {
 
 		const message = {
@@ -452,7 +452,7 @@ export const setInstanceDataRefValueOnRemote = (instance: InstanceStateRecord, d
 		oscQueryBridge.sendPacket(writePacket(message));
 	};
 
-export const setInstanceParameterMetaOnRemote = (_instance: InstanceStateRecord, param: ParameterRecord, value: string): AppThunk =>
+export const setInstanceParameterMetaOnRemote = (_instance: PatcherInstanceRecord, param: ParameterRecord, value: string): AppThunk =>
 	() => {
 		const message = {
 			address: `${param.path}/meta`,
@@ -464,7 +464,7 @@ export const setInstanceParameterMetaOnRemote = (_instance: InstanceStateRecord,
 		oscQueryBridge.sendPacket(writePacket(message));
 	};
 
-export const restoreDefaultParameterMetaOnRemote = (_instance: InstanceStateRecord, param: ParameterRecord): AppThunk =>
+export const restoreDefaultParameterMetaOnRemote = (_instance: PatcherInstanceRecord, param: ParameterRecord): AppThunk =>
 	() => {
 		const message = {
 			address: `${param.path}/meta`,
@@ -476,7 +476,7 @@ export const restoreDefaultParameterMetaOnRemote = (_instance: InstanceStateReco
 		oscQueryBridge.sendPacket(writePacket(message));
 	};
 
-export const activateParameterMIDIMappingFocus = (instance: InstanceStateRecord, param: ParameterRecord): AppThunk =>
+export const activateParameterMIDIMappingFocus = (instance: PatcherInstanceRecord, param: ParameterRecord): AppThunk =>
 	(dispatch, getState) => {
 
 		const state = getState();
@@ -487,7 +487,7 @@ export const activateParameterMIDIMappingFocus = (instance: InstanceStateRecord,
 		));
 	};
 
-export const clearParameterMidiMappingOnRemote = (id: InstanceStateRecord["id"], paramId: ParameterRecord["id"]): AppThunk =>
+export const clearParameterMidiMappingOnRemote = (id: PatcherInstanceRecord["id"], paramId: ParameterRecord["id"]): AppThunk =>
 	(_dispatch, getState) => {
 		const state = getState();
 		const instance = getInstance(state, id);
@@ -508,7 +508,7 @@ export const clearParameterMidiMappingOnRemote = (id: InstanceStateRecord["id"],
 		oscQueryBridge.sendPacket(writePacket(message));
 	};
 
-export const setInstanceMessagePortMetaOnRemote = (_instance: InstanceStateRecord, port: MessagePortRecord, value: string): AppThunk =>
+export const setInstanceMessagePortMetaOnRemote = (_instance: PatcherInstanceRecord, port: MessagePortRecord, value: string): AppThunk =>
 	() => {
 		const message = {
 			address: `${port.path}/meta`,
@@ -520,7 +520,7 @@ export const setInstanceMessagePortMetaOnRemote = (_instance: InstanceStateRecor
 		oscQueryBridge.sendPacket(writePacket(message));
 	};
 
-export const restoreDefaultMessagePortMetaOnRemote = (_instance: InstanceStateRecord, port: MessagePortRecord): AppThunk =>
+export const restoreDefaultMessagePortMetaOnRemote = (_instance: PatcherInstanceRecord, port: MessagePortRecord): AppThunk =>
 	() => {
 		const message = {
 			address: `${port.path}/meta`,
@@ -722,7 +722,7 @@ export const updateInstanceParameterValueNormalized = (index: number, name: Para
 		}
 	};
 
-export const setInstanceWaitingForMidiMappingOnRemote = (id: InstanceStateRecord["id"], value: boolean): AppThunk =>
+export const setInstanceWaitingForMidiMappingOnRemote = (id: PatcherInstanceRecord["id"], value: boolean): AppThunk =>
 	(dispatch, getState) => {
 		try {
 			const state = getState();
