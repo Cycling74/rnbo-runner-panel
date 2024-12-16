@@ -16,13 +16,14 @@
 	color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-0));
 	display: flex;
 	height: rem(50px);
-	padding: 0 var(--mantine-spacing-sm);
-  justify-content: center;
+	padding: 0 var(--mantine-spacing-md);
+  justify-content: flex-start;
 	width: 100%;
 
 	@media (min-width: $mantine-breakpoint-md) {
 		border-radius: var(--mantine-radius-md);
 		padding: 0;
+		justify-content: center;
 		width: rem(50px);
   }
 

@@ -71,6 +71,15 @@ export const getPatcherInstancesByIndex = createSelector(
 
 export const getPatcherInstanceParameters = (state: RootStateType): ImmuMap<ParameterRecord["id"], ParameterRecord> => state.patchers.instanceParameters;
 
+export const getPatcherInstanceParametersWithMIDIMapping = createSelector(
+	[
+		getPatcherInstanceParameters
+	],
+	(parameters): ImmuMap<ParameterRecord["id"], ParameterRecord> => {
+		return parameters.filter(p => p.isMidiMapped);
+	}
+);
+
 export const getPatcherInstanceParameter = createSelector(
 	[
 		getPatcherInstanceParameters,
