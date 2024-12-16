@@ -1,12 +1,12 @@
 import Router from "next/router";
 import { ActionBase, AppThunk } from "../lib/store";
-import { OSCQueryRNBOInstance, OSCQueryRNBOInstancePresetEntries, OSCValue } from "../lib/types";
+import { OSCQueryRNBOInstance, OSCQueryRNBOInstancePresetEntries, OSCQueryRNBOPatchersState, OSCValue } from "../lib/types";
 import { PatcherInstanceRecord } from "../models/instance";
 import { getInstanceByIndex, getInstance, getParameter, getInstanceParameters, getInstanceParameterByName, getParameterByPath, getInstanceMessageInports, getInstanceMessageOutports, getInstanceMessageOutportByTag, getInstanceMessageInportByTag, getMessageInportByPath, getMessageOutportByPath } from "../selectors/instances";
 import { getAppSetting } from "../selectors/settings";
 import { ParameterRecord } from "../models/parameter";
 import { MessagePortRecord } from "../models/messageport";
-import { OSCArgument, writePacket } from "osc";
+import { OSCArgument, OSCMessage, writePacket } from "osc";
 import { showNotification } from "./notifications";
 import { NotificationLevel } from "../models/notification";
 import { oscQueryBridge } from "../controller/oscqueryBridgeController";
@@ -15,8 +15,11 @@ import { PresetRecord } from "../models/preset";
 import { AppSetting } from "../models/settings";
 import { DataRefRecord } from "../models/dataref";
 import { DataFileRecord } from "../models/datafile";
+import { PatcherRecord } from "../models/patcher";
 
 export enum InstanceActionType {
+	INIT_PATCHERS = "INIT_PATCHERS",
+
 	SET_INSTANCE = "SET_INSTANCE",
 	SET_INSTANCES = "SET_INSTANCES",
 	DELETE_INSTANCE = "DELETE_INSTANCE",
@@ -36,6 +39,13 @@ export enum InstanceActionType {
 	SET_MESSAGE_OUTPORTS = "SET_MESSAGE_OUTPORTS",
 	DELETE_MESSAGE_OUTPORT = "DELETE_MESSAGE_OUTPORT",
 	DELETE_MESSAGE_OUTPORTS = "DELETE_MESSAGE_OUTPORTS"
+}
+
+export interface IInitPatchers extends ActionBase {
+	type: InstanceActionType.INIT_PATCHERS;
+	payload: {
+		patchers: PatcherRecord[];
+	};
 }
 
 export interface ISetInstance extends ActionBase {
@@ -150,10 +160,65 @@ export interface IDeleteInstanceMessageOutports extends ActionBase {
 	};
 }
 
-export type InstanceAction = ISetInstance | ISetInstances | IDeleteInstance | IDeleteInstances |
+export type InstanceAction = IInitPatchers | ISetInstance | ISetInstances | IDeleteInstance | IDeleteInstances |
 ISetInstanceParameter | ISetInstanceParameters | IDeleteInstanceParameter | IDeleteInstanceParameters |
 ISetInstanceMessageInport | ISetInstanceMessageInports | IDeleteInstanceMessageInport | IDeleteInstanceMessageInports |
-ISetInstanceMessageOutport | ISetInstanceMessageOutports | IDeleteInstanceMessageOutport | IDeleteInstanceMessageOutports
+ISetInstanceMessageOutport | ISetInstanceMessageOutports | IDeleteInstanceMessageOutport | IDeleteInstanceMessageOutports;
+
+export const initPatchers = (patchersInfo: OSCQueryRNBOPatchersState): IInitPatchers => {
+
+	const patchers: PatcherRecord[] = [];
+	for (const [name, desc] of Object.entries(patchersInfo.CONTENTS || {})) {
+		patchers.push(PatcherRecord.fromDescription(name, desc));
+	}
+
+	return {
+		type: InstanceActionType.INIT_PATCHERS,
+		payload: {
+			patchers
+		}
+	};
+};
+
+export const destroyPatcherOnRemote = (patcher: PatcherRecord): AppThunk =>
+	(dispatch) => {
+		try {
+			const message: OSCMessage = {
+				address: `/rnbo/patchers/${patcher.name}/destroy`,
+				args: []
+			};
+			oscQueryBridge.sendPacket(writePacket(message));
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: `Error while trying to delete patcher ${patcher.name}`,
+				message: "Please check the console for further details."
+			}));
+			console.error(err);
+		}
+	};
+
+
+export const renamePatcherOnRemote = (patcher: PatcherRecord, newName: string): AppThunk =>
+	(dispatch) => {
+		try {
+			const message = {
+				address: `/rnbo/patchers/${patcher.name}/rename`,
+				args: [
+					{ type: "s", value: newName }
+				]
+			};
+			oscQueryBridge.sendPacket(writePacket(message));
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: `Error while trying to rename patcher ${patcher.name} -> ${newName}`,
+				message: "Please check the console for further details."
+			}));
+			console.error(err);
+		}
+	};
+
 
 export const setInstance = (instance: PatcherInstanceRecord): ISetInstance => ({
 	type: InstanceActionType.SET_INSTANCE,

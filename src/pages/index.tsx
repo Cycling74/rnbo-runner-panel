@@ -2,7 +2,7 @@ import { Button, Group, Stack, Text, Tooltip } from "@mantine/core";
 import { FunctionComponent, useCallback, useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "../hooks/useAppDispatch";
 import { RootStateType } from "../lib/store";
-import { getPatchersSortedByName } from "../selectors/patchers";
+import { getPatchersSortedByName } from "../selectors/instances";
 import { getConnections, getNodes } from "../selectors/graph";
 import GraphEditor from "../components/editor";
 import PresetDrawer from "../components/presets";
@@ -19,7 +19,7 @@ import {
 } from "../actions/editor";
 import SetsDrawer from "../components/sets";
 import { destroySetPresetOnRemote, loadSetPresetOnRemote, saveSetPresetToRemote, renameSetPresetOnRemote, clearGraphSetOnRemote, destroyGraphSetOnRemote, loadGraphSetOnRemote, renameGraphSetOnRemote, saveGraphSetOnRemote } from "../actions/sets";
-import { destroyPatcherOnRemote, renamePatcherOnRemote } from "../actions/patchers";
+import { destroyPatcherOnRemote, renamePatcherOnRemote } from "../actions/instances";
 import { PresetRecord } from "../models/preset";
 import { getGraphSetPresetsSortedByName, getGraphSetsSortedByName } from "../selectors/sets";
 import { useDisclosure } from "@mantine/hooks";

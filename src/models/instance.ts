@@ -3,7 +3,7 @@ import { PresetRecord } from "./preset";
 import { DataRefRecord } from "./dataref";
 import { OSCQueryRNBOInstance, OSCQueryRNBOInstancePresetEntries } from "../lib/types";
 
-export type InstanceStateProps = {
+export type PatcherInstanceProps = {
 	index: number;
 	patcher: string;
 	path: string;
@@ -30,7 +30,7 @@ function sortPresets(left: PresetRecord, right: PresetRecord) : number {
 	return collator.compare(left.name, right.name);
 }
 
-export class PatcherInstanceRecord extends ImmuRecord<InstanceStateProps>({
+export class PatcherInstanceRecord extends ImmuRecord<PatcherInstanceProps>({
 
 	index: 0,
 	name: "",

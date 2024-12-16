@@ -3,12 +3,14 @@ import { PatcherInstanceRecord } from "../models/instance";
 import { InstanceAction, InstanceActionType } from "../actions/instances";
 import { ParameterRecord } from "../models/parameter";
 import { MessagePortRecord } from "../models/messageport";
+import { PatcherRecord } from "../models/patcher";
 
 export interface InstanceInstancesState {
 	instances: ImmuMap<PatcherInstanceRecord["id"], PatcherInstanceRecord>;
 	messageInports: ImmuMap<MessagePortRecord["id"], MessagePortRecord>;
 	messageOutports: ImmuMap<MessagePortRecord["id"], MessagePortRecord>;
 	parameters: ImmuMap<ParameterRecord["id"], ParameterRecord>;
+	patchers: ImmuMap<PatcherRecord["id"], PatcherRecord>;
 }
 
 export const instances = (state: InstanceInstancesState = {
@@ -16,11 +18,21 @@ export const instances = (state: InstanceInstancesState = {
 	instances: ImmuMap<PatcherInstanceRecord["id"], PatcherInstanceRecord>(),
 	messageInports: ImmuMap<MessagePortRecord["id"], MessagePortRecord>(),
 	messageOutports: ImmuMap<MessagePortRecord["id"], MessagePortRecord>(),
-	parameters: ImmuMap<ParameterRecord["id"], ParameterRecord>()
+	parameters: ImmuMap<ParameterRecord["id"], ParameterRecord>(),
+	patchers: ImmuMap<PatcherRecord["id"], PatcherRecord>()
 
 }, action: InstanceAction): InstanceInstancesState => {
 
 	switch(action.type) {
+
+		case InstanceActionType.INIT_PATCHERS: {
+			const { patchers } = action.payload;
+
+			return {
+				...state,
+				patchers: ImmuMap<PatcherRecord["id"], PatcherRecord>(patchers.map(p => [p.id, p]))
+			};
+		}
 
 		case InstanceActionType.SET_INSTANCE: {
 			const { instance } = action.payload;

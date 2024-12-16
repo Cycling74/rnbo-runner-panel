@@ -11,7 +11,7 @@ import { PatcherInstanceRecord } from "../models/instance";
 import { deleteInstance, setInstance, setInstanceMessageInports, setInstanceMessageOutports, setInstanceParameters, setInstances } from "./instances";
 import { getInstance } from "../selectors/instances";
 import { PatcherRecord } from "../models/patcher";
-import { getPatchers } from "../selectors/patchers";
+import { getPatchers } from "../selectors/instances";
 import { defaultNodeGap, nodeDefaultWidth, nodeHeaderHeight } from "../lib/constants";
 import { getGraphEditorInstance } from "../selectors/editor";
 import { ParameterRecord } from "../models/parameter";
