@@ -152,7 +152,6 @@ export const getPatcherInstanceMessageInportsByInstanceIndex = createSelector(
 		(state: RootStateType, instanceIndex: PatcherInstanceRecord["index"]): PatcherInstanceRecord["index"] => instanceIndex
 	],
 	(ports, instanceIndex): ImmuMap<MessagePortRecord["id"], MessagePortRecord> => {
-		console.log(ports.valueSeq().toArray().map(p => p.toJSON()));
 		return ports.filter(p => {
 			return p.instanceIndex === instanceIndex;
 		});
