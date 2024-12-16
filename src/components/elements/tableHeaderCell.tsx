@@ -3,7 +3,6 @@ import { FC, PropsWithChildren, useCallback } from "react";
 import { SortOrder } from "../../lib/constants";
 import { IconElement } from "./icon";
 import { mdiChevronDown, mdiChevronUp, mdiUnfoldMoreHorizontal } from "@mdi/js";
-import classes from "./elements.module.css";
 
 export type TableHeaderCellProps = PropsWithChildren<{
 	className?: string;
@@ -35,7 +34,7 @@ export const TableHeaderCell: FC<TableHeaderCellProps> = ({
 		<Table.Th className={ className } >
 			{
 				onSort ? (
-					<UnstyledButton onClick={ onTriggerSort } className={ classes.tableHeaderButton } >
+					<UnstyledButton onClick={ onTriggerSort } >
 						<Group justify="space-between">
 							<Text fw="bold" fz={ fz } >
 								{ children }
