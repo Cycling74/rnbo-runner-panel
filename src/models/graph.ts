@@ -1,6 +1,7 @@
 
 import { Record as ImmuRecord, Map as ImmuMap, Set as ImmuSet } from "immutable";
 import { OSCQueryRNBOInstance, OSCQueryRNBOJackPortInfo } from "../lib/types";
+import { nodeDefaultWidth, nodeHeaderHeight, nodePortHeight, nodePortSpacing } from "../lib/constants";
 
 export enum ConnectionType {
 	Audio = "audio",
@@ -34,11 +35,6 @@ export class GraphPortRecord extends ImmuRecord<GraphPortProps> ({
 
 }) {}
 
-const headerHeight = 50;
-const portHeight = 20;
-const portSpacing = 30;
-const nodeWidth = 435;
-
 export const calculateNodeContentHeight = (ports: ImmuMap<GraphPortRecord["id"], GraphPortRecord>): number => {
 	const { sinkCount, sourceCount } = ports.valueSeq().reduce((result, port) => {
 		if (port.direction === PortDirection.Sink) {
@@ -49,16 +45,17 @@ export const calculateNodeContentHeight = (ports: ImmuMap<GraphPortRecord["id"],
 		return result;
 	}, { sinkCount: 0, sourceCount: 0 });
 
-	return (sinkCount > sourceCount ? sinkCount : sourceCount) * (portHeight + portSpacing);
+	return (sinkCount > sourceCount ? sinkCount : sourceCount) * (nodePortHeight + nodePortSpacing);
 };
 
 export type CommonGraphNodeProps = {
 	jackName: string;
 	ports: ImmuMap<GraphPortRecord["id"], GraphPortRecord>;
-	contentHeight: number;
 	selected: boolean;
 	x: number;
 	y: number;
+	width: number;
+	height: number;
 }
 
 export type GraphSystemNodeProps = CommonGraphNodeProps & {
@@ -76,6 +73,7 @@ export type GraphControlNodeProps = CommonGraphNodeProps;
 
 export interface GraphNode extends CommonGraphNodeProps {
 	id: string;
+	contentHeight: number;
 	getPort: (name: GraphPortRecord["id"]) => GraphPortRecord | undefined;
 	type: NodeType;
 }
@@ -101,10 +99,11 @@ export class GraphPatcherNodeRecord extends ImmuRecord<GraphPatcherNodeProps>({
 	ports: ImmuMap<GraphPortRecord["id"], GraphPortRecord>(),
 
 	// Editor props
-	contentHeight: 0,
 	selected: false,
+	x: 0,
 	y: 0,
-	x: 0
+	height: 0,
+	width: nodeDefaultWidth
 
 }) implements GraphPatcherNode {
 
@@ -121,12 +120,12 @@ export class GraphPatcherNodeRecord extends ImmuRecord<GraphPatcherNodeProps>({
 		return NodeType.Patcher;
 	}
 
-	public get height(): number {
-		return this.contentHeight + headerHeight;
+	public get contentHeight(): number {
+		return this.height - nodeHeaderHeight;
 	}
 
-	public get width(): number {
-		return nodeWidth;
+	public updateDimensions(width: number, height: number): GraphPatcherNodeRecord {
+		return this.withMutations(record => record.set("width", width).set("height", height));
 	}
 
 	public updatePosition(x: number, y: number): GraphPatcherNodeRecord {
@@ -217,10 +216,11 @@ export class GraphPatcherNodeRecord extends ImmuRecord<GraphPatcherNodeProps>({
 			patcher: desc.CONTENTS.name.VALUE,
 			path: desc.FULL_PATH,
 			ports,
-			contentHeight: calculateNodeContentHeight(ports),
 			selected: false,
 			x: 0,
-			y: 0
+			y: 0,
+			height: calculateNodeContentHeight(ports) + nodeHeaderHeight,
+			width: nodeDefaultWidth
 		});
 	}
 }
@@ -250,10 +250,11 @@ export class GraphSystemNodeRecord extends ImmuRecord<GraphSystemNodeProps>({
 	ports: ImmuMap<GraphPortRecord["id"], GraphPortRecord>(),
 
 	// Editor props
-	contentHeight: 0,
 	selected: false,
+	x: 0,
 	y: 0,
-	x: 0
+	height: 0,
+	width: nodeDefaultWidth
 
 }) implements GraphSystemNode {
 
@@ -265,12 +266,8 @@ export class GraphSystemNodeRecord extends ImmuRecord<GraphSystemNodeProps>({
 		return NodeType.System;
 	}
 
-	public get height(): number {
-		return this.contentHeight + headerHeight;
-	}
-
-	public get width(): number {
-		return nodeWidth;
+	public get contentHeight(): number {
+		return this.height - nodeHeaderHeight;
 	}
 
 	public updatePosition(x: number, y: number): GraphSystemNodeRecord {
@@ -290,7 +287,7 @@ export class GraphSystemNodeRecord extends ImmuRecord<GraphSystemNodeProps>({
 
 		return this
 			.set("ports", portList)
-			.set("contentHeight", calculateNodeContentHeight(portList));
+			.set("height", calculateNodeContentHeight(portList) + nodeHeaderHeight);
 	}
 
 	public select(): GraphSystemNodeRecord {
@@ -360,10 +357,11 @@ export class GraphSystemNodeRecord extends ImmuRecord<GraphSystemNodeProps>({
 						direction: PortDirection.Source,
 						id: `${jackName}${this.inputSuffix}`,
 						ports,
-						contentHeight: calculateNodeContentHeight(ports),
 						selected: false,
 						x: 0,
-						y: 0
+						y: 0,
+						height: calculateNodeContentHeight(ports) + nodeHeaderHeight,
+						width: nodeDefaultWidth
 					})
 				);
 			}
@@ -376,10 +374,11 @@ export class GraphSystemNodeRecord extends ImmuRecord<GraphSystemNodeProps>({
 						direction: PortDirection.Sink,
 						id: `${jackName}${this.outputSuffix}`,
 						ports,
-						contentHeight: calculateNodeContentHeight(ports),
 						selected: false,
 						x: 0,
-						y: 0
+						y: 0,
+						height: calculateNodeContentHeight(ports) + nodeHeaderHeight,
+						width: nodeDefaultWidth
 					})
 				);
 			}
@@ -395,10 +394,11 @@ export class GraphControlNodeRecord extends ImmuRecord<GraphControlNodeProps>({
 	ports: ImmuMap<GraphPortRecord["id"], GraphPortRecord>(),
 
 	// Editor props
-	contentHeight: 0,
 	selected: false,
 	y: 0,
-	x: 0
+	x: 0,
+	width: nodeDefaultWidth,
+	height: 0
 
 }) implements GraphControlNode {
 
@@ -415,12 +415,8 @@ export class GraphControlNodeRecord extends ImmuRecord<GraphControlNodeProps>({
 		return NodeType.Control;
 	}
 
-	public get height(): number {
-		return this.contentHeight + headerHeight;
-	}
-
-	public get width(): number {
-		return nodeWidth;
+	public get contentHeight(): number {
+		return this.height - nodeHeaderHeight;
 	}
 
 	public setPortsByType(type: ConnectionType, direction: PortDirection, newPorts: GraphPortRecord[]): GraphControlNodeRecord {
@@ -436,7 +432,7 @@ export class GraphControlNodeRecord extends ImmuRecord<GraphControlNodeProps>({
 
 		return this
 			.set("ports", portList)
-			.set("contentHeight", calculateNodeContentHeight(portList));
+			.set("height", calculateNodeContentHeight(portList) + nodeHeaderHeight);
 	}
 
 	public updatePosition(x: number, y: number): GraphControlNodeRecord {
@@ -467,10 +463,11 @@ export class GraphControlNodeRecord extends ImmuRecord<GraphControlNodeProps>({
 		return new GraphControlNodeRecord({
 			jackName,
 			ports,
-			contentHeight: calculateNodeContentHeight(ports),
 			selected: false,
 			x: 0,
-			y: 0
+			y: 0,
+			height: calculateNodeContentHeight(ports) + nodeHeaderHeight,
+			width: nodeDefaultWidth
 		});
 	}
 }

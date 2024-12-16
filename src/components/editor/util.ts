@@ -12,9 +12,6 @@ export type EdgeDataProps = {
 export type EditorNodeProps = NodeProps<NodeDataProps>;
 export type EditorEdgeProps = EdgeProps<EdgeDataProps>;
 
-
 export const calcPortOffset = (total: number, index: number): number => {
 	return (index + 1) * (1 / (total + 1)) * 100;
 };
-
-export const defaultNodeWidth = 300;

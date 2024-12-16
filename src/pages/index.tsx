@@ -1,17 +1,22 @@
 import { Button, Group, Stack, Text, Tooltip } from "@mantine/core";
-import { FunctionComponent, useCallback } from "react";
+import { FunctionComponent, useCallback, useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "../hooks/useAppDispatch";
 import { RootStateType } from "../lib/store";
 import { getPatchersSortedByName } from "../selectors/patchers";
 import { getConnections, getNodes } from "../selectors/graph";
 import GraphEditor from "../components/editor";
 import PresetDrawer from "../components/presets";
-import { Connection, Edge, EdgeChange, Node, NodeChange } from "reactflow";
+import { Connection, Edge, EdgeChange, Node, NodeChange, ReactFlowInstance } from "reactflow";
+import { loadPatcherNodeOnRemote } from "../actions/graph";
 import {
 	applyEditorEdgeChanges, applyEditorNodeChanges, createEditorConnection,
+	editorZoomIn,
+	editorZoomOut,
+	generateEditorLayout,
 	removeEditorConnectionsById, removeEditorNodesById,
-	loadPatcherNodeOnRemote
-} from "../actions/graph";
+	toggleEditorLockedState,
+	triggerEditorFitView
+} from "../actions/editor";
 import SetsDrawer from "../components/sets";
 import { destroySetPresetOnRemote, loadSetPresetOnRemote, saveSetPresetToRemote, renameSetPresetOnRemote, clearGraphSetOnRemote, destroyGraphSetOnRemote, loadGraphSetOnRemote, renameGraphSetOnRemote, saveGraphSetOnRemote } from "../actions/sets";
 import { destroyPatcherOnRemote, renamePatcherOnRemote } from "../actions/patchers";
@@ -26,6 +31,8 @@ import { modals } from "@mantine/modals";
 import { IconElement } from "../components/elements/icon";
 import { mdiCamera, mdiFileExport, mdiGroup } from "@mdi/js";
 import { ResponsiveButton } from "../components/elements/responsiveButton";
+import { initEditor, unmountEditor } from "../actions/editor";
+import { getGraphEditorLockedState } from "../selectors/editor";
 
 const Index: FunctionComponent<Record<string, never>> = () => {
 
@@ -35,13 +42,15 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 		nodes,
 		connections,
 		graphSets,
-		graphPresets
+		graphPresets,
+		editorLocked
 	] = useAppSelector((state: RootStateType) => [
 		getPatchersSortedByName(state, SortOrder.Asc),
 		getNodes(state),
 		getConnections(state),
 		getGraphSetsSortedByName(state, SortOrder.Asc),
-		getGraphSetPresetsSortedByName(state, SortOrder.Asc)
+		getGraphSetPresetsSortedByName(state, SortOrder.Asc),
+		getGraphEditorLockedState(state)
 	]);
 
 	const [patcherDrawerIsOpen, { close: closePatcherDrawer, toggle: togglePatcherDrawer }] = useDisclosure();
@@ -53,6 +62,41 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 		dispatch(loadPatcherNodeOnRemote(patcher));
 		closePatcherDrawer();
 	}, [dispatch, closePatcherDrawer]);
+
+	// Editor
+	const onEditorInit = useCallback((instance: ReactFlowInstance) => {
+		dispatch(initEditor(instance));
+	}, [dispatch]);
+
+	const onEditorFitView = useCallback(() => {
+		dispatch(triggerEditorFitView());
+	}, [dispatch]);
+
+	const onEditorToggleLocked = useCallback(() => {
+		dispatch(toggleEditorLockedState());
+	}, [dispatch]);
+
+	const onEditorAutoLayout = useCallback(() => {
+		modals.openConfirmModal({
+			title: "Rerrange Graph",
+			centered: true,
+			children: (
+				<Text size="sm">
+					Are you sure you want to rearrange and auto-layout the current graph? This action cannot be undone.
+				</Text>
+			),
+			labels: { confirm: "Confirm", cancel: "Cancel" },
+			onConfirm: () => dispatch(generateEditorLayout())
+		});
+	}, [dispatch]);
+
+	const onEditorZoomIn = useCallback(() => {
+		dispatch(editorZoomIn());
+	}, [dispatch]);
+
+	const onEditorZoomOut = useCallback(() => {
+		dispatch(editorZoomOut());
+	}, [dispatch]);
 
 	// Nodes
 	const onConnectNodes = useCallback((connection: Connection) => {
@@ -145,6 +189,10 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 		dispatch(renamePatcherOnRemote(p, name));
 	}, [dispatch]);
 
+	useEffect(() => {
+		return () => dispatch(unmountEditor());
+	}, [dispatch]);
+
 	return (
 		<>
 			<Stack style={{ height: "100%" }} >
@@ -172,11 +220,21 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 				<GraphEditor
 					nodes={ nodes }
 					connections={ connections }
+
 					onConnect={ onConnectNodes }
 					onNodesChange={ onNodesChange }
 					onNodesDelete={ onNodesDelete }
 					onEdgesChange={ onEdgesChange }
 					onEdgesDelete={ onEdgesDelete }
+
+					onInit={ onEditorInit }
+					onAutoLayout={ onEditorAutoLayout }
+					onFitView={ onEditorFitView }
+					onToggleLocked={ onEditorToggleLocked }
+					locked={ editorLocked }
+					zoom={ 1 }
+					onZoomIn={ onEditorZoomIn }
+					onZoomOut={ onEditorZoomOut }
 				/>
 			</Stack>
 			<PatcherDrawer

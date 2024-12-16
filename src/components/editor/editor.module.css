@@ -30,6 +30,11 @@
 	pointer-events: all;
 }
 
+.controls {
+	position: fixed;
+	bottom: var(--mantine-spacing-md);
+}
+
 .editor {
 	flex: 1;
 
@@ -65,17 +70,6 @@
 			background-color: transparent;
 			a {
 				color: var(--mantine-color-default-color);
-			}
-		}
-
-		.react-flow__controls-button {
-			background: var(--mantine-color-default);
-			border-bottom-color: var(--mantine-color-default-border);
-			box-shadow: var(--mantine-shadow-sm);
-			fill: var(--mantine-color-default-color);
-
-			&:hover {
-				background: var(--mantine-color-default-hover);
 			}
 		}
 

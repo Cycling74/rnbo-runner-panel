@@ -21,19 +21,14 @@ const EditorSystemNode: FunctionComponent<EditorNodeProps> = memo(function Wrapp
 	}, { sinks: [], sources: [] } as { sinks: GraphPortRecord[]; sources: GraphPortRecord[]; });
 
 	const aliases = useAppSelector((state: RootStateType) => getPortAliasesForNode(state, node));
-	const longestAliasCharCount = aliases.valueSeq().reduce((result, alias) => {
-		return alias.length > result ? alias.length : result;
-	}, 0);
-
-	const width = 300 + Math.max(0, (longestAliasCharCount - 10) * 5);
-	const portSizeLimit = sinks.length && sources.length ? Math.round(width / 2) : width;
+	const portSizeLimit = sinks.length && sources.length ? Math.round(node.width / 2) : node.width;
 
 	return (
 		<Paper className={ classes.node }  shadow="md" withBorder data-selected={ selected } >
 			<div className={ classes.nodeHeader } >
 				{ node.jackName }
 			</div>
-			<div className={ classes.nodeContent } style={{ height: `${node.contentHeight}px`, minWidth: `${width}px` }} >
+			<div className={ classes.nodeContent } style={{ height: `${node.contentHeight}px` }} >
 				{
 					sinks.map((port, i) => (
 						<EditorPort
