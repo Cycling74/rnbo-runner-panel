@@ -3,20 +3,20 @@ import { OSCQueryRNBOPatcher } from "../lib/types";
 
 export const UNLOAD_PATCHER_NAME = "<none>";
 
-export type PatcherRecordProps = {
+export type PatcherExportRecordProps = {
 	name: string;
 	io: [number, number, number, number];
 }
 
-export class PatcherRecord extends ImmuRecord<PatcherRecordProps>({
+export class PatcherExportRecord extends ImmuRecord<PatcherExportRecordProps>({
 
 	name: "",
 	io: [0, 0, 0, 0]
 
 }) {
 
-	static fromDescription(name: string, desc: OSCQueryRNBOPatcher): PatcherRecord {
-		return new PatcherRecord({
+	static fromDescription(name: string, desc: OSCQueryRNBOPatcher): PatcherExportRecord {
+		return new PatcherExportRecord({
 			name,
 			io: desc.CONTENTS.io.VALUE
 		});

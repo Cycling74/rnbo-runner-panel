@@ -1,6 +1,6 @@
 import { FunctionComponent, memo } from "react";
 import DataRefEntry from "./item";
-import { InstanceStateRecord } from "../../models/instance";
+import { PatcherInstanceRecord } from "../../models/instance";
 import { DataRefRecord } from "../../models/dataref";
 import { Seq } from "immutable";
 import { Table } from "@mantine/core";
@@ -10,7 +10,7 @@ import { DataFileRecord } from "../../models/datafile";
 export type DataRefListProps = {
 	onClearDataRef: (dataref: DataRefRecord) => any;
 	onSetDataRef: (dataref: DataRefRecord, file: DataFileRecord) => any;
-	datarefs: InstanceStateRecord["datarefs"];
+	datarefs: PatcherInstanceRecord["datarefs"];
 	options: Seq.Indexed<DataFileRecord>; // soundfile list
 }
 

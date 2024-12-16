@@ -3,15 +3,15 @@ import { FunctionComponent, memo, useCallback } from "react";
 import { useAppDispatch } from "../../hooks/useAppDispatch";
 import DataRefList from "../dataref/list";
 import classes from "./instance.module.css";
-import { InstanceStateRecord } from "../../models/instance";
-import { setInstanceDataRefValueOnRemote } from "../../actions/instances";
+import { PatcherInstanceRecord } from "../../models/instance";
+import { setInstanceDataRefValueOnRemote } from "../../actions/patchers";
 import { DataRefRecord } from "../../models/dataref";
 import { modals } from "@mantine/modals";
 import { DataFileRecord } from "../../models/datafile";
 import { Seq } from "immutable";
 
 export type InstanceDataRefTabProps = {
-	instance: InstanceStateRecord;
+	instance: PatcherInstanceRecord;
 	datafiles: Seq.Indexed<DataFileRecord>;
 }
 

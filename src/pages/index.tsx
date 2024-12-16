@@ -24,7 +24,7 @@ import { PresetRecord } from "../models/preset";
 import { getGraphSetPresetsSortedByName, getGraphSetsSortedByName } from "../selectors/sets";
 import { useDisclosure } from "@mantine/hooks";
 import PatcherDrawer from "../components/patchers";
-import { PatcherRecord } from "../models/patcher";
+import { PatcherExportRecord } from "../models/patcher";
 import { SortOrder } from "../lib/constants";
 import { GraphSetRecord } from "../models/set";
 import { modals } from "@mantine/modals";
@@ -58,7 +58,7 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 	const [presetDrawerIsOpen, { close: closePresetDrawer, toggle: togglePresetDrawer }] = useDisclosure();
 
 	// Instances
-	const onAddInstance = useCallback((patcher: PatcherRecord) => {
+	const onAddInstance = useCallback((patcher: PatcherExportRecord) => {
 		dispatch(loadPatcherNodeOnRemote(patcher));
 		closePatcherDrawer();
 	}, [dispatch, closePatcherDrawer]);
@@ -181,11 +181,11 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 		dispatch(renameSetPresetOnRemote(preset, name));
 	}, [dispatch]);
 
-	const onDeletePatcher = useCallback((p: PatcherRecord) => {
+	const onDeletePatcher = useCallback((p: PatcherExportRecord) => {
 		dispatch(destroyPatcherOnRemote(p));
 	}, [dispatch]);
 
-	const onRenamePatcher = useCallback((p: PatcherRecord, name: string) => {
+	const onRenamePatcher = useCallback((p: PatcherExportRecord, name: string) => {
 		dispatch(renamePatcherOnRemote(p, name));
 	}, [dispatch]);
 

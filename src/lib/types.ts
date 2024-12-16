@@ -280,6 +280,7 @@ export type OSCQueryRNBOInstance = OSCQueryBaseNode & {
 		name: OSCQueryStringValue & { VALUE: string; };
 		params: OSCQueryBaseNode & {
 			CONTENTS: Record<string, OSCQueryRNBOInstanceParameterInfo>;
+			VALUE: undefined
 		}
 		data_refs: OSCQueryBaseNode & {
 			CONTENTS: Record<string, OSCQueryStringValue>;

@@ -8,13 +8,13 @@ import classes from "../../components/instance/instance.module.css";
 import { getAppStatus } from "../../selectors/appStatus";
 import { AppStatus, SortOrder } from "../../lib/constants";
 import Link from "next/link";
-import { getInstanceByIndex, getInstances } from "../../selectors/instances";
+import { getPatcherInstanceByIndex, getPatcherInstanceParametersByInstanceIndex, getPatcherInstances, getPatcherInstanceMessageInportsByInstanceIndex, getPatcherInstanceMesssageOutportsByInstanceIndex } from "../../selectors/patchers";
 import { unloadPatcherNodeByIndexOnRemote } from "../../actions/graph";
 import { getAppSetting } from "../../selectors/settings";
 import { AppSetting } from "../../models/settings";
 import PresetDrawer from "../../components/presets";
 import { PresetRecord } from "../../models/preset";
-import { destroyPresetOnRemoteInstance, renamePresetOnRemoteInstance, setInitialPresetOnRemoteInstance, loadPresetOnRemoteInstance, savePresetToRemoteInstance } from "../../actions/instances";
+import { destroyPresetOnRemoteInstance, renamePresetOnRemoteInstance, setInitialPresetOnRemoteInstance, loadPresetOnRemoteInstance, savePresetToRemoteInstance } from "../../actions/patchers";
 import { useDisclosure } from "@mantine/hooks";
 import { getDataFilesSortedByName } from "../../selectors/datafiles";
 import InstanceKeyboardModal from "../../components/keyroll/modal";
@@ -36,6 +36,9 @@ export default function Instance() {
 
 	const [
 		currentInstance,
+		parameters,
+		messageInports,
+		messageOutports,
 		appStatus,
 		instances,
 		datafiles,
@@ -44,12 +47,15 @@ export default function Instance() {
 		sortAttr,
 		sortOrder
 	] = useAppSelector((state: RootStateType) => {
-		const currentInstance = getInstanceByIndex(state, instanceIndex);
+		const currentInstance = getPatcherInstanceByIndex(state, instanceIndex);
 
 		return [
 			currentInstance,
+			currentInstance ? getPatcherInstanceParametersByInstanceIndex(state, currentInstance.index) : undefined,
+			currentInstance ? getPatcherInstanceMessageInportsByInstanceIndex(state, currentInstance.index) : undefined,
+			currentInstance ? getPatcherInstanceMesssageOutportsByInstanceIndex(state, currentInstance.index) : undefined,
 			getAppStatus(state),
-			getInstances(state),
+			getPatcherInstances(state),
 			getDataFilesSortedByName(state, SortOrder.Asc),
 			getAppSetting(state, AppSetting.debugMessageOutput),
 			getAppSetting(state, AppSetting.keyboardMIDIInput),
@@ -102,7 +108,7 @@ export default function Instance() {
 
 	if (!isReady || appStatus !== AppStatus.Ready) return null;
 
-	if (!currentInstance) {
+	if (!currentInstance || !parameters || !messageInports || !messageOutports) {
 		// Instance not found / doesn't exist
 		return (
 			<div className={ classes.instanceNotFound } >
@@ -157,6 +163,9 @@ export default function Instance() {
 			</Group>
 			<InstanceComponent
 				instance={ currentInstance }
+				parameters={ parameters }
+				messageInports={ messageInports }
+				messageOutports={ messageOutports }
 				datafiles={ datafiles }
 				enabledMessageOuput={ enabledMessageOuput }
 				paramSortAttr={ sortAttr }

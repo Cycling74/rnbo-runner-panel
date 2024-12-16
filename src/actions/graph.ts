@@ -7,13 +7,14 @@ import { ConnectionType, GraphConnectionRecord, GraphControlNodeRecord, GraphNod
 import { getConnectionsForSourceNodeAndPort, getNode, getPatcherNodeByIndex, getNodes, getSystemNodeByJackNameAndDirection, getConnections, getPatcherNodes, getSystemNodes, getControlNodes } from "../selectors/graph";
 import { showNotification } from "./notifications";
 import { NotificationLevel } from "../models/notification";
-import { InstanceStateRecord } from "../models/instance";
-import { deleteInstance, setInstance, setInstances } from "./instances";
-import { getInstance } from "../selectors/instances";
-import { PatcherRecord } from "../models/patcher";
-import { getPatchers } from "../selectors/patchers";
+import { PatcherInstanceRecord } from "../models/instance";
+import { deleteInstance, setInstance, setInstanceMessageInports, setInstanceMessageOutports, setInstanceParameters, setInstances } from "./patchers";
+import { getPatcherInstance, getPatcherExports } from "../selectors/patchers";
+import { PatcherExportRecord } from "../models/patcher";
 import { defaultNodeGap, nodeDefaultWidth, nodeHeaderHeight } from "../lib/constants";
 import { getGraphEditorInstance } from "../selectors/editor";
+import { ParameterRecord } from "../models/parameter";
+import { MessagePortRecord } from "../models/messageport";
 
 const getPatcherOrControlNodeCoordinates = (node: GraphPatcherNodeRecord | GraphControlNodeRecord, nodes: GraphNodeRecord[]): { x: number, y: number } => {
 
@@ -342,7 +343,10 @@ export const initNodes = (jackPortsInfo: OSCQueryRNBOJackPortInfo, instanceInfo:
 		const state = getState();
 		const existingNodes = getNodes(state);
 
-		const instances: InstanceStateRecord[] = [];
+		const instances: PatcherInstanceRecord[] = [];
+		const instanceParameters: ParameterRecord[] = [];
+		const instanceMessageInports: MessagePortRecord[] = [];
+		const instanceMessageOutports: MessagePortRecord[] = [];
 		const patcherAndControlNodes: Array<GraphPatcherNodeRecord | GraphControlNodeRecord> = [];
 
 		const meta: OSCQuerySetMeta = deserializeSetMeta(instanceInfo.CONTENTS.control.CONTENTS.sets.CONTENTS.meta.VALUE as string);
@@ -356,7 +360,11 @@ export const initNodes = (jackPortsInfo: OSCQueryRNBOJackPortInfo, instanceInfo:
 			node = node.updatePosition(x, y);
 
 			patcherAndControlNodes.push(node);
-			instances.push(InstanceStateRecord.fromDescription(info));
+			const instance = PatcherInstanceRecord.fromDescription(info);
+			instances.push(instance);
+			instanceParameters.push(...ParameterRecord.fromDescription(instance.index, info.CONTENTS.params));
+			instanceMessageInports.push(...MessagePortRecord.fromDescription(instance.index, info.CONTENTS.messages?.CONTENTS?.in));
+			instanceMessageOutports.push(...MessagePortRecord.fromDescription(instance.index, info.CONTENTS.messages?.CONTENTS?.out));
 		}
 
 		// Build a list of all Jack generated names that have not been used for PatcherNodes above
@@ -421,6 +429,9 @@ export const initNodes = (jackPortsInfo: OSCQueryRNBOJackPortInfo, instanceInfo:
 		dispatch(deleteNodes(existingNodes.valueSeq().toArray()));
 		dispatch(setNodes([...systemNodes, ...patcherAndControlNodes]));
 		dispatch(setInstances(instances));
+		dispatch(setInstanceParameters(instanceParameters));
+		dispatch(setInstanceMessageInports(instanceMessageInports));
+		dispatch(setInstanceMessageOutports(instanceMessageOutports));
 		dispatch(setPortsAliases(portAliases));
 	};
 
@@ -533,7 +544,7 @@ export const updateSystemOrControlPortInfo = (type: ConnectionType, direction: P
 		let systemInputY = -defaultNodeGap;
 		let systemOutputY = -defaultNodeGap;
 
-		const patchers = getPatchers(state).valueSeq();
+		const patchers = getPatcherExports(state).valueSeq();
 		const missingSystemOrControlJackName = Array.from(systemOrControlJackNames.values())
 			.filter(name => !patchers.find(patcher => name.startsWith(`${patcher.name}-`)));
 
@@ -617,7 +628,7 @@ export const unloadPatcherNodeByIndexOnRemote = (instanceIndex: number): AppThun
 		}
 	};
 
-export const loadPatcherNodeOnRemote = (patcher: PatcherRecord): AppThunk =>
+export const loadPatcherNodeOnRemote = (patcher: PatcherExportRecord): AppThunk =>
 	(dispatch) => {
 		try {
 			const message = {
@@ -683,8 +694,15 @@ export const addPatcherNode = (desc: OSCQueryRNBOInstance, metaString: string): 
 		dispatch(setNode(node));
 
 		// Create Instance State
-		const instance = InstanceStateRecord.fromDescription(desc);
+		const instance = PatcherInstanceRecord.fromDescription(desc);
+		const parameters = ParameterRecord.fromDescription(instance.index, desc.CONTENTS.params);
+		const messageInports = MessagePortRecord.fromDescription(instance.index, desc.CONTENTS.messages?.CONTENTS?.in);
+		const messageOutports = MessagePortRecord.fromDescription(instance.index, desc.CONTENTS.messages?.CONTENTS?.out);
+
 		dispatch(setInstance(instance));
+		dispatch(setInstanceParameters(parameters));
+		dispatch(setInstanceMessageInports(messageInports));
+		dispatch(setInstanceMessageOutports(messageOutports));
 	};
 
 export const removePatcherNode = (index: number): AppThunk =>
@@ -696,8 +714,9 @@ export const removePatcherNode = (index: number): AppThunk =>
 			if (node?.type !== NodeType.Patcher) return;
 			dispatch(deleteNode(node));
 
-			const instance = getInstance(state, node.id);
+			const instance = getPatcherInstance(state, node.id);
 			if (!instance) return;
+
 			dispatch(deleteInstance(instance));
 		} catch (e) {
 			console.log(e);

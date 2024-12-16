@@ -17,8 +17,11 @@ import {
 	updateInstanceMessageOutportValue, updateInstanceMessages, updateInstanceMessageOutportMeta, updateInstanceMessageInportMeta,
 	updateInstanceParameterValue, updateInstanceParameterValueNormalized, updateInstanceParameters, updateInstanceParameterMeta,
 	updateInstancePresetEntries, updateInstancePresetLatest, updateInstancePresetInitial,
-	updateInstanceMIDILastValue, updateInstanceMIDIReport
-} from "../actions/instances";
+	updateInstanceMIDILastValue, updateInstanceMIDIReport,
+	removeInstanceParameterByPath,
+	removeInstanceMessageInportByPath,
+	removeInstanceMessageOutportByPath
+} from "../actions/patchers";
 import { ConnectionType, PortDirection } from "../models/graph";
 import { showNotification } from "../actions/notifications";
 import { NotificationLevel } from "../models/notification";
@@ -417,18 +420,27 @@ export class OSCQueryBridgeControllerPrivate {
 		// Removed Parameter
 		if (
 			instInfoMatch.groups.content === "params" &&
+			!instInfoMatch.groups.rest.endsWith("/index") &&
+			!instInfoMatch.groups.rest.endsWith("/meta") &&
 			!instInfoMatch.groups.rest.endsWith("/normalized")
 		) {
-			const paramInfo = await this._requestState< OSCQueryRNBOInstance["CONTENTS"]["params"]>(`/rnbo/inst/${index}/params`);
-			return void dispatch(updateInstanceParameters(index, paramInfo));
+			return void dispatch(removeInstanceParameterByPath(path));
 		}
 
 		// Removed Message Inport
 		if (
-			instInfoMatch.groups.content === "messages/in" || instInfoMatch.groups.content === "messages/out"
+			instInfoMatch.groups.content === "messages/in" &&
+			!instInfoMatch.groups.rest.endsWith("meta")
 		) {
-			const messagesInfo = await this._requestState<OSCQueryRNBOInstance["CONTENTS"]["messages"]>(`/rnbo/inst/${index}/messages`);
-			return void dispatch(updateInstanceMessages(index, messagesInfo));
+			return void dispatch(removeInstanceMessageInportByPath(path));
+		}
+
+		// Removed Message Outport
+		if (
+			instInfoMatch.groups.content === "messages/out" &&
+			!instInfoMatch.groups.rest.endsWith("meta")
+		) {
+			return void dispatch(removeInstanceMessageOutportByPath(path));
 		}
 	}
 
@@ -608,7 +620,7 @@ export class OSCQueryBridgeControllerPrivate {
 			return void dispatch(updateInstancePresetEntries(index, presetInfo.CONTENTS.entries));
 		}
 
-		// port meta
+		// Port meta
 		if (packetMatch.groups.rest.endsWith("/meta")) {
 			if (packetMatch.groups.content === "messages/out") {
 				return void dispatch(updateInstanceMessageOutportMeta(index, packetMatch.groups.rest.replace(/\/meta$/, ""), packet.args[0] as unknown as string));

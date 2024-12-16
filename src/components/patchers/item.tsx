@@ -1,16 +1,16 @@
 import { ChangeEvent, FormEvent, FunctionComponent, KeyboardEvent, MouseEvent, memo, useCallback, useEffect, useRef, useState } from "react";
 import { ActionIcon, Button, Group, Menu, TextInput, Tooltip } from "@mantine/core";
-import { PatcherRecord } from "../../models/patcher";
+import { PatcherExportRecord } from "../../models/patcher";
 import { keyEventIsValidForName, replaceInvalidNameChars } from "../../lib/util";
 import classes from "./patchers.module.css";
 import { IconElement } from "../elements/icon";
 import { mdiCheck, mdiClose, mdiDotsVertical, mdiPencil, mdiPlus, mdiTrashCan } from "@mdi/js";
 
 export type PatcherItemProps = {
-	patcher: PatcherRecord;
-	onLoad: (p: PatcherRecord) => any;
-	onDelete: (p: PatcherRecord) => any;
-	onRename: (p: PatcherRecord, name: string) => any;
+	patcher: PatcherExportRecord;
+	onLoad: (p: PatcherExportRecord) => any;
+	onDelete: (p: PatcherExportRecord) => any;
+	onRename: (p: PatcherExportRecord, name: string) => any;
 };
 
 export const PatcherItem: FunctionComponent<PatcherItemProps> = memo(function WrappedPatcherItem({

@@ -1,22 +1,27 @@
 import { Stack } from "@mantine/core";
+import { Map as ImmuMap } from "immutable";
 import { FunctionComponent, memo, useCallback } from "react";
 import { useAppDispatch } from "../../hooks/useAppDispatch";
 import MessageInportList from "../messages/inportList";
 import { SectionTitle } from "../page/sectionTitle";
 import MessageOutportList from "../messages/outportList";
 import classes from "./instance.module.css";
-import { InstanceStateRecord } from "../../models/instance";
-import { sendInstanceMessageToRemote } from "../../actions/instances";
+import { PatcherInstanceRecord } from "../../models/instance";
+import { sendInstanceMessageToRemote } from "../../actions/patchers";
 import { MessagePortRecord } from "../../models/messageport";
-import { restoreDefaultMessagePortMetaOnRemote, setInstanceMessagePortMetaOnRemote } from "../../actions/instances";
+import { restoreDefaultMessagePortMetaOnRemote, setInstanceMessagePortMetaOnRemote } from "../../actions/patchers";
 
 export type InstanceMessageTabProps = {
-	instance: InstanceStateRecord;
+	instance: PatcherInstanceRecord;
+	messageInports: ImmuMap<MessagePortRecord["id"], MessagePortRecord>;
+	messageOutports: ImmuMap<MessagePortRecord["id"], MessagePortRecord>;
 	outputEnabled: boolean;
 }
 
 const InstanceMessagesTab: FunctionComponent<InstanceMessageTabProps> = memo(function WrappedInstanceMessagesTab({
 	instance,
+	messageInports,
+	messageOutports,
 	outputEnabled
 }) {
 
@@ -37,13 +42,13 @@ const InstanceMessagesTab: FunctionComponent<InstanceMessageTabProps> = memo(fun
 		<Stack>
 			<SectionTitle>Input Ports</SectionTitle>
 			{
-				!instance.messageInports.size ? (
+				!messageInports.size ? (
 					<div className={ classes.emptySection }>
 						This patcher instance has no message input ports.
 					</div>
 				) :
 					<MessageInportList
-						inports={ instance.messageInports.valueSeq() }
+						inports={ messageInports.valueSeq() }
 						onSendMessage={ onSendInportMessage }
 						onRestoreMetadata={ onRestoreDefaultPortMetadata }
 						onSaveMetadata={ onSavePortMetadata }
@@ -51,13 +56,13 @@ const InstanceMessagesTab: FunctionComponent<InstanceMessageTabProps> = memo(fun
 			}
 			<SectionTitle>Output Ports</SectionTitle>
 			{
-				!instance.messageOutports.size ? (
+				!messageOutports.size ? (
 					<div className={ classes.emptySection }>
 						This patcher instance has no output ports.
 					</div>
 				) :
 					<MessageOutportList
-						outports={ instance.messageOutports.valueSeq() }
+						outports={ messageOutports.valueSeq() }
 						outputEnabled={ outputEnabled }
 						onRestoreMetadata={ onRestoreDefaultPortMetadata }
 						onSaveMetadata={ onSavePortMetadata }
