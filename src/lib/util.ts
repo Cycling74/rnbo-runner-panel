@@ -59,3 +59,8 @@ export const validateMetaJSONString = (v: string): boolean => {
 		return false;
 	}
 };
+
+export const formatParamValueForDisplay = (value: number | string) => {
+	if (typeof value === "number") return Number.isInteger(value) ? value : value.toFixed(2);
+	return value;
+};

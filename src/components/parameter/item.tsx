@@ -8,12 +8,9 @@ import { MetadataScope } from "../../lib/constants";
 import { IconElement } from "../elements/icon";
 import { mdiCodeBraces, mdiDotsVertical, mdiEraser } from "@mdi/js";
 import { modals } from "@mantine/modals";
+import { formatParamValueForDisplay } from "../../lib/util";
 
 export const parameterBoxHeight = 87 + 6; // 87px + 6px margin
-const formatParamValueForDisplay = (value: number | string) => {
-	if (typeof value === "number") return Number.isInteger(value) ? value : value.toFixed(2);
-	return value;
-};
 
 interface ParameterProps {
 	instanceIsMIDIMapping: boolean;
