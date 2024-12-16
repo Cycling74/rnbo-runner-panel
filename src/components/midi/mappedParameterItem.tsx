@@ -37,7 +37,7 @@ const MIDIMappedParameter: FC<MIDIMappedParamProps> = memo(function WrappedMIDIM
 			confirmProps: { color: "red" },
 			onConfirm: () => onClearMIDIMapping(instance, param)
 		});
-	}, [param, instance]);
+	}, [param, instance, onClearMIDIMapping]);
 
 	return (
 		<Table.Tr>

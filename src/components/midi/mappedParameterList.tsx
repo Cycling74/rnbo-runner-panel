@@ -80,19 +80,20 @@ const MIDIMappedParameterList: FC<MIDIMappedParameterListProps> = memo(function 
 				{
 					parameters.map(p => {
 						const pInstance = patcherInstances.get(p.instanceIndex);
-						return pInstance
-							?	<MIDIMappedParameter
-									key={ p.id }
-									instance={ pInstance }
-									param={ p }
-									onClearMIDIMapping={ onClearParameterMidiMapping }
-								/>
-							: null;
+						if (!pInstance) return null;
+						return (
+							<MIDIMappedParameter
+								key={ p.id }
+								instance={ pInstance }
+								param={ p }
+								onClearMIDIMapping={ onClearParameterMidiMapping }
+							/>
+						);
 					})
 				}
 			</Table.Tbody>
 		</Table>
 	);
-})
+});
 
 export default MIDIMappedParameterList;

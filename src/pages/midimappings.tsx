@@ -93,7 +93,7 @@ const MIDIMappings = () => {
 	}, [dispatch]);
 
 	const onSort = useCallback((attr: MIDIMappedParameterSortAttr) => {
-		if (attr === sortAttr) return setSortOrder(sortOrder === SortOrder.Asc ? SortOrder.Desc : SortOrder.Asc);
+		if (attr === sortAttr) return void setSortOrder(sortOrder === SortOrder.Asc ? SortOrder.Desc : SortOrder.Asc);
 
 		setSortAttr(attr);
 		setSortOrder(SortOrder.Asc);
