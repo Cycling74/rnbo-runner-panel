@@ -16,6 +16,7 @@ import { AppSetting } from "../models/settings";
 import { DataRefRecord } from "../models/dataref";
 import { DataFileRecord } from "../models/datafile";
 import { PatcherExportRecord } from "../models/patcher";
+import { cloneJSON } from "../lib/util";
 
 export enum PatcherActionType {
 	INIT_PATCHERS = "INIT_PATCHERS",
@@ -561,7 +562,7 @@ export const clearParameterMidiMappingOnRemote = (id: PatcherInstanceRecord["id"
 		const param = getPatcherInstanceParameter(state, paramId);
 		if (!param) return;
 
-		const meta = { ...param.meta };
+		const meta = cloneJSON(param.meta);
 		delete meta.midi;
 		const message = {
 			address: `${param.path}/meta`,
@@ -848,7 +849,7 @@ export const updateInstanceMIDILastValue = (index: number, value: string): AppTh
 			const parameters: ParameterRecord[] = [];
 			getPatcherInstanceParametersByInstanceIndex(state, instance.index).forEach(param => {
 				if (param.waitingForMidiMapping) {
-					const meta = { ...param.meta };
+					const meta = cloneJSON(param.meta);
 					meta.midi = midiMeta;
 
 					const message = {
