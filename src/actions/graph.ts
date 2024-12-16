@@ -364,8 +364,8 @@ export const initNodes = (jackPortsInfo: OSCQueryRNBOJackPortInfo, instanceInfo:
 			const instance = PatcherInstanceRecord.fromDescription(info);
 			instances.push(instance);
 			instanceParameters.push(...ParameterRecord.fromDescription(instance.index, info.CONTENTS.params));
-			instanceMessageInports.push(...MessagePortRecord.fromDescription(info.CONTENTS.messages?.CONTENTS?.in));
-			instanceMessageOutports.push(...MessagePortRecord.fromDescription(info.CONTENTS.messages?.CONTENTS?.out));
+			instanceMessageInports.push(...MessagePortRecord.fromDescription(instance.index, info.CONTENTS.messages?.CONTENTS?.in));
+			instanceMessageOutports.push(...MessagePortRecord.fromDescription(instance.index, info.CONTENTS.messages?.CONTENTS?.out));
 		}
 
 		// Build a list of all Jack generated names that have not been used for PatcherNodes above
@@ -697,8 +697,8 @@ export const addPatcherNode = (desc: OSCQueryRNBOInstance, metaString: string): 
 		// Create Instance State
 		const instance = PatcherInstanceRecord.fromDescription(desc);
 		const parameters = ParameterRecord.fromDescription(instance.index, desc.CONTENTS.params);
-		const messageInports = MessagePortRecord.fromDescription(desc.CONTENTS.messages?.CONTENTS?.in);
-		const messageOutports = MessagePortRecord.fromDescription(desc.CONTENTS.messages?.CONTENTS?.out);
+		const messageInports = MessagePortRecord.fromDescription(instance.index, desc.CONTENTS.messages?.CONTENTS?.in);
+		const messageOutports = MessagePortRecord.fromDescription(instance.index, desc.CONTENTS.messages?.CONTENTS?.out);
 
 		dispatch(setInstance(instance));
 		dispatch(setInstanceParameters(parameters));

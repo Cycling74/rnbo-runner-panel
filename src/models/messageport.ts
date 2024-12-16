@@ -1,5 +1,6 @@
 import { Record as ImmuRecord } from "immutable";
 import { OSCQueryRNBOInstanceMessageInfo, OSCQueryRNBOInstanceMessages, OSCQueryRNBOInstanceMessageValue } from "../lib/types";
+import { PatcherInstanceRecord } from "./instance";
 
 export type MessagePortRecordProps = {
 	instanceIndex: number;
@@ -18,11 +19,11 @@ export class MessagePortRecord extends ImmuRecord<MessagePortRecordProps>({
 	path: ""
 }) {
 
-	private static messagesArrayFromDescription(desc: OSCQueryRNBOInstanceMessageInfo, name: string): MessagePortRecord[] {
+	private static messagesArrayFromDescription(instanceIndex: PatcherInstanceRecord["index"], desc: OSCQueryRNBOInstanceMessageInfo, name: string): MessagePortRecord[] {
 		if (typeof desc.VALUE !== "undefined") {
 			return [
 				new MessagePortRecord({
-					instanceIndex: 0,
+					instanceIndex,
 					tag: name,
 					path: (desc as OSCQueryRNBOInstanceMessageValue).FULL_PATH,
 					meta: (desc as OSCQueryRNBOInstanceMessageValue).CONTENTS?.meta?.VALUE || ""
@@ -33,15 +34,15 @@ export class MessagePortRecord extends ImmuRecord<MessagePortRecordProps>({
 		const result: MessagePortRecord[] = [];
 		for (const [subKey, subDesc] of Object.entries(desc.CONTENTS)) {
 			const subPrefix = name ? `${name}/${subKey}` : subKey;
-			result.push(...this.messagesArrayFromDescription(subDesc, subPrefix));
+			result.push(...this.messagesArrayFromDescription(instanceIndex, subDesc, subPrefix));
 		}
 		return result;
 	}
 
-	public static fromDescription(messagesDesc?: OSCQueryRNBOInstanceMessages): MessagePortRecord[] {
+	public static fromDescription(instanceIndex: PatcherInstanceRecord["index"], messagesDesc?: OSCQueryRNBOInstanceMessages): MessagePortRecord[] {
 		const ports: MessagePortRecord[] = [];
 		for (const [name, desc] of Object.entries(messagesDesc?.CONTENTS || {})) {
-			ports.push(...this.messagesArrayFromDescription(desc, name));
+			ports.push(...this.messagesArrayFromDescription(instanceIndex, desc, name));
 		}
 		return ports;
 	}
