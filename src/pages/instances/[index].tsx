@@ -131,7 +131,7 @@ export default function Instance() {
 			<Group justify="space-between" wrap="nowrap">
 				<div style={{ flex: "1 2 50%" }} >
 					<NativeSelect
-						data={ instances.valueSeq().sortBy(n => n.index).toArray().map(d => ({ value: `${d.index}`, label: `${d.index}: ${d.patcher}` })) }
+						data={ instances.valueSeq().sortBy(n => n.index).toArray().map(d => ({ value: `${d.index}`, label: d.displayName })) }
 						leftSection={ <IconElement path={ mdiVectorSquare } /> }
 						onChange={ onChangeInstance }
 						value={ currentInstance.index }
