@@ -71,6 +71,15 @@ export const getPatcherInstancesByIndex = createSelector(
 
 export const getPatcherInstanceParameters = (state: RootStateType): ImmuMap<ParameterRecord["id"], ParameterRecord> => state.patchers.instanceParameters;
 
+export const getPatcherInstanceParametersWithMIDIMapping = createSelector(
+	[
+		getPatcherInstanceParameters
+	],
+	(parameters): ImmuMap<ParameterRecord["id"], ParameterRecord> => {
+		return parameters.filter(p => p.isMidiMapped);
+	}
+);
+
 export const getPatcherInstanceParameter = createSelector(
 	[
 		getPatcherInstanceParameters,
@@ -143,7 +152,6 @@ export const getPatcherInstanceMessageInportsByInstanceIndex = createSelector(
 		(state: RootStateType, instanceIndex: PatcherInstanceRecord["index"]): PatcherInstanceRecord["index"] => instanceIndex
 	],
 	(ports, instanceIndex): ImmuMap<MessagePortRecord["id"], MessagePortRecord> => {
-		console.log(ports.valueSeq().toArray().map(p => p.toJSON()));
 		return ports.filter(p => {
 			return p.instanceIndex === instanceIndex;
 		});

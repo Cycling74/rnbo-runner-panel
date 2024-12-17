@@ -49,7 +49,7 @@ const MessageInportEntry: FunctionComponent<MessageInportEntryProps> = memo(func
 						onClose={ closeMetaEditor }
 						onRestore={ onRestoreMeta }
 						onSaveMeta={ onSaveMeta }
-						meta={ port.meta }
+						meta={ port.metaString }
 						name={ port.name }
 						scope={ MetadataScope.Inport }
 					/>

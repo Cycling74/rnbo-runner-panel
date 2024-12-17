@@ -4,7 +4,7 @@ import { useIsMobileDevice } from "../../hooks/useIsMobileDevice";
 import { modals } from "@mantine/modals";
 import { JsonMap } from "../../lib/types";
 import { MetadataScope } from "../../lib/constants";
-import { parseParamMetaJSONString } from "../../lib/util";
+import { parseMetaJSONString } from "../../lib/util";
 import classes from "./metaEditorModal.module.css";
 import { IconElement } from "../elements/icon";
 import { mdiClose, mdiCodeBraces } from "@mdi/js";
@@ -129,7 +129,7 @@ export const MetaEditorModal: FC<MetaEditorModalProps> = memo(function WrappedPa
 					setHasChanges(false);
 
 					try {
-						if (meta) parseParamMetaJSONString(meta); // ensure valid
+						if (meta) parseMetaJSONString(meta); // ensure valid
 						setError(undefined);
 					} catch (err: unknown) {
 						setError(err instanceof Error ? err : new Error("Invalid JSON format."));
@@ -140,7 +140,7 @@ export const MetaEditorModal: FC<MetaEditorModalProps> = memo(function WrappedPa
 			setValue(meta);
 			setHasChanges(false);
 			try {
-				parseParamMetaJSONString(meta); // ensure valid
+				parseMetaJSONString(meta); // ensure valid
 				setError(undefined);
 			} catch (err: unknown) {
 				setError(err instanceof Error ? err : new Error("Invalid JSON format."));
@@ -152,7 +152,7 @@ export const MetaEditorModal: FC<MetaEditorModalProps> = memo(function WrappedPa
 		if (error) {
 			try {
 				const v = e.currentTarget.value;
-				if (v) parseParamMetaJSONString(v); // ensure valid
+				if (v) parseMetaJSONString(v); // ensure valid
 				setError(undefined);
 			} catch (err: unknown) {
 				setError(err instanceof Error ? err : new Error("Invalid JSON format."));
@@ -165,7 +165,7 @@ export const MetaEditorModal: FC<MetaEditorModalProps> = memo(function WrappedPa
 	const onInputBlur = useCallback(() => {
 		try {
 			if (value) {
-				const j: JsonMap = parseParamMetaJSONString(value); // ensure valid
+				const j: JsonMap = parseMetaJSONString(value); // ensure valid
 				setValue(JSON.stringify(j, null, 2));
 			}
 			setError(undefined);
@@ -177,7 +177,7 @@ export const MetaEditorModal: FC<MetaEditorModalProps> = memo(function WrappedPa
 	const onSaveValue = useCallback((e: FormEvent) => {
 		e.preventDefault();
 		try {
-			if (value) parseParamMetaJSONString(value); // ensure valid
+			if (value) parseMetaJSONString(value); // ensure valid
 			setHasChanges(false);
 			onSaveMeta(value);
 		} catch (err: unknown) {

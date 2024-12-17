@@ -26,9 +26,7 @@ const EditorPatcherNode: FunctionComponent<EditorNodeProps> = memo(function Wrap
 	return (
 		<Paper className={ classes.node } shadow="md" withBorder data-selected={ selected } >
 			<div className={ classes.nodeHeader } >
-				<div>
-					{ (node as GraphPatcherNodeRecord).index }: { (node as GraphPatcherNodeRecord).patcher }
-				</div>
+				<div>{ (node as GraphPatcherNodeRecord).displayName }</div>
 				<div>
 					<Tooltip label="Open Patcher Instance Control">
 						<ActionIcon

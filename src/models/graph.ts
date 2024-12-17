@@ -112,6 +112,10 @@ export class GraphPatcherNodeRecord extends ImmuRecord<GraphPatcherNodeProps>({
 		return this.ports.get(id);
 	}
 
+	public get displayName(): string {
+		return `${this.index}: ${this.patcher}`;
+	}
+
 	public get id(): string {
 		return this.jackName;
 	}

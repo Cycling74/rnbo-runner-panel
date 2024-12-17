@@ -45,6 +45,10 @@ export class PatcherInstanceRecord extends ImmuRecord<PatcherInstanceProps>({
 
 }) {
 
+	public get displayName(): string {
+		return `${this.index}: ${this.name}`;
+	}
+
 	public get id(): string {
 		return this.name;
 	}

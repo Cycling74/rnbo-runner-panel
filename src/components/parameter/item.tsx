@@ -8,12 +8,9 @@ import { MetadataScope } from "../../lib/constants";
 import { IconElement } from "../elements/icon";
 import { mdiCodeBraces, mdiDotsVertical, mdiEraser } from "@mdi/js";
 import { modals } from "@mantine/modals";
+import { formatParamValueForDisplay } from "../../lib/util";
 
 export const parameterBoxHeight = 87 + 6; // 87px + 6px margin
-const formatParamValueForDisplay = (value: number | string) => {
-	if (typeof value === "number") return Number.isInteger(value) ? value : value.toFixed(2);
-	return value;
-};
 
 interface ParameterProps {
 	instanceIsMIDIMapping: boolean;
@@ -92,7 +89,7 @@ const Parameter = memo(function WrappedParameter({
 						onClose={ closeMetaEditor }
 						onRestore={ onRestoreMeta }
 						onSaveMeta={ onSaveMeta }
-						meta={ param.meta }
+						meta={ param.metaString }
 						name={ param.name }
 						scope={ MetadataScope.Parameter }
 					/>
@@ -145,7 +142,7 @@ const Parameter = memo(function WrappedParameter({
 						<Menu.Item leftSection={ <IconElement path={ mdiCodeBraces } /> } onClick={ toggleMetaEditor }>
 							Edit Metadata
 						</Menu.Item>
-						<Menu.Item leftSection={ <IconElement path={ mdiEraser } /> } onClick={ onClearMidiMap } disabled={ !param.isMidiMapped } >
+						<Menu.Item color="red" leftSection={ <IconElement path={ mdiEraser } /> } onClick={ onClearMidiMap } disabled={ !param.isMidiMapped } >
 							Clear MIDI Mapping
 						</Menu.Item>
 					</Menu.Dropdown>

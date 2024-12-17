@@ -1,4 +1,4 @@
-import { Button, Group, Stack, Table, Text, UnstyledButton } from "@mantine/core";
+import { Button, Group, Stack, Table, Text } from "@mantine/core";
 import { DataFileListItem } from "../components/datafile/item";
 import { useAppDispatch, useAppSelector } from "../hooks/useAppDispatch";
 import { RootStateType } from "../lib/store";
@@ -14,7 +14,8 @@ import { modals } from "@mantine/modals";
 import { NotificationLevel } from "../models/notification";
 import { showNotification } from "../actions/notifications";
 import { IconElement } from "../components/elements/icon";
-import { mdiSortAlphabeticalAscending, mdiSortAlphabeticalDescending, mdiUpload } from "@mdi/js";
+import { mdiUpload } from "@mdi/js";
+import { TableHeaderCell } from "../components/elements/tableHeaderCell";
 
 const SampleDependencies = () => {
 
@@ -61,14 +62,9 @@ const SampleDependencies = () => {
 			<Table verticalSpacing="sm" maw="100%" layout="fixed" highlightOnHover>
 				<Table.Thead>
 					<Table.Tr>
-						<Table.Th>
-							<UnstyledButton onClick={ onToggleSort } className={ classes.control } >
-								<Group justify="space-between" align="center">
-									<Text fw="bold" fz="sm">Filename</Text>
-									<IconElement path={ sortOrder === SortOrder.Asc ? mdiSortAlphabeticalAscending : mdiSortAlphabeticalDescending } />
-								</Group>
-							</UnstyledButton>
-						</Table.Th>
+						<TableHeaderCell onSort={ onToggleSort } sortKey={ "filename" } sortOrder={ sortOrder } sorted >
+							Filename
+						</TableHeaderCell>
 						<Table.Th w={ 60 }></Table.Th>
 					</Table.Tr>
 				</Table.Thead>

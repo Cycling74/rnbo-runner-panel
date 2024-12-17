@@ -9,7 +9,7 @@ import { PatcherInstanceRecord } from "../../models/instance";
 import {
 	restoreDefaultParameterMetaOnRemote, setInstanceParameterMetaOnRemote,
 	setInstanceParameterValueNormalizedOnRemote,
-	setInstanceWaitingForMidiMappingOnRemote, clearParameterMidiMappingOnRemote,
+	setInstanceWaitingForMidiMappingOnRemote, clearParameterMIDIMappingOnRemote,
 	activateParameterMIDIMappingFocus
 } from "../../actions/patchers";
 import { OrderedSet as ImmuOrderedSet, Map as ImmuMap } from "immutable";
@@ -159,7 +159,7 @@ const InstanceParameterTab: FunctionComponent<InstanceParameterTabProps> = memo(
 	}, [dispatch, instance]);
 
 	const onClearParameterMidiMapping = useCallback((param: ParameterRecord) => {
-		dispatch(clearParameterMidiMappingOnRemote(instance.id, param.id));
+		dispatch(clearParameterMIDIMappingOnRemote(instance.id, param.id));
 	}, [dispatch, instance]);
 
 	const onSearch = useDebouncedCallback((query: string) => {

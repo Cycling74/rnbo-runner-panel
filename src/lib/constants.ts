@@ -71,6 +71,21 @@ export enum SortOrder {
 	Desc = "desc"
 }
 
+export enum MIDIMappedParameterSortAttr {
+	MIDISource = "midi_source",
+	InstanceIndex = "instance_index",
+	ParameterName = "param_name"
+}
+
+export enum MIDIMetaMappingType {
+	ChannelPressure = "channel_pressure",
+	ControlChange = "control_change",
+	KeyPressure = "key_pressure",
+	Note = "note",
+	PitchBend = "pitch_bend",
+	ProgramChange = "progam_change"
+}
+
 export enum ParameterSortAttr {
 	Index = "displayorder",
 	Name = "name"

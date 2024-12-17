@@ -42,7 +42,7 @@ const MessageOutportEntry: FunctionComponent<MessageOutportEntryProps> = memo(fu
 						onClose={ closeMetaEditor }
 						onRestore={ onRestoreMeta }
 						onSaveMeta={ onSaveMeta }
-						meta={ port.meta }
+						meta={ port.metaString }
 						name={ port.name }
 						scope={ MetadataScope.Outport }
 					/>

@@ -1,6 +1,7 @@
 import { Record as ImmuRecord } from "immutable";
-import { AnyJson, JsonMap, OSCQueryRNBOInstance, OSCQueryRNBOInstanceParameterInfo, OSCQueryRNBOInstanceParameterValue } from "../lib/types";
-import { parseParamMetaJSONString } from "../lib/util";
+import { OSCQueryRNBOInstance, OSCQueryRNBOInstanceParameterInfo, OSCQueryRNBOInstanceParameterValue, ParameterMetaJsonMap } from "../lib/types";
+import { parseMetaJSONString } from "../lib/util";
+import { MIDIMetaMappingType } from "../lib/constants";
 
 export type ParameterRecordProps = {
 
@@ -9,13 +10,15 @@ export type ParameterRecordProps = {
 	instanceIndex: number;
 	min: number;
 	max: number;
-	meta: string;
+	meta: ParameterMetaJsonMap;
+	metaString: string;
 	name: string;
 	normalizedValue: number;
 	path: string;
 	type: string;
 	value: string | number;
 	waitingForMidiMapping: boolean;
+	midiMappingType: false | MIDIMetaMappingType;
 	isMidiMapped: boolean;
 }
 export class ParameterRecord extends ImmuRecord<ParameterRecordProps>({
@@ -25,14 +28,16 @@ export class ParameterRecord extends ImmuRecord<ParameterRecordProps>({
 	instanceIndex: 0,
 	min: 0,
 	max: 1,
-	meta: "",
+	meta: {},
+	metaString: "",
 	name: "name",
 	normalizedValue: 0,
 	path: "",
 	type: "f",
 	value: 0,
 	waitingForMidiMapping: false,
-	isMidiMapped: false
+	isMidiMapped: false,
+	midiMappingType: false
 }) {
 
 	private static arrayFromDescription(
@@ -101,38 +106,43 @@ export class ParameterRecord extends ImmuRecord<ParameterRecordProps>({
 		return this.name.toLowerCase().includes(query);
 	}
 
-	public getParsedMeta(): AnyJson {
-		let meta: AnyJson = {};
-		try {
-			meta = JSON.parse(this.meta);
-		} catch {
-			// ignore
-		}
-		return meta;
-	}
-
-	// get parsed meta but if it isn't a map, return an empty map
-	public getParsedMetaObject(): JsonMap {
-		try {
-			return parseParamMetaJSONString(this.meta); // ensure valid
-		} catch (err) {
-			return {};
-		}
-	}
-
 	public setMeta(value: string): ParameterRecord {
 		// detect midi mapping
-		let isMidiMapped = false;
-		let j: JsonMap = {};
+		let parsed: ParameterMetaJsonMap = {};
 		try {
 			// detection simply looks for a 'midi' entry in the meta
-			j = parseParamMetaJSONString(value);
+			parsed = parseMetaJSONString(value);
 		} catch {
 			// ignore
 		}
 
-		isMidiMapped = typeof j.midi === "object";
-		return this.set("meta", value).set("isMidiMapped", isMidiMapped);
+		const isMidiMapped = typeof parsed.midi === "object";
+		let midiMappingType: false | MIDIMetaMappingType;
+		if (!isMidiMapped) {
+			midiMappingType = false;
+		} else if (Object.hasOwn(parsed.midi, "bend")) {
+			midiMappingType = MIDIMetaMappingType.PitchBend;
+		} else if (Object.hasOwn(parsed.midi, "chanpress")) {
+			midiMappingType = MIDIMetaMappingType.ChannelPressure;
+		} else if (Object.hasOwn(parsed.midi, "ctrl")) {
+			midiMappingType = MIDIMetaMappingType.ControlChange;
+		} else if (Object.hasOwn(parsed.midi, "keypress")) {
+			midiMappingType = MIDIMetaMappingType.KeyPressure;
+		} else if (Object.hasOwn(parsed.midi, "note")) {
+			midiMappingType = MIDIMetaMappingType.Note;
+		} else if (Object.hasOwn(parsed.midi, "prgchg")) {
+			midiMappingType = MIDIMetaMappingType.ProgramChange;
+		} else {
+			midiMappingType = false;
+		}
+
+		return this.withMutations(p => {
+			return p
+				.set("metaString", value)
+				.set("meta", parsed)
+				.set("isMidiMapped", isMidiMapped)
+				.set("midiMappingType", midiMappingType);
+		});
 	}
 
 	public setWaitingForMidiMapping(value: boolean): ParameterRecord {

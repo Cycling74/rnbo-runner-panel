@@ -1,3 +1,7 @@
 .icon {
 	width: 1.3em;
 }
+
+.editableTableCellInput {
+	border-bottom: 1px solid var(--mantine-primary-color-filled);
+}
