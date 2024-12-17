@@ -16,7 +16,7 @@ import { AppSetting } from "../models/settings";
 import { DataRefRecord } from "../models/dataref";
 import { DataFileRecord } from "../models/datafile";
 import { PatcherExportRecord } from "../models/patcher";
-import { cloneJSON, parseMIDIMappingDisplayValue } from "../lib/util";
+import { cloneJSON, InvalidMIDIFormatError, parseMIDIMappingDisplayValue, UnknownMIDIFormatError } from "../lib/util";
 import { MIDIMetaMappingType } from "../lib/constants";
 
 export enum PatcherActionType {
@@ -600,12 +600,33 @@ export const setParameterMIDIMappingOnRemote = (id: PatcherInstanceRecord["id"],
 
 export const setParameterMIDIMappingOnRemoteFromDisplayValue = (id: PatcherInstanceRecord["id"], paramId: ParameterRecord["id"], value: string): AppThunk =>
 	(dispatch) => {
-		const parsed = parseMIDIMappingDisplayValue(value);
-		if (!parsed) {
-			return void dispatch(showNotification({ title: "Invalid MIDI Mapping", message: `"${value}" is not a valid MIDI mapping format`, level: NotificationLevel.error }));
+		try {
+			const parsed = parseMIDIMappingDisplayValue(value);
+			dispatch(setParameterMIDIMappingOnRemote(id, paramId, parsed.type, parsed.mapping));
+		} catch (err: unknown) {
+			let notification: { level: NotificationLevel; message: string; title: string };
+			if (err instanceof InvalidMIDIFormatError) {
+				notification = {
+					title: err.message,
+					message: `"${value}" is not a valid MIDI mapping value`,
+					level: NotificationLevel.error
+				};
+			} else if (err instanceof UnknownMIDIFormatError) {
+				notification = {
+					title: err.message,
+					message: `"${value}" is an unknown MIDI mapping format. Please use the parameter meta editor to set this mapping.`,
+					level: NotificationLevel.warn
+				};
+			} else {
+				notification = {
+					title: "Unexpected Error",
+					message: `Encountered an unexpected error while trying to set "${value}" as the MIDI mapping`,
+					level: NotificationLevel.error
+				};
+				console.error(err);
+			}
+			return void dispatch(showNotification(notification));
 		}
-
-		dispatch(setParameterMIDIMappingOnRemote(id, paramId, parsed.type, parsed.mapping));
 	};
 
 export const setInstanceMessagePortMetaOnRemote = (_instance: PatcherInstanceRecord, port: MessagePortRecord, value: string): AppThunk =>

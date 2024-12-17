@@ -91,7 +91,7 @@ export const formatMIDIMappingToDisplay = (type: MIDIMetaMappingType, mapping: M
 		default: {
 			// eslint-disable-next-line @typescript-eslint/no-unused-vars
 			const _exhaustive: never = type;
-			throw new Error(`Unknown MIDIMappingType "${type}"`);
+			return "Unknown";
 		}
 	}
 };
@@ -105,26 +105,43 @@ const midiMetaRegexp: Record<MIDIMetaMappingType, RegExp> = {
 	[MIDIMetaMappingType.ProgramChange]: /^PRGCHG\/(?<prgchg>[0-9]{1,2})$/
 };
 
-export const parseMIDIMappingDisplayValue = (value: string): false | { type: MIDIMetaMappingType, mapping: MIDIMetaMapping } => {
+const parseMIDIByte = (val: string, min: number, max: number): number | null => {
+	if (val === undefined) return null;
+  const n = parseInt(val, 10);
+  if (isNaN(n) || n < min || n > max) return null;
+  return n;
+};
+
+export class InvalidMIDIFormatError extends Error {
+	constructor() {
+		super("Invalid MIDI mapping");
+	}
+}
+
+export class UnknownMIDIFormatError extends Error {
+	constructor() {
+		super("Unknown MIDI mapping format");
+	}
+}
+
+export const parseMIDIMappingDisplayValue = (value: string): { type: MIDIMetaMappingType, mapping: MIDIMetaMapping } => {
 	for (const [mappingType, reg] of Object.entries(midiMetaRegexp) as Array<[MIDIMetaMappingType, RegExp]>) {
 		const match = value.match(reg);
 		if (!match) continue;
 
 		switch (mappingType) {
 			case MIDIMetaMappingType.ChannelPressure: {
-				const chanpress = parseInt(match.groups.chanpress, 10);
-				if (isNaN(chanpress) || chanpress < 1 || chanpress > 16) return false;
+				const chanpress = parseMIDIByte(match.groups?.chanpress, 1, 16);
+				if (chanpress === null) throw new Error(`"${value}" is not a valid MIDI mapping format`);
 				return {
 					type: MIDIMetaMappingType.ChannelPressure,
 					mapping: { chanpress } as MIDIChannelPressureMetaMapping
 				};
 			}
 			case MIDIMetaMappingType.ControlChange: {
-				const chan = parseInt(match.groups.chan, 10);
-				if (isNaN(chan) || chan < 1 || chan > 16) return false;
-
-				const ctrl = parseInt(match.groups.ctrl, 10);
-				if (isNaN(ctrl) || ctrl < 0 || ctrl > 127) return false;
+				const chan = parseMIDIByte(match.groups?.chan, 1, 16);
+				const ctrl = parseMIDIByte(match.groups?.ctrl, 0, 127);
+				if (chan === null || ctrl === null) throw new InvalidMIDIFormatError();
 
 				return {
 					type: MIDIMetaMappingType.ControlChange,
@@ -132,11 +149,9 @@ export const parseMIDIMappingDisplayValue = (value: string): false | { type: MID
 				};
 			}
 			case MIDIMetaMappingType.KeyPressure: {
-				const chan = parseInt(match.groups.chan, 10);
-				if (isNaN(chan) || chan < 1 || chan > 16) return false;
-
-				const keypress = parseInt(match.groups.keypress, 10);
-				if (isNaN(keypress) || keypress < 0 || keypress > 127) return false;
+				const chan = parseMIDIByte(match.groups?.chan, 1, 16);
+				const keypress = parseMIDIByte(match.groups?.keypress, 0, 127);
+				if (chan === null || keypress === null) throw new InvalidMIDIFormatError();
 
 				return {
 					type: MIDIMetaMappingType.KeyPressure,
@@ -145,11 +160,9 @@ export const parseMIDIMappingDisplayValue = (value: string): false | { type: MID
 
 			}
 			case MIDIMetaMappingType.Note: {
-				const chan = parseInt(match.groups.chan, 10);
-				if (isNaN(chan) || chan < 1 || chan > 16) return false;
-
-				const note = parseInt(match.groups.note, 10);
-				if (isNaN(note) || note < 0 || note > 127) return false;
+				const chan = parseMIDIByte(match.groups?.chan, 1, 16);
+				const note = parseMIDIByte(match.groups?.note, 0, 127);
+				if (chan === null || note === null) throw new InvalidMIDIFormatError();
 
 				return {
 					type: MIDIMetaMappingType.Note,
@@ -158,8 +171,9 @@ export const parseMIDIMappingDisplayValue = (value: string): false | { type: MID
 
 			}
 			case MIDIMetaMappingType.PitchBend: {
-				const bend = parseInt(match.groups.bend, 10);
-				if (isNaN(bend) || bend < 1 || bend > 16) return false;
+				const bend = parseMIDIByte(match.groups?.bend, 1, 16);
+				if (bend === null) throw new InvalidMIDIFormatError();
+
 				return {
 					type: MIDIMetaMappingType.PitchBend,
 					mapping: { bend } as MIDIPitchBendMetaMapping
@@ -167,8 +181,9 @@ export const parseMIDIMappingDisplayValue = (value: string): false | { type: MID
 
 			}
 			case MIDIMetaMappingType.ProgramChange: {
-				const prgchg = parseInt(match.groups.prgchg, 10);
-				if (isNaN(prgchg) || prgchg < 1 || prgchg > 16) return false;
+				const prgchg = parseMIDIByte(match.groups?.prgchg, 1, 16);
+				if (prgchg === null) throw new InvalidMIDIFormatError();
+
 				return {
 					type: MIDIMetaMappingType.ProgramChange,
 					mapping: { prgchg } as MIDIProgramChangeMetaMapping
@@ -178,10 +193,9 @@ export const parseMIDIMappingDisplayValue = (value: string): false | { type: MID
 			default: {
 				// eslint-disable-next-line @typescript-eslint/no-unused-vars
 				const _exhaustive: never = mappingType;
-				throw new Error(`Unknown MIDIMappingType "${mappingType}"`);
 			}
 		}
 	}
 
-	return false;
+	throw new UnknownMIDIFormatError();
 };

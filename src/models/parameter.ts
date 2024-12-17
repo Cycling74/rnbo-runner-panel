@@ -132,6 +132,8 @@ export class ParameterRecord extends ImmuRecord<ParameterRecordProps>({
 			midiMappingType = MIDIMetaMappingType.Note;
 		} else if (Object.hasOwn(parsed.midi, "prgchg")) {
 			midiMappingType = MIDIMetaMappingType.ProgramChange;
+		} else {
+			midiMappingType = false;
 		}
 
 		return this.withMutations(p => {
