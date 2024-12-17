@@ -107,9 +107,9 @@ const midiMetaRegexp: Record<MIDIMetaMappingType, RegExp> = {
 
 const parseMIDIByte = (val: string, min: number, max: number): number | null => {
 	if (val === undefined) return null;
-  const n = parseInt(val, 10);
-  if (isNaN(n) || n < min || n > max) return null;
-  return n;
+	const n = parseInt(val, 10);
+	if (isNaN(n) || n < min || n > max) return null;
+	return n;
 };
 
 export class InvalidMIDIFormatError extends Error {
