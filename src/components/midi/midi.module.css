@@ -1,10 +1,9 @@
-.midiChannelColumnHeader,
-.midiControlColumnHeader {
+.midiSourceColumnHeader {
 	width: 100px;
 }
 
-.midiChannelColumn,
-.midiControlColumn {
+.midiSourceColumn {
+	cursor: text;
 	font-size: var(--mantine-font-size-xs);
 }
 
@@ -13,6 +12,7 @@
 	cursor: default;
 	display: none;
 	font-size: var(--mantine-font-size-xs);
+	user-select: none;
 
 	@media (min-width: $mantine-breakpoint-md) {
 		display: table-cell;
@@ -21,7 +21,7 @@
 }
 
 .patcherInstanceColumnHeader {
-	width: 80px;
+	width: 100px;
 
 	@media (min-width: $mantine-breakpoint-md) {
 		width: initial;
@@ -33,6 +33,7 @@
 	font-size: var(--mantine-font-size-xs);
 	overflow: hidden;
 	text-overflow: ellipsis;
+	user-select: none;
 	white-space: nowrap;
 
 	.patcherInstanceName {
@@ -44,12 +45,16 @@
 	}
 }
 
-.parameterNameColumnHeader {}
+.parameterNameColumnHeader {
+	width: 150px;
+}
+
 .parameterNameColumn {
 	cursor: default;
 	font-size: var(--mantine-font-size-xs);
 	overflow: hidden;
 	text-overflow: ellipsis;
+	user-select: none;
 	white-space: nowrap;
 }
 

@@ -12,8 +12,7 @@ export type MIDIMappedParameterListProps = {
 	parameters: ImmuOrderedSet<ParameterRecord>;
 	patcherInstances: ImmuMap<PatcherInstanceRecord["index"], PatcherInstanceRecord>;
 	onClearParameterMIDIMapping: (instance: PatcherInstanceRecord, param: ParameterRecord) => void;
-	onUpdateParameterMIDIChannel: (instance: PatcherInstanceRecord, param: ParameterRecord, channel: number) => void;
-	onUpdateParameterMIDIControl: (instance: PatcherInstanceRecord, param: ParameterRecord, control: number) => void;
+	onUpdateParameterMIDIMapping: (instance: PatcherInstanceRecord, param: ParameterRecord, value: string) => void;
 	onSort: (sortAttr: MIDIMappedParameterSortAttr) => void;
 	sortAttr: MIDIMappedParameterSortAttr;
 	sortOrder: SortOrder;
@@ -23,8 +22,7 @@ const MIDIMappedParameterList: FC<MIDIMappedParameterListProps> = memo(function 
 	patcherInstances,
 	parameters,
 	onClearParameterMIDIMapping,
-	onUpdateParameterMIDIChannel,
-	onUpdateParameterMIDIControl,
+	onUpdateParameterMIDIMapping,
 	onSort,
 	sortAttr,
 	sortOrder
@@ -35,24 +33,14 @@ const MIDIMappedParameterList: FC<MIDIMappedParameterListProps> = memo(function 
 			<Table.Thead>
 				<Table.Tr>
 					<TableHeaderCell
-						className={ classes.midiChannelColumnHeader }
+						className={ classes.midiSourceColumnHeader }
 						fz="xs"
 						onSort={ onSort }
-						sortKey={ MIDIMappedParameterSortAttr.MIDIChannel }
+						sortKey={ MIDIMappedParameterSortAttr.MIDISource }
 						sortOrder={ sortOrder }
-						sorted={ sortAttr === MIDIMappedParameterSortAttr.MIDIChannel }
+						sorted={ sortAttr === MIDIMappedParameterSortAttr.MIDISource }
 					>
-						Channel
-					</TableHeaderCell>
-					<TableHeaderCell
-						className={ classes.midiControlColumnHeader }
-						fz="xs"
-						onSort={ onSort }
-						sortKey={ MIDIMappedParameterSortAttr.MIDIControl }
-						sortOrder={ sortOrder }
-						sorted={ sortAttr === MIDIMappedParameterSortAttr.MIDIControl }
-					>
-						Control
+						Source
 					</TableHeaderCell>
 					<TableHeaderCell
 						className={ classes.parameterNameColumnHeader }
@@ -91,8 +79,7 @@ const MIDIMappedParameterList: FC<MIDIMappedParameterListProps> = memo(function 
 								instance={ pInstance }
 								param={ p }
 								onClearMIDIMapping={ onClearParameterMIDIMapping }
-								onUpdateMIDIChannel={ onUpdateParameterMIDIChannel }
-								onUpdateMIDIControl={ onUpdateParameterMIDIControl }
+								onUpdateMIDIMapping={ onUpdateParameterMIDIMapping }
 							/>
 						);
 					})

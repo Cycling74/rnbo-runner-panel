@@ -1,6 +1,7 @@
 import { Record as ImmuRecord } from "immutable";
 import { OSCQueryRNBOInstance, OSCQueryRNBOInstanceParameterInfo, OSCQueryRNBOInstanceParameterValue, ParameterMetaJsonMap } from "../lib/types";
 import { parseMetaJSONString } from "../lib/util";
+import { MIDIMetaMappingType } from "../lib/constants";
 
 export type ParameterRecordProps = {
 
@@ -17,6 +18,7 @@ export type ParameterRecordProps = {
 	type: string;
 	value: string | number;
 	waitingForMidiMapping: boolean;
+	midiMappingType: false | MIDIMetaMappingType;
 	isMidiMapped: boolean;
 }
 export class ParameterRecord extends ImmuRecord<ParameterRecordProps>({
@@ -34,7 +36,8 @@ export class ParameterRecord extends ImmuRecord<ParameterRecordProps>({
 	type: "f",
 	value: 0,
 	waitingForMidiMapping: false,
-	isMidiMapped: false
+	isMidiMapped: false,
+	midiMappingType: false
 }) {
 
 	private static arrayFromDescription(
@@ -113,11 +116,30 @@ export class ParameterRecord extends ImmuRecord<ParameterRecordProps>({
 			// ignore
 		}
 
+		const isMidiMapped = typeof parsed.midi === "object";
+		let midiMappingType: false | MIDIMetaMappingType;
+		if (!isMidiMapped) {
+			midiMappingType = false;
+		} else if (Object.hasOwn(parsed.midi, "bend")) {
+			midiMappingType = MIDIMetaMappingType.PitchBend;
+		} else if (Object.hasOwn(parsed.midi, "chanpress")) {
+			midiMappingType = MIDIMetaMappingType.ChannelPressure;
+		} else if (Object.hasOwn(parsed.midi, "ctrl")) {
+			midiMappingType = MIDIMetaMappingType.ControlChange;
+		} else if (Object.hasOwn(parsed.midi, "keypress")) {
+			midiMappingType = MIDIMetaMappingType.KeyPressure;
+		} else if (Object.hasOwn(parsed.midi, "note")) {
+			midiMappingType = MIDIMetaMappingType.Note;
+		} else if (Object.hasOwn(parsed.midi, "prgchg")) {
+			midiMappingType = MIDIMetaMappingType.ProgramChange;
+		}
+
 		return this.withMutations(p => {
 			return p
 				.set("metaString", value)
 				.set("meta", parsed)
-				.set("isMidiMapped", typeof parsed.midi === "object");
+				.set("isMidiMapped", isMidiMapped)
+				.set("midiMappingType", midiMappingType);
 		});
 	}
 

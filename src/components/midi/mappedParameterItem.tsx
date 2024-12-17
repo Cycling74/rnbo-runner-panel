@@ -8,23 +8,47 @@ import { modals } from "@mantine/modals";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import classes from "./midi.module.css";
-import { formatParamValueForDisplay } from "../../lib/util";
-import { EditableTableNumberCell } from "../elements/editableTableCell";
+import { formatMIDIMappingToDisplay, formatParamValueForDisplay } from "../../lib/util";
+import { EditableTableTextCell } from "../elements/editableTableCell";
+import { MIDIMetaMappingType } from "../../lib/constants";
+import { MIDIMetaMapping } from "../../lib/types";
+
+export type MIDISourceProps = {
+	mappingType: MIDIMetaMappingType;
+	midiMapping: MIDIMetaMapping;
+	onUpdateMapping: (value: string) => void;
+};
+
+
+const MIDISource: FC<MIDISourceProps> = memo(function WrappedMIDISource({
+	mappingType,
+	midiMapping,
+	onUpdateMapping
+}) {
+
+	return (
+		<EditableTableTextCell
+			className={ classes.midiSourceColumn }
+			name="midi_source"
+			onUpdate={ onUpdateMapping }
+			value={ formatMIDIMappingToDisplay(mappingType, midiMapping) }
+		/>
+	);
+});
 
 export type MIDIMappedParamProps = {
 	instance: PatcherInstanceRecord;
 	param: ParameterRecord;
 	onClearMIDIMapping: (instance: PatcherInstanceRecord, param: ParameterRecord) => void;
-	onUpdateMIDIChannel: (instance: PatcherInstanceRecord, param: ParameterRecord, channel: number) => void;
-	onUpdateMIDIControl: (instance: PatcherInstanceRecord, param: ParameterRecord, control: number) => void;
+	onUpdateMIDIMapping: (instance: PatcherInstanceRecord, param: ParameterRecord, value: string) => void;
 };
+
 
 const MIDIMappedParameter: FC<MIDIMappedParamProps> = memo(function WrappedMIDIMappedParam({
 	instance,
 	param,
 	onClearMIDIMapping,
-	onUpdateMIDIChannel,
-	onUpdateMIDIControl
+	onUpdateMIDIMapping
 }) {
 
 	const { query: restQuery } = useRouter();
@@ -44,26 +68,17 @@ const MIDIMappedParameter: FC<MIDIMappedParamProps> = memo(function WrappedMIDIM
 		});
 	}, [param, instance, onClearMIDIMapping]);
 
-	const onUpdateChannel = useCallback((channel: number) => {
-		onUpdateMIDIChannel(instance, param, channel);
-	}, [onUpdateMIDIChannel, instance, param]);
-
-	const onUpdateControl = useCallback((control: number) => {
-		onUpdateMIDIControl(instance, param, control);
-	}, [onUpdateMIDIControl, instance, param]);
+	const onUpdateMapping = useCallback((value: string) => {
+		onUpdateMIDIMapping(instance, param, value);
+	}, [instance, param, onUpdateMIDIMapping]);
 
 	return (
 		<Table.Tr>
-			{
-				param.meta.midi?.chan === undefined
-					? <Table.Td className={ classes.midiChannelColumn } />
-					: <EditableTableNumberCell min={ 1 } max={ 16 } value={ param.meta.midi.chan } name="midi_channel" className={ classes.midiChannelColumn } onUpdate={ onUpdateChannel } />
-			}
-			{
-				param.meta.midi?.ctrl === undefined
-					? <Table.Td className={ classes.midiControlColumn } />
-					: <EditableTableNumberCell min={ 0 } max={ 127 } value={ param.meta.midi.ctrl } name="midi_control" className={ classes.midiControlColumn } onUpdate={ onUpdateControl } />
-			}
+			<MIDISource
+				mappingType={ param.midiMappingType as MIDIMetaMappingType }
+				midiMapping={ param.meta.midi as MIDIMetaMapping }
+				onUpdateMapping={ onUpdateMapping }
+			/>
 			<Table.Td className={ classes.parameterNameColumn } >{ param.name }</Table.Td>
 			<Table.Td className={ classes.patcherInstanceColumn } >
 				<span className={ classes.patcherInstanceIndex } >{ instance.index }</span>

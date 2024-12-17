@@ -9,11 +9,40 @@ export type AnyJson =
 
 export interface JsonMap {  [key: string]: AnyJson }
 
+export type MIDIControlChangeMetaMapping = {
+	chan: number;
+	ctrl: number;
+};
+
+export type MIDINoteMetaMapping = {
+	chan: number;
+	note: number;
+};
+
+export type MIDIKeypressMetaMapping = {
+	chan: number;
+	keypress: number;
+};
+
+export type MIDIPitchBendMetaMapping = {
+	bend: number;
+};
+
+export type MIDIProgramChangeMetaMapping = {
+	prgchg: number;
+};
+
+export type MIDIChannelPressureMetaMapping = {
+	chanpress: number;
+};
+
+export type MIDIIndividualScopedMetaMapping = MIDIControlChangeMetaMapping | MIDINoteMetaMapping | MIDIKeypressMetaMapping;
+export type MIDIChannelScopedMetaMapping = MIDIPitchBendMetaMapping | MIDIProgramChangeMetaMapping | MIDIChannelPressureMetaMapping;
+
+export type MIDIMetaMapping = MIDIIndividualScopedMetaMapping | MIDIChannelScopedMetaMapping;
+
 export type ParameterMetaJsonMap = JsonMap & {
-	midi?: {
-		chan?: number;
-		ctrl?: number;
-	}
+	midi?: MIDIMetaMapping;
 };
 
 export type OSCValue = string | number | null;

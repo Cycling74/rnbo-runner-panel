@@ -1,6 +1,6 @@
 import Router from "next/router";
 import { ActionBase, AppThunk } from "../lib/store";
-import { OSCQueryRNBOInstance, OSCQueryRNBOInstancePresetEntries, OSCQueryRNBOPatchersState, OSCValue, ParameterMetaJsonMap } from "../lib/types";
+import { MIDIMetaMapping, OSCQueryRNBOInstance, OSCQueryRNBOInstancePresetEntries, OSCQueryRNBOPatchersState, OSCValue, ParameterMetaJsonMap } from "../lib/types";
 import { PatcherInstanceRecord } from "../models/instance";
 import { getPatcherInstanceByIndex, getPatcherInstance, getPatcherInstanceParametersByInstanceIndex, getPatcherInstanceParameter, getPatcherInstanceMessageInportsByInstanceIndex, getPatcherInstanceMesssageOutportsByInstanceIndex, getPatcherInstanceMessageInportByPath, getPatcherInstanceMessageOutportByPath, getPatcherInstanceMesssageOutportsByInstanceIndexAndTag, getPatcherInstanceParameterByPath, getPatcherInstanceParametersByInstanceIndexAndName, getPatcherInstanceMessageInportsByInstanceIndexAndTag } from "../selectors/patchers";
 import { getAppSetting } from "../selectors/settings";
@@ -16,7 +16,8 @@ import { AppSetting } from "../models/settings";
 import { DataRefRecord } from "../models/dataref";
 import { DataFileRecord } from "../models/datafile";
 import { PatcherExportRecord } from "../models/patcher";
-import { cloneJSON } from "../lib/util";
+import { cloneJSON, parseMIDIMappingDisplayValue } from "../lib/util";
+import { MIDIMetaMappingType } from "../lib/constants";
 
 export enum PatcherActionType {
 	INIT_PATCHERS = "INIT_PATCHERS",
@@ -575,7 +576,7 @@ export const clearParameterMIDIMappingOnRemote = (id: PatcherInstanceRecord["id"
 		oscQueryBridge.sendPacket(writePacket(message));
 	};
 
-export const setParameterMIDIChannelOnRemote = (id: PatcherInstanceRecord["id"], paramId: ParameterRecord["id"], channel: number): AppThunk =>
+export const setParameterMIDIMappingOnRemote = (id: PatcherInstanceRecord["id"], paramId: ParameterRecord["id"], type: MIDIMetaMappingType, mapping: MIDIMetaMapping): AppThunk =>
 	(_dispatch, getState) => {
 		const state = getState();
 		const instance = getPatcherInstance(state, id);
@@ -585,8 +586,7 @@ export const setParameterMIDIChannelOnRemote = (id: PatcherInstanceRecord["id"],
 		if (!param) return;
 
 		const meta: ParameterMetaJsonMap = cloneJSON(param.meta);
-		meta.midi = (meta.midi || {});
-		meta.midi.chan = channel;
+		meta.midi = { ...mapping };
 
 		const message = {
 			address: `${param.path}/meta`,
@@ -598,27 +598,14 @@ export const setParameterMIDIChannelOnRemote = (id: PatcherInstanceRecord["id"],
 		oscQueryBridge.sendPacket(writePacket(message));
 	};
 
-export const setParameterMIDIControlOnRemote = (id: PatcherInstanceRecord["id"], paramId: ParameterRecord["id"], control: number): AppThunk =>
-	(_dispatch, getState) => {
-		const state = getState();
-		const instance = getPatcherInstance(state, id);
-		if (!instance) return;
+export const setParameterMIDIMappingOnRemoteFromDisplayValue = (id: PatcherInstanceRecord["id"], paramId: ParameterRecord["id"], value: string): AppThunk =>
+	(dispatch) => {
+		const parsed = parseMIDIMappingDisplayValue(value);
+		if (!parsed) {
+			return void dispatch(showNotification({ title: "Invalid MIDI Mapping", message: `"${value}" is not a valid MIDI mapping format`, level: NotificationLevel.error }));
+		}
 
-		const param = getPatcherInstanceParameter(state, paramId);
-		if (!param) return;
-
-		const meta: ParameterMetaJsonMap = cloneJSON(param.meta);
-		meta.midi = (meta.midi || {});
-		meta.midi.ctrl = control;
-
-		const message = {
-			address: `${param.path}/meta`,
-			args: [
-				{ type: "s", value: JSON.stringify(meta) }
-			]
-		};
-
-		oscQueryBridge.sendPacket(writePacket(message));
+		dispatch(setParameterMIDIMappingOnRemote(id, paramId, parsed.type, parsed.mapping));
 	};
 
 export const setInstanceMessagePortMetaOnRemote = (_instance: PatcherInstanceRecord, port: MessagePortRecord, value: string): AppThunk =>
