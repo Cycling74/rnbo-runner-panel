@@ -11,8 +11,8 @@ import { MIDIMappedParameterSortAttr, SortOrder } from "../../lib/constants";
 export type MIDIMappedParameterListProps = {
 	parameters: ImmuOrderedSet<ParameterRecord>;
 	patcherInstances: ImmuMap<PatcherInstanceRecord["index"], PatcherInstanceRecord>;
-	onClearParameterMIDIMapping: (instance: PatcherInstanceRecord, param: ParameterRecord) => void;
-	onUpdateParameterMIDIMapping: (instance: PatcherInstanceRecord, param: ParameterRecord, value: string) => void;
+	onClearParameterMIDIMapping: (param: ParameterRecord) => void;
+	onUpdateParameterMIDIMapping: (param: ParameterRecord, value: string) => void;
 	onSort: (sortAttr: MIDIMappedParameterSortAttr) => void;
 	sortAttr: MIDIMappedParameterSortAttr;
 	sortOrder: SortOrder;

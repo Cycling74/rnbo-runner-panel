@@ -143,16 +143,16 @@ const InstanceParameterTab: FunctionComponent<InstanceParameterTabProps> = memo(
 	}, [dispatch]);
 
 	const onSetNormalizedParamValue = useCallback((param: ParameterRecord, val: number) => {
-		dispatch(setInstanceParameterValueNormalizedOnRemote(instance, param, val));
-	}, [dispatch, instance]);
+		dispatch(setInstanceParameterValueNormalizedOnRemote(param, val));
+	}, [dispatch]);
 
 	const onSaveParameterMetadata = useCallback((param: ParameterRecord, meta: string) => {
-		dispatch(setInstanceParameterMetaOnRemote(instance, param, meta));
-	}, [dispatch, instance]);
+		dispatch(setInstanceParameterMetaOnRemote(param, meta));
+	}, [dispatch]);
 
 	const onRestoreDefaultParameterMetadata = useCallback((param: ParameterRecord) => {
-		dispatch(restoreDefaultParameterMetaOnRemote(instance, param));
-	}, [dispatch, instance]);
+		dispatch(restoreDefaultParameterMetaOnRemote(param));
+	}, [dispatch]);
 
 	const onToggleMIDIMapping = useCallback((e: MouseEvent<HTMLButtonElement>) => {
 		e.currentTarget.blur();
@@ -160,11 +160,11 @@ const InstanceParameterTab: FunctionComponent<InstanceParameterTabProps> = memo(
 	}, [dispatch, instance]);
 
 	const onActivateParameterMIDIMapping = useCallback((param: ParameterRecord) => {
-		dispatch(activateParameterMIDIMappingFocus(instance, param));
-	}, [dispatch, instance]);
+		dispatch(activateParameterMIDIMappingFocus(param));
+	}, [dispatch]);
 
 	const onClearParameterMidiMapping = useCallback((param: ParameterRecord) => {
-		dispatch(clearParameterMIDIMappingOnRemote(instance.id, param.id));
+		dispatch(clearParameterMIDIMappingOnRemote(param));
 	}, [dispatch, instance]);
 
 	const onSearch = useDebouncedCallback((query: string) => {
