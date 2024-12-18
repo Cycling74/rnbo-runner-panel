@@ -75,7 +75,9 @@ const Parameter = memo(function WrappedParameter({
 	const value = param.getValueForNormalizedValue(currentValue);
 	const stepSize = param.isEnum ? 1 / (param.enumVals.length - 1) : 0.001;
 
-	const indicatorText = param.isMidiMapped ? "This param is MIDI mapped" : undefined;
+	const indicatorText = param.isMidiMapped
+		? `MIDI: ${formatMIDIMappingToDisplay(param.midiMappingType as MIDIMetaMappingType, param.meta.midi)}`
+		: undefined;
 
 	return (
 		<div
