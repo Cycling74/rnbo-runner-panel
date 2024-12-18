@@ -1,6 +1,8 @@
-import { KeyboardEvent } from "react";
+import { KeyboardEvent, memo } from "react";
 import { AnyJson, JsonMap, MIDIChannelPressureMetaMapping, MIDIControlChangeMetaMapping, MIDIKeypressMetaMapping, MIDIMetaMapping, MIDINoteMetaMapping, MIDIPitchBendMetaMapping, MIDIProgramChangeMetaMapping, OSCQueryStringValueRange, OSCQueryValueRange } from "./types";
 import { MIDIMetaMappingType } from "./constants";
+
+export const genericMemo: <P>(component: P) => P = memo;
 
 export const sleep = (t: number): Promise<void> => new Promise(resolve => setTimeout(resolve, t));
 
