@@ -1,7 +1,7 @@
 import { ActionIcon, Button, Group, Popover, SegmentedControl, Select, Stack, Text, TextInput, Tooltip } from "@mantine/core";
-import { ChangeEvent, FC, FunctionComponent, MouseEvent, KeyboardEvent as ReactKeyboardEvent, memo, useCallback, useEffect, useRef, useState } from "react";
+import { ChangeEvent, ComponentType, FC, FunctionComponent, MouseEvent, KeyboardEvent as ReactKeyboardEvent, memo, useCallback, useEffect, useRef, useState } from "react";
 import { ParameterSortAttr, SortOrder } from "../../lib/constants";
-import ParameterList from "../parameter/list";
+import ParameterList, { ParameterListProps } from "../parameter/list";
 import { ParameterRecord } from "../../models/parameter";
 import classes from "./instance.module.css";
 import { useAppDispatch } from "../../hooks/useAppDispatch";
@@ -18,6 +18,11 @@ import { AppSetting, AppSettingRecord } from "../../models/settings";
 import { useDebouncedCallback, useDisclosure } from "@mantine/hooks";
 import { IconElement } from "../elements/icon";
 import { mdiClose, mdiMagnify, mdiMidiPort, mdiSort, mdiSortAscending, mdiSortDescending } from "@mdi/js";
+import { ParameterMIDIMappingProps, withParameterMIDIMapping } from "../parameter/withMidiMapping";
+import ParameterItem from "../parameter/item";
+
+const ParameterComponentType = withParameterMIDIMapping(ParameterItem);
+const ParameterListComponent: ComponentType<ParameterListProps<ParameterMIDIMappingProps>> = ParameterList;
 
 type ParameterSearchInputProps = {
 	onSearch: (query: string) => any;
@@ -250,14 +255,17 @@ const InstanceParameterTab: FunctionComponent<InstanceParameterTabProps> = memo(
 					</div>
 				) : (
 					<div className={ classes.paramSectionWrap } >
-						<ParameterList
+						<ParameterListComponent
 							parameters={ displayParameters }
-							isMIDIMapping={ instance.waitingForMidiMapping }
-							onActivateMIDIMapping={ onActivateParameterMIDIMapping }
 							onSetNormalizedValue={ onSetNormalizedParamValue }
 							onSaveMetadata={ onSaveParameterMetadata }
 							onRestoreMetadata={ onRestoreDefaultParameterMetadata }
 							onClearMidiMapping={ onClearParameterMidiMapping }
+							ParamComponentType={ ParameterComponentType }
+							extraParameterProps={{
+								instanceIsMIDIMapping: instance.waitingForMidiMapping,
+								onActivateMIDIMapping: onActivateParameterMIDIMapping
+							}}
 						/>
 					</div>
 				)

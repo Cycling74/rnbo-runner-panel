@@ -1,36 +1,34 @@
-import React, { memo, useState, useCallback } from "react";
+import React, { memo, useState, useCallback, FC } from "react";
 import { ParameterRecord } from "../../models/parameter";
 import classes from "./parameters.module.css";
 import { ActionIcon, Group, Menu, Indicator, Slider, Tooltip, Text } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { MetaEditorModal } from "../meta/metaEditorModal";
-import { MetadataScope } from "../../lib/constants";
+import { MetadataScope, MIDIMetaMappingType } from "../../lib/constants";
 import { IconElement } from "../elements/icon";
 import { mdiCodeBraces, mdiDotsVertical, mdiEraser } from "@mdi/js";
 import { modals } from "@mantine/modals";
-import { formatParamValueForDisplay } from "../../lib/util";
+import { formatMIDIMappingToDisplay, formatParamValueForDisplay } from "../../lib/util";
 
 export const parameterBoxHeight = 87 + 6; // 87px + 6px margin
 
-interface ParameterProps {
-	instanceIsMIDIMapping: boolean;
+export type ParameterItemProps = {
+	disabled?: boolean;
 	param: ParameterRecord;
-	onActivateMIDIMapping: (param: ParameterRecord) => any;
 	onRestoreMetadata: (param: ParameterRecord) => any;
 	onSaveMetadata: (param: ParameterRecord, meta: string) => any;
 	onSetNormalizedValue: (param: ParameterRecord, nValue: number) => void;
 	onClearMidiMapping: (param: ParameterRecord) => void;
 }
 
-const Parameter = memo(function WrappedParameter({
-	instanceIsMIDIMapping,
+const ParameterItem: FC<ParameterItemProps> = memo(function WrappedParameter({
+	disabled = false,
 	param,
-	onActivateMIDIMapping,
 	onSetNormalizedValue,
 	onSaveMetadata,
 	onRestoreMetadata,
 	onClearMidiMapping
-}: ParameterProps) {
+}: ParameterItemProps) {
 
 	const [localValue, setLocalValue] = useState(param.normalizedValue);
 	const [useLocalValue, setUseLocalValue] = useState(false);
@@ -47,14 +45,8 @@ const Parameter = memo(function WrappedParameter({
 		onSetNormalizedValue(param, nVal);
 	}, [setUseLocalValue, onSetNormalizedValue, param]);
 
-	const onTriggerActivateMIDIMapping = useCallback(() => {
-		if (param.waitingForMidiMapping) return;
-		onActivateMIDIMapping(param);
-	}, [param, onActivateMIDIMapping]);
-
 	const onSaveMeta = useCallback((meta: string) => onSaveMetadata(param, meta), [param, onSaveMetadata]);
 	const onRestoreMeta = useCallback(() => onRestoreMetadata(param), [param, onRestoreMetadata]);
-
 
 	const onClearMidiMap = useCallback(() => {
 		modals.openConfirmModal({
@@ -82,8 +74,6 @@ const Parameter = memo(function WrappedParameter({
 	return (
 		<div
 			className={ classes.parameterItem }
-			data-active-midi-mappping={ param.waitingForMidiMapping }
-			onClick={ instanceIsMIDIMapping ? onTriggerActivateMIDIMapping : null }
 		>
 			{
 				showMetaEditor ? (
@@ -118,7 +108,7 @@ const Parameter = memo(function WrappedParameter({
 					flex={ 1 }
 					max={ 1 }
 					min={ 0 }
-					disabled={ instanceIsMIDIMapping }
+					disabled={ disabled }
 					name={ param.name }
 					onChange={ onChange }
 					onChangeEnd={ onChangeEnd }
@@ -131,7 +121,7 @@ const Parameter = memo(function WrappedParameter({
 							: [{ label: `${formatParamValueForDisplay(param.min)}`, value: 0 }, { label: `${formatParamValueForDisplay(param.max)}`, value: 1 }]
 					}
 				/>
-				<Menu position="bottom-end" disabled={ instanceIsMIDIMapping } >
+				<Menu position="bottom-end" disabled={ disabled } >
 					<Menu.Target>
 						<Tooltip label="Open Parameter Action Menu">
 							<ActionIcon variant="subtle" color="gray" size="md" className={ classes.parameterItemActionMenuTarget } >
@@ -154,4 +144,4 @@ const Parameter = memo(function WrappedParameter({
 	);
 });
 
-export default Parameter;
+export default ParameterItem;
