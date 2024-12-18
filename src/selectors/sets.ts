@@ -1,6 +1,6 @@
 import { Map as ImmuMap } from "immutable";
 import { RootStateType } from "../lib/store";
-import { GraphSetRecord } from "../models/set";
+import { GraphSetRecord, GraphSetViewRecord } from "../models/set";
 import { PresetRecord } from "../models/preset";
 import { createSelector } from "reselect";
 import { SortOrder } from "../lib/constants";
@@ -69,3 +69,35 @@ export const getGraphSetPresetsSortedByName = createSelector(
 		});
 	}
 );
+
+
+export const getGraphSetViews = (state: RootStateType): ImmuMap<GraphSetViewRecord["id"], GraphSetViewRecord> => {
+	return state.sets.views;
+};
+
+export const getGraphSetViewsBySortOrder = createSelector(
+	[
+		getGraphSetViews
+	],
+	(views): ImmuMap<GraphSetViewRecord["id"], GraphSetViewRecord> => {
+		return views.sort((va, vb) => {
+			if (va.sortOrder < vb.sortOrder) return -1;
+			if (va.sortOrder > vb.sortOrder) return 1;
+			return collator.compare(va.name, vb.name);
+		});
+	}
+);
+
+export const getGraphSetView= createSelector(
+	[
+		getGraphSetViews,
+		(state: RootStateType, id: GraphSetViewRecord["id"]): string => id
+	],
+	(views, index): GraphSetViewRecord | undefined => {
+		return views.get(index);
+	}
+);
+
+export const getSelectedGraphSetView = (state: RootStateType): GraphSetViewRecord | undefined => {
+	return state.sets.selectedView !== undefined ? state.sets.views.get(state.sets.selectedView) : undefined;
+};
