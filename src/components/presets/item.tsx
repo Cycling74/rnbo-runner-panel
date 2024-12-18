@@ -60,7 +60,7 @@ export const PresetItem: FunctionComponent<PresetItemProps> = memo(function Wrap
 		if (error && e.target.value?.length) setError(undefined);
 	}, [setName, error, setError]);
 
-	const onKeyDown = useCallback((e: KeyboardEvent<HTMLInputElement>) => {
+	const onKeyDown = useCallback((e: KeyboardEvent<HTMLInputElement>): void => {
 		if (e.key === "Escape") {
 			e.preventDefault();
 			e.stopPropagation();
