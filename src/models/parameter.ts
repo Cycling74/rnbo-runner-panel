@@ -88,6 +88,10 @@ export class ParameterRecord extends ImmuRecord<ParameterRecordProps>({
 		return this.enumVals.length >= 1;
 	}
 
+	public get setViewId(): string {
+		return `${this.instanceIndex}:${this.index}`;
+	}
+
 	public getValueForNormalizedValue(nv: number): string | number {
 		if (this.isEnum) return this.enumVals[Math.round((this.enumVals.length - 1 ) * nv)];
 
