@@ -48,7 +48,7 @@ export class GraphSetViewRecord extends ImmuRecord<GraphSetViewRecordProps>({
 	private static getParamListFromDesc(params: string[]): ImmuList<GraphSetViewParameterEntry> {
 		return ImmuList<GraphSetViewParameterEntry>().withMutations(list => {
 			for (const p of params) {
-				const [iIndex, pIndex]= p.split(":");
+				const [iIndex, pIndex] = p.split(":");
 
 				const instanceIndex = parseInt(iIndex, 10);
 				const paramIndex = parseInt(pIndex, 10);

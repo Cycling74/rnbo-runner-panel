@@ -1,4 +1,4 @@
-import { OSCArgument, writePacket } from "osc";
+import { writePacket } from "osc";
 import { oscQueryBridge } from "../controller/oscqueryBridgeController";
 import { ActionBase, AppThunk } from "../lib/store";
 import { GraphSetRecord, GraphSetViewRecord } from "../models/set";
@@ -331,7 +331,7 @@ export const setSetView = (view: GraphSetViewRecord): ISetGraphSetView => {
 			view
 		}
 	};
-}
+};
 
 export const createSetViewOnRemote = (name: string): AppThunk =>
 	(dispatch, getState) => {
@@ -341,7 +341,7 @@ export const createSetViewOnRemote = (name: string): AppThunk =>
 			// TODO: ensure name is unique
 
 			const message = {
-				address: `/rnbo/inst/control/sets/views/create`,
+				address: "/rnbo/inst/control/sets/views/create",
 				args: [
 					{ type: "s", value: name },
 					...params.valueSeq().map(p => ({ type: "s", value: p.setViewId })).toArray()
@@ -351,7 +351,7 @@ export const createSetViewOnRemote = (name: string): AppThunk =>
 		} catch (err) {
 			dispatch(showNotification({
 				level: NotificationLevel.error,
-				title: `Error while trying to create a new SetView`,
+				title: "Error while trying to create a new SetView",
 				message: "Please check the console for further details."
 			}));
 			console.log(err);
@@ -365,7 +365,7 @@ export const addSetView = (id: string): ISetGraphSetView => {
 			view: GraphSetViewRecord.getEmptyRecord(id)
 		}
 	};
-}
+};
 
 export const loadSetView = (setView: GraphSetViewRecord): ILoadGraphSetView => {
 	return {
@@ -409,7 +409,7 @@ export const destroySetViewOnRemote = (setView: GraphSetViewRecord): AppThunk =>
 	(dispatch) => {
 		try {
 			const message = {
-				address: `/rnbo/inst/control/sets/views/destroy`,
+				address: "/rnbo/inst/control/sets/views/destroy",
 				args: [{ type: "i", value: setView.id }]
 			};
 			oscQueryBridge.sendPacket(writePacket(message));
@@ -432,7 +432,7 @@ export const deleteSetView = (id: string): AppThunk =>
 		const action: IDeleteGraphSetView = {
 			type: GraphSetActionType.DELETE_SET_VIEW,
 			payload: { view: setView }
-		}
+		};
 		dispatch(action);
 	};
 
@@ -440,14 +440,14 @@ export const destroyAllSetViewsOnRemote = (): AppThunk =>
 	(dispatch) => {
 		try {
 			const message = {
-				address: `/rnbo/inst/control/sets/views/destroy`,
+				address: "/rnbo/inst/control/sets/views/destroy",
 				args: [{ type: "i", value: -1 }]
 			};
 			oscQueryBridge.sendPacket(writePacket(message));
 		} catch (err) {
 			dispatch(showNotification({
 				level: NotificationLevel.error,
-				title: `Error while trying to destroy all SetViews`,
+				title: "Error while trying to destroy all SetViews",
 				message: "Please check the console for further details."
 			}));
 			console.log(err);

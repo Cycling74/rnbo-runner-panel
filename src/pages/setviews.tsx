@@ -38,7 +38,7 @@ export default function SetViews() {
 	}, [dispatch]);
 
 	const onDeleteSetView = useCallback((view: GraphSetViewRecord) => {
-		dispatch(destroySetViewOnRemote(view))
+		dispatch(destroySetViewOnRemote(view));
 	}, [dispatch]);
 
 	const onRenameSetView = useCallback((view: GraphSetViewRecord, name: string) => {
