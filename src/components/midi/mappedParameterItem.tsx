@@ -39,8 +39,8 @@ const MIDISource: FC<MIDISourceProps> = memo(function WrappedMIDISource({
 export type MIDIMappedParamProps = {
 	instance: PatcherInstanceRecord;
 	param: ParameterRecord;
-	onClearMIDIMapping: (instance: PatcherInstanceRecord, param: ParameterRecord) => void;
-	onUpdateMIDIMapping: (instance: PatcherInstanceRecord, param: ParameterRecord, value: string) => void;
+	onClearMIDIMapping: (param: ParameterRecord) => void;
+	onUpdateMIDIMapping: (param: ParameterRecord, value: string) => void;
 };
 
 
@@ -64,12 +64,12 @@ const MIDIMappedParameter: FC<MIDIMappedParamProps> = memo(function WrappedMIDIM
 			),
 			labels: { confirm: "Remove", cancel: "Cancel" },
 			confirmProps: { color: "red" },
-			onConfirm: () => onClearMIDIMapping(instance, param)
+			onConfirm: () => onClearMIDIMapping(param)
 		});
 	}, [param, instance, onClearMIDIMapping]);
 
 	const onUpdateMapping = useCallback((value: string) => {
-		onUpdateMIDIMapping(instance, param, value);
+		onUpdateMIDIMapping(param, value);
 	}, [instance, param, onUpdateMIDIMapping]);
 
 	return (
