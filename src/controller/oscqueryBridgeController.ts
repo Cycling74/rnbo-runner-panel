@@ -8,7 +8,7 @@ import { OSCQueryRNBOState, OSCQueryRNBOInstance, OSCQueryRNBOJackConnections, O
 import { addPatcherNode, deletePortAliases, initConnections, initNodes, removePatcherNode, setPortAliases, updateSetMetaFromRemote, updateSourcePortConnections, updateSystemOrControlPortInfo } from "../actions/graph";
 import { initPatchers } from "../actions/patchers";
 import { initRunnerConfig, updateRunnerConfig } from "../actions/settings";
-import { initSets, setGraphSetLatest, initSetPresets, setGraphSetPresetLatest } from "../actions/sets";
+import { initSets, setGraphSetLatest, initSetPresets, setGraphSetPresetLatest, initSetViews, updateSetViewName, updateSetViewParameterList, deleteSetView, addSetView, updateSetViewSortOrder } from "../actions/sets";
 import { initDataFiles } from "../actions/datafiles";
 import { sleep } from "../lib/util";
 import { getPatcherNodeByIndex } from "../selectors/graph";
@@ -47,6 +47,7 @@ const instanceStatePathMatcher = /^\/rnbo\/inst\/(?<index>\d+)\/(?<content>param
 const instancePresetPathMatcher = /^\/rnbo\/inst\/(?<index>\d+)\/presets\/(?<property>loaded|initial)$/;
 const connectionsPathMatcher = /^\/rnbo\/jack\/connections\/(?<type>audio|midi)\/(?<name>.+)$/;
 const setMetaPathMatcher = /^\/rnbo\/inst\/control\/sets\/meta/;
+const setViewPathMatcher = /^\/rnbo\/inst\/control\/sets\/views\/list\/(?<id>\d+)(?<rest>\/\S+)?/;
 
 // TODO const setsPresetsCurrentNamePath = "/rnbo/inst/control/sets/current/name";
 const setsPresetsLoadPath = "/rnbo/inst/control/sets/presets/load";
@@ -246,6 +247,7 @@ export class OSCQueryBridgeControllerPrivate {
 		dispatch(setGraphSetLatest(state.CONTENTS.inst?.CONTENTS?.control?.CONTENTS?.sets?.CONTENTS?.current?.CONTENTS?.name?.VALUE || ""));
 		dispatch(initSetPresets(state.CONTENTS.inst?.CONTENTS?.control?.CONTENTS?.sets?.CONTENTS?.presets?.CONTENTS?.load?.RANGE?.[0]?.VALS || []));
 		dispatch(setGraphSetPresetLatest(state.CONTENTS.inst?.CONTENTS?.control?.CONTENTS?.sets?.CONTENTS?.presets?.CONTENTS?.loaded?.VALUE || ""));
+		dispatch(initSetViews(state.CONTENTS.inst?.CONTENTS?.control?.CONTENTS?.sets?.CONTENTS?.views?.CONTENTS?.list));
 
 		// TODO could take a bit?
 		try {
@@ -339,6 +341,12 @@ export class OSCQueryBridgeControllerPrivate {
 			return void dispatch(initPatchers(patcherInfo));
 		}
 
+		// Handle Set Views
+		const setViewMatch = path.match(setViewPathMatcher);
+		if (setViewMatch && setViewMatch.groups?.rest === undefined) {
+			return void dispatch(addSetView(setViewMatch.groups.id));
+		}
+
 		// Handle Alias Additions
 		const aliasMatch = path.match(portAliasPathMatcher);
 		if (aliasMatch?.groups?.port) {
@@ -380,24 +388,31 @@ export class OSCQueryBridgeControllerPrivate {
 
 	private async _onPathRemoved(path: string): Promise<void> {
 
-		// Removed Instance
-		const instMatch = path.match(instancePathMatcher);
-		if (instMatch?.groups?.index) {
-			const index = parseInt(instMatch.groups.index, 10);
-			if (isNaN(index)) return;
-			return void dispatch(removePatcherNode(index));
-		}
-
 		// Removed Patcher
 		if (patchersPathMatcher.test(path)) {
 			const patcherInfo = await this._requestState<OSCQueryRNBOPatchersState>("/rnbo/patchers");
 			return void dispatch(initPatchers(patcherInfo));
 		}
 
+		// Removed Set View
+		const setViewMatch = path.match(setViewPathMatcher);
+		if (setViewMatch && setViewMatch.groups?.rest === undefined) {
+			return void dispatch(deleteSetView(setViewMatch.groups.id));
+		}
+
 		// Handle Alias Removals
 		const aliasMatch = path.match(portAliasPathMatcher);
 		if (aliasMatch?.groups?.port) {
 			return void dispatch(deletePortAliases(aliasMatch?.groups?.port));
+		}
+
+
+		// Removed Instance
+		const instMatch = path.match(instancePathMatcher);
+		if (instMatch?.groups?.index) {
+			const index = parseInt(instMatch.groups.index, 10);
+			if (isNaN(index)) return;
+			return void dispatch(removePatcherNode(index));
 		}
 
 		// Parse out if instance path?
@@ -536,9 +551,29 @@ export class OSCQueryBridgeControllerPrivate {
 			return void dispatch(setGraphSetLatest((packet.args as unknown as [string])?.[0] || ""));
 		}
 
-		const metaMatch = packet.address.match(setMetaPathMatcher);
-		if (metaMatch) {
+		const setMetaMatch = packet.address.match(setMetaPathMatcher);
+		if (setMetaMatch) {
 			return void dispatch(updateSetMetaFromRemote(packet.args as unknown as string));
+		}
+
+		const setViewMatch = packet.address.match(setViewPathMatcher);
+		if (setViewMatch) {
+			if (setViewMatch.groups?.rest === "/name") {
+				return void dispatch(updateSetViewName(
+					setViewMatch.groups.id,
+					packet.args[0] as unknown as string
+				));
+			} else if (setViewMatch.groups?.rest === "/params") {
+				return void dispatch(updateSetViewParameterList(
+					setViewMatch.groups.id,
+					packet.args as unknown as string[]
+				));
+			} else if (setViewMatch.groups?.rest === "/sort_order") {
+				return void dispatch(updateSetViewSortOrder(
+					setViewMatch.groups.id,
+					packet.args[0] as unknown as number
+				));
+			}
 		}
 
 		const instancePresetMatch = packet.address.match(instancePresetPathMatcher);

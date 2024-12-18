@@ -1,4 +1,4 @@
-import { Map as ImmuMap, Seq } from "immutable";
+import { Map as ImmuMap, Seq, List as ImmuList } from "immutable";
 import { RootStateType } from "../lib/store";
 import { PatcherInstanceRecord } from "../models/instance";
 import { createSelector } from "reselect";
@@ -7,6 +7,7 @@ import { ParameterRecord } from "../models/parameter";
 import { MessagePortRecord } from "../models/messageport";
 import { PatcherExportRecord } from "../models/patcher";
 import { SortOrder } from "../lib/constants";
+import { GraphSetViewRecord } from "../models/set";
 
 export const getPatcherExports = (state: RootStateType): ImmuMap<PatcherExportRecord["id"], PatcherExportRecord> => {
 	return state.patchers.exports;
@@ -77,6 +78,22 @@ export const getPatcherInstanceParametersWithMIDIMapping = createSelector(
 	],
 	(parameters): ImmuMap<ParameterRecord["id"], ParameterRecord> => {
 		return parameters.filter(p => p.isMidiMapped);
+	}
+);
+
+export const getPatcherInstanceParametersBySetView = createSelector(
+	[
+		getPatcherInstanceParameters,
+		(state: RootStateType, setView: GraphSetViewRecord): GraphSetViewRecord["params"] => setView.params
+	],
+	(parameters, viewParamList): ImmuList<ParameterRecord> => {
+		return ImmuList<ParameterRecord>().withMutations(list => {
+			const entries = viewParamList.valueSeq().toArray();
+			for (const { instanceIndex, paramIndex } of entries) {
+				const param = parameters.find(p => p.instanceIndex === instanceIndex && p.index === paramIndex);
+				if (param) list.push(param);
+			}
+		});
 	}
 );
 

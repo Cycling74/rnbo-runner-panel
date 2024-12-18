@@ -1,5 +1,5 @@
 import { Map as ImmuMap } from "immutable";
-import { GraphSetRecord } from "../models/set";
+import { GraphSetRecord, GraphSetViewRecord } from "../models/set";
 import { PresetRecord } from "../models/preset";
 import { GraphSetAction, GraphSetActionType } from "../actions/sets";
 
@@ -8,13 +8,18 @@ export type SetState = {
 	latest: string;
 	presets: ImmuMap<PresetRecord["id"], PresetRecord>;
 	presetLatest: string;
+
+	selectedView: GraphSetViewRecord["id"] | undefined,
+	views: ImmuMap<GraphSetViewRecord["id"], GraphSetViewRecord>;
 };
 
 export const sets = (state: SetState = {
 	sets: ImmuMap<GraphSetRecord["id"], GraphSetRecord>(),
 	latest: "",
-	presets: ImmuMap<GraphSetRecord["id"], PresetRecord>(),
-	presetLatest: ""
+	presets: ImmuMap<PresetRecord["id"], PresetRecord>(),
+	presetLatest: "",
+	selectedView: undefined,
+	views: ImmuMap<GraphSetViewRecord["id"], GraphSetViewRecord>()
 }, action: GraphSetAction): SetState => {
 
 	switch (action.type) {
@@ -52,6 +57,43 @@ export const sets = (state: SetState = {
 				...state,
 				latest: name,
 				sets: state.sets.map(set => { return set.setLatest(set.name === name); })
+			};
+		}
+
+		case GraphSetActionType.INIT_SET_VIEWS: {
+			const { views } = action.payload;
+			return {
+				...state,
+				selectedView: views.length ? views[0].id : undefined,
+				views: ImmuMap<GraphSetViewRecord["id"], GraphSetViewRecord>(views.map(v => [v.id, v]))
+			};
+		}
+
+		case GraphSetActionType.LOAD_SET_VIEW: {
+			const { view } = action.payload;
+			return {
+				...state,
+				selectedView: view.id
+			};
+		}
+
+		case GraphSetActionType.DELETE_SET_VIEW: {
+			const { view } = action.payload;
+			const newViews = state.views.delete(view.id);
+
+			return {
+				...state,
+				selectedView: state.selectedView === view.id ? newViews.first()?.id || undefined : state.selectedView,
+				views: newViews
+			};
+		}
+
+		case GraphSetActionType.SET_SET_VIEW: {
+			const { view } = action.payload;
+
+			return {
+				...state,
+				views: state.views.set(view.id, view)
 			};
 		}
 
