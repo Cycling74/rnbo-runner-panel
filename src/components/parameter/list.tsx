@@ -9,8 +9,6 @@ import { OrderedSet } from "immutable";
 import { useThemeColorScheme } from "../../hooks/useTheme";
 
 export type ParameterListProps<ExtraProps = object> = {
-	// isMIDIMapping: boolean;
-	// onActivateMIDIMapping: (parameter: ParameterRecord) => any;
 	onSetNormalizedValue: (parameter: ParameterRecord, nValue: number) => any;
 	onSaveMetadata: (parameter: ParameterRecord, meta: string) => any;
 	onRestoreMetadata: (parameter: ParameterRecord) => any;
@@ -21,8 +19,6 @@ export type ParameterListProps<ExtraProps = object> = {
 }
 
 const ParameterList = genericMemo(function WrappedParameterList<ExtraProps>({
-	// isMIDIMapping,
-	// onActivateMIDIMapping,
 	onSetNormalizedValue,
 	onSaveMetadata,
 	onRestoreMetadata,
@@ -59,7 +55,6 @@ const ParameterList = genericMemo(function WrappedParameterList<ExtraProps>({
 					<ParamComponentType
 						key={p.id}
 						param={p}
-						// onActivateMIDIMapping={ onActivateMIDIMapping }
 						onSetNormalizedValue={ onSetNormalizedValue }
 						onSaveMetadata={ onSaveMetadata }
 						onRestoreMetadata={ onRestoreMetadata }

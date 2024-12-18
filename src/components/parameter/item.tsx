@@ -19,7 +19,7 @@ export type ParameterItemProps = {
 	onSaveMetadata: (param: ParameterRecord, meta: string) => any;
 	onSetNormalizedValue: (param: ParameterRecord, nValue: number) => void;
 	onClearMidiMapping: (param: ParameterRecord) => void;
-}
+};
 
 const ParameterItem: FC<ParameterItemProps> = memo(function WrappedParameter({
 	disabled = false,
