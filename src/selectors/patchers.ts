@@ -1,4 +1,4 @@
-import { Map as ImmuMap, Seq, List as ImmuList } from "immutable";
+import { Map as ImmuMap, Seq, OrderedSet as ImmuOrderedSet } from "immutable";
 import { RootStateType } from "../lib/store";
 import { PatcherInstanceRecord } from "../models/instance";
 import { createSelector } from "reselect";
@@ -86,12 +86,12 @@ export const getPatcherInstanceParametersBySetView = createSelector(
 		getPatcherInstanceParameters,
 		(state: RootStateType, setView: GraphSetViewRecord): GraphSetViewRecord["params"] => setView.params
 	],
-	(parameters, viewParamList): ImmuList<ParameterRecord> => {
-		return ImmuList<ParameterRecord>().withMutations(list => {
+	(parameters, viewParamList): ImmuOrderedSet<ParameterRecord> => {
+		return ImmuOrderedSet<ParameterRecord>().withMutations(list => {
 			const entries = viewParamList.valueSeq().toArray();
 			for (const { instanceIndex, paramIndex } of entries) {
 				const param = parameters.find(p => p.instanceIndex === instanceIndex && p.index === paramIndex);
-				if (param) list.push(param);
+				if (param) list.add(param);
 			}
 		});
 	}
