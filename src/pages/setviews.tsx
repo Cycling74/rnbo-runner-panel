@@ -3,11 +3,11 @@ import { RootStateType } from "../lib/store";
 import { getGraphSetViewsBySortOrder, getSelectedGraphSetView } from "../selectors/sets";
 import { useCallback } from "react";
 import { ResponsiveButton } from "../components/elements/responsiveButton";
-import { Group, Stack } from "@mantine/core";
+import { Group, Stack, Title } from "@mantine/core";
 import { mdiKnob } from "@mdi/js";
 import { useDisclosure } from "@mantine/hooks";
 import { createSetViewOnRemote, destroySetViewOnRemote, loadSetView, renameSetViewOnRemote } from "../actions/sets";
-import SetViewDrawer from "../components/setViews";
+import SetViewDrawer from "../components/setViews/drawer";
 import { GraphSetViewRecord } from "../models/set";
 import { getPatcherInstanceParametersBySetView } from "../selectors/patchers";
 
@@ -50,6 +50,11 @@ export default function SetViews() {
 			<Stack>
 				<Group justify="space-between" wrap="nowrap">
 					<div style={{ flex: "1 2 50%" }} >
+						<Title size="md" my={ 0 } >
+							{
+								currentSetView?.name || "No SetView loaded"
+							}
+						</Title>
 					</div>
 					<Group style={{ flex: "0" }} wrap="nowrap" gap="xs" >
 						<ResponsiveButton
@@ -62,13 +67,9 @@ export default function SetViews() {
 				</Group>
 				<div>
 					{
-						currentSetView && currentSetViewParameters ? (
-							<>
-								{ currentSetView.name }
-								<br/>
-								{ currentSetViewParameters.size } parameters
-							</>
-						) : "No SetView loaded."
+						currentSetViewParameters ? (
+							`${ currentSetViewParameters.size } parameters`
+						) : null
 					}
 				</div>
 			</Stack>
