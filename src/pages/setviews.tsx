@@ -10,6 +10,7 @@ import { createSetViewOnRemote, destroySetViewOnRemote, loadSetView, renameSetVi
 import SetViewDrawer from "../components/setViews/drawer";
 import { GraphSetViewRecord } from "../models/set";
 import { getPatcherInstanceParametersBySetView } from "../selectors/patchers";
+import { SetViewParameterList } from "../components/setViews/parameterList";
 
 export default function SetViews() {
 
@@ -67,9 +68,9 @@ export default function SetViews() {
 				</Group>
 				<div>
 					{
-						currentSetViewParameters ? (
-							`${ currentSetViewParameters.size } parameters`
-						) : null
+						!currentSetViewParameters ? null : (
+							<SetViewParameterList parameters={ currentSetViewParameters } />
+						)
 					}
 				</div>
 			</Stack>
