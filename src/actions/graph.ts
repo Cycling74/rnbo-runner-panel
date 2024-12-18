@@ -615,7 +615,7 @@ export const unloadPatcherNodeByIndexOnRemote = (instanceIndex: number): AppThun
 			dispatch(showNotification({
 				level: NotificationLevel.error,
 				title: "Error while trying to unload patcher",
-				message: "Please check the consolor for further details."
+				message: "Please check the console for further details."
 			}));
 			console.error(err);
 		}
@@ -636,7 +636,7 @@ export const loadPatcherNodeOnRemote = (patcher: PatcherExportRecord): AppThunk 
 			dispatch(showNotification({
 				level: NotificationLevel.error,
 				title: `Error while trying to load patcher ${patcher.name}`,
-				message: "Please check the consolor for further details."
+				message: "Please check the console for further details."
 			}));
 			console.error(err);
 		}
