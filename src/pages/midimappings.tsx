@@ -9,7 +9,6 @@ import { getPatcherInstanceParametersWithMIDIMapping, getPatcherInstancesByIndex
 import MIDIMappedParameterList from "../components/midi/mappedParameterList";
 import { ParameterRecord } from "../models/parameter";
 import { clearParameterMIDIMappingOnRemote, setParameterMIDIMappingOnRemoteFromDisplayValue } from "../actions/patchers";
-import { PatcherInstanceRecord } from "../models/instance";
 import { formatMIDIMappingToDisplay } from "../lib/util";
 
 const collator = new Intl.Collator("en-US", { numeric: true });
@@ -67,12 +66,12 @@ const MIDIMappings = () => {
 		getPatcherInstanceParametersWithMIDIMapping(state)
 	]);
 
-	const onClearParameterMIDIMapping = useCallback((instance: PatcherInstanceRecord, param: ParameterRecord) => {
-		dispatch(clearParameterMIDIMappingOnRemote(instance.id, param.id));
+	const onClearParameterMIDIMapping = useCallback((param: ParameterRecord) => {
+		dispatch(clearParameterMIDIMappingOnRemote(param));
 	}, [dispatch]);
 
-	const onUpdateParameterMIDIMapping = useCallback((instance: PatcherInstanceRecord, param: ParameterRecord, value: string) => {
-		dispatch(setParameterMIDIMappingOnRemoteFromDisplayValue(instance.id, param.id, value));
+	const onUpdateParameterMIDIMapping = useCallback((param: ParameterRecord, value: string) => {
+		dispatch(setParameterMIDIMappingOnRemoteFromDisplayValue(param, value));
 	}, [dispatch]);
 
 	const onSort = useCallback((attr: MIDIMappedParameterSortAttr): void => {
