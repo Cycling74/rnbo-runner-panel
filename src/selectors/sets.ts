@@ -88,7 +88,7 @@ export const getGraphSetViewsBySortOrder = createSelector(
 	}
 );
 
-export const getGraphSetView= createSelector(
+export const getGraphSetView = createSelector(
 	[
 		getGraphSetViews,
 		(state: RootStateType, id: GraphSetViewRecord["id"]): string => id

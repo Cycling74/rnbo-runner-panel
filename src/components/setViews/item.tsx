@@ -1,9 +1,9 @@
 import { ChangeEvent, KeyboardEvent, MouseEvent, FormEvent, memo, useCallback, useState, useRef, useEffect, FC } from "react";
-import { ActionIcon, Button, Group, Indicator, Menu, TextInput, Tooltip } from "@mantine/core";
+import { ActionIcon, Button, Group, Menu, TextInput, Tooltip } from "@mantine/core";
 import classes from "./setviews.module.css";
 import { keyEventIsValidForName, replaceInvalidNameChars } from "../../lib/util";
 import { IconElement } from "../elements/icon";
-import { mdiCheck, mdiClose, mdiDotsVertical, mdiPencil, mdiStar, mdiTrashCan } from "@mdi/js";
+import { mdiCheck, mdiClose, mdiDotsVertical, mdiPencil, mdiTrashCan } from "@mdi/js";
 import { GraphSetViewRecord } from "../../models/set";
 
 export type GraphSetViewItemProps = {
