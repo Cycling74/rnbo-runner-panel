@@ -1,16 +1,28 @@
 .parameterItem {
+	background-color: var(--parameter-bg-color);
 	break-inside: avoid-column;
 	page-break-inside: avoid;
 	padding: 2px 2px var(--mantine-spacing-xl) 2px;
 	margin-bottom: 6px;
+}
 
-	background-color: var(--parameter-bg-color);
+.paramWithMIDIMapping {
+
 	outline-color: transparent;
 	outline-style: solid;
 	outline-width: 4px;
 
-	&[data-active-midi-mappping="true"] {
+	&[data-active-mappping="true"] {
 		outline-color:var(--parameter-active-midi-outline);
+	}
+}
+
+.paramWithActiveInstanceMapping {
+	cursor: pointer;
+
+	.parameterItem {
+		background-color: var(--parameter-active-midi-bg-color);
+		pointer-events: none;
 	}
 }
 
@@ -18,31 +30,16 @@
 	gap: var(--mantine-spacing-xl);
 	min-height: 100%;
 
-	&[data-active-midi-mapping="true"] {
-		cursor: pointer;
-
-		.parameterItemSlider,
-		.parameterItemActionMenuTarget {
-			pointer-events: none;
-		}
-	}
-
 	&[data-color-scheme="light"] {
 		--parameter-bg-color: transparent;
-
-		&[data-active-midi-mapping="true"] {
-			--parameter-bg-color: var(--mantine-color-violet-1);
-			--parameter-active-midi-outline: var(--mantine-color-violet-4);
-		}
+		--parameter-active-midi-bg-color: var(--mantine-color-violet-1);
+		--parameter-active-midi-outline: var(--mantine-color-violet-4);
 	}
 
 	&[data-color-scheme="dark"] {
 		--parameter-bg-color: transparent;
-
-		&[data-active-midi-mapping="true"] {
-			--parameter-bg-color: var(--mantine-color-violet-9);
-			--parameter-active-midi-outline: var(--mantine-color-violet-3);
-		}
+		--parameter-active-midi-bg-color: var(--mantine-color-violet-9);
+		--parameter-active-midi-outline: var(--mantine-color-violet-3);
 	}
 }
 
