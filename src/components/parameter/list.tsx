@@ -10,9 +10,6 @@ import { useThemeColorScheme } from "../../hooks/useTheme";
 
 export type ParameterListProps<ExtraProps = object> = {
 	onSetNormalizedValue: (parameter: ParameterRecord, nValue: number) => any;
-	onSaveMetadata: (parameter: ParameterRecord, meta: string) => any;
-	onRestoreMetadata: (parameter: ParameterRecord) => any;
-	onClearMidiMapping: (parameter: ParameterRecord) => any;
 	parameters: OrderedSet<ParameterRecord>;
 	extraParameterProps: ExtraProps;
 	ParamComponentType: ComponentType<ExtraProps & ParameterItemProps>;
@@ -20,9 +17,6 @@ export type ParameterListProps<ExtraProps = object> = {
 
 const ParameterList = genericMemo(function WrappedParameterList<ExtraProps>({
 	onSetNormalizedValue,
-	onSaveMetadata,
-	onRestoreMetadata,
-	onClearMidiMapping,
 	parameters,
 	extraParameterProps,
 	ParamComponentType
@@ -48,6 +42,8 @@ const ParameterList = genericMemo(function WrappedParameterList<ExtraProps>({
 		setTopCoord(ref.current?.getBoundingClientRect().top);
 	}, [ref, height]);
 
+	let index = -1;
+
 	return (
 		<div ref={ ref } className={ classes.parameterList } data-color-scheme={ colorScheme } style={{ columnCount }} >
 			{
@@ -55,10 +51,8 @@ const ParameterList = genericMemo(function WrappedParameterList<ExtraProps>({
 					<ParamComponentType
 						key={p.id}
 						param={p}
+						index={ ++index }
 						onSetNormalizedValue={ onSetNormalizedValue }
-						onSaveMetadata={ onSaveMetadata }
-						onRestoreMetadata={ onRestoreMetadata }
-						onClearMidiMapping={ onClearMidiMapping }
 						{ ...extraParameterProps }
 					/>
 				)

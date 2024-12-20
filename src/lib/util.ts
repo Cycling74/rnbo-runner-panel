@@ -68,6 +68,8 @@ export const formatParamValueForDisplay = (value: number | string) => {
 	return value;
 };
 
+export const instanceAndParamIndicesToSetViewEntry = (instanceIndex: number, paramIndex: number) => `${instanceIndex}:${paramIndex}`;
+
 export const cloneJSON = (value: JsonMap): JsonMap => JSON.parse(JSON.stringify(value));
 
 export const formatMIDIMappingToDisplay = (type: MIDIMetaMappingType, mapping: MIDIMetaMapping): string => {

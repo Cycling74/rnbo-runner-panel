@@ -1,4 +1,4 @@
-.parameterItem {
+.parameterWrap {
 	background-color: var(--parameter-bg-color);
 	break-inside: avoid-column;
 	page-break-inside: avoid;
