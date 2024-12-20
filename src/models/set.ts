@@ -1,4 +1,4 @@
-import { Record as ImmuRecord, List as ImmuList } from "immutable";
+import { Record as ImmuRecord, List as ImmuList, OrderedSet as ImmuOrderedSet } from "immutable";
 import { OSCQueryRNBOSetView } from "../lib/types";
 import { PatcherInstanceRecord } from "./instance";
 import { ParameterRecord } from "./parameter";
@@ -35,6 +35,7 @@ export type GraphSetViewRecordProps = {
 	id: string;
 	name: string;
 	params: ImmuList<GraphSetViewParameterEntry>;
+	paramIds:  ImmuOrderedSet<string>;
 	sortOrder: number;
 };
 
@@ -42,6 +43,7 @@ export class GraphSetViewRecord extends ImmuRecord<GraphSetViewRecordProps>({
 	id: "0",
 	name: "",
 	params: ImmuList<GraphSetViewParameterEntry>(),
+	paramIds: ImmuOrderedSet<string>(),
 	sortOrder: 0
 }) {
 
@@ -64,6 +66,7 @@ export class GraphSetViewRecord extends ImmuRecord<GraphSetViewRecordProps>({
 			id,
 			name: "",
 			params: ImmuList<GraphSetViewParameterEntry>(),
+			paramIds: ImmuOrderedSet<string>(),
 			sortOrder: 0
 		});
 	}
@@ -72,6 +75,7 @@ export class GraphSetViewRecord extends ImmuRecord<GraphSetViewRecordProps>({
 		return new GraphSetViewRecord({
 			id,
 			name: desc.CONTENTS.name.VALUE,
+			paramIds: ImmuOrderedSet<string>(desc.CONTENTS.params.VALUE || []),
 			params: this.getParamListFromDesc(desc.CONTENTS.params.VALUE),
 			sortOrder: desc.CONTENTS.sort_order.VALUE
 		});
@@ -83,7 +87,9 @@ export class GraphSetViewRecord extends ImmuRecord<GraphSetViewRecordProps>({
 
 	public setParams(params: string[]): GraphSetViewRecord {
 		const list = GraphSetViewRecord.getParamListFromDesc(params);
-		return this.set("params", list);
+		return this
+			.set("params", list)
+			.set("paramIds", ImmuOrderedSet<string>(params));
 	}
 
 	public setSortOrder(sortOrder: number): GraphSetViewRecord {

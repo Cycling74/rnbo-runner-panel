@@ -2,7 +2,7 @@ import { Map as ImmuMap }from "immutable";
 import { Divider, Drawer, Group, Stack, Text } from "@mantine/core";
 import { FC, useCallback } from "react";
 import { IconElement } from "../elements/icon";
-import { mdiKnob } from "@mdi/js";
+import { mdiTableEye } from "@mdi/js";
 import { DrawerSectionTitle } from "../page/drawer";
 import { CreateSetViewForm } from "./create";
 import { GraphSetViewRecord } from "../../models/set";
@@ -55,7 +55,7 @@ const SetViewDrawer: FC<CreateSetViewModalProps> = ({
 			opened={ open }
 			onClose={ onClose }
 			position="right"
-			title={ <Group gap="xs"><IconElement path={ mdiKnob }/> SetViews</Group> }
+			title={ <Group gap="xs"><IconElement path={ mdiTableEye }/> SetViews</Group> }
 		>
 			<CreateSetViewForm onSave={ onCreateSetView } />
 			<Divider mt="lg" />

@@ -65,7 +65,8 @@ export function withParameterMIDIMapping(
 
 		return (
 			<div
-				className={ `${classes.parameterWrap} ${classes.paramWithMIDIMapping} ${instanceIsMIDIMapping ? classes.paramWithActiveInstanceMapping : ""}` }
+				className={ `${classes.parameterWrap} ${classes.paramWithMIDIMapping}` }
+				data-instance-mapping={ instanceIsMIDIMapping }
 				data-active-mappping={ param.waitingForMidiMapping }
 				onClick={ instanceIsMIDIMapping ? onTriggerActivateMIDIMapping : null }
 			>
@@ -98,14 +99,13 @@ export function withParameterMIDIMapping(
 					<WrappedComponent param={ param } disabled={ instanceIsMIDIMapping } { ...props } />
 					<Menu position="bottom-end" disabled={ instanceIsMIDIMapping } >
 						<Menu.Target>
-							<Tooltip label="Open Parameter Action Menu">
-								<ActionIcon variant="subtle" color="gray" size="md" className={ classes.parameterItemActionMenuTarget } >
+							<Tooltip label="Open Parameter Menu" disabled={ instanceIsMIDIMapping }>
+								<ActionIcon variant="subtle" color="gray" size="md" disabled={ instanceIsMIDIMapping } >
 									<IconElement path={ mdiDotsVertical } />
 								</ActionIcon>
 							</Tooltip>
 						</Menu.Target>
 						<Menu.Dropdown>
-							<Menu.Label>Parameter Actions</Menu.Label>
 							<Menu.Item leftSection={ <IconElement path={ mdiCodeBraces } /> } onClick={ toggleMetaEditor }>
 								Edit Metadata
 							</Menu.Item>

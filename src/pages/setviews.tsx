@@ -4,19 +4,21 @@ import { getGraphSetViewsBySortOrder, getSelectedGraphSetView } from "../selecto
 import { useCallback } from "react";
 import { ResponsiveButton } from "../components/elements/responsiveButton";
 import { Group, Stack, Title } from "@mantine/core";
-import { mdiKnob } from "@mdi/js";
+import { mdiTableEye, mdiTune } from "@mdi/js";
 import { useDisclosure } from "@mantine/hooks";
-import { createSetViewOnRemote, destroySetViewOnRemote, loadSetView, decreaseParameterIndexInSetView, increaseParameterIndexInSetView, removeParameterFromSetView, renameSetViewOnRemote } from "../actions/sets";
+import { createSetViewOnRemote, destroySetViewOnRemote, loadSetView, decreaseParameterIndexInSetView, increaseParameterIndexInSetView, removeParameterFromSetView, renameSetViewOnRemote  } from "../actions/sets";
 import SetViewDrawer from "../components/setViews/drawer";
 import { GraphSetViewRecord } from "../models/set";
 import { getPatcherInstanceParametersBySetView } from "../selectors/patchers";
 import { SetViewParameterList } from "../components/setViews/parameterList";
 import { ParameterRecord } from "../models/parameter";
 import { setInstanceParameterValueNormalizedOnRemote } from "../actions/patchers";
+import { SetViewParameterModal } from "../components/setViews/paramModal";
 
 export default function SetViews() {
 
-	const [setViewDrawerOpen, { open: openSetViewDrawer, close: closeSetViewDrawer }] = useDisclosure();
+	const [setViewDrawerOpen, { open: openSetViewDrawer, close: closeSetViewDrawer }] = useDisclosure(false);
+	const [addParametersViewOpen, { open: openAddParametersView, close: closeAddParamtersView }] = useDisclosure(false);
 	const dispatch = useAppDispatch();
 
 	const [
@@ -80,9 +82,15 @@ export default function SetViews() {
 					</div>
 					<Group style={{ flex: "0" }} wrap="nowrap" gap="xs" >
 						<ResponsiveButton
+							label="Parameters"
+							tooltip="Manage SetView Parameters"
+							icon={ mdiTune }
+							onClick={ openAddParametersView }
+						/>
+						<ResponsiveButton
 							label="SetViews"
 							tooltip="Open SetView Menu"
-							icon={ mdiKnob }
+							icon={ mdiTableEye }
 							onClick={ openSetViewDrawer }
 						/>
 					</Group>
@@ -111,6 +119,15 @@ export default function SetViews() {
 				currentSetView={ currentSetView }
 				setViews={ setViews }
 			/>
+			{
+				currentSetView && addParametersViewOpen ? (
+					<SetViewParameterModal
+						onClose={ closeAddParamtersView }
+						setView={ currentSetView }
+					/>
+				) : null
+			}
+
 		</>
 	);
 }

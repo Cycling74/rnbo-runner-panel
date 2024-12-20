@@ -70,7 +70,7 @@ const MIDIMappedParameter: FC<MIDIMappedParamProps> = memo(function WrappedMIDIM
 
 	const onUpdateMapping = useCallback((value: string) => {
 		onUpdateMIDIMapping(param, value);
-	}, [instance, param, onUpdateMIDIMapping]);
+	}, [param, onUpdateMIDIMapping]);
 
 	return (
 		<Table.Tr>
