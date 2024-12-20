@@ -1,4 +1,4 @@
-import { writePacket } from "osc";
+import { OSCArgument, writePacket } from "osc";
 import { oscQueryBridge } from "../controller/oscqueryBridgeController";
 import { ActionBase, AppThunk } from "../lib/store";
 import { GraphSetRecord, GraphSetViewRecord } from "../models/set";
@@ -469,26 +469,6 @@ export const updateSetViewParameterListOnRemote = (setView: GraphSetViewRecord, 
 		}
 	};
 
-export const removeParameterFromSetView = (setView: GraphSetViewRecord, param: ParameterRecord): AppThunk =>
-	(dispatch) => {
-		try {
-			const params = setView.params.toArray().filter(entry => param.instanceIndex !== entry.instanceIndex || param.index !== entry.paramIndex);
-
-			const message = {
-				address: `/rnbo/inst/control/sets/views/list/${setView.id}/params`,
-				args: params.map(p => ({ type: "s", value: instanceAndParamIndicesToSetViewEntry(p.instanceIndex, p.paramIndex) }))
-			};
-			oscQueryBridge.sendPacket(writePacket(message));
-		} catch (err) {
-			dispatch(showNotification({
-				level: NotificationLevel.error,
-				title: `Error while trying to update parameter list of SetView "${setView.name}"`,
-				message: "Please check the console for further details."
-			}));
-			console.log(err);
-		}
-	};
-
 export const decreaseParameterIndexInSetView = (setView: GraphSetViewRecord, param: ParameterRecord): AppThunk =>
 	(dispatch) => {
 		try {
@@ -521,11 +501,109 @@ export const increaseParameterIndexInSetView = (setView: GraphSetViewRecord, par
 
 			const newList = setView.params
 				.delete(currentIndex)
-				.insert(currentIndex + 1, { instanceIndex: param.instanceIndex, paramIndex: param.index })
+				.insert(currentIndex + 1, { instanceIndex: param.instanceIndex, paramIndex: param.index });
 
 			const message = {
 				address: `/rnbo/inst/control/sets/views/list/${setView.id}/params`,
 				args: newList.toArray().map(p => ({ type: "s", value: instanceAndParamIndicesToSetViewEntry(p.instanceIndex, p.paramIndex) }))
+			};
+			oscQueryBridge.sendPacket(writePacket(message));
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: `Error while trying to update parameter list of SetView "${setView.name}"`,
+				message: "Please check the console for further details."
+			}));
+			console.log(err);
+		}
+	};
+
+export const removeParameterFromSetView = (setView: GraphSetViewRecord, param: ParameterRecord): AppThunk =>
+	(dispatch) => {
+		try {
+			if (!setView.paramIds.has(param.setViewId)) return;
+			const params = setView.paramIds.remove(param.setViewId).toArray().map(pId => ({ type: "s", value: pId }));
+
+			const message = {
+				address: `/rnbo/inst/control/sets/views/list/${setView.id}/params`,
+				args: params
+			};
+			oscQueryBridge.sendPacket(writePacket(message));
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: `Error while trying to update parameter list of SetView "${setView.name}"`,
+				message: "Please check the console for further details."
+			}));
+			console.log(err);
+		}
+	};
+
+export const removeAllParamtersFromSetView = (setView: GraphSetViewRecord): AppThunk =>
+	(dispatch) => {
+		try {
+			const message = {
+				address: `/rnbo/inst/control/sets/views/list/${setView.id}/params`,
+				args: [] as OSCArgument[]
+			};
+			oscQueryBridge.sendPacket(writePacket(message));
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: `Error while trying to update parameter list of SetView "${setView.name}"`,
+				message: "Please check the console for further details."
+			}));
+			console.log(err);
+		}
+	};
+
+export const addParameterToSetView = (setView: GraphSetViewRecord, param: ParameterRecord): AppThunk =>
+	(dispatch) => {
+		try {
+			if (setView.paramIds.has(param.setViewId)) return;
+			const params = setView.paramIds.toArray().map(pId => ({ type: "s", value: pId }));
+			params.push({ type: "s", value: instanceAndParamIndicesToSetViewEntry(param.instanceIndex, param.index) });
+
+			const message = {
+				address: `/rnbo/inst/control/sets/views/list/${setView.id}/params`,
+				args: params
+			};
+			oscQueryBridge.sendPacket(writePacket(message));
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: `Error while trying to update parameter list of SetView "${setView.name}"`,
+				message: "Please check the console for further details."
+			}));
+			console.log(err);
+		}
+	};
+
+export const addAllParamtersToSetView = (setView: GraphSetViewRecord): AppThunk =>
+	(dispatch, getState) => {
+		try {
+			const state = getState();
+			const params = setView.params.withMutations(list => {
+				getPatcherInstanceParameters(state)
+					.valueSeq()
+					.sort((a, b) => {
+						if (a.instanceIndex < b.instanceIndex) return -1;
+						if (a.instanceIndex > b.instanceIndex) return 1;
+						if (a.index < b.index) return -1;
+						if (a.index > b.index) return 1;
+						return 0;
+					})
+					.forEach(param => {
+						if (!setView.paramIds.has(param.setViewId)) {
+							list.push({ instanceIndex: param.instanceIndex, paramIndex: param.index });
+						}
+					});
+			}).toArray();
+
+
+			const message = {
+				address: `/rnbo/inst/control/sets/views/list/${setView.id}/params`,
+				args: params.map(p => ({ type: "s", value: instanceAndParamIndicesToSetViewEntry(p.instanceIndex, p.paramIndex) }))
 			};
 			oscQueryBridge.sendPacket(writePacket(message));
 		} catch (err) {

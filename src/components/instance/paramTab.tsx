@@ -165,7 +165,7 @@ const InstanceParameterTab: FunctionComponent<InstanceParameterTabProps> = memo(
 
 	const onClearParameterMidiMapping = useCallback((param: ParameterRecord) => {
 		dispatch(clearParameterMIDIMappingOnRemote(param));
-	}, [dispatch, instance]);
+	}, [dispatch]);
 
 	const onSearch = useDebouncedCallback((query: string) => {
 		setSearchValue(query);

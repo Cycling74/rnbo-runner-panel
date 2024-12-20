@@ -16,7 +16,7 @@ export type ParameterItemProps = {
 const ParameterItem: FC<ParameterItemProps> = memo(function WrappedParameter({
 	disabled = false,
 	param,
-	onSetNormalizedValue,
+	onSetNormalizedValue
 }: ParameterItemProps) {
 
 	const [localValue, setLocalValue] = useState(param.normalizedValue);
