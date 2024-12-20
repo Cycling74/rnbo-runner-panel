@@ -9,7 +9,7 @@ import { getShowSettingsModal } from "../../selectors/settings";
 import { ExternalNavLink, NavLink } from "./link";
 import { useRouter } from "next/router";
 import { getFirstPatcherNodeIndex } from "../../selectors/graph";
-import { mdiChartSankeyVariant, mdiCog, mdiFileMusic, mdiHelpCircle, mdiKnob, mdiMidiPort, mdiVectorSquare } from "@mdi/js";
+import { mdiChartSankeyVariant, mdiCog, mdiFileMusic, mdiHelpCircle, mdiMidiPort, mdiVectorSquare, mdiTableEye } from "@mdi/js";
 
 const AppNav: FunctionComponent = memo(function WrappedNav() {
 
@@ -52,7 +52,7 @@ const AppNav: FunctionComponent = memo(function WrappedNav() {
 						isActive={ pathname === "/files" }
 					/>
 					<NavLink
-						icon={ mdiKnob }
+						icon={ mdiTableEye }
 						label="SetViews"
 						href={{ pathname: "/setviews", query: { ...restQuery } }}
 						isActive={ pathname === "/setviews" }

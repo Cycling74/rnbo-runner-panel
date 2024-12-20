@@ -5,7 +5,7 @@ import classes from "./parameters.module.css";
 import { ActionIcon, Group, Indicator, Menu, Tooltip } from "@mantine/core";
 import { formatMIDIMappingToDisplay } from "../../lib/util";
 import { MIDIMetaMappingType } from "../../lib/constants";
-import { mdiArrowDown, mdiArrowUp, mdiDotsVertical, mdiMinus } from "@mdi/js";
+import { mdiArrowDown, mdiArrowUp, mdiDotsVertical, mdiMinusBox } from "@mdi/js";
 import { IconElement } from "../elements/icon";
 
 export type ParameterSetViewWrapProps = {
@@ -48,9 +48,7 @@ export function withParameterSetViewWrap(
 			: undefined;
 
 		return (
-			<div
-				className={ `${classes.parameterWrap}` }
-			>
+			<div className={ `${classes.parameterWrap} ${classes.paramWithSetViewWrap}` } >
 				<Group justify="space-between">
 					<Tooltip label={ indicatorText } disabled={ !indicatorText }>
 						<Indicator
@@ -68,22 +66,21 @@ export function withParameterSetViewWrap(
 					<WrappedComponent index={ index } param={ param } { ...props } />
 					<Menu position="bottom-end" >
 						<Menu.Target>
-							<Tooltip label="Open Parameter Action Menu">
-								<ActionIcon variant="subtle" color="gray" size="md" className={ classes.parameterItemActionMenuTarget } >
+							<Tooltip label="Open Parameter Menu">
+								<ActionIcon variant="subtle" color="gray" size="md" >
 									<IconElement path={ mdiDotsVertical } />
 								</ActionIcon>
 							</Tooltip>
 						</Menu.Target>
 						<Menu.Dropdown>
-							<Menu.Label>SetView Parameter Actions</Menu.Label>
-							<Menu.Item  leftSection={ <IconElement path={ mdiArrowUp } /> } onClick={ onTriggerMoveUp } disabled={ index === 0 } >
+							<Menu.Item leftSection={ <IconElement path={ mdiArrowUp } /> } onClick={ onTriggerMoveUp } disabled={ index === 0 } >
 								Move Up
 							</Menu.Item>
-							<Menu.Item leftSection={ <IconElement path={ mdiArrowDown } /> } onClick={ onTriggerMoveDown } disabled={ index === listSize - 1 } >
+							<Menu.Item leftSection={ <IconElement path={ mdiArrowDown } /> } onClick={ onTriggerMoveDown } disabled={ index === listSize - 1} >
 								Move Down
 							</Menu.Item>
 							<Menu.Divider />
-							<Menu.Item color="red" leftSection={ <IconElement path={ mdiMinus } /> } onClick={ onTriggerRemoveFromSetView } >
+							<Menu.Item color="red" leftSection={ <IconElement path={ mdiMinusBox } /> } onClick={ onTriggerRemoveFromSetView } >
 								Remove from SetView
 							</Menu.Item>
 						</Menu.Dropdown>
