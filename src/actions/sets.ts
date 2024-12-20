@@ -9,6 +9,7 @@ import { ParameterRecord } from "../models/parameter";
 import { getPatcherInstanceParameters } from "../selectors/patchers";
 import { OSCQueryRNBOSetView, OSCQueryRNBOSetViewListState } from "../lib/types";
 import { getGraphSetView } from "../selectors/sets";
+import { instanceAndParamIndicesToSetViewEntry } from "../lib/util";
 
 export enum GraphSetActionType {
 	INIT_SETS = "INIT_SETS",
@@ -456,6 +457,75 @@ export const updateSetViewParameterListOnRemote = (setView: GraphSetViewRecord, 
 			const message = {
 				address: `/rnbo/inst/control/sets/views/list/${setView.id}/params`,
 				args: params.map(p => ({ type: "s", value: p.setViewId }))
+			};
+			oscQueryBridge.sendPacket(writePacket(message));
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: `Error while trying to update parameter list of SetView "${setView.name}"`,
+				message: "Please check the console for further details."
+			}));
+			console.log(err);
+		}
+	};
+
+export const removeParameterFromSetView = (setView: GraphSetViewRecord, param: ParameterRecord): AppThunk =>
+	(dispatch) => {
+		try {
+			const params = setView.params.toArray().filter(entry => param.instanceIndex !== entry.instanceIndex || param.index !== entry.paramIndex);
+
+			const message = {
+				address: `/rnbo/inst/control/sets/views/list/${setView.id}/params`,
+				args: params.map(p => ({ type: "s", value: instanceAndParamIndicesToSetViewEntry(p.instanceIndex, p.paramIndex) }))
+			};
+			oscQueryBridge.sendPacket(writePacket(message));
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: `Error while trying to update parameter list of SetView "${setView.name}"`,
+				message: "Please check the console for further details."
+			}));
+			console.log(err);
+		}
+	};
+
+export const decreaseParameterIndexInSetView = (setView: GraphSetViewRecord, param: ParameterRecord): AppThunk =>
+	(dispatch) => {
+		try {
+			const currentIndex = setView.params.findIndex(entry => entry.instanceIndex === param.instanceIndex && entry.paramIndex === param.index);
+			if (currentIndex <= 0) return;
+
+			const newList = setView.params
+				.delete(currentIndex)
+				.insert(currentIndex - 1, { instanceIndex: param.instanceIndex, paramIndex: param.index });
+			const message = {
+				address: `/rnbo/inst/control/sets/views/list/${setView.id}/params`,
+				args: newList.toArray().map(p => ({ type: "s", value: instanceAndParamIndicesToSetViewEntry(p.instanceIndex, p.paramIndex) }))
+			};
+			oscQueryBridge.sendPacket(writePacket(message));
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: `Error while trying to update parameter list of SetView "${setView.name}"`,
+				message: "Please check the console for further details."
+			}));
+			console.log(err);
+		}
+	};
+
+export const increaseParameterIndexInSetView = (setView: GraphSetViewRecord, param: ParameterRecord): AppThunk =>
+	(dispatch) => {
+		try {
+			const currentIndex = setView.params.findIndex(entry => entry.instanceIndex === param.instanceIndex && entry.paramIndex === param.index);
+			if (currentIndex >= setView.params.size) return;
+
+			const newList = setView.params
+				.delete(currentIndex)
+				.insert(currentIndex + 1, { instanceIndex: param.instanceIndex, paramIndex: param.index })
+
+			const message = {
+				address: `/rnbo/inst/control/sets/views/list/${setView.id}/params`,
+				args: newList.toArray().map(p => ({ type: "s", value: instanceAndParamIndicesToSetViewEntry(p.instanceIndex, p.paramIndex) }))
 			};
 			oscQueryBridge.sendPacket(writePacket(message));
 		} catch (err) {

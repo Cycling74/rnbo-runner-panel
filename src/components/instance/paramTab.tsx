@@ -258,13 +258,13 @@ const InstanceParameterTab: FunctionComponent<InstanceParameterTabProps> = memo(
 						<ParameterListComponent
 							parameters={ displayParameters }
 							onSetNormalizedValue={ onSetNormalizedParamValue }
-							onSaveMetadata={ onSaveParameterMetadata }
-							onRestoreMetadata={ onRestoreDefaultParameterMetadata }
-							onClearMidiMapping={ onClearParameterMidiMapping }
 							ParamComponentType={ ParameterComponentType }
 							extraParameterProps={{
 								instanceIsMIDIMapping: instance.waitingForMidiMapping,
-								onActivateMIDIMapping: onActivateParameterMIDIMapping
+								onActivateMIDIMapping: onActivateParameterMIDIMapping,
+								onSaveMetadata: onSaveParameterMetadata,
+								onRestoreMetadata: onRestoreDefaultParameterMetadata,
+								onClearMidiMapping: onClearParameterMidiMapping
 							}}
 						/>
 					</div>

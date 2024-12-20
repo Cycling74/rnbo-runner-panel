@@ -1,6 +1,6 @@
 import { Record as ImmuRecord } from "immutable";
 import { OSCQueryRNBOInstance, OSCQueryRNBOInstanceParameterInfo, OSCQueryRNBOInstanceParameterValue, ParameterMetaJsonMap } from "../lib/types";
-import { parseMetaJSONString } from "../lib/util";
+import { instanceAndParamIndicesToSetViewEntry, parseMetaJSONString } from "../lib/util";
 import { MIDIMetaMappingType } from "../lib/constants";
 
 export type ParameterRecordProps = {
@@ -89,7 +89,7 @@ export class ParameterRecord extends ImmuRecord<ParameterRecordProps>({
 	}
 
 	public get setViewId(): string {
-		return `${this.instanceIndex}:${this.index}`;
+		return instanceAndParamIndicesToSetViewEntry(this.instanceIndex, this.index);
 	}
 
 	public getValueForNormalizedValue(nv: number): string | number {

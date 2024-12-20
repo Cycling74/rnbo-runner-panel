@@ -1,46 +1,41 @@
 import { OrderedSet as ImmuOrderedSet } from "immutable";
-import { FC, memo, useCallback } from "react";
-import ParameterList from "../parameter/list";
+import { ComponentType, FC, memo } from "react";
+import ParameterList, { ParameterListProps } from "../parameter/list";
 import { ParameterRecord } from "../../models/parameter";
 import ParameterItem from "../parameter/item";
-import { useAppDispatch } from "../../hooks/useAppDispatch";
-import { clearParameterMIDIMappingOnRemote, restoreDefaultParameterMetaOnRemote, setInstanceParameterMetaOnRemote, setInstanceParameterValueNormalizedOnRemote } from "../../actions/patchers";
+import { ParameterSetViewWrapProps, withParameterSetViewWrap } from "../parameter/withSetViewWrap";
+
+const ParameterComponentType = withParameterSetViewWrap(ParameterItem);
+const ParameterListComponent: ComponentType<ParameterListProps<ParameterSetViewWrapProps>> = ParameterList;
 
 export type SetViewParameterListProps = {
 	parameters: ImmuOrderedSet<ParameterRecord>;
+	onDecreaseParamIndex: (param: ParameterRecord) => void;
+	onIncreaseParamIndex: (param: ParameterRecord) => void;
+	onRemoveParamFromSetView: (param: ParameterRecord) => void;
+	onSetNormalizedParamValue: (param: ParameterRecord, value: number) => void;
 }
 
 export const SetViewParameterList: FC<SetViewParameterListProps> = memo(function WrappedSetViewParameterList({
-	parameters
+	parameters,
+	onDecreaseParamIndex,
+	onIncreaseParamIndex,
+	onRemoveParamFromSetView,
+	onSetNormalizedParamValue
 }) {
-
-	const dispatch = useAppDispatch();
-	const onSetNormalizedParamValue = useCallback((param: ParameterRecord, val: number) => {
-		dispatch(setInstanceParameterValueNormalizedOnRemote(param, val));
-	}, [dispatch]);
-
-	const onSaveParameterMetadata = useCallback((param: ParameterRecord, meta: string) => {
-		dispatch(setInstanceParameterMetaOnRemote(param, meta));
-	}, [dispatch]);
-
-	const onRestoreDefaultParameterMetadata = useCallback((param: ParameterRecord) => {
-		dispatch(restoreDefaultParameterMetaOnRemote(param));
-	}, [dispatch]);
-
-	const onClearParameterMidiMapping = useCallback((param: ParameterRecord) => {
-		dispatch(clearParameterMIDIMappingOnRemote(param));
-	}, [dispatch]);
 
 	return (
 		<div className={ "" } >
-			<ParameterList
+			<ParameterListComponent
 				onSetNormalizedValue={ onSetNormalizedParamValue }
-				onSaveMetadata={ onSaveParameterMetadata }
-				onRestoreMetadata={ onRestoreDefaultParameterMetadata }
-				onClearMidiMapping={ onClearParameterMidiMapping }
 				parameters={ parameters }
-				ParamComponentType={ ParameterItem }
-				extraParameterProps={{}}
+				ParamComponentType={ ParameterComponentType }
+				extraParameterProps={{
+					onDecreaseIndex: onDecreaseParamIndex,
+					onIncreaseIndex: onIncreaseParamIndex,
+					onRemoveFromSetView: onRemoveParamFromSetView,
+					listSize: parameters.size
+				}}
 			/>
 
 		</div>
