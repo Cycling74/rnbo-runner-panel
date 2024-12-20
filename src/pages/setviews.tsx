@@ -6,11 +6,13 @@ import { ResponsiveButton } from "../components/elements/responsiveButton";
 import { Group, Stack, Title } from "@mantine/core";
 import { mdiKnob } from "@mdi/js";
 import { useDisclosure } from "@mantine/hooks";
-import { createSetViewOnRemote, destroySetViewOnRemote, loadSetView, renameSetViewOnRemote } from "../actions/sets";
+import { createSetViewOnRemote, destroySetViewOnRemote, loadSetView, decreaseParameterIndexInSetView, increaseParameterIndexInSetView, removeParameterFromSetView, renameSetViewOnRemote } from "../actions/sets";
 import SetViewDrawer from "../components/setViews/drawer";
 import { GraphSetViewRecord } from "../models/set";
 import { getPatcherInstanceParametersBySetView } from "../selectors/patchers";
 import { SetViewParameterList } from "../components/setViews/parameterList";
+import { ParameterRecord } from "../models/parameter";
+import { setInstanceParameterValueNormalizedOnRemote } from "../actions/patchers";
 
 export default function SetViews() {
 
@@ -46,6 +48,25 @@ export default function SetViews() {
 		dispatch(renameSetViewOnRemote(view, name));
 	}, [dispatch]);
 
+	const onSetNormalizedParamValue = useCallback((param: ParameterRecord, val: number) => {
+		dispatch(setInstanceParameterValueNormalizedOnRemote(param, val));
+	}, [dispatch]);
+
+	const onRemoveParamFromSetView = useCallback((param: ParameterRecord) => {
+		if (!currentSetView) return;
+		dispatch(removeParameterFromSetView(currentSetView, param));
+	}, [dispatch, currentSetView]);
+
+	const onDecreaseParamIndexInSetView = useCallback((param: ParameterRecord) => {
+		if (!currentSetView) return;
+		dispatch(decreaseParameterIndexInSetView(currentSetView, param));
+	}, [dispatch, currentSetView]);
+
+	const onIncreaseParamIndexInSetView = useCallback((param: ParameterRecord) => {
+		if (!currentSetView) return;
+		dispatch(increaseParameterIndexInSetView(currentSetView, param));
+	}, [dispatch, currentSetView]);
+
 	return (
 		<>
 			<Stack>
@@ -69,7 +90,13 @@ export default function SetViews() {
 				<div>
 					{
 						!currentSetViewParameters ? null : (
-							<SetViewParameterList parameters={ currentSetViewParameters } />
+							<SetViewParameterList
+								parameters={ currentSetViewParameters }
+								onDecreaseParamIndex={ onDecreaseParamIndexInSetView }
+								onIncreaseParamIndex={ onIncreaseParamIndexInSetView }
+								onSetNormalizedParamValue={ onSetNormalizedParamValue }
+								onRemoveParamFromSetView={ onRemoveParamFromSetView }
+							/>
 						)
 					}
 				</div>
