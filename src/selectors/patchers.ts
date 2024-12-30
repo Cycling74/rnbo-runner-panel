@@ -87,7 +87,7 @@ export const getPatcherInstanceParamtersSortedByIndex = createSelector(
 				return 0;
 			});
 	}
-)
+);
 
 export const getPatcherInstanceParametersWithMIDIMapping = createSelector(
 	[
