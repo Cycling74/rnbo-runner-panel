@@ -72,6 +72,23 @@ export const getPatcherInstancesByIndex = createSelector(
 
 export const getPatcherInstanceParameters = (state: RootStateType): ImmuMap<ParameterRecord["id"], ParameterRecord> => state.patchers.instanceParameters;
 
+export const getPatcherInstanceParamtersSortedByIndex = createSelector(
+	[
+		getPatcherInstanceParameters
+	],
+	(parameters): Seq.Indexed<ParameterRecord> => {
+		return parameters
+			.valueSeq()
+			.sort((a, b) => {
+				if (a.instanceIndex < b.instanceIndex) return -1;
+				if (a.instanceIndex > b.instanceIndex) return 1;
+				if (a.index < b.index) return -1;
+				if (a.index > b.index) return 1;
+				return 0;
+			});
+	}
+)
+
 export const getPatcherInstanceParametersWithMIDIMapping = createSelector(
 	[
 		getPatcherInstanceParameters
