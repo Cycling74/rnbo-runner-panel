@@ -1,19 +1,20 @@
 import { useAppDispatch, useAppSelector } from "../hooks/useAppDispatch";
 import { RootStateType } from "../lib/store";
 import { getGraphSetViewsBySortOrder, getSelectedGraphSetView } from "../selectors/sets";
-import { useCallback } from "react";
+import { MouseEvent, useCallback, useEffect } from "react";
 import { ResponsiveButton } from "../components/elements/responsiveButton";
-import { Group, Stack, Title } from "@mantine/core";
-import { mdiTableEye, mdiTune } from "@mdi/js";
+import { ActionIcon, Group, Stack, Title, Tooltip } from "@mantine/core";
+import { mdiMidiPort, mdiTableEye, mdiTune } from "@mdi/js";
 import { useDisclosure } from "@mantine/hooks";
-import { createSetViewOnRemote, destroySetViewOnRemote, loadSetView, decreaseParameterIndexInSetView, increaseParameterIndexInSetView, removeParameterFromSetView, renameSetViewOnRemote  } from "../actions/sets";
+import { createSetViewOnRemote, destroySetViewOnRemote, loadSetView, decreaseParameterIndexInSetView, increaseParameterIndexInSetView, removeParameterFromSetView, renameSetViewOnRemote, setViewContainedInstancesWaitingForMidiMappingOnRemote  } from "../actions/sets";
 import SetViewDrawer from "../components/setViews/drawer";
 import { GraphSetViewRecord } from "../models/set";
-import { getPatcherInstanceParametersBySetView } from "../selectors/patchers";
+import { getPatcherInstanceParametersBySetView, getPatcherInstancesAreWaitingForMIDIMappingBySetView } from "../selectors/patchers";
 import { SetViewParameterList } from "../components/setViews/parameterList";
 import { ParameterRecord } from "../models/parameter";
-import { restoreDefaultParameterMetaOnRemote, setInstanceParameterMetaOnRemote, setInstanceParameterValueNormalizedOnRemote } from "../actions/patchers";
+import { activateParameterMIDIMappingFocus, clearParameterMIDIMappingOnRemote, restoreDefaultParameterMetaOnRemote, setInstanceParameterMetaOnRemote, setInstanceParameterValueNormalizedOnRemote } from "../actions/patchers";
 import { SetViewParameterModal } from "../components/setViews/paramModal";
+import { IconElement } from "../components/elements/icon";
 
 export default function SetViews() {
 
@@ -24,12 +25,14 @@ export default function SetViews() {
 	const [
 		currentSetView,
 		currentSetViewParameters,
+		currentSetViewIsMIDIMapping,
 		setViews
 	] = useAppSelector((state: RootStateType) => {
 		const current = getSelectedGraphSetView(state);
 		return [
 			current,
 			current ? getPatcherInstanceParametersBySetView(state, current) : undefined,
+			current ? getPatcherInstancesAreWaitingForMIDIMappingBySetView(state, current) : false,
 			getGraphSetViewsBySortOrder(state)
 		];
 	});
@@ -77,6 +80,28 @@ export default function SetViews() {
 		dispatch(restoreDefaultParameterMetaOnRemote(param));
 	}, [dispatch]);
 
+	const onToggleMIDIMapping = useCallback((e: MouseEvent<HTMLButtonElement>) => {
+		if (!currentSetView) return;
+		e.currentTarget.blur();
+		dispatch(setViewContainedInstancesWaitingForMidiMappingOnRemote(currentSetView, !currentSetViewIsMIDIMapping));
+	}, [dispatch, currentSetView, currentSetViewIsMIDIMapping]);
+
+
+	const onActivateParameterMIDIMapping = useCallback((param: ParameterRecord) => {
+		dispatch(activateParameterMIDIMappingFocus(param));
+	}, [dispatch]);
+
+	const onClearParameterMIDIMapping = useCallback((param: ParameterRecord) => {
+		dispatch(clearParameterMIDIMappingOnRemote(param));
+	}, [dispatch]);
+
+	useEffect(() => {
+		return () => {
+			if (!currentSetView) return;
+			dispatch(setViewContainedInstancesWaitingForMidiMappingOnRemote(currentSetView, false));
+		};
+	}, [currentSetView, dispatch]);
+
 	return (
 		<>
 			<Stack>
@@ -89,6 +114,15 @@ export default function SetViews() {
 						</Title>
 					</div>
 					<Group style={{ flex: "0" }} wrap="nowrap" gap="xs" >
+						<Tooltip label={ currentSetViewIsMIDIMapping ? "Disable MIDI Mapping" : "Enable MIDI Mapping" } >
+							<ActionIcon
+								onClick={ onToggleMIDIMapping }
+								variant={ currentSetViewIsMIDIMapping ? "filled" : "default" }
+								color={ currentSetViewIsMIDIMapping ? "violet.4" : undefined }
+							>
+								<IconElement path={ mdiMidiPort } />
+							</ActionIcon>
+						</Tooltip>
 						<ResponsiveButton
 							label="Parameters"
 							tooltip="Manage SetView Parameters"
@@ -108,6 +142,9 @@ export default function SetViews() {
 						!currentSetViewParameters ? null : (
 							<SetViewParameterList
 								parameters={ currentSetViewParameters }
+								waitingForMidiMapping={ currentSetViewIsMIDIMapping }
+								onClearParamMIDIMapping={ onClearParameterMIDIMapping }
+								onActivateParamMIDIMapping={ onActivateParameterMIDIMapping }
 								onDecreaseParamIndex={ onDecreaseParamIndexInSetView }
 								onIncreaseParamIndex={ onIncreaseParamIndexInSetView }
 								onSetNormalizedParamValue={ onSetNormalizedParamValue }

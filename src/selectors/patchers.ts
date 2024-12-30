@@ -98,6 +98,21 @@ export const getPatcherInstanceParametersWithMIDIMapping = createSelector(
 	}
 );
 
+export const getPatcherInstancesAreWaitingForMIDIMappingBySetView = createSelector(
+	[
+		getPatcherInstancesByIndex,
+		(state: RootStateType, setView: GraphSetViewRecord): GraphSetViewRecord => setView
+	],
+	(instances, setView): boolean => {
+		const indices = setView.instanceIndices.toArray();
+		for (const index of indices) {
+			const instance = instances.get(index);
+			if (!instance || !instance.waitingForMidiMapping) return false;
+		}
+		return true;
+	}
+);
+
 export const getPatcherInstanceParametersBySetView = createSelector(
 	[
 		getPatcherInstanceParameters,

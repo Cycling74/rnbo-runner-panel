@@ -9,10 +9,11 @@ import { updateSetMetaOnRemoteFromNodes } from "./meta";
 import { NodeType } from "../models/graph";
 import { getNodes } from "../selectors/graph";
 import { ParameterRecord } from "../models/parameter";
-import { getPatcherInstanceParamtersSortedByIndex } from "../selectors/patchers";
+import { getPatcherInstanceByIndex, getPatcherInstanceParamtersSortedByIndex } from "../selectors/patchers";
 import { OSCQueryRNBOSetView, OSCQueryRNBOSetViewListState } from "../lib/types";
 import { getGraphSetView, getGraphSetViews } from "../selectors/sets";
 import { clamp, getUniqueName, instanceAndParamIndicesToSetViewEntry } from "../lib/util";
+import { setInstanceWaitingForMidiMappingOnRemote } from "./patchers";
 
 export enum GraphSetActionType {
 	INIT_SETS = "INIT_SETS",
@@ -636,4 +637,17 @@ export const updateSetViewSortOrder = (id: GraphSetViewRecord["id"], sortOrder: 
 		if (!setView) return;
 
 		dispatch(setSetView(setView.setSortOrder(sortOrder)));
+	};
+
+export const setViewContainedInstancesWaitingForMidiMappingOnRemote = (setView: GraphSetViewRecord, value: boolean): AppThunk =>
+	(dispatch, getState) => {
+
+		const state = getState();
+		const instanceIndices = setView.instanceIndices.toArray();
+
+		for (const index of instanceIndices) {
+			const instance = getPatcherInstanceByIndex(state, index);
+			if (!instance) continue;
+			dispatch(setInstanceWaitingForMidiMappingOnRemote(instance.id, value));
+		}
 	};
