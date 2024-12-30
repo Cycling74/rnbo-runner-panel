@@ -6,7 +6,7 @@ import { PresetRecord } from "../models/preset";
 import { showNotification } from "./notifications";
 import { NotificationLevel } from "../models/notification";
 import { ParameterRecord } from "../models/parameter";
-import { getPatcherInstanceParameters } from "../selectors/patchers";
+import { getPatcherInstanceParamtersSortedByIndex } from "../selectors/patchers";
 import { OSCQueryRNBOSetView, OSCQueryRNBOSetViewListState } from "../lib/types";
 import { getGraphSetView } from "../selectors/sets";
 import { clamp, instanceAndParamIndicesToSetViewEntry } from "../lib/util";
@@ -332,14 +332,14 @@ export const createSetViewOnRemote = (name: string): AppThunk =>
 	(dispatch, getState) => {
 		try {
 			const state = getState();
-			const params = getPatcherInstanceParameters(state);
+			const params = getPatcherInstanceParamtersSortedByIndex(state);
 			// TODO: ensure name is unique
 
 			const message = {
 				address: "/rnbo/inst/control/sets/views/create",
 				args: [
 					{ type: "s", value: name },
-					...params.valueSeq().map(p => ({ type: "s", value: p.setViewId })).toArray()
+					...params.map(p => ({ type: "s", value: p.setViewId })).toArray()
 				]
 			};
 			oscQueryBridge.sendPacket(writePacket(message));
@@ -570,15 +570,7 @@ export const addAllParamtersToSetView = (setView: GraphSetViewRecord): AppThunk 
 		try {
 			const state = getState();
 			const params = setView.params.withMutations(list => {
-				getPatcherInstanceParameters(state)
-					.valueSeq()
-					.sort((a, b) => {
-						if (a.instanceIndex < b.instanceIndex) return -1;
-						if (a.instanceIndex > b.instanceIndex) return 1;
-						if (a.index < b.index) return -1;
-						if (a.index > b.index) return 1;
-						return 0;
-					})
+				getPatcherInstanceParamtersSortedByIndex(state)
 					.forEach(param => {
 						if (!setView.paramIds.has(param.setViewId)) {
 							list.push({ instanceIndex: param.instanceIndex, paramIndex: param.index });
