@@ -14,6 +14,15 @@ export const scale = (x: number, inLow: number, inHigh: number, outLow: number, 
 	return (x - inLow) * (outHigh - outLow) / (inHigh - inLow) + outLow;
 };
 
+export const getUniqueName = (newName: string, existing: string[]): string => {
+	if (!existing.includes(newName)) return newName;
+	let counter = 1;
+	while (existing.includes(`${newName} - ${counter}`)) {
+		counter++;
+	}
+	return `${newName} - ${counter}`;
+};
+
 export const getStringValueOptions = (range?: OSCQueryStringValueRange): string[] | undefined => {
 	return range?.RANGE?.[0]?.VALS;
 };

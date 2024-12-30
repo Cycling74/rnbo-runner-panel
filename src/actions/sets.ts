@@ -8,8 +8,8 @@ import { NotificationLevel } from "../models/notification";
 import { ParameterRecord } from "../models/parameter";
 import { getPatcherInstanceParamtersSortedByIndex } from "../selectors/patchers";
 import { OSCQueryRNBOSetView, OSCQueryRNBOSetViewListState } from "../lib/types";
-import { getGraphSetView } from "../selectors/sets";
-import { clamp, instanceAndParamIndicesToSetViewEntry } from "../lib/util";
+import { getGraphSetView, getGraphSetViews } from "../selectors/sets";
+import { clamp, getUniqueName, instanceAndParamIndicesToSetViewEntry } from "../lib/util";
 
 export enum GraphSetActionType {
 	INIT_SETS = "INIT_SETS",
@@ -328,12 +328,13 @@ export const setSetView = (view: GraphSetViewRecord): ISetGraphSetView => {
 	};
 };
 
-export const createSetViewOnRemote = (name: string): AppThunk =>
+export const createSetViewOnRemote = (givenName: string): AppThunk =>
 	(dispatch, getState) => {
 		try {
 			const state = getState();
 			const params = getPatcherInstanceParamtersSortedByIndex(state);
-			// TODO: ensure name is unique
+			const existingViews = getGraphSetViews(state);
+			const name = getUniqueName(givenName, existingViews.valueSeq().map(v => v.name).toArray());
 
 			const message = {
 				address: "/rnbo/inst/control/sets/views/create",
