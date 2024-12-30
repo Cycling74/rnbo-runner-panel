@@ -3,13 +3,15 @@ import { ComponentType, FC, memo } from "react";
 import ParameterList, { ParameterListProps } from "../parameter/list";
 import { ParameterRecord } from "../../models/parameter";
 import ParameterItem from "../parameter/item";
-import { ParameterSetViewWrapProps, withParameterSetViewWrap } from "../parameter/withSetViewWrap";
+import { ParameterSetViewActionsProps, withParameterSetViewActions } from "../parameter/withSetViewActions";
 
-const ParameterComponentType = withParameterSetViewWrap(ParameterItem);
-const ParameterListComponent: ComponentType<ParameterListProps<ParameterSetViewWrapProps>> = ParameterList;
+const ParameterComponentType = withParameterSetViewActions(ParameterItem);
+const ParameterListComponent: ComponentType<ParameterListProps<ParameterSetViewActionsProps>> = ParameterList;
 
 export type SetViewParameterListProps = {
 	parameters: ImmuOrderedSet<ParameterRecord>;
+	onRestoreParamMetadata: (param: ParameterRecord) => any;
+	onSaveParamMetadata: (param: ParameterRecord, meta: string) => any;
 	onDecreaseParamIndex: (param: ParameterRecord) => void;
 	onIncreaseParamIndex: (param: ParameterRecord) => void;
 	onRemoveParamFromSetView: (param: ParameterRecord) => void;
@@ -18,6 +20,8 @@ export type SetViewParameterListProps = {
 
 export const SetViewParameterList: FC<SetViewParameterListProps> = memo(function WrappedSetViewParameterList({
 	parameters,
+	onRestoreParamMetadata,
+	onSaveParamMetadata,
 	onDecreaseParamIndex,
 	onIncreaseParamIndex,
 	onRemoveParamFromSetView,
@@ -27,6 +31,8 @@ export const SetViewParameterList: FC<SetViewParameterListProps> = memo(function
 	return (
 		<div className={ "" } >
 			<ParameterListComponent
+				onRestoreMetadata={ onRestoreParamMetadata }
+				onSaveMetadata={ onSaveParamMetadata }
 				onSetNormalizedValue={ onSetNormalizedParamValue }
 				parameters={ parameters }
 				ParamComponentType={ ParameterComponentType }

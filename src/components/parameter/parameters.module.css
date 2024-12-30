@@ -1,17 +1,16 @@
 .parameterWrap {
+	background-color: var(--parameter-bg-color);
 	break-inside: avoid-column;
 	flex: 1;
+	outline-color: transparent;
 	outline-style: solid;
 	outline-width: 3px;
 	page-break-inside: avoid;
 	padding: 2px 2px var(--mantine-spacing-xl) 2px;
-	margin-bottom: 6;
+	margin-bottom: 6px;
 }
 
 .paramWithMIDIMapping {
-
-	background-color: var(--parameter-bg-color);
-	outline-color: transparent;
 
 	&[data-instance-mapping="true"] {
 		cursor: pointer;
@@ -26,16 +25,10 @@
 		}
 	}
 
-	&[data-active-mappping="true"] {
+	&[data-param-mappping="true"] {
 		background-color: var(--parameter-active-mapping-bg-color);
 		outline-color: var(--parameter-active-mapping-outline);
 	}
-}
-
-.paramWithSetViewWrap {
-
-	background-color: var(--parameter-bg-color);
-	outline-color: transparent;
 }
 
 .parameterList {
