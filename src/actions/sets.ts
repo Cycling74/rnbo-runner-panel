@@ -320,7 +320,6 @@ export const initSetViews = (viewState?: OSCQueryRNBOSetViewListState): IInitGra
 		type: GraphSetActionType.INIT_SET_VIEWS,
 		payload: {
 			views
-			// names.map(n => PresetRecord.fromDescription(n, n === "initial"))
 		}
 	};
 };
