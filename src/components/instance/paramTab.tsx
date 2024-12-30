@@ -18,11 +18,11 @@ import { AppSetting, AppSettingRecord } from "../../models/settings";
 import { useDebouncedCallback, useDisclosure } from "@mantine/hooks";
 import { IconElement } from "../elements/icon";
 import { mdiClose, mdiMagnify, mdiMidiPort, mdiSort, mdiSortAscending, mdiSortDescending } from "@mdi/js";
-import { ParameterMIDIMappingProps, withParameterMIDIMapping } from "../parameter/withMidiMapping";
+import { ParameterMIDIActionsProps, withParameterMIDIActions } from "../parameter/withMidiActions";
 import ParameterItem from "../parameter/item";
 
-const ParameterComponentType = withParameterMIDIMapping(ParameterItem);
-const ParameterListComponent: ComponentType<ParameterListProps<ParameterMIDIMappingProps>> = ParameterList;
+const ParameterComponentType = withParameterMIDIActions(ParameterItem);
+const ParameterListComponent: ComponentType<ParameterListProps<ParameterMIDIActionsProps>> = ParameterList;
 
 type ParameterSearchInputProps = {
 	onSearch: (query: string) => any;
@@ -257,13 +257,13 @@ const InstanceParameterTab: FunctionComponent<InstanceParameterTabProps> = memo(
 					<div className={ classes.paramSectionWrap } >
 						<ParameterListComponent
 							parameters={ displayParameters }
+							onRestoreMetadata={ onRestoreDefaultParameterMetadata }
+							onSaveMetadata={ onSaveParameterMetadata }
 							onSetNormalizedValue={ onSetNormalizedParamValue }
 							ParamComponentType={ ParameterComponentType }
 							extraParameterProps={{
 								instanceIsMIDIMapping: instance.waitingForMidiMapping,
 								onActivateMIDIMapping: onActivateParameterMIDIMapping,
-								onSaveMetadata: onSaveParameterMetadata,
-								onRestoreMetadata: onRestoreDefaultParameterMetadata,
 								onClearMidiMapping: onClearParameterMidiMapping
 							}}
 						/>

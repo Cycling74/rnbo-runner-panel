@@ -9,6 +9,8 @@ import { OrderedSet } from "immutable";
 import { useThemeColorScheme } from "../../hooks/useTheme";
 
 export type ParameterListProps<ExtraProps = object> = {
+	onRestoreMetadata: (param: ParameterRecord) => any;
+	onSaveMetadata: (param: ParameterRecord, meta: string) => any;
 	onSetNormalizedValue: (parameter: ParameterRecord, nValue: number) => any;
 	parameters: OrderedSet<ParameterRecord>;
 	extraParameterProps: ExtraProps;
@@ -16,6 +18,8 @@ export type ParameterListProps<ExtraProps = object> = {
 }
 
 const ParameterList = genericMemo(function WrappedParameterList<ExtraProps>({
+	onRestoreMetadata,
+	onSaveMetadata,
 	onSetNormalizedValue,
 	parameters,
 	extraParameterProps,
@@ -52,6 +56,8 @@ const ParameterList = genericMemo(function WrappedParameterList<ExtraProps>({
 						key={p.id}
 						param={p}
 						index={ ++index }
+						onRestoreMetadata={ onRestoreMetadata }
+						onSaveMetadata={ onSaveMetadata }
 						onSetNormalizedValue={ onSetNormalizedValue }
 						{ ...extraParameterProps }
 					/>

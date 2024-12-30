@@ -12,7 +12,7 @@ import { GraphSetViewRecord } from "../models/set";
 import { getPatcherInstanceParametersBySetView } from "../selectors/patchers";
 import { SetViewParameterList } from "../components/setViews/parameterList";
 import { ParameterRecord } from "../models/parameter";
-import { setInstanceParameterValueNormalizedOnRemote } from "../actions/patchers";
+import { restoreDefaultParameterMetaOnRemote, setInstanceParameterMetaOnRemote, setInstanceParameterValueNormalizedOnRemote } from "../actions/patchers";
 import { SetViewParameterModal } from "../components/setViews/paramModal";
 
 export default function SetViews() {
@@ -69,6 +69,14 @@ export default function SetViews() {
 		dispatch(increaseParameterIndexInSetView(currentSetView, param));
 	}, [dispatch, currentSetView]);
 
+	const onSaveParameterMetadata = useCallback((param: ParameterRecord, meta: string) => {
+		dispatch(setInstanceParameterMetaOnRemote(param, meta));
+	}, [dispatch]);
+
+	const onRestoreDefaultParameterMetadata = useCallback((param: ParameterRecord) => {
+		dispatch(restoreDefaultParameterMetaOnRemote(param));
+	}, [dispatch]);
+
 	return (
 		<>
 			<Stack>
@@ -104,6 +112,8 @@ export default function SetViews() {
 								onIncreaseParamIndex={ onIncreaseParamIndexInSetView }
 								onSetNormalizedParamValue={ onSetNormalizedParamValue }
 								onRemoveParamFromSetView={ onRemoveParamFromSetView }
+								onRestoreParamMetadata={ onRestoreDefaultParameterMetadata }
+								onSaveParamMetadata={ onSaveParameterMetadata }
 							/>
 						)
 					}
