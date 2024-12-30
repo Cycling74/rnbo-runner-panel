@@ -81,6 +81,13 @@ export class GraphSetViewRecord extends ImmuRecord<GraphSetViewRecordProps>({
 		});
 	}
 
+	public get instanceIndices(): ImmuOrderedSet<GraphSetViewParameterEntry["instanceIndex"]> {
+		return ImmuOrderedSet<GraphSetViewParameterEntry["instanceIndex"]>()
+			.withMutations(set => {
+				this.params.forEach(p => set.add(p.instanceIndex));
+			});
+	}
+
 	public setName(name: string): GraphSetViewRecord {
 		return this.set("name", name);
 	}

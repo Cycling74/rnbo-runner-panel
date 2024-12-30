@@ -4,14 +4,18 @@ import ParameterList, { ParameterListProps } from "../parameter/list";
 import { ParameterRecord } from "../../models/parameter";
 import ParameterItem from "../parameter/item";
 import { ParameterSetViewActionsProps, withParameterSetViewActions } from "../parameter/withSetViewActions";
+import { ParameterMIDIActionsProps, withParameterMIDIActions } from "../parameter/withMidiActions";
 
-const ParameterComponentType = withParameterSetViewActions(ParameterItem);
-const ParameterListComponent: ComponentType<ParameterListProps<ParameterSetViewActionsProps>> = ParameterList;
+const ParameterComponentType = withParameterMIDIActions(withParameterSetViewActions(ParameterItem));
+const ParameterListComponent: ComponentType<ParameterListProps<ParameterSetViewActionsProps & ParameterMIDIActionsProps>> = ParameterList;
 
 export type SetViewParameterListProps = {
 	parameters: ImmuOrderedSet<ParameterRecord>;
-	onRestoreParamMetadata: (param: ParameterRecord) => any;
-	onSaveParamMetadata: (param: ParameterRecord, meta: string) => any;
+	waitingForMidiMapping: boolean;
+	onClearParamMIDIMapping: (param: ParameterRecord) => void;
+	onActivateParamMIDIMapping: (param: ParameterRecord) => void;
+	onRestoreParamMetadata: (param: ParameterRecord) => void;
+	onSaveParamMetadata: (param: ParameterRecord, meta: string) => void;
 	onDecreaseParamIndex: (param: ParameterRecord) => void;
 	onIncreaseParamIndex: (param: ParameterRecord) => void;
 	onRemoveParamFromSetView: (param: ParameterRecord) => void;
@@ -20,6 +24,9 @@ export type SetViewParameterListProps = {
 
 export const SetViewParameterList: FC<SetViewParameterListProps> = memo(function WrappedSetViewParameterList({
 	parameters,
+	waitingForMidiMapping,
+	onActivateParamMIDIMapping,
+	onClearParamMIDIMapping,
 	onRestoreParamMetadata,
 	onSaveParamMetadata,
 	onDecreaseParamIndex,
@@ -37,6 +44,9 @@ export const SetViewParameterList: FC<SetViewParameterListProps> = memo(function
 				parameters={ parameters }
 				ParamComponentType={ ParameterComponentType }
 				extraParameterProps={{
+					instanceIsMIDIMapping: waitingForMidiMapping,
+					onActivateMIDIMapping: onActivateParamMIDIMapping,
+					onClearMidiMapping: onClearParamMIDIMapping,
 					onDecreaseIndex: onDecreaseParamIndex,
 					onIncreaseIndex: onIncreaseParamIndex,
 					onRemoveFromSetView: onRemoveParamFromSetView,
