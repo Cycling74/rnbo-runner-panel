@@ -714,7 +714,7 @@ export const removePatcherNode = (instanceId: string): AppThunk =>
 			if (node?.type !== NodeType.Patcher) return;
 			dispatch(deleteNode(node));
 
-			const instance = getPatcherInstance(state, node.id);
+			const instance = getPatcherInstance(state, instanceId);
 			if (!instance) return;
 
 			dispatch(deleteInstance(instance));
