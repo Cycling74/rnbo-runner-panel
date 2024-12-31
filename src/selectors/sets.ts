@@ -19,14 +19,13 @@ export const getGraphSet = createSelector(
 	}
 );
 
-const collator = new Intl.Collator("en-US");
-
 export const getGraphSetsSortedByName = createSelector(
 	[
 		getGraphSets,
 		(state: RootStateType, order: SortOrder): SortOrder => order
 	],
 	(sets, order) => {
+		const collator = new Intl.Collator("en-US");
 		return sets.valueSeq().sort((left: GraphSetRecord, right: GraphSetRecord): number => {
 			return collator.compare(left.name, right.name) * (order === SortOrder.Asc ? 1 : -1);
 		});
@@ -54,6 +53,7 @@ export const getGraphSetPresetsSortedByName = createSelector(
 		(state: RootStateType, order: SortOrder): SortOrder => order
 	],
 	(presets, order) => {
+		const collator = new Intl.Collator("en-US");
 		return presets.valueSeq().sort((left: PresetRecord, right: PresetRecord): number => {
 			let result;
 			if (left.name === right.name) {
@@ -80,6 +80,7 @@ export const getGraphSetViewsBySortOrder = createSelector(
 		getGraphSetViews
 	],
 	(views): ImmuMap<GraphSetViewRecord["id"], GraphSetViewRecord> => {
+		const collator = new Intl.Collator("en-US");
 		return views.sort((va, vb) => {
 			if (va.sortOrder < vb.sortOrder) return -1;
 			if (va.sortOrder > vb.sortOrder) return 1;
@@ -93,8 +94,8 @@ export const getGraphSetView = createSelector(
 		getGraphSetViews,
 		(state: RootStateType, id: GraphSetViewRecord["id"]): string => id
 	],
-	(views, index): GraphSetViewRecord | undefined => {
-		return views.get(index);
+	(views, id): GraphSetViewRecord | undefined => {
+		return views.get(id);
 	}
 );
 

@@ -8,7 +8,7 @@ import { RootStateType } from "../../lib/store";
 import { getShowSettingsModal } from "../../selectors/settings";
 import { ExternalNavLink, NavLink } from "./link";
 import { useRouter } from "next/router";
-import { getFirstPatcherNodeIndex } from "../../selectors/graph";
+import { getFirstPatcherNodeId } from "../../selectors/graph";
 import { mdiChartSankeyVariant, mdiCog, mdiFileMusic, mdiHelpCircle, mdiMidiPort, mdiVectorSquare, mdiTableEye } from "@mdi/js";
 
 const AppNav: FunctionComponent = memo(function WrappedNav() {
@@ -19,10 +19,10 @@ const AppNav: FunctionComponent = memo(function WrappedNav() {
 	const onToggleSettings = useCallback(() => dispatch(toggleShowSettings()), [dispatch]);
 	const [
 		settingsAreShown,
-		instanceIndex
+		instanceId
 	] = useAppSelector((state: RootStateType) => [
 		getShowSettingsModal(state),
-		getFirstPatcherNodeIndex(state)
+		getFirstPatcherNodeId(state)
 	]);
 
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -39,10 +39,10 @@ const AppNav: FunctionComponent = memo(function WrappedNav() {
 						isActive={ pathname === "/" }
 					/>
 					<NavLink
-						disabled={ instanceIndex === undefined }
+						disabled={ instanceId === undefined }
 						icon={ mdiVectorSquare }
 						label="Patcher Instance Control"
-						href={{ pathname: "/instances/[index]", query: { ...restQuery, index: instanceIndex } }}
+						href={{ pathname: "/instances/[index]", query: { ...restQuery, index: instanceId } }}
 						isActive={ pathname === "/instances/[index]" }
 					/>
 					<NavLink

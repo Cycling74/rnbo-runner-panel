@@ -2,7 +2,6 @@ import { Map as ImmuMap, Seq, OrderedSet as ImmuOrderedSet } from "immutable";
 import { RootStateType } from "../lib/store";
 import { PatcherInstanceRecord } from "../models/instance";
 import { createSelector } from "reselect";
-import { getPatcherIdsByIndex } from "./graph";
 import { ParameterRecord } from "../models/parameter";
 import { MessagePortRecord } from "../models/messageport";
 import { PatcherExportRecord } from "../models/patcher";
@@ -23,13 +22,13 @@ export const getPatcherExport = createSelector(
 	}
 );
 
-const collator = new Intl.Collator("en-US");
 export const getPatchersSortedByName = createSelector(
 	[
 		getPatcherExports,
 		(state: RootStateType, order: SortOrder): SortOrder => order
 	],
 	(patchers, order): Seq.Indexed<PatcherExportRecord> => {
+		const collator = new Intl.Collator("en-US");
 		return patchers.valueSeq().sort((pA, pB) => {
 			return collator.compare(pA.name.toLowerCase(), pB.name.toLowerCase()) * (order === SortOrder.Asc ? 1 : -1);
 		});
@@ -47,41 +46,18 @@ export const getPatcherInstance = createSelector(
 	(instances, id): PatcherInstanceRecord | undefined => instances.get(id)
 );
 
-export const getPatcherInstanceByIndex = createSelector(
-	[
-		getPatcherInstances,
-		(state: RootStateType, index: PatcherInstanceRecord["index"]): PatcherInstanceRecord["id"] | undefined => state.graph.patcherNodeIdByIndex.get(index)
-	],
-	(instances, id): PatcherInstanceRecord | undefined => id ? instances.get(id) : undefined
-);
-
-export const getPatcherInstancesByIndex = createSelector(
-	[
-		getPatcherInstances,
-		getPatcherIdsByIndex
-	],
-	(instances, idsByIndex): ImmuMap<PatcherInstanceRecord["index"], PatcherInstanceRecord> => {
-		return ImmuMap<PatcherInstanceRecord["index"], PatcherInstanceRecord>().withMutations(map => {
-			idsByIndex.forEach((id, index) => {
-				const node = instances.get(id);
-				if (node) map.set(index, node);
-			});
-		});
-	}
-);
-
 export const getPatcherInstanceParameters = (state: RootStateType): ImmuMap<ParameterRecord["id"], ParameterRecord> => state.patchers.instanceParameters;
 
-export const getPatcherInstanceParamtersSortedByIndex = createSelector(
+export const getPatcherInstanceParamtersSortedByInstanceIdAndIndex = createSelector(
 	[
 		getPatcherInstanceParameters
 	],
 	(parameters): Seq.Indexed<ParameterRecord> => {
+		const collator = new Intl.Collator("en-US", { numeric: true });
 		return parameters
 			.valueSeq()
 			.sort((a, b) => {
-				if (a.instanceIndex < b.instanceIndex) return -1;
-				if (a.instanceIndex > b.instanceIndex) return 1;
+				if (a.instanceId !== b.instanceId) return collator.compare(a.instanceId, b.instanceId);
 				if (a.index < b.index) return -1;
 				if (a.index > b.index) return 1;
 				return 0;
@@ -100,14 +76,14 @@ export const getPatcherInstanceParametersWithMIDIMapping = createSelector(
 
 export const getPatcherInstancesAreWaitingForMIDIMappingBySetView = createSelector(
 	[
-		getPatcherInstancesByIndex,
+		getPatcherInstances,
 		(state: RootStateType, setView: GraphSetViewRecord): GraphSetViewRecord => setView
 	],
 	(instances, setView): boolean => {
-		const indices = setView.instanceIndices.toArray();
-		if (!indices.length) return false;
-		for (const index of indices) {
-			const instance = instances.get(index);
+		const ids = setView.instanceIds.toArray();
+		if (!ids.length) return false;
+		for (const instanceId of ids) {
+			const instance = instances.get(instanceId);
 			if (!instance || !instance.waitingForMidiMapping) return false;
 		}
 		return true;
@@ -122,8 +98,8 @@ export const getPatcherInstanceParametersBySetView = createSelector(
 	(parameters, viewParamList): ImmuOrderedSet<ParameterRecord> => {
 		return ImmuOrderedSet<ParameterRecord>().withMutations(list => {
 			const entries = viewParamList.valueSeq().toArray();
-			for (const { instanceIndex, paramIndex } of entries) {
-				const param = parameters.find(p => p.instanceIndex === instanceIndex && p.index === paramIndex);
+			for (const { instanceId, paramIndex } of entries) {
+				const param = parameters.find(p => p.instanceId === instanceId && p.index === paramIndex);
 				if (param) list.add(param);
 			}
 		});
@@ -150,14 +126,14 @@ export const getPatcherInstanceParameterByPath = createSelector(
 	}
 );
 
-export const getPatcherInstanceParametersByInstanceIndex = createSelector(
+export const getPatcherInstanceParametersByInstanceId = createSelector(
 	[
 		getPatcherInstanceParameters,
-		(state: RootStateType, instanceIndex: PatcherInstanceRecord["index"]): PatcherInstanceRecord["index"] => instanceIndex
+		(state: RootStateType, instanceId: PatcherInstanceRecord["id"]): PatcherInstanceRecord["id"] => instanceId
 	],
-	(parameters, instanceIndex): ImmuMap<ParameterRecord["id"], ParameterRecord> => {
+	(parameters, instanceId): ImmuMap<ParameterRecord["id"], ParameterRecord> => {
 		return parameters.filter(p => {
-			return p.instanceIndex === instanceIndex;
+			return p.instanceId === instanceId;
 		});
 	}
 );
@@ -173,21 +149,21 @@ export const getPatcherInstancesAndParameters = createSelector(
 				instances.valueSeq().forEach(instance => {
 					map.set(instance.id, {
 						instance,
-						parameters: parameters.filter(p => p.instanceIndex === instance.index).valueSeq()
+						parameters: parameters.filter(p => p.instanceId === instance.id).valueSeq()
 					});
 				});
 			});
 	}
 );
 
-export const getPatcherInstanceParametersByInstanceIndexAndName = createSelector(
+export const getPatcherInstanceParametersByInstanceIdAndName = createSelector(
 	[
 		getPatcherInstanceParameters,
-		(state: RootStateType, instanceIndex: PatcherInstanceRecord["index"]): PatcherInstanceRecord["index"] => instanceIndex,
-		(state: RootStateType, instanceIndex: PatcherInstanceRecord["index"], name: ParameterRecord["name"]): ParameterRecord["name"] => name
+		(state: RootStateType, instanceId: PatcherInstanceRecord["id"]): PatcherInstanceRecord["id"] => instanceId,
+		(state: RootStateType, instanceId: PatcherInstanceRecord["id"], name: ParameterRecord["name"]): ParameterRecord["name"] => name
 	],
-	(parameters, instanceIndex, name): ParameterRecord | undefined => {
-		return parameters.find(p => p.instanceIndex === instanceIndex && p.name === name);
+	(parameters, instanceId, name): ParameterRecord | undefined => {
+		return parameters.find(p => p.instanceId === instanceId && p.name === name);
 	}
 );
 
@@ -213,26 +189,26 @@ export const getPatcherInstanceMessageInportByPath = createSelector(
 	}
 );
 
-export const getPatcherInstanceMessageInportsByInstanceIndex = createSelector(
+export const getPatcherInstanceMessageInportsByInstanceId = createSelector(
 	[
 		getPatcherInstanceMessageInports,
-		(state: RootStateType, instanceIndex: PatcherInstanceRecord["index"]): PatcherInstanceRecord["index"] => instanceIndex
+		(state: RootStateType, instanceId: PatcherInstanceRecord["id"]): PatcherInstanceRecord["id"] => instanceId
 	],
-	(ports, instanceIndex): ImmuMap<MessagePortRecord["id"], MessagePortRecord> => {
+	(ports, instanceId): ImmuMap<MessagePortRecord["id"], MessagePortRecord> => {
 		return ports.filter(p => {
-			return p.instanceIndex === instanceIndex;
+			return p.instanceId === instanceId;
 		});
 	}
 );
 
-export const getPatcherInstanceMessageInportsByInstanceIndexAndTag = createSelector(
+export const getPatcherInstanceMessageInportsByInstanceIdAndTag = createSelector(
 	[
 		getPatcherInstanceMessageInports,
-		(state: RootStateType, instanceIndex: PatcherInstanceRecord["index"]): PatcherInstanceRecord["index"] => instanceIndex,
-		(state: RootStateType, instanceIndex: PatcherInstanceRecord["index"], tag: MessagePortRecord["tag"]): MessagePortRecord["tag"] => tag
+		(state: RootStateType, instanceId: PatcherInstanceRecord["id"]): PatcherInstanceRecord["id"] => instanceId,
+		(state: RootStateType, instanceId: PatcherInstanceRecord["id"], tag: MessagePortRecord["tag"]): MessagePortRecord["tag"] => tag
 	],
-	(ports, instanceIndex, tag): MessagePortRecord | undefined => {
-		return ports.find(p => p.instanceIndex === instanceIndex && p.tag === tag);
+	(ports, instanceId, tag): MessagePortRecord | undefined => {
+		return ports.find(p => p.instanceId === instanceId && p.tag === tag);
 	}
 );
 
@@ -258,25 +234,25 @@ export const getPatcherInstanceMessageOutportByPath = createSelector(
 	}
 );
 
-export const getPatcherInstanceMesssageOutportsByInstanceIndex = createSelector(
+export const getPatcherInstanceMesssageOutportsByInstanceId = createSelector(
 	[
 		getPatcherInstanceMessageOutports,
-		(state: RootStateType, instanceIndex: PatcherInstanceRecord["index"]): PatcherInstanceRecord["index"] => instanceIndex
+		(state: RootStateType, instanceId: PatcherInstanceRecord["id"]): PatcherInstanceRecord["id"] => instanceId
 	],
-	(ports, instanceIndex): ImmuMap<MessagePortRecord["id"], MessagePortRecord> => {
+	(ports, instanceId): ImmuMap<MessagePortRecord["id"], MessagePortRecord> => {
 		return ports.filter(p => {
-			return p.instanceIndex === instanceIndex;
+			return p.instanceId === instanceId;
 		});
 	}
 );
 
-export const getPatcherInstanceMesssageOutportsByInstanceIndexAndTag = createSelector(
+export const getPatcherInstanceMesssageOutportsByInstanceIdAndTag = createSelector(
 	[
 		getPatcherInstanceMessageOutports,
-		(state: RootStateType, instanceIndex: PatcherInstanceRecord["index"]): PatcherInstanceRecord["index"] => instanceIndex,
-		(state: RootStateType, instanceIndex: PatcherInstanceRecord["index"], tag: MessagePortRecord["tag"]): MessagePortRecord["tag"] => tag
+		(state: RootStateType, instanceId: PatcherInstanceRecord["id"]): PatcherInstanceRecord["id"] => instanceId,
+		(state: RootStateType, instanceId: PatcherInstanceRecord["id"], tag: MessagePortRecord["tag"]): MessagePortRecord["tag"] => tag
 	],
-	(ports, instanceIndex, tag): MessagePortRecord | undefined => {
-		return ports.find(p => p.instanceIndex === instanceIndex && p.tag === tag);
+	(ports, instanceId, tag): MessagePortRecord | undefined => {
+		return ports.find(p => p.instanceId === instanceId && p.tag === tag);
 	}
 );

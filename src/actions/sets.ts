@@ -6,7 +6,7 @@ import { PresetRecord } from "../models/preset";
 import { showNotification } from "./notifications";
 import { NotificationLevel } from "../models/notification";
 import { ParameterRecord } from "../models/parameter";
-import { getPatcherInstanceByIndex, getPatcherInstanceParamtersSortedByIndex } from "../selectors/patchers";
+import { getPatcherInstance, getPatcherInstanceParamtersSortedByInstanceIdAndIndex } from "../selectors/patchers";
 import { OSCQueryRNBOSetView, OSCQueryRNBOSetViewListState } from "../lib/types";
 import { getGraphSetView, getGraphSetViews } from "../selectors/sets";
 import { clamp, getUniqueName, instanceAndParamIndicesToSetViewEntry } from "../lib/util";
@@ -333,7 +333,7 @@ export const createSetViewOnRemote = (givenName: string): AppThunk =>
 	(dispatch, getState) => {
 		try {
 			const state = getState();
-			const params = getPatcherInstanceParamtersSortedByIndex(state);
+			const params = getPatcherInstanceParamtersSortedByInstanceIdAndIndex(state);
 			const existingViews = getGraphSetViews(state);
 			const name = getUniqueName(givenName, existingViews.valueSeq().map(v => v.name).toArray());
 
@@ -473,15 +473,15 @@ export const updateSetViewParameterListOnRemote = (setView: GraphSetViewRecord, 
 export const offsetParameterIndexInSetView = (setView: GraphSetViewRecord, param: ParameterRecord, offset: number): AppThunk =>
 	(dispatch) => {
 		try {
-			const currentIndex = setView.params.findIndex(entry => entry.instanceIndex === param.instanceIndex && entry.paramIndex === param.index);
+			const currentIndex = setView.params.findIndex(entry => entry.instanceId === param.instanceId && entry.paramIndex === param.index);
 			const newIndex = clamp(currentIndex + offset, 0, setView.params.size - 1);
 
 			const newList = setView.params
 				.delete(currentIndex)
-				.insert(newIndex, { instanceIndex: param.instanceIndex, paramIndex: param.index });
+				.insert(newIndex, { instanceId: param.instanceId, paramIndex: param.index });
 			const message = {
 				address: `/rnbo/inst/control/sets/views/list/${setView.id}/params`,
-				args: newList.toArray().map(p => ({ type: "s", value: instanceAndParamIndicesToSetViewEntry(p.instanceIndex, p.paramIndex) }))
+				args: newList.toArray().map(p => ({ type: "s", value: instanceAndParamIndicesToSetViewEntry(p.instanceId, p.paramIndex) }))
 			};
 			oscQueryBridge.sendPacket(writePacket(message));
 		} catch (err) {
@@ -550,7 +550,7 @@ export const addParameterToSetView = (setView: GraphSetViewRecord, param: Parame
 		try {
 			if (setView.paramIds.has(param.setViewId)) return;
 			const params = setView.paramIds.toArray().map(pId => ({ type: "s", value: pId }));
-			params.push({ type: "s", value: instanceAndParamIndicesToSetViewEntry(param.instanceIndex, param.index) });
+			params.push({ type: "s", value: instanceAndParamIndicesToSetViewEntry(param.instanceId, param.index) });
 
 			const message = {
 				address: `/rnbo/inst/control/sets/views/list/${setView.id}/params`,
@@ -572,10 +572,10 @@ export const addAllParamtersToSetView = (setView: GraphSetViewRecord): AppThunk 
 		try {
 			const state = getState();
 			const params = setView.params.withMutations(list => {
-				getPatcherInstanceParamtersSortedByIndex(state)
+				getPatcherInstanceParamtersSortedByInstanceIdAndIndex(state)
 					.forEach(param => {
 						if (!setView.paramIds.has(param.setViewId)) {
-							list.push({ instanceIndex: param.instanceIndex, paramIndex: param.index });
+							list.push({ instanceId: param.instanceId, paramIndex: param.index });
 						}
 					});
 			}).toArray();
@@ -583,7 +583,7 @@ export const addAllParamtersToSetView = (setView: GraphSetViewRecord): AppThunk 
 
 			const message = {
 				address: `/rnbo/inst/control/sets/views/list/${setView.id}/params`,
-				args: params.map(p => ({ type: "s", value: instanceAndParamIndicesToSetViewEntry(p.instanceIndex, p.paramIndex) }))
+				args: params.map(p => ({ type: "s", value: instanceAndParamIndicesToSetViewEntry(p.instanceId, p.paramIndex) }))
 			};
 			oscQueryBridge.sendPacket(writePacket(message));
 		} catch (err) {
@@ -638,10 +638,10 @@ export const setViewContainedInstancesWaitingForMidiMappingOnRemote = (setView: 
 	(dispatch, getState) => {
 
 		const state = getState();
-		const instanceIndices = setView.instanceIndices.toArray();
+		const ids = setView.instanceIds.toArray();
 
-		for (const index of instanceIndices) {
-			const instance = getPatcherInstanceByIndex(state, index);
+		for (const instanceId of ids) {
+			const instance = getPatcherInstance(state, instanceId);
 			if (!instance) continue;
 			dispatch(setInstanceWaitingForMidiMappingOnRemote(instance.id, value));
 		}

@@ -5,13 +5,14 @@ import { RootStateType } from "../lib/store";
 import classes from "../components/midi/midi.module.css";
 import { MIDIMappedParameterSortAttr, MIDIMetaMappingType, SortOrder } from "../lib/constants";
 import { useCallback, useEffect, useState } from "react";
-import { getPatcherInstanceParametersWithMIDIMapping, getPatcherInstancesByIndex } from "../selectors/patchers";
+import { getPatcherInstanceParametersWithMIDIMapping, getPatcherInstances } from "../selectors/patchers";
 import MIDIMappedParameterList from "../components/midi/mappedParameterList";
 import { ParameterRecord } from "../models/parameter";
 import { clearParameterMIDIMappingOnRemote, setParameterMIDIMappingOnRemoteFromDisplayValue } from "../actions/patchers";
 import { formatMIDIMappingToDisplay } from "../lib/util";
 
 const collator = new Intl.Collator("en-US", { numeric: true });
+
 const parameterComparators: Record<MIDIMappedParameterSortAttr, Record<SortOrder, (a: ParameterRecord, b: ParameterRecord) => number>> = {
 	[MIDIMappedParameterSortAttr.MIDISource]: {
 		[SortOrder.Asc]: (a: ParameterRecord, b: ParameterRecord) => {
@@ -25,15 +26,13 @@ const parameterComparators: Record<MIDIMappedParameterSortAttr, Record<SortOrder
 			return collator.compare(aDisplay, bDisplay) * -1;
 		}
 	},
-	[MIDIMappedParameterSortAttr.InstanceIndex]: {
+	[MIDIMappedParameterSortAttr.InstanceId]: {
 		[SortOrder.Asc]: (a: ParameterRecord, b: ParameterRecord) => {
-			if (a.instanceIndex < b.instanceIndex) return -1;
-			if (a.instanceIndex > b.instanceIndex) return 1;
+			if (a.instanceId !== b.instanceId) return collator.compare(a.instanceId, b.instanceId);
 			return collator.compare(a.name.toLowerCase(), b.name.toLowerCase());
 		},
 		[SortOrder.Desc]: (a: ParameterRecord, b: ParameterRecord) => {
-			if (a.instanceIndex > b.instanceIndex) return -1;
-			if (a.instanceIndex < b.instanceIndex) return 1;
+			if (a.instanceId !== b.instanceId) return collator.compare(a.instanceId, b.instanceId) * -1;
 			return collator.compare(a.name.toLowerCase(), b.name.toLowerCase()) * -1;
 		}
 	},
@@ -62,7 +61,7 @@ const MIDIMappings = () => {
 		patcherInstances,
 		parameters
 	] = useAppSelector((state: RootStateType) => [
-		getPatcherInstancesByIndex(state),
+		getPatcherInstances(state),
 		getPatcherInstanceParametersWithMIDIMapping(state)
 	]);
 

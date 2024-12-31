@@ -10,7 +10,7 @@ import { MIDIMappedParameterSortAttr, SortOrder } from "../../lib/constants";
 
 export type MIDIMappedParameterListProps = {
 	parameters: ImmuOrderedSet<ParameterRecord>;
-	patcherInstances: ImmuMap<PatcherInstanceRecord["index"], PatcherInstanceRecord>;
+	patcherInstances: ImmuMap<PatcherInstanceRecord["id"], PatcherInstanceRecord>;
 	onClearParameterMIDIMapping: (param: ParameterRecord) => void;
 	onUpdateParameterMIDIMapping: (param: ParameterRecord, value: string) => void;
 	onSort: (sortAttr: MIDIMappedParameterSortAttr) => void;
@@ -56,9 +56,9 @@ const MIDIMappedParameterList: FC<MIDIMappedParameterListProps> = memo(function 
 						className={ classes.patcherInstanceColumnHeader }
 						fz="xs"
 						onSort={ onSort }
-						sortKey={ MIDIMappedParameterSortAttr.InstanceIndex }
+						sortKey={ MIDIMappedParameterSortAttr.InstanceId }
 						sortOrder={ sortOrder }
-						sorted={ sortAttr === MIDIMappedParameterSortAttr.InstanceIndex }
+						sorted={ sortAttr === MIDIMappedParameterSortAttr.InstanceId }
 					>
 						Instance
 					</TableHeaderCell>
@@ -71,7 +71,7 @@ const MIDIMappedParameterList: FC<MIDIMappedParameterListProps> = memo(function 
 			<Table.Tbody>
 				{
 					parameters.map(p => {
-						const pInstance = patcherInstances.get(p.instanceIndex);
+						const pInstance = patcherInstances.get(p.instanceId);
 						if (!pInstance) return null;
 						return (
 							<MIDIMappedParameter
