@@ -52,7 +52,7 @@ export class GraphSetViewRecord extends ImmuRecord<GraphSetViewRecordProps>({
 			for (const p of params) {
 				const [instanceId, pIndex] = p.split(":");
 				const paramIndex = parseInt(pIndex, 10);
-				if (!instanceId.length && !isNaN(paramIndex)) {
+				if (instanceId.length && !isNaN(paramIndex)) {
 					list.push({ instanceId, paramIndex });
 				}
 			}
