@@ -4,7 +4,7 @@ import { GraphConnectionRecord, GraphControlNodeRecord, GraphNodeRecord, GraphPa
 import { createSelector } from "reselect";
 
 export const getNodes = (state: RootStateType): ImmuMap<GraphNodeRecord["id"], GraphNodeRecord> => state.graph.nodes;
-export const getPatcherIdsByIndex = (state: RootStateType): ImmuMap<GraphPatcherNodeRecord["index"], GraphPatcherNodeRecord["id"]> => state.graph.patcherNodeIdByIndex;
+export const getPatcherNodeIdsByInstanceId = (state: RootStateType): ImmuMap<GraphPatcherNodeRecord["instanceId"], GraphPatcherNodeRecord["id"]> => state.graph.patcherNodeIdByInstanceId;
 
 export const getNode = createSelector(
 	[
@@ -24,31 +24,33 @@ export const getPatcherNodes = createSelector(
 	}
 );
 
-export const getPatcherNodeByIndex = createSelector(
+export const getPatcherNodeByInstanceId = createSelector(
 	[
 		getNodes,
-		getPatcherIdsByIndex,
-		(state: RootStateType, index: GraphPatcherNodeRecord["index"]): GraphPatcherNodeRecord["index"] => index
+		getPatcherNodeIdsByInstanceId,
+		(state: RootStateType, instanceId: GraphPatcherNodeRecord["instanceId"]): GraphPatcherNodeRecord["instanceId"] => instanceId
 	],
-	(nodes, idsByIndex, index): GraphPatcherNodeRecord | undefined => {
-		const id = idsByIndex.get(index);
+	(nodes, idsByInstanceId, instanceId): GraphPatcherNodeRecord | undefined => {
+		const id = idsByInstanceId.get(instanceId);
 		const node = id ? nodes.get(id) : undefined;
 		return node as GraphPatcherNodeRecord | undefined;
 	}
 );
 
-export const getFirstPatcherNodeIndex = createSelector(
-	[getPatcherIdsByIndex],
-	(idsByIndex): number | undefined => {
-		return idsByIndex.size === 0 ? undefined : idsByIndex.keySeq().sort().first();
+export const getFirstPatcherNodeId = createSelector(
+	[
+		getPatcherNodeIdsByInstanceId
+	],
+	(idsByInstanceId): string | undefined => {
+		return idsByInstanceId.size === 0 ? undefined : idsByInstanceId.keySeq().sort().first();
 	}
 );
 
-export const getPatcherNodesByIndex = (state: RootStateType): ImmuMap<GraphPatcherNodeRecord["index"], GraphPatcherNodeRecord> => {
-	return ImmuMap<GraphPatcherNodeRecord["index"], GraphPatcherNodeRecord>().withMutations(map => {
-		state.graph.patcherNodeIdByIndex.forEach((id, index) => {
-			const node = getNode(state, id);
-			if (node && node.type === NodeType.Patcher) map.set(index, node);
+export const getPatcherNodesByInstanceId = (state: RootStateType): ImmuMap<GraphPatcherNodeRecord["instanceId"], GraphPatcherNodeRecord> => {
+	return ImmuMap<GraphPatcherNodeRecord["instanceId"], GraphPatcherNodeRecord>().withMutations(map => {
+		state.graph.patcherNodeIdByInstanceId.forEach((nodeId, instanceId) => {
+			const node = getNode(state, nodeId);
+			if (node && node.type === NodeType.Patcher) map.set(instanceId, node);
 		});
 	});
 };

@@ -64,7 +64,7 @@ export type GraphSystemNodeProps = CommonGraphNodeProps & {
 }
 
 export type GraphPatcherNodeProps = CommonGraphNodeProps & {
-	index: number;
+	instanceId: string;
 	patcher: string;
 	path: string;
 }
@@ -92,7 +92,7 @@ export interface GraphControlNode extends GraphNode {
 
 export class GraphPatcherNodeRecord extends ImmuRecord<GraphPatcherNodeProps>({
 
-	index: 0,
+	instanceId: "0",
 	jackName: "",
 	patcher: "",
 	path: "",
@@ -113,7 +113,7 @@ export class GraphPatcherNodeRecord extends ImmuRecord<GraphPatcherNodeProps>({
 	}
 
 	public get displayName(): string {
-		return `${this.index}: ${this.patcher}`;
+		return `${this.instanceId}: ${this.patcher}`;
 	}
 
 	public get id(): string {
@@ -215,7 +215,7 @@ export class GraphPatcherNodeRecord extends ImmuRecord<GraphPatcherNodeProps>({
 		const ports = this.portsFromDescription(desc.CONTENTS.jack);
 
 		return new GraphPatcherNodeRecord({
-			index: parseInt(desc.FULL_PATH.split("/").pop(), 10),
+			instanceId: desc.FULL_PATH.split("/").pop(),
 			jackName: this.getJackName(desc.CONTENTS.jack),
 			patcher: desc.CONTENTS.name.VALUE,
 			path: desc.FULL_PATH,

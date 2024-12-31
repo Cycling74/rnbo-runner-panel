@@ -4,7 +4,7 @@ import { PatcherInstanceRecord } from "./instance";
 import { parseMetaJSONString } from "../lib/util";
 
 export type MessagePortRecordProps = {
-	instanceIndex: number;
+	instanceId: string;
 	tag: string;
 	meta: JsonMap;
 	metaString: string;
@@ -14,7 +14,7 @@ export type MessagePortRecordProps = {
 
 
 export class MessagePortRecord extends ImmuRecord<MessagePortRecordProps>({
-	instanceIndex: 0,
+	instanceId: "0",
 	tag: "",
 	meta: {},
 	metaString: "",
@@ -22,11 +22,11 @@ export class MessagePortRecord extends ImmuRecord<MessagePortRecordProps>({
 	path: ""
 }) {
 
-	private static messagesArrayFromDescription(instanceIndex: PatcherInstanceRecord["index"], desc: OSCQueryRNBOInstanceMessageInfo, name: string): MessagePortRecord[] {
+	private static messagesArrayFromDescription(instanceId: PatcherInstanceRecord["id"], desc: OSCQueryRNBOInstanceMessageInfo, name: string): MessagePortRecord[] {
 		if (typeof desc.VALUE !== "undefined") {
 			return [
 				new MessagePortRecord({
-					instanceIndex,
+					instanceId,
 					tag: name,
 					path: (desc as OSCQueryRNBOInstanceMessageValue).FULL_PATH
 				}).setMeta((desc as OSCQueryRNBOInstanceMessageValue).CONTENTS?.meta?.VALUE || "")
@@ -36,15 +36,15 @@ export class MessagePortRecord extends ImmuRecord<MessagePortRecordProps>({
 		const result: MessagePortRecord[] = [];
 		for (const [subKey, subDesc] of Object.entries(desc.CONTENTS)) {
 			const subPrefix = name ? `${name}/${subKey}` : subKey;
-			result.push(...this.messagesArrayFromDescription(instanceIndex, subDesc, subPrefix));
+			result.push(...this.messagesArrayFromDescription(instanceId, subDesc, subPrefix));
 		}
 		return result;
 	}
 
-	public static fromDescription(instanceIndex: PatcherInstanceRecord["index"], messagesDesc?: OSCQueryRNBOInstanceMessages): MessagePortRecord[] {
+	public static fromDescription(instanceId: PatcherInstanceRecord["id"], messagesDesc?: OSCQueryRNBOInstanceMessages): MessagePortRecord[] {
 		const ports: MessagePortRecord[] = [];
 		for (const [name, desc] of Object.entries(messagesDesc?.CONTENTS || {})) {
-			ports.push(...this.messagesArrayFromDescription(instanceIndex, desc, name));
+			ports.push(...this.messagesArrayFromDescription(instanceId, desc, name));
 		}
 		return ports;
 	}

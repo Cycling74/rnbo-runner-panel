@@ -81,7 +81,7 @@ const MIDIMappedParameter: FC<MIDIMappedParamProps> = memo(function WrappedMIDIM
 			/>
 			<Table.Td className={ classes.parameterNameColumn } >{ param.name }</Table.Td>
 			<Table.Td className={ classes.patcherInstanceColumn } >
-				<span className={ classes.patcherInstanceIndex } >{ instance.index }</span>
+				<span className={ classes.patcherInstanceIndex } >{ instance.id }</span>
 				<span className={ classes.patcherInstanceName } >: {instance.name}</span>
 			</Table.Td>
 			<Table.Td className={ classes.parameterValueColumn } >{ formatParamValueForDisplay(param.value) }</Table.Td>
@@ -100,7 +100,7 @@ const MIDIMappedParameter: FC<MIDIMappedParamProps> = memo(function WrappedMIDIM
 							<Menu.Item
 								leftSection={ <IconElement path={ mdiVectorSquare } /> }
 								component={ Link }
-								href={{ pathname: "/instances/[index]", query: { ...restQuery, index: instance.index } }}
+								href={{ pathname: "/instances/[index]", query: { ...restQuery, index: instance.id } }}
 							>
 								Show Instance
 							</Menu.Item>

@@ -4,7 +4,7 @@ import { DataRefRecord } from "./dataref";
 import { OSCQueryRNBOInstance, OSCQueryRNBOInstancePresetEntries } from "../lib/types";
 
 export type PatcherInstanceProps = {
-	index: number;
+	id: string;
 	patcher: string;
 	path: string;
 	name: string;
@@ -32,7 +32,7 @@ function sortPresets(left: PresetRecord, right: PresetRecord) : number {
 
 export class PatcherInstanceRecord extends ImmuRecord<PatcherInstanceProps>({
 
-	index: 0,
+	id: "0",
 	name: "",
 	patcher: "",
 	path: "",
@@ -46,11 +46,7 @@ export class PatcherInstanceRecord extends ImmuRecord<PatcherInstanceProps>({
 }) {
 
 	public get displayName(): string {
-		return `${this.index}: ${this.name}`;
-	}
-
-	public get id(): string {
-		return this.name;
+		return `${this.id}: ${this.name}`;
 	}
 
 	public setWaitingForMapping(value: boolean): PatcherInstanceRecord {
@@ -104,7 +100,7 @@ export class PatcherInstanceRecord extends ImmuRecord<PatcherInstanceProps>({
 		const latestPreset: string = desc.CONTENTS.presets.CONTENTS?.loaded?.VALUE || "";
 
 		return new PatcherInstanceRecord({
-			index: parseInt(desc.FULL_PATH.split("/").pop(), 10),
+			id: desc.FULL_PATH.split("/").pop(),
 			name: this.getJackName(desc.CONTENTS.jack),
 			patcher: desc.CONTENTS.name.VALUE,
 			path: desc.FULL_PATH,

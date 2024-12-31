@@ -27,7 +27,7 @@ export class GraphSetRecord extends ImmuRecord<GraphSetRecordProps>({
 }
 
 export type GraphSetViewParameterEntry = {
-	instanceIndex: PatcherInstanceRecord["index"];
+	instanceId: PatcherInstanceRecord["id"];
 	paramIndex: ParameterRecord["index"];
 }
 
@@ -50,12 +50,10 @@ export class GraphSetViewRecord extends ImmuRecord<GraphSetViewRecordProps>({
 	private static getParamListFromDesc(params: string[]): ImmuList<GraphSetViewParameterEntry> {
 		return ImmuList<GraphSetViewParameterEntry>().withMutations(list => {
 			for (const p of params) {
-				const [iIndex, pIndex] = p.split(":");
-
-				const instanceIndex = parseInt(iIndex, 10);
+				const [instanceId, pIndex] = p.split(":");
 				const paramIndex = parseInt(pIndex, 10);
-				if (!isNaN(instanceIndex) && !isNaN(paramIndex)) {
-					list.push({ instanceIndex, paramIndex });
+				if (!instanceId.length && !isNaN(paramIndex)) {
+					list.push({ instanceId, paramIndex });
 				}
 			}
 		});
@@ -81,10 +79,10 @@ export class GraphSetViewRecord extends ImmuRecord<GraphSetViewRecordProps>({
 		});
 	}
 
-	public get instanceIndices(): ImmuOrderedSet<GraphSetViewParameterEntry["instanceIndex"]> {
-		return ImmuOrderedSet<GraphSetViewParameterEntry["instanceIndex"]>()
+	public get instanceIds(): ImmuOrderedSet<GraphSetViewParameterEntry["instanceId"]> {
+		return ImmuOrderedSet<GraphSetViewParameterEntry["instanceId"]>()
 			.withMutations(set => {
-				this.params.forEach(p => set.add(p.instanceIndex));
+				this.params.forEach(p => set.add(p.instanceId));
 			});
 	}
 
