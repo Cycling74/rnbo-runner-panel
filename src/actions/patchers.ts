@@ -741,7 +741,7 @@ export const updateInstanceMessageOutportValue = (instanceId: string, tag: Messa
 			if (!enabled) return;
 
 			// Active Instance view?!
-			if (Router.pathname !== "/instances/[index]" || Router.query.index !== `${instanceId}`) return;
+			if (Router.pathname !== "/instances/[id]" || Router.query.id !== `${instanceId}`) return;
 
 			const instance = getPatcherInstance(state, instanceId);
 			if (!instance) return;
