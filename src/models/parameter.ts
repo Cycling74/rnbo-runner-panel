@@ -7,7 +7,7 @@ export type ParameterRecordProps = {
 
 	enumVals: Array<string | number>;
 	index: number;
-	instanceIndex: number;
+	instanceId: string;
 	min: number;
 	max: number;
 	meta: ParameterMetaJsonMap;
@@ -25,7 +25,7 @@ export class ParameterRecord extends ImmuRecord<ParameterRecordProps>({
 
 	enumVals: [],
 	index: 0,
-	instanceIndex: 0,
+	instanceId: "0",
 	min: 0,
 	max: 1,
 	meta: {},
@@ -41,7 +41,7 @@ export class ParameterRecord extends ImmuRecord<ParameterRecordProps>({
 }) {
 
 	private static arrayFromDescription(
-		instanceIndex: number,
+		instanceId: string,
 		desc: OSCQueryRNBOInstanceParameterInfo,
 		name?: string
 	): ParameterRecord[] {
@@ -53,7 +53,7 @@ export class ParameterRecord extends ImmuRecord<ParameterRecordProps>({
 			result.push((new ParameterRecord({
 				enumVals: paramInfo.RANGE?.[0]?.VALS || [],
 				index: paramInfo.CONTENTS?.index?.VALUE || 0,
-				instanceIndex,
+				instanceId,
 				min: paramInfo.RANGE?.[0]?.MIN,
 				max: paramInfo.RANGE?.[0]?.MAX,
 				name,
@@ -66,16 +66,16 @@ export class ParameterRecord extends ImmuRecord<ParameterRecordProps>({
 			// Polyphonic params
 			for (const [subParamName, subDesc] of Object.entries(desc.CONTENTS) as Array<[string, OSCQueryRNBOInstanceParameterInfo]>) {
 				const subPrefix = name ? `${name}/${subParamName}` : subParamName;
-				result.push(...this.arrayFromDescription(instanceIndex, subDesc, subPrefix));
+				result.push(...this.arrayFromDescription(instanceId, subDesc, subPrefix));
 			}
 		}
 		return result;
 	}
 
-	public static fromDescription(instanceIndex: number, paramsDesc: OSCQueryRNBOInstance["CONTENTS"]["params"]): ParameterRecord[] {
+	public static fromDescription(instanceId: string, paramsDesc: OSCQueryRNBOInstance["CONTENTS"]["params"]): ParameterRecord[] {
 		const params: ParameterRecord[] = [];
 		for (const [name, desc] of Object.entries(paramsDesc.CONTENTS || {})) {
-			params.push(...ParameterRecord.arrayFromDescription(instanceIndex, desc, name));
+			params.push(...ParameterRecord.arrayFromDescription(instanceId, desc, name));
 		}
 		return params;
 	}
@@ -89,7 +89,7 @@ export class ParameterRecord extends ImmuRecord<ParameterRecordProps>({
 	}
 
 	public get setViewId(): string {
-		return instanceAndParamIndicesToSetViewEntry(this.instanceIndex, this.index);
+		return instanceAndParamIndicesToSetViewEntry(this.instanceId, this.index);
 	}
 
 	public getValueForNormalizedValue(nv: number): string | number {

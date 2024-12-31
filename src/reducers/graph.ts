@@ -6,7 +6,7 @@ export interface GraphState {
 
 	connections: ImmuMap<GraphConnectionRecord["id"], GraphConnectionRecord>;
 	nodes: ImmuMap<GraphNodeRecord["id"], GraphNodeRecord>;
-	patcherNodeIdByIndex: ImmuMap<GraphPatcherNodeRecord["index"], GraphPatcherNodeRecord["id"]>;
+	patcherNodeIdByInstanceId: ImmuMap<GraphPatcherNodeRecord["instanceId"], GraphPatcherNodeRecord["id"]>;
 	portAliases: ImmuMap<GraphPortRecord["portName"], string[]>;
 
 }
@@ -15,7 +15,7 @@ export const graph = (state: GraphState = {
 
 	connections: ImmuMap<GraphConnectionRecord["id"], GraphConnectionRecord>(),
 	nodes: ImmuMap<GraphNodeRecord["id"], GraphNodeRecord>(),
-	patcherNodeIdByIndex: ImmuMap<GraphPatcherNodeRecord["index"], GraphPatcherNodeRecord["id"]>(),
+	patcherNodeIdByInstanceId: ImmuMap<GraphPatcherNodeRecord["instanceId"], GraphPatcherNodeRecord["id"]>(),
 	portAliases: ImmuMap<GraphPortRecord["portName"], string[]>()
 
 }, action: GraphAction): GraphState => {
@@ -27,7 +27,7 @@ export const graph = (state: GraphState = {
 			return {
 				...state,
 				nodes: state.nodes.delete(node.id),
-				patcherNodeIdByIndex: node.type === NodeType.Patcher ? state.patcherNodeIdByIndex.delete(node.index) : state.patcherNodeIdByIndex,
+				patcherNodeIdByInstanceId: node.type === NodeType.Patcher ? state.patcherNodeIdByInstanceId.delete(node.instanceId) : state.patcherNodeIdByInstanceId,
 				connections: state.connections
 					.filter(connection => connection.sourceNodeId !== node.id && connection.sinkNodeId !== node.id )
 			};
@@ -39,9 +39,9 @@ export const graph = (state: GraphState = {
 			return {
 				...state,
 				nodes: state.nodes.deleteAll(nodeIds),
-				patcherNodeIdByIndex: state.patcherNodeIdByIndex.deleteAll(
+				patcherNodeIdByInstanceId: state.patcherNodeIdByInstanceId.deleteAll(
 					(nodes.filter(n => n.type === NodeType.Patcher) as GraphPatcherNodeRecord[])
-						.map(n => n .index)
+						.map(n => n .instanceId)
 				),
 				connections: state.connections
 					.filter(connection => !nodeIds.includes(connection.sourceNodeId) && !nodeIds.includes(connection.sinkNodeId) )
@@ -53,7 +53,7 @@ export const graph = (state: GraphState = {
 			return {
 				...state,
 				nodes: state.nodes.set(node.id, node),
-				patcherNodeIdByIndex: node.type === NodeType.Patcher ? state.patcherNodeIdByIndex.set(node.index, node.id) : state.patcherNodeIdByIndex
+				patcherNodeIdByInstanceId: node.type === NodeType.Patcher ? state.patcherNodeIdByInstanceId.set(node.instanceId, node.id) : state.patcherNodeIdByInstanceId
 			};
 		}
 
@@ -66,10 +66,10 @@ export const graph = (state: GraphState = {
 						map.set(node.id, node);
 					}
 				}),
-				patcherNodeIdByIndex: state.patcherNodeIdByIndex.withMutations(map => {
+				patcherNodeIdByInstanceId: state.patcherNodeIdByInstanceId.withMutations(map => {
 					for (const node of nodes) {
 						if (node.type === NodeType.Patcher) {
-							map.set(node.index, node.id);
+							map.set(node.instanceId, node.id);
 						}
 					}
 				})

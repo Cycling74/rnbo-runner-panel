@@ -31,7 +31,7 @@ const EditorPatcherNode: FunctionComponent<EditorNodeProps> = memo(function Wrap
 					<Tooltip label="Open Patcher Instance Control">
 						<ActionIcon
 							component={ Link }
-							href={{ pathname: "/instances/[index]", query: { ...query, index: (node as GraphPatcherNodeRecord).index } }}
+							href={{ pathname: "/instances/[index]", query: { ...query, index: (node as GraphPatcherNodeRecord).instanceId } }}
 							size="md"
 							variant="transparent"
 						>

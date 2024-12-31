@@ -4,7 +4,7 @@ import { oscQueryBridge } from "../controller/oscqueryBridgeController";
 import { ActionBase, AppThunk, RootStateType } from "../lib/store";
 import { OSCQueryRNBOInstance, OSCQueryRNBOInstancesState, OSCQueryRNBOJackConnections, OSCQueryRNBOJackPortInfo, OSCQuerySetMeta, OSCQuerySetNodeMeta } from "../lib/types";
 import { ConnectionType, GraphConnectionRecord, GraphControlNodeRecord, GraphNodeRecord, GraphPatcherNodeRecord, GraphPortRecord, GraphSystemNodeRecord, NodeType, PortDirection, calculateNodeContentHeight, createNodePorts } from "../models/graph";
-import { getConnectionsForSourceNodeAndPort, getNode, getPatcherNodeByIndex, getNodes, getSystemNodeByJackNameAndDirection, getConnections, getPatcherNodes, getSystemNodes, getControlNodes } from "../selectors/graph";
+import { getConnectionsForSourceNodeAndPort, getNode, getPatcherNodeByInstanceId, getNodes, getSystemNodeByJackNameAndDirection, getConnections, getPatcherNodes, getSystemNodes, getControlNodes } from "../selectors/graph";
 import { showNotification } from "./notifications";
 import { NotificationLevel } from "../models/notification";
 import { PatcherInstanceRecord } from "../models/instance";
@@ -351,9 +351,9 @@ export const initNodes = (jackPortsInfo: OSCQueryRNBOJackPortInfo, instanceInfo:
 			patcherAndControlNodes.push(node);
 			const instance = PatcherInstanceRecord.fromDescription(info);
 			instances.push(instance);
-			instanceParameters.push(...ParameterRecord.fromDescription(instance.index, info.CONTENTS.params));
-			instanceMessageInports.push(...MessagePortRecord.fromDescription(instance.index, info.CONTENTS.messages?.CONTENTS?.in));
-			instanceMessageOutports.push(...MessagePortRecord.fromDescription(instance.index, info.CONTENTS.messages?.CONTENTS?.out));
+			instanceParameters.push(...ParameterRecord.fromDescription(instance.id, info.CONTENTS.params));
+			instanceMessageInports.push(...MessagePortRecord.fromDescription(instance.id, info.CONTENTS.messages?.CONTENTS?.in));
+			instanceMessageOutports.push(...MessagePortRecord.fromDescription(instance.id, info.CONTENTS.messages?.CONTENTS?.out));
 		}
 
 		// Build a list of all Jack generated names that have not been used for PatcherNodes above
@@ -596,21 +596,20 @@ export const updateSystemOrControlPortInfo = (type: ConnectionType, direction: P
 	};
 
 // Trigger Updates on remote OSCQuery Runner
-export const unloadPatcherNodeByIndexOnRemote = (instanceIndex: number): AppThunk =>
+export const unloadPatcherNodeOnRemote = (instanceId: string): AppThunk =>
 	(dispatch, getState) => {
 		try {
 
 			const message = {
 				address: "/rnbo/inst/control/unload",
 				args: [
-					{ type: "i", value: instanceIndex }
+					{ type: "i", value: parseInt(instanceId, 10) }
 				]
 			};
 			oscQueryBridge.sendPacket(writePacket(message));
 
-			const state = getState();
-			const nodes = getNodes(state);
-			dispatch(updateSetMetaOnRemoteFromNodes(nodes.filterNot(n => n.type === NodeType.Patcher && n.index === instanceIndex)));
+			const nodes = getNodes(getState());
+			dispatch(updateSetMetaOnRemoteFromNodes(nodes.filterNot(n => n.type === NodeType.Patcher && n.instanceId === instanceId)));
 		} catch (err) {
 			dispatch(showNotification({
 				level: NotificationLevel.error,
@@ -688,9 +687,9 @@ export const addPatcherNode = (desc: OSCQueryRNBOInstance, metaString: string): 
 
 		// Create Instance State
 		const instance = PatcherInstanceRecord.fromDescription(desc);
-		const parameters = ParameterRecord.fromDescription(instance.index, desc.CONTENTS.params);
-		const messageInports = MessagePortRecord.fromDescription(instance.index, desc.CONTENTS.messages?.CONTENTS?.in);
-		const messageOutports = MessagePortRecord.fromDescription(instance.index, desc.CONTENTS.messages?.CONTENTS?.out);
+		const parameters = ParameterRecord.fromDescription(instance.id, desc.CONTENTS.params);
+		const messageInports = MessagePortRecord.fromDescription(instance.id, desc.CONTENTS.messages?.CONTENTS?.in);
+		const messageOutports = MessagePortRecord.fromDescription(instance.id, desc.CONTENTS.messages?.CONTENTS?.out);
 
 		dispatch(setInstance(instance));
 		dispatch(setInstanceParameters(parameters));
@@ -698,12 +697,12 @@ export const addPatcherNode = (desc: OSCQueryRNBOInstance, metaString: string): 
 		dispatch(setInstanceMessageOutports(messageOutports));
 	};
 
-export const removePatcherNode = (index: number): AppThunk =>
+export const removePatcherNode = (instanceId: string): AppThunk =>
 	(dispatch, getState) => {
 		try {
 			const state = getState();
 
-			const node = getPatcherNodeByIndex(state, index);
+			const node = getPatcherNodeByInstanceId(state, instanceId);
 			if (node?.type !== NodeType.Patcher) return;
 			dispatch(deleteNode(node));
 

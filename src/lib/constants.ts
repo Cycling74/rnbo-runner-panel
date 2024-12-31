@@ -73,7 +73,7 @@ export enum SortOrder {
 
 export enum MIDIMappedParameterSortAttr {
 	MIDISource = "midi_source",
-	InstanceIndex = "instance_index",
+	InstanceId = "instance_id",
 	ParameterName = "param_name"
 }
 

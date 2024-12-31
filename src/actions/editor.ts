@@ -8,7 +8,9 @@ import { NotificationLevel } from "../models/notification";
 import { writePacket } from "osc";
 import { oscQueryBridge } from "../controller/oscqueryBridgeController";
 import { isValidConnection } from "../lib/editorUtils";
-import { setConnection, setNode, setNodes, unloadPatcherNodeByIndexOnRemote } from "./graph";
+import throttle from "lodash.throttle";
+import { OSCQuerySetMeta } from "../lib/types";
+import { setConnection, setNode, setNodes, unloadPatcherNodeOnRemote } from "./graph";
 import { getGraphEditorInstance, getGraphEditorLockedState } from "../selectors/editor";
 import { defaultNodeGap } from "../lib/constants";
 import { triggerSetMetaUpdateOnRemote, updateSetMetaOnRemoteFromNodes } from "./meta";
@@ -160,8 +162,8 @@ export const removeEditorNodeById = (id: GraphNode["id"], updateSetMeta = true):
 				throw new Error(`System nodes cannot be removed (id: ${id}).`);
 			}
 
-			dispatch(unloadPatcherNodeByIndexOnRemote(node.index));
-			if (updateSetMeta) updateSetMetaOnRemoteFromNodes(getNodes(state).delete(node.id));
+			dispatch(unloadPatcherNodeOnRemote(node.instanceId));
+			if (updateSetMeta) doUpdateNodesMeta(getNodes(state).delete(node.id));
 
 		} catch (err) {
 			dispatch(showNotification({

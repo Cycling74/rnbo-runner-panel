@@ -62,22 +62,22 @@ export const patchers = (state: PatcherState = {
 			return {
 				...state,
 				instances: state.instances.delete(instance.id),
-				instanceParameters: state.instanceParameters.filter(param => param.instanceIndex !== instance.index),
-				instanceMessageInports: state.instanceMessageInports.filter(port => port.instanceIndex !== instance.index),
-				instanceMessageOutports: state.instanceMessageOutports.filter(port => port.instanceIndex !== instance.index)
+				instanceParameters: state.instanceParameters.filter(param => param.instanceId !== instance.id),
+				instanceMessageInports: state.instanceMessageInports.filter(port => port.instanceId !== instance.id),
+				instanceMessageOutports: state.instanceMessageOutports.filter(port => port.instanceId !== instance.id)
 			};
 		}
 
 		case PatcherActionType.DELETE_INSTANCES: {
 			const { instances } = action.payload;
-			const indexSet = new Set<number>(instances.map(i => i.index));
+			const idSet = new Set<string>(instances.map(i => i.id));
 
 			return {
 				...state,
 				instances: state.instances.deleteAll(instances.map(d => d.id)),
-				instanceParameters: state.instanceParameters.filter(param => !indexSet.has(param.instanceIndex)),
-				instanceMessageInports: state.instanceMessageInports.filter(port => !indexSet.has(port.instanceIndex)),
-				instanceMessageOutports: state.instanceMessageOutports.filter(port => !indexSet.has(port.instanceIndex))
+				instanceParameters: state.instanceParameters.filter(param => !idSet.has(param.instanceId)),
+				instanceMessageInports: state.instanceMessageInports.filter(port => !idSet.has(port.instanceId)),
+				instanceMessageOutports: state.instanceMessageOutports.filter(port => !idSet.has(port.instanceId))
 			};
 		}
 
