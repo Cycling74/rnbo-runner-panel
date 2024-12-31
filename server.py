@@ -45,8 +45,8 @@ class MyRequestHandler(SimpleHTTPRequestHandler):
 		normPath.remove('')
 
 		fpath = path.join(args.directory, '{os.sep}'.join(normPath))
-		# handle /instances/12 -> /instances/[index].html  mapping
-		ipath = path.join(normPath[0], "[index].html")
+		# handle /instances/12 -> /instances/[id].html  mapping
+		ipath = path.join(normPath[0], "[id].html")
 
 		if not path.isfile(fpath) and not fext and path.isfile(fpath + '.html'):
 			self.path = self.path + '.html'

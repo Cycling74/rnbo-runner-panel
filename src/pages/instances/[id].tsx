@@ -31,8 +31,8 @@ export default function Instance() {
 	const [presetDrawerIsOpen, { close: closePresetDrawer, toggle: togglePresetDrawer }] = useDisclosure();
 	const [keyboardModalIsOpen, { close: closeKeyboardModal, toggle: toggleKeyboardModal }] = useDisclosure();
 
-	const { index, ...restQuery } = query;
-	const instanceId = Array.isArray(index) ? index.join("") : index || "0";
+	const { id, ...restQuery } = query;
+	const instanceId = Array.isArray(id) ? id.join("") : id || "0";
 
 	const dispatch = useAppDispatch();
 
@@ -67,7 +67,7 @@ export default function Instance() {
 	});
 
 	const onChangeInstance = useCallback((e: ChangeEvent<HTMLSelectElement>) => {
-		push({ pathname, query: { ...query, index: e.currentTarget.value } });
+		push({ pathname, query: { ...query, id: e.currentTarget.value } });
 	}, [push, pathname, query]);
 
 	const onUnloadInstance = useCallback((e: MouseEvent<HTMLButtonElement>) => {

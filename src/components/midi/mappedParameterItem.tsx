@@ -100,7 +100,7 @@ const MIDIMappedParameter: FC<MIDIMappedParamProps> = memo(function WrappedMIDIM
 							<Menu.Item
 								leftSection={ <IconElement path={ mdiVectorSquare } /> }
 								component={ Link }
-								href={{ pathname: "/instances/[index]", query: { ...restQuery, index: instance.id } }}
+								href={{ pathname: "/instances/[id]", query: { ...restQuery, id: instance.id } }}
 							>
 								Show Instance
 							</Menu.Item>

@@ -26,7 +26,7 @@ const AppNav: FunctionComponent = memo(function WrappedNav() {
 	]);
 
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	const { index, ...restQuery } = query; // slurp out potential index query element for a clean query
+	const { id, ...restQuery } = query; // slurp out potential id query element for a clean query
 
 	return (
 		<AppShell.Navbar>
@@ -42,8 +42,8 @@ const AppNav: FunctionComponent = memo(function WrappedNav() {
 						disabled={ instanceId === undefined }
 						icon={ mdiVectorSquare }
 						label="Patcher Instance Control"
-						href={{ pathname: "/instances/[index]", query: { ...restQuery, index: instanceId } }}
-						isActive={ pathname === "/instances/[index]" }
+						href={{ pathname: "/instances/[id]", query: { ...restQuery, id: instanceId } }}
+						isActive={ pathname === "/instances/[id]" }
 					/>
 					<NavLink
 						icon={ mdiFileMusic }
