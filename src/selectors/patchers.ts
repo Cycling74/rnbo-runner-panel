@@ -105,6 +105,7 @@ export const getPatcherInstancesAreWaitingForMIDIMappingBySetView = createSelect
 	],
 	(instances, setView): boolean => {
 		const indices = setView.instanceIndices.toArray();
+		if (!indices.length) return false;
 		for (const index of indices) {
 			const instance = instances.get(index);
 			if (!instance || !instance.waitingForMidiMapping) return false;
