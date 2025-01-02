@@ -5,6 +5,9 @@ import { GraphSetRecord } from "../models/set";
 import { PresetRecord } from "../models/preset";
 import { showNotification } from "./notifications";
 import { NotificationLevel } from "../models/notification";
+import { updateSetMetaOnRemoteFromNodes } from "./meta";
+import { GraphNodeRecord, NodeType } from "../models/graph";
+import { getNodes } from "../selectors/graph";
 
 export enum GraphSetActionType {
 	INIT_SETS = "INIT_SETS",
@@ -80,7 +83,7 @@ export const setGraphSetPresetLatest = (name: string): GraphSetAction => {
 };
 
 export const clearGraphSetOnRemote = (): AppThunk =>
-	(dispatch) => {
+	(dispatch, getState) => {
 		try {
 			const message = {
 				address: "/rnbo/inst/control/unload",
@@ -89,6 +92,8 @@ export const clearGraphSetOnRemote = (): AppThunk =>
 				]
 			};
 			oscQueryBridge.sendPacket(writePacket(message));
+			const nodes = getNodes(getState());
+			dispatch(updateSetMetaOnRemoteFromNodes(nodes.filter(n => n.type !== NodeType.Patcher)));
 		} catch (err) {
 			dispatch(showNotification({
 				level: NotificationLevel.error,
