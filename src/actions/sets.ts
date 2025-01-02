@@ -6,7 +6,7 @@ import { PresetRecord } from "../models/preset";
 import { showNotification } from "./notifications";
 import { NotificationLevel } from "../models/notification";
 import { updateSetMetaOnRemoteFromNodes } from "./meta";
-import { GraphNodeRecord, NodeType } from "../models/graph";
+import { NodeType } from "../models/graph";
 import { getNodes } from "../selectors/graph";
 
 export enum GraphSetActionType {
