@@ -1,6 +1,5 @@
 import Dagre from "@dagrejs/dagre";
 import { Connection, EdgeChange, NodeChange, ReactFlowInstance } from "reactflow";
-import { Map as ImmuMap } from "immutable";
 import { ActionBase, AppThunk } from "../lib/store";
 import { getConnection, getConnectionByNodesAndPorts, getConnections, getNode, getNodes } from "../selectors/graph";
 import { GraphConnectionRecord, GraphNode, GraphNodeRecord, GraphPatcherNode, NodeType } from "../models/graph";
@@ -9,11 +8,10 @@ import { NotificationLevel } from "../models/notification";
 import { writePacket } from "osc";
 import { oscQueryBridge } from "../controller/oscqueryBridgeController";
 import { isValidConnection } from "../lib/editorUtils";
-import throttle from "lodash.throttle";
-import { OSCQuerySetMeta } from "../lib/types";
 import { setConnection, setNode, setNodes, unloadPatcherNodeByIndexOnRemote } from "./graph";
 import { getGraphEditorInstance, getGraphEditorLockedState } from "../selectors/editor";
 import { defaultNodeGap } from "../lib/constants";
+import { triggerSetMetaUpdateOnRemote, updateSetMetaOnRemoteFromNodes } from "./meta";
 
 export enum EditorActionType {
 	INIT = "EDITOR_INIT",
@@ -55,35 +53,6 @@ export const unmountEditor = (): IUnmountEditor => {
 		payload: {}
 	};
 };
-
-
-const serializeSetMeta = (nodes: GraphNodeRecord[]): string => {
-	const result: OSCQuerySetMeta = { nodes: {} };
-	for (const node of nodes) {
-		result.nodes[node.id] = { position: { x: node.x, y: node.y } };
-	}
-	return JSON.stringify(result);
-};
-
-const doUpdateNodesMeta = throttle((nodes: ImmuMap<GraphNodeRecord["id"], GraphNodeRecord>) => {
-	try {
-		const value = serializeSetMeta(nodes.valueSeq().toArray());
-
-		const message = {
-			address: "/rnbo/inst/control/sets/meta",
-			args: [
-				{ type: "s", value }
-			]
-		};
-		oscQueryBridge.sendPacket(writePacket(message));
-	} catch (err) {
-		console.warn(`Failed to update Set Meta on remote: ${err.message}`);
-	}
-
-}, 150, { leading: true, trailing: true });
-
-const updateSetMetaOnRemote = (): AppThunk =>
-	(dispatch, getState) => doUpdateNodesMeta(getNodes(getState()));
 
 
 export const createEditorConnection = (connection: Connection): AppThunk =>
@@ -192,7 +161,7 @@ export const removeEditorNodeById = (id: GraphNode["id"], updateSetMeta = true):
 			}
 
 			dispatch(unloadPatcherNodeByIndexOnRemote(node.index));
-			if (updateSetMeta) doUpdateNodesMeta(getNodes(state).delete(node.id));
+			if (updateSetMeta) updateSetMetaOnRemoteFromNodes(getNodes(state).delete(node.id));
 
 		} catch (err) {
 			dispatch(showNotification({
@@ -210,7 +179,7 @@ export const removeEditorNodesById = (ids: GraphPatcherNode["id"][]): AppThunk =
 			dispatch(removeEditorNodeById(id, false));
 		}
 		// Only at the end update the meta to ensure all coord data has been removed
-		doUpdateNodesMeta(getNodes(getState()).deleteAll(ids));
+		updateSetMetaOnRemoteFromNodes(getNodes(getState()).deleteAll(ids));
 	};
 
 export const removeEditorConnectionsById = (ids: GraphConnectionRecord["id"][]): AppThunk =>
@@ -226,7 +195,7 @@ export const changeNodePosition = (id: GraphNode["id"], x: number, y: number): A
 		const node = getNode(state, id);
 		if (!node) return;
 		dispatch(setNode(node.updatePosition(x, y)));
-		dispatch(updateSetMetaOnRemote());
+		dispatch(triggerSetMetaUpdateOnRemote());
 	};
 
 export const changeNodeSelection = (id: GraphNode["id"], selected: boolean): AppThunk =>
@@ -356,7 +325,7 @@ export const generateEditorLayout = (): AppThunk =>
 		});
 
 		dispatch(setNodes(layoutedNodes));
-		dispatch(updateSetMetaOnRemote());
+		dispatch(triggerSetMetaUpdateOnRemote());
 		window.requestAnimationFrame(() => getGraphEditorInstance(getState())?.fitView());
 	};
 
