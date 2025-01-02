@@ -44,12 +44,13 @@ export const PresetItem: FunctionComponent<PresetItemProps> = memo(function Wrap
 
 	const onRenamePreset = useCallback((e: FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
+		inputRef.current?.focus();
 		if (!name?.length) {
 			setError("Please provide a valid preset name");
 		} else {
 			onRename(preset, name);
 		}
-	}, [name, onRename, preset, setError]);
+	}, [name, onRename, preset, setError, inputRef]);
 
 	const onDeletePreset = useCallback((_e: MouseEvent<HTMLButtonElement>) => {
 		onDelete(preset);

@@ -36,12 +36,13 @@ export const GraphSetItem: FunctionComponent<GraphSetItemProps> = memo(function 
 
 	const onRenameSet = useCallback((e: FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
+		inputRef.current?.focus();
 		if (!name?.length) {
 			setError("Please provide a valid set name");
 		} else {
 			onRename(set, name);
 		}
-	}, [name, onRename, set, setError]);
+	}, [name, onRename, set, setError, inputRef]);
 
 	const onLoadSet = useCallback((e: MouseEvent<HTMLButtonElement>) => {
 		onLoad(set);
