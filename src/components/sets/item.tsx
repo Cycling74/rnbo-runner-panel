@@ -12,6 +12,7 @@ export type GraphSetItemProps = {
 	onLoad: (set: GraphSetRecord) => any;
 	onRename: (set: GraphSetRecord, name: string) => any;
 	onSave: (set: GraphSetRecord) => any;
+	validateUniqueName: (name: string) => boolean;
 };
 
 export const GraphSetItem: FunctionComponent<GraphSetItemProps> = memo(function WrappedGraphSet({
@@ -19,7 +20,8 @@ export const GraphSetItem: FunctionComponent<GraphSetItemProps> = memo(function 
 	onDelete,
 	onLoad,
 	onRename,
-	onSave
+	onSave,
+	validateUniqueName
 }: GraphSetItemProps) {
 
 	const [isEditing, setIsEditing] = useState<boolean>(false);
@@ -37,12 +39,16 @@ export const GraphSetItem: FunctionComponent<GraphSetItemProps> = memo(function 
 	const onRenameSet = useCallback((e: FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 		inputRef.current?.focus();
-		if (!name?.length) {
+		if (set.name === name) {
+			setIsEditing(false);
+		} else if (!name?.length) {
 			setError("Please provide a valid set name");
+		} else if (!validateUniqueName(name)) {
+			setError((`A set with the name "${name} already exists"`));
 		} else {
 			onRename(set, name);
 		}
-	}, [name, onRename, set, setError, inputRef]);
+	}, [name, onRename, set, setError, inputRef, setIsEditing]);
 
 	const onLoadSet = useCallback((e: MouseEvent<HTMLButtonElement>) => {
 		onLoad(set);
@@ -61,7 +67,7 @@ export const GraphSetItem: FunctionComponent<GraphSetItemProps> = memo(function 
 		if (error && e.target.value?.length) setError(undefined);
 	}, [setName, error, setError]);
 
-	const onKeyDown = useCallback((e: KeyboardEvent<HTMLInputElement>) => {
+	const onKeyDown = useCallback((e: KeyboardEvent<HTMLInputElement>): void => {
 		if (e.key === "Escape") {
 			e.preventDefault();
 			e.stopPropagation();

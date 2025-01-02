@@ -12,6 +12,7 @@ export type GraphSetViewItemProps = {
 	onLoad: (set: GraphSetViewRecord) => any;
 	onRename: (set: GraphSetViewRecord, name: string) => any;
 	setView: GraphSetViewRecord;
+	validateUniqueName: (name: string) => boolean;
 };
 
 export const GraphSetViewItem: FC<GraphSetViewItemProps> = memo(function WrappedGraphSetViewItem({
@@ -19,7 +20,8 @@ export const GraphSetViewItem: FC<GraphSetViewItemProps> = memo(function Wrapped
 	onDelete,
 	onLoad,
 	onRename,
-	setView
+	setView,
+	validateUniqueName
 }: GraphSetViewItemProps) {
 
 	const [isEditing, setIsEditing] = useState<boolean>(false);
@@ -40,12 +42,17 @@ export const GraphSetViewItem: FC<GraphSetViewItemProps> = memo(function Wrapped
 
 	const onRenameSetView = useCallback((e: FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
-		if (!name?.length) {
+		inputRef.current?.focus();
+		if (setView.name === name) {
+			setIsEditing(false);
+		} else if (!name?.length) {
 			setError("Please provide a valid SetView name");
+		} else if (!validateUniqueName(name)) {
+			setError(`A SetView with the name "${name}" already exists`);
 		} else {
 			onRename(setView, name);
 		}
-	}, [name, onRename, setView, setError]);
+	}, [name, onRename, setView, setError, setIsEditing]);
 
 	const onDeleteSetView = useCallback((_e: MouseEvent<HTMLButtonElement>) => {
 		onDelete(setView);
@@ -72,6 +79,15 @@ export const GraphSetViewItem: FC<GraphSetViewItemProps> = memo(function Wrapped
 		setName(setView.name);
 		setIsEditing(false);
 	}, [setView, setName, setIsEditing]);
+
+	useEffect(() => {
+		if (isEditing && inputRef.current) {
+			inputRef.current.focus();
+		}
+		if (!isEditing) {
+			setError(undefined);
+		}
+	}, [isEditing, inputRef, setError]);
 
 	return isEditing ? (
 		<form onSubmit={ onRenameSetView } >
