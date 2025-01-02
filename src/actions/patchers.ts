@@ -16,7 +16,7 @@ import { AppSetting } from "../models/settings";
 import { DataRefRecord } from "../models/dataref";
 import { DataFileRecord } from "../models/datafile";
 import { PatcherExportRecord } from "../models/patcher";
-import { cloneJSON, InvalidMIDIFormatError, parseMIDIMappingDisplayValue, UnknownMIDIFormatError } from "../lib/util";
+import { cloneJSON, getUniqueName, InvalidMIDIFormatError, parseMIDIMappingDisplayValue, UnknownMIDIFormatError } from "../lib/util";
 import { MIDIMetaMappingType } from "../lib/constants";
 
 export enum PatcherActionType {
@@ -355,9 +355,10 @@ export const loadPresetOnRemoteInstance = (instance: PatcherInstanceRecord, pres
 		}
 	};
 
-export const savePresetToRemoteInstance = (instance: PatcherInstanceRecord, name: string): AppThunk =>
+export const savePresetToRemoteInstance = (instance: PatcherInstanceRecord, givenName: string): AppThunk =>
 	(dispatch) => {
 		try {
+			const name = getUniqueName(givenName, instance.presets.valueSeq().map(p => p.name).toArray());
 			const message = {
 				address: `${instance.path}/presets/save`,
 				args: [
