@@ -49,6 +49,10 @@ const SetViewDrawer: FC<CreateSetViewModalProps> = ({
 		});
 	}, [onDeleteSetView]);
 
+	const validateUniqueSetViewName = useCallback((name: string): boolean => {
+		return !setViews.find(v => v.name === name);
+	}, [setViews]);
+
 	return (
 
 		<Drawer
@@ -70,6 +74,7 @@ const SetViewDrawer: FC<CreateSetViewModalProps> = ({
 							onDelete={ onTriggerDeleteSetView }
 							onRename={ onRenameSetView }
 							onLoad={ onLoadSetView }
+							validateUniqueName={ validateUniqueSetViewName }
 						/>
 					))
 				}

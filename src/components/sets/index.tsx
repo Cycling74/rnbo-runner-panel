@@ -66,6 +66,10 @@ const SetsDrawer: FunctionComponent<SetsDrawerProps> = memo(function WrappedSets
 		});
 	}, [onClearSet]);
 
+	const validateUniqueSetName = useCallback((name: string): boolean => {
+		return !sets.find(s => s.name === name);
+	}, [sets]);
+
 	return (
 		<Drawer.Root opened={ open } onClose={ onClose } position="right">
 			<Drawer.Overlay />
@@ -88,7 +92,17 @@ const SetsDrawer: FunctionComponent<SetsDrawerProps> = memo(function WrappedSets
 								<DrawerSectionTitle>Saved Graph Sets</DrawerSectionTitle>
 								<Stack gap="sm" >
 									{
-										sets.map(set => <GraphSetItem key={ set.id } set={ set } onRename={ onRenameSet } onLoad={ onLoadSet } onDelete={ onTriggerDeleteSet } onSave={ onSaveSetAs }/> )
+										sets.map(set => (
+											<GraphSetItem
+												key={ set.id }
+												set={ set }
+												onRename={ onRenameSet }
+												onLoad={ onLoadSet }
+												onDelete={ onTriggerDeleteSet }
+												onSave={ onSaveSetAs }
+												validateUniqueName={ validateUniqueSetName }
+											/>
+										))
 									}
 								</Stack>
 							</Flex>

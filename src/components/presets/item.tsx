@@ -12,6 +12,7 @@ export type PresetItemProps = {
 	onLoad: (set: PresetRecord) => any;
 	onRename: (set: PresetRecord, name: string) => any;
 	onSetInitial?: (set: PresetRecord) => any;
+	validateUniqueName: (name: string) => boolean;
 };
 
 export const PresetItem: FunctionComponent<PresetItemProps> = memo(function WrappedPresetItem({
@@ -19,7 +20,8 @@ export const PresetItem: FunctionComponent<PresetItemProps> = memo(function Wrap
 	onDelete,
 	onLoad,
 	onRename,
-	onSetInitial
+	onSetInitial,
+	validateUniqueName
 }: PresetItemProps) {
 
 	const [isEditing, setIsEditing] = useState<boolean>(false);
@@ -45,12 +47,16 @@ export const PresetItem: FunctionComponent<PresetItemProps> = memo(function Wrap
 	const onRenamePreset = useCallback((e: FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 		inputRef.current?.focus();
-		if (!name?.length) {
+		if (preset.name === name) {
+			setIsEditing(false);
+		} else if (!name?.length) {
 			setError("Please provide a valid preset name");
+		} else if (!validateUniqueName(name)) {
+			setError(`A preset with the name "${name}" already exists`);
 		} else {
 			onRename(preset, name);
 		}
-	}, [name, onRename, preset, setError, inputRef]);
+	}, [name, onRename, preset, setError, inputRef, setIsEditing, validateUniqueName]);
 
 	const onDeletePreset = useCallback((_e: MouseEvent<HTMLButtonElement>) => {
 		onDelete(preset);

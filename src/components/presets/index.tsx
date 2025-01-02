@@ -46,6 +46,10 @@ const PresetDrawer: FunctionComponent<PresetDrawerProps> = memo(function Wrapped
 		});
 	}, [onDeletePreset]);
 
+	const validateUniquePresetName = useCallback((name: string): boolean => {
+		return !presets.find(p => p.name === name);
+	}, [presets]);
+
 	return (
 		<Drawer
 			opened={ open }
@@ -58,7 +62,17 @@ const PresetDrawer: FunctionComponent<PresetDrawerProps> = memo(function Wrapped
 			<DrawerSectionTitle>Saved Presets</DrawerSectionTitle>
 			<Stack gap="sm">
 				{
-					presets.map(preset => <PresetItem key={ preset.id } preset={ preset } onLoad={ onLoadPreset } onDelete={ onTriggerDeletePreset } onRename = { onRenamePreset } onSetInitial = { onSetInitialPreset }/> )
+					presets.map(preset => (
+						<PresetItem
+							key={ preset.id }
+							preset={ preset }
+							onLoad={ onLoadPreset }
+							onDelete={ onTriggerDeletePreset }
+							onRename = { onRenamePreset }
+							onSetInitial = { onSetInitialPreset }
+							validateUniqueName={ validateUniquePresetName }
+						/>
+					))
 				}
 			</Stack>
 		</Drawer>
