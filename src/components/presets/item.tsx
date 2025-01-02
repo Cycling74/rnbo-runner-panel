@@ -73,6 +73,15 @@ export const PresetItem: FunctionComponent<PresetItemProps> = memo(function Wrap
 	}, [toggleEditing]);
 
 	useEffect(() => {
+		if (isEditing && inputRef.current) {
+			inputRef.current.focus();
+		}
+		if (!isEditing) {
+			setError(undefined);
+		}
+	}, [isEditing, inputRef, setError]);
+
+	useEffect(() => {
 		setName(preset.name);
 		setIsEditing(false);
 	}, [preset, setName, setIsEditing]);
