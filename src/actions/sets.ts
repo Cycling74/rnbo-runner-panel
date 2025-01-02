@@ -11,7 +11,7 @@ import { getNodes } from "../selectors/graph";
 import { ParameterRecord } from "../models/parameter";
 import { getPatcherInstance, getPatcherInstanceParamtersSortedByInstanceIdAndIndex } from "../selectors/patchers";
 import { OSCQueryRNBOSetView, OSCQueryRNBOSetViewListState } from "../lib/types";
-import { getGraphSetView, getGraphSetViews } from "../selectors/sets";
+import { getGraphPresets, getGraphSets, getGraphSetView, getGraphSetViews } from "../selectors/sets";
 import { clamp, getUniqueName, instanceAndParamIndicesToSetViewEntry } from "../lib/util";
 import { setInstanceWaitingForMidiMappingOnRemote } from "./patchers";
 
@@ -157,9 +157,13 @@ export const loadGraphSetOnRemote = (set: GraphSetRecord): AppThunk =>
 		}
 	};
 
-export const saveGraphSetOnRemote = (name: string): AppThunk =>
-	(dispatch) => {
+export const saveGraphSetOnRemote = (givenName: string): AppThunk =>
+	(dispatch, getState) => {
 		try {
+
+			const graphSets = getGraphSets(getState());
+			const name = getUniqueName(givenName, graphSets.valueSeq().map(s => s.name).toArray());
+
 			const message = {
 				address: "/rnbo/inst/control/sets/save",
 				args: [
@@ -247,9 +251,13 @@ export const loadSetPresetOnRemote = (preset: PresetRecord): AppThunk =>
 		}
 	};
 
-export const saveSetPresetToRemote = (name: string): AppThunk =>
-	(dispatch) => {
+export const saveSetPresetToRemote = (givenName: string): AppThunk =>
+	(dispatch, getState) => {
 		try {
+
+			const setPresets = getGraphPresets(getState());
+			const name = getUniqueName(givenName, setPresets.valueSeq().map(p => p.name).toArray());
+
 			const message = {
 				address: "/rnbo/inst/control/sets/presets/save",
 				args: [
