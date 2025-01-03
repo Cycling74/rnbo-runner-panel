@@ -5,16 +5,12 @@ import { GraphSetAction, GraphSetActionType } from "../actions/sets";
 
 export type SetState = {
 	sets: ImmuMap<GraphSetRecord["id"], GraphSetRecord>;
-	latest: string;
 	presets: ImmuMap<PresetRecord["id"], PresetRecord>;
-	presetLatest: string;
 };
 
 export const sets = (state: SetState = {
 	sets: ImmuMap<GraphSetRecord["id"], GraphSetRecord>(),
-	latest: "",
-	presets: ImmuMap<GraphSetRecord["id"], PresetRecord>(),
-	presetLatest: ""
+	presets: ImmuMap<GraphSetRecord["id"], PresetRecord>()
 }, action: GraphSetAction): SetState => {
 
 	switch (action.type) {
@@ -24,7 +20,12 @@ export const sets = (state: SetState = {
 
 			return {
 				...state,
-				sets: ImmuMap<GraphSetRecord["id"], GraphSetRecord>(sets.map(p => [p.id, p.setLatest(p.name === state.latest)]))
+				sets: ImmuMap<GraphSetRecord["id"], GraphSetRecord>().withMutations(map => {
+					sets.forEach(s => map.set(s.id, s));
+					for (const set of sets) {
+						map.set(set.id, set)
+					}
+				})
 			};
 		}
 
@@ -33,7 +34,9 @@ export const sets = (state: SetState = {
 
 			return {
 				...state,
-				presets: ImmuMap<PresetRecord["id"], PresetRecord>(presets.map(p => [p.id, p.setLatest(p.name === state.presetLatest)]))
+				presets: ImmuMap<PresetRecord["id"], PresetRecord>().withMutations(map => {
+					presets.forEach(p => map.set(p.id, p));
+				})
 			};
 		}
 
@@ -41,8 +44,7 @@ export const sets = (state: SetState = {
 			const { name } = action.payload;
 			return {
 				...state,
-				presetLatest: name,
-				presets: state.presets.map(preset => { return preset.setLatest(preset.name === name); })
+				presets: state.presets.map(preset => preset.setLatest(preset.name === name))
 			};
 		}
 
@@ -50,8 +52,15 @@ export const sets = (state: SetState = {
 			const { name } = action.payload;
 			return {
 				...state,
-				latest: name,
-				sets: state.sets.map(set => { return set.setLatest(set.name === name); })
+				sets: state.sets.map(set => set.setLatest(set.name === name))
+			};
+		}
+
+		case GraphSetActionType.SET_SET_INITIAL: {
+			const { name } = action.payload;
+			return {
+				...state,
+				sets: state.sets.map(set => set.setInitial(set.name === name))
 			};
 		}
 

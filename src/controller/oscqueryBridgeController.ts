@@ -8,7 +8,7 @@ import { OSCQueryRNBOState, OSCQueryRNBOInstance, OSCQueryRNBOJackConnections, O
 import { addPatcherNode, deletePortAliases, initConnections, initNodes, removePatcherNode, setPortAliases, updateSetMetaFromRemote, updateSourcePortConnections, updateSystemOrControlPortInfo } from "../actions/graph";
 import { initPatchers } from "../actions/patchers";
 import { initRunnerConfig, updateRunnerConfig } from "../actions/settings";
-import { initSets, setGraphSetLatest, initSetPresets, setGraphSetPresetLatest } from "../actions/sets";
+import { initSets, setGraphSetLatest, initSetPresets, setGraphSetPresetLatest, setGraphSetInitial } from "../actions/sets";
 import { initDataFiles } from "../actions/datafiles";
 import { sleep } from "../lib/util";
 import { getPatcherNodeByIndex } from "../selectors/graph";
@@ -244,6 +244,7 @@ export class OSCQueryBridgeControllerPrivate {
 		// get sets info
 		dispatch(initSets(state.CONTENTS.inst?.CONTENTS?.control?.CONTENTS?.sets?.CONTENTS?.load?.RANGE?.[0]?.VALS || []));
 		dispatch(setGraphSetLatest(state.CONTENTS.inst?.CONTENTS?.control?.CONTENTS?.sets?.CONTENTS?.current?.CONTENTS?.name?.VALUE || ""));
+		dispatch(setGraphSetInitial(state.CONTENTS.inst?.CONTENTS?.control?.CONTENTS?.sets?.CONTENTS?.initial?.VALUE || ""));
 		dispatch(initSetPresets(state.CONTENTS.inst?.CONTENTS?.control?.CONTENTS?.sets?.CONTENTS?.presets?.CONTENTS?.load?.RANGE?.[0]?.VALS || []));
 		dispatch(setGraphSetPresetLatest(state.CONTENTS.inst?.CONTENTS?.control?.CONTENTS?.sets?.CONTENTS?.presets?.CONTENTS?.loaded?.VALUE || ""));
 
@@ -448,11 +449,11 @@ export class OSCQueryBridgeControllerPrivate {
 		// console.log("ATTRIBUTES_CHANGED", data);
 		if (data.FULL_PATH === "/rnbo/inst/control/sets/load" && data.RANGE !== undefined) {
 			const sets: Array<string> = data.RANGE?.[0]?.VALS || [];
-			dispatch(initSets(sets));
+			return void dispatch(initSets(sets));
 		}
 		if (data.FULL_PATH === setsPresetsLoadPath) {
 			const names: Array<string> = data.RANGE?.[0]?.VALS || [];
-			dispatch(initSetPresets(names));
+			return void dispatch(initSetPresets(names));
 		}
 	}
 
@@ -534,6 +535,10 @@ export class OSCQueryBridgeControllerPrivate {
 
 		if (packet.address === "/rnbo/inst/control/sets/current/name") {
 			return void dispatch(setGraphSetLatest((packet.args as unknown as [string])?.[0] || ""));
+		}
+
+		if (packet.address === "/rnbo/inst/control/sets/initial") {
+			return void dispatch(setGraphSetInitial((packet.args as unknown as [string])?.[0] || ""));
 		}
 
 		const metaMatch = packet.address.match(setMetaPathMatcher);

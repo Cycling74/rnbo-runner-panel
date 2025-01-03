@@ -18,7 +18,7 @@ import {
 	triggerEditorFitView
 } from "../actions/editor";
 import SetsDrawer from "../components/sets";
-import { destroySetPresetOnRemote, loadSetPresetOnRemote, saveSetPresetToRemote, renameSetPresetOnRemote, clearGraphSetOnRemote, destroyGraphSetOnRemote, loadGraphSetOnRemote, renameGraphSetOnRemote, saveGraphSetOnRemote } from "../actions/sets";
+import { destroySetPresetOnRemote, loadSetPresetOnRemote, saveSetPresetToRemote, renameSetPresetOnRemote, clearGraphSetOnRemote, destroyGraphSetOnRemote, loadGraphSetOnRemote, renameGraphSetOnRemote, saveGraphSetOnRemote, setInitialGraphSetOnRemote } from "../actions/sets";
 import { destroyPatcherOnRemote, renamePatcherOnRemote } from "../actions/patchers";
 import { PresetRecord } from "../models/preset";
 import { getGraphSetPresetsSortedByName, getGraphSetsSortedByName } from "../selectors/sets";
@@ -135,6 +135,10 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 		closeSetDrawer();
 	}, [dispatch, closeSetDrawer]);
 
+	const onSetInitialSet = useCallback((set: GraphSetRecord) => {
+		dispatch(setInitialGraphSetOnRemote(set));
+	}, [dispatch]);
+
 	const onRenameSet = useCallback((set: GraphSetRecord, name: string) => {
 		dispatch(renameGraphSetOnRemote(set, name));
 	}, [dispatch]);
@@ -250,6 +254,7 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 				onClearSet={ onClearSet }
 				onDeleteSet={ onDeleteSet }
 				onLoadSet={ onLoadSet }
+				onSetInitialSet={ onSetInitialSet }
 				onRenameSet={ onRenameSet }
 				onSaveSet={ onSaveSet }
 				onSaveSetAs={ onSaveSetAs }

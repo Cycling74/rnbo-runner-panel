@@ -8,12 +8,15 @@ import { NotificationLevel } from "../models/notification";
 import { updateSetMetaOnRemoteFromNodes } from "./meta";
 import { NodeType } from "../models/graph";
 import { getNodes } from "../selectors/graph";
+import { getInitialGraphSet, getLatestGraphPreset, getLatestGraphSet } from "../selectors/sets";
 
 export enum GraphSetActionType {
 	INIT_SETS = "INIT_SETS",
-	SET_SET_PRESET_LATEST = "SET_SET_PRESET_LATEST",
 	INIT_SET_PRESETS = "INIT_SET_PRESETS",
+
+	SET_SET_PRESET_LATEST = "SET_SET_PRESET_LATEST",
 	SET_SET_LATEST = "SET_PRESET_LATEST",
+	SET_SET_INITIAL = "SET_SET_INITIAL"
 }
 
 export interface IInitGraphSets extends ActionBase {
@@ -25,6 +28,12 @@ export interface IInitGraphSets extends ActionBase {
 
 export interface ISetGraphSetsLatest extends ActionBase {
 	type: GraphSetActionType.SET_SET_LATEST;
+	payload: {
+		name: string
+	}
+}
+export interface ISetGraphSetsInitial extends ActionBase {
+	type: GraphSetActionType.SET_SET_INITIAL;
 	payload: {
 		name: string
 	}
@@ -44,16 +53,27 @@ export interface ISetGraphSetPresetsLatest extends ActionBase {
 	}
 }
 
-export type GraphSetAction = IInitGraphSets | ISetGraphSetsLatest | IInitGraphSetPresets | ISetGraphSetPresetsLatest;
+export type GraphSetAction = IInitGraphSets | ISetGraphSetsLatest | ISetGraphSetsInitial | IInitGraphSetPresets | ISetGraphSetPresetsLatest;
 
-export const initSets = (names: string[]): GraphSetAction => {
-	return {
-		type: GraphSetActionType.INIT_SETS,
-		payload: {
-			sets: names.map(n => GraphSetRecord.fromDescription(n))
-		}
+export const initSets = (names: string[]): AppThunk =>
+	(dispatch, getState) => {
+
+		const state = getState();
+		const currentInitial = getInitialGraphSet(state);
+		const currentLatest = getLatestGraphSet(state);
+
+		const action: IInitGraphSets = {
+			type: GraphSetActionType.INIT_SETS,
+			payload: {
+				sets: names.map(name => GraphSetRecord.fromDescription(
+					name,
+					currentInitial?.name === name,
+					currentLatest?.name === name
+				))
+			}
+		};
+		dispatch(action);
 	};
-};
 
 export const setGraphSetLatest = (name: string): GraphSetAction => {
 	return {
@@ -64,14 +84,33 @@ export const setGraphSetLatest = (name: string): GraphSetAction => {
 	};
 };
 
-export const initSetPresets = (names: string[]): GraphSetAction => {
+export const setGraphSetInitial = (name: string): GraphSetAction => {
 	return {
-		type: GraphSetActionType.INIT_SET_PRESETS,
+		type: GraphSetActionType.SET_SET_INITIAL,
 		payload: {
-			presets: names.map(n => PresetRecord.fromDescription(n, n === "initial"))
+			name
 		}
 	};
 };
+
+export const initSetPresets = (names: string[]): AppThunk =>
+	(dispatch, getState) => {
+
+		const state = getState();
+		const currentLatest = getLatestGraphPreset(state);
+
+		const action: IInitGraphSetPresets = {
+			type: GraphSetActionType.INIT_SET_PRESETS,
+			payload: {
+				presets: names.map(name => PresetRecord.fromDescription(
+					name,
+					false,
+					currentLatest?.name === name
+				))
+			}
+		};
+		dispatch(action);
+	};
 
 export const setGraphSetPresetLatest = (name: string): GraphSetAction => {
 	return {
@@ -141,6 +180,26 @@ export const saveGraphSetOnRemote = (name: string): AppThunk =>
 				message: "Please check the consolor for further details."
 			}));
 			console.error(err);
+		}
+	};
+
+export const setInitialGraphSetOnRemote = (set: GraphSetRecord): AppThunk =>
+	(dispatch) => {
+		try {
+			const message = {
+				address: "/rnbo/inst/control/sets/initial",
+				args: [
+					{ type: "s", value: set.name }
+				]
+			};
+			oscQueryBridge.sendPacket(writePacket(message));
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: `Error while trying to set initial set to ${set.name}`,
+				message: "Please check the console for further details."
+			}));
+			console.log(err);
 		}
 	};
 

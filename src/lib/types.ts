@@ -376,6 +376,7 @@ export type OSCQueryRNBOInstancesControlState = OSCQueryBaseNode & {
 						name: OSCQuerySingleValue<OSCQueryValueType.String, string>;
 					}
 				};
+				initial?: OSCQueryStringValue;
 			}
 		};
 	};

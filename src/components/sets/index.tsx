@@ -15,6 +15,7 @@ export type SetsDrawerProps = {
 	onClearSet: () => any;
 	onDeleteSet: (set: GraphSetRecord) => any;
 	onLoadSet: (set: GraphSetRecord) => any;
+	onSetInitialSet: (set: GraphSetRecord) => any;
 	onRenameSet: (set: GraphSetRecord, name: string) => any;
 	onSaveSet: (name: string) => any;
 	onSaveSetAs: (set: GraphSetRecord) => any;
@@ -30,6 +31,7 @@ const SetsDrawer: FunctionComponent<SetsDrawerProps> = memo(function WrappedSets
 	onClearSet,
 	onDeleteSet,
 	onLoadSet,
+	onSetInitialSet,
 	onRenameSet,
 	onSaveSet,
 	onSaveSetAs
@@ -88,7 +90,17 @@ const SetsDrawer: FunctionComponent<SetsDrawerProps> = memo(function WrappedSets
 								<DrawerSectionTitle>Saved Graph Sets</DrawerSectionTitle>
 								<Stack gap="sm" >
 									{
-										sets.map(set => <GraphSetItem key={ set.id } set={ set } onRename={ onRenameSet } onLoad={ onLoadSet } onDelete={ onTriggerDeleteSet } onSave={ onSaveSetAs }/> )
+										sets.map(set => (
+											<GraphSetItem
+												key={ set.id }
+												set={ set }
+												onRename={ onRenameSet }
+												onSetInitial={ onSetInitialSet }
+												onLoad={ onLoadSet }
+												onDelete={ onTriggerDeleteSet }
+												onSave={ onSaveSetAs }
+											/>
+										))
 									}
 								</Stack>
 							</Flex>

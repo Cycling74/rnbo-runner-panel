@@ -1,10 +1,10 @@
 import { ChangeEvent, FormEvent, FunctionComponent, KeyboardEvent, MouseEvent, memo, useCallback, useEffect, useRef, useState } from "react";
 import { GraphSetRecord } from "../../models/set";
-import { ActionIcon, Button, Group, Menu, TextInput, Tooltip } from "@mantine/core";
+import { ActionIcon, Button, Group, Indicator, Menu, TextInput, Tooltip } from "@mantine/core";
 import classes from "./sets.module.css";
 import { keyEventIsValidForName, replaceInvalidNameChars } from "../../lib/util";
 import { IconElement } from "../elements/icon";
-import { mdiCheck, mdiClose, mdiContentSave, mdiDotsVertical, mdiHistory, mdiPencil, mdiTrashCan } from "@mdi/js";
+import { mdiCheck, mdiClose, mdiContentSave, mdiDotsVertical, mdiHistory, mdiPencil, mdiStar, mdiTrashCan } from "@mdi/js";
 
 export type GraphSetItemProps = {
 	set: GraphSetRecord;
@@ -12,6 +12,7 @@ export type GraphSetItemProps = {
 	onLoad: (set: GraphSetRecord) => any;
 	onRename: (set: GraphSetRecord, name: string) => any;
 	onSave: (set: GraphSetRecord) => any;
+	onSetInitial: (set: GraphSetRecord) => any;
 };
 
 export const GraphSetItem: FunctionComponent<GraphSetItemProps> = memo(function WrappedGraphSet({
@@ -19,7 +20,8 @@ export const GraphSetItem: FunctionComponent<GraphSetItemProps> = memo(function 
 	onDelete,
 	onLoad,
 	onRename,
-	onSave
+	onSave,
+	onSetInitial
 }: GraphSetItemProps) {
 
 	const [isEditing, setIsEditing] = useState<boolean>(false);
@@ -55,12 +57,16 @@ export const GraphSetItem: FunctionComponent<GraphSetItemProps> = memo(function 
 		onSave(set);
 	}, [onSave, set]);
 
+	const onSetAsInitial = useCallback((_e: MouseEvent<HTMLButtonElement>) => {
+		onSetInitial(set);
+	}, [onSetInitial, set]);
+
 	const onChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
 		setName(replaceInvalidNameChars(e.target.value));
 		if (error && e.target.value?.length) setError(undefined);
 	}, [setName, error, setError]);
 
-	const onKeyDown = useCallback((e: KeyboardEvent<HTMLInputElement>) => {
+	const onKeyDown = useCallback((e: KeyboardEvent<HTMLInputElement>): void => {
 		if (e.key === "Escape") {
 			e.preventDefault();
 			e.stopPropagation();
@@ -112,20 +118,34 @@ export const GraphSetItem: FunctionComponent<GraphSetItemProps> = memo(function 
 	) : (
 
 		<Group gap="xs">
-			<Button
+			<Indicator
+				position="top-end"
 				className={ classes.setItemButton }
-				justify="flex-start"
-				size="sm"
-				variant="default"
-				leftSection={ set?.latest ? (
-					<Tooltip label="This set was loaded last" >
-						<IconElement path={ mdiHistory } />
+				color="yellow"
+				disabled={ !set.initial }
+				label={(
+					<Tooltip label="This set loads on startup" >
+						<IconElement path={ mdiStar } size="0.8em" />
 					</Tooltip>
-				) : null }
-				onClick={ onLoadSet }
+				)}
+				size={ 18 }
+				withBorder
 			>
-				{ name }
-			</Button>
+				<Button
+					fullWidth
+					justify="flex-start"
+					size="sm"
+					variant="default"
+					leftSection={ set?.latest ? (
+						<Tooltip label="This set was loaded last" >
+							<IconElement path={ mdiHistory } />
+						</Tooltip>
+					) : null }
+					onClick={ onLoadSet }
+				>
+					{ name }
+				</Button>
+			</Indicator>
 			<Menu position="bottom-end" >
 				<Menu.Target>
 					<ActionIcon variant="subtle" color="gray">
@@ -136,6 +156,7 @@ export const GraphSetItem: FunctionComponent<GraphSetItemProps> = memo(function 
 					<Menu.Label>Graph Set Actions</Menu.Label>
 					<Menu.Item leftSection={ <IconElement path={ mdiContentSave } /> } onClick={ onSaveSet } >{ set.latest ? "Save Changes" : "Overwrite" }</Menu.Item>
 					<Menu.Item leftSection={ <IconElement path={ mdiPencil } /> } onClick={ toggleEditing } >Rename</Menu.Item>
+					<Menu.Item leftSection={ <IconElement path={ mdiStar } /> } onClick={ onSetAsInitial } >Load on Startup</Menu.Item>
 					<Menu.Item color="red" leftSection={ <IconElement path={ mdiTrashCan } /> } onClick={ onDeleteSet } >Delete</Menu.Item>
 				</Menu.Dropdown>
 			</Menu>

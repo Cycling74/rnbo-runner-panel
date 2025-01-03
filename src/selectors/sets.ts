@@ -19,6 +19,24 @@ export const getGraphSet = createSelector(
 	}
 );
 
+export const getLatestGraphSet = createSelector(
+	[
+		getGraphSets
+	],
+	(sets): GraphSetRecord | undefined => {
+		return sets.find(s => s.latest === true) || undefined;
+	}
+);
+
+export const getInitialGraphSet = createSelector(
+	[
+		getGraphSets
+	],
+	(sets): GraphSetRecord | undefined => {
+		return sets.find(s => s.initial === true) || undefined;
+	}
+);
+
 const collator = new Intl.Collator("en-US");
 
 export const getGraphSetsSortedByName = createSelector(
@@ -44,6 +62,15 @@ export const getGraphPreset = createSelector(
 	],
 	(presets, id): PresetRecord | undefined => {
 		return presets.get(id);
+	}
+);
+
+export const getLatestGraphPreset = createSelector(
+	[
+		getGraphPresets
+	],
+	(presets): PresetRecord | undefined => {
+		return presets.find(p => p.latest === true) || undefined;
 	}
 );
 
