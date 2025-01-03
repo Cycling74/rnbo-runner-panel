@@ -22,9 +22,6 @@ export const sets = (state: SetState = {
 				...state,
 				sets: ImmuMap<GraphSetRecord["id"], GraphSetRecord>().withMutations(map => {
 					sets.forEach(s => map.set(s.id, s));
-					for (const set of sets) {
-						map.set(set.id, set)
-					}
 				})
 			};
 		}
