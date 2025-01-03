@@ -31,6 +31,7 @@ export enum ConfigKey {
 	PatcherMIDIProgramChangeChannel = "patcher_midi_program_change_channel",
 	SetMIDIProgramChangeChannel = "set_midi_program_change_channel",
 	SetPresetMIDIProgramChangeChannel = "set_preset_midi_program_change_channel",
+	SetPresetDefaultPatcherNamed= "set_preset_default_patcher_named",
 	ControlAutoConnectMIDI = "control_auto_connect_midi"
 
 }
@@ -157,6 +158,11 @@ const controlConfigDetails: Partial<Record<ConfigKey, Omit<ConfigRecordProps, "i
 		path: `/rnbo/config/${ConfigKey.PatcherMIDIProgramChangeChannel}`,
 		tab: SettingsTab.Control,
 		title: "MIDI Program Change Channel: Select Patcher"
+	},
+	[ConfigKey.SetPresetDefaultPatcherNamed]: {
+		path: `/rnbo/config/${ConfigKey.SetPresetDefaultPatcherNamed}`,
+		tab: SettingsTab.Control,
+		title: "Set Presets Scope"
 	},
 	[ConfigKey.ControlAutoConnectMIDI]: {
 		path: `/rnbo/config/${ConfigKey.ControlAutoConnectMIDI}`,
