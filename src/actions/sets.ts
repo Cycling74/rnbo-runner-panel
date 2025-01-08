@@ -251,12 +251,14 @@ export const loadSetPresetOnRemote = (preset: PresetRecord): AppThunk =>
 		}
 	};
 
-export const saveSetPresetToRemote = (givenName: string): AppThunk =>
+export const saveSetPresetToRemote = (givenName: string, ensureUniqueName: boolean = true): AppThunk =>
 	(dispatch, getState) => {
 		try {
 
 			const setPresets = getGraphPresets(getState());
-			const name = getUniqueName(givenName, setPresets.valueSeq().map(p => p.name).toArray());
+			const name = ensureUniqueName
+				? getUniqueName(givenName, setPresets.valueSeq().map(p => p.name).toArray())
+				: givenName;
 
 			const message = {
 				address: "/rnbo/inst/control/sets/presets/save",
