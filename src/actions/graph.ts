@@ -15,6 +15,7 @@ import { defaultNodeGap, nodeDefaultWidth, nodeHeaderHeight } from "../lib/const
 import { getGraphEditorInstance } from "../selectors/editor";
 import { ParameterRecord } from "../models/parameter";
 import { MessagePortRecord } from "../models/messageport";
+import { deserializeSetMeta, updateSetMetaOnRemoteFromNodes } from "./meta";
 
 const getPatcherOrControlNodeCoordinates = (node: GraphPatcherNodeRecord | GraphControlNodeRecord, nodes: GraphNodeRecord[]): { x: number, y: number } => {
 
@@ -30,18 +31,6 @@ const getPatcherOrControlNodeCoordinates = (node: GraphPatcherNodeRecord | Graph
 	}
 
 	return { x: nodeDefaultWidth + defaultNodeGap, y };
-};
-
-const deserializeSetMeta = (metaString: string): OSCQuerySetMeta => {
-	// I don't know why we're getting strings of length 1 but, they can't be valid JSON anyway
-	if (metaString && metaString.length > 1) {
-		try {
-			return JSON.parse(metaString) as OSCQuerySetMeta;
-		} catch (err) {
-			console.warn(`Failed to parse Set Meta when creating new node: ${err.message}`);
-		}
-	}
-	return { nodes: {} };
 };
 
 export enum GraphActionType {
@@ -608,7 +597,7 @@ export const updateSystemOrControlPortInfo = (type: ConnectionType, direction: P
 
 // Trigger Updates on remote OSCQuery Runner
 export const unloadPatcherNodeByIndexOnRemote = (instanceIndex: number): AppThunk =>
-	(dispatch) => {
+	(dispatch, getState) => {
 		try {
 
 			const message = {
@@ -618,6 +607,10 @@ export const unloadPatcherNodeByIndexOnRemote = (instanceIndex: number): AppThun
 				]
 			};
 			oscQueryBridge.sendPacket(writePacket(message));
+
+			const state = getState();
+			const nodes = getNodes(state);
+			dispatch(updateSetMetaOnRemoteFromNodes(nodes.filterNot(n => n.type === NodeType.Patcher && n.index === instanceIndex)));
 		} catch (err) {
 			dispatch(showNotification({
 				level: NotificationLevel.error,
