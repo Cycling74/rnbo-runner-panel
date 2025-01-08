@@ -19,7 +19,7 @@ import { IconElement } from "../components/elements/icon";
 export default function SetViews() {
 
 	const [setViewDrawerOpen, { open: openSetViewDrawer, close: closeSetViewDrawer }] = useDisclosure(false);
-	const [addParametersViewOpen, { open: openAddParametersView, close: closeAddParamtersView }] = useDisclosure(false);
+	const [addParametersViewOpen, { open: openAddParametersView, close: closeAddParametersView }] = useDisclosure(false);
 	const dispatch = useAppDispatch();
 
 	const [
@@ -169,7 +169,7 @@ export default function SetViews() {
 			{
 				currentSetView && addParametersViewOpen ? (
 					<SetViewParameterModal
-						onClose={ closeAddParamtersView }
+						onClose={ closeAddParametersView }
 						setView={ currentSetView }
 					/>
 				) : null

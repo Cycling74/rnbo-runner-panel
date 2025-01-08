@@ -11,7 +11,7 @@ import { PatcherInstanceRecord } from "../../models/instance";
 import { OrderedSet as ImmuOrderedSet, Seq } from "immutable";
 import { ParameterRecord } from "../../models/parameter";
 import { ResponsiveButton } from "../elements/responsiveButton";
-import { addAllParamtersToSetView, addParameterToSetView, removeAllParamtersFromSetView, removeParameterFromSetView } from "../../actions/sets";
+import { addAllParametersToSetView, addParameterToSetView, removeAllParametersFromSetView, removeParameterFromSetView } from "../../actions/sets";
 import classes from "./setviews.module.css";
 import { modals } from "@mantine/modals";
 
@@ -112,7 +112,7 @@ export const SetViewParameterModal: FC<SetViewParameterModalProps> = memo(functi
 				</Text>
 			),
 			labels: { confirm: "Add", cancel: "Cancel" },
-			onConfirm: () => dispatch(addAllParamtersToSetView(setView))
+			onConfirm: () => dispatch(addAllParametersToSetView(setView))
 		});
 
 	}, [dispatch, setView]);
@@ -128,7 +128,7 @@ export const SetViewParameterModal: FC<SetViewParameterModalProps> = memo(functi
 			),
 			labels: { confirm: "Remove", cancel: "Cancel" },
 			confirmProps: { color: "red" },
-			onConfirm: () => dispatch(removeAllParamtersFromSetView(setView))
+			onConfirm: () => dispatch(removeAllParametersFromSetView(setView))
 		});
 	}, [dispatch, setView]);
 

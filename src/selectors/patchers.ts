@@ -48,7 +48,7 @@ export const getPatcherInstance = createSelector(
 
 export const getPatcherInstanceParameters = (state: RootStateType): ImmuMap<ParameterRecord["id"], ParameterRecord> => state.patchers.instanceParameters;
 
-export const getPatcherInstanceParamtersSortedByInstanceIdAndIndex = createSelector(
+export const getPatcherInstanceParametersSortedByInstanceIdAndIndex = createSelector(
 	[
 		getPatcherInstanceParameters
 	],
