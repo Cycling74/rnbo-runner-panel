@@ -92,8 +92,25 @@ export default function Instance() {
 		dispatch(loadPresetOnRemoteInstance(currentInstance, preset));
 	}, [dispatch, currentInstance]);
 
-	const onSavePreset = useCallback((name: string) => {
+	const onCreatePreset = useCallback((name: string) => {
 		dispatch(savePresetToRemoteInstance(currentInstance, name));
+	}, [dispatch, currentInstance]);
+
+	const onSavePreset = useCallback((preset: PresetRecord) => {
+		modals.openConfirmModal({
+			title: "Overwrite Preset",
+			centered: true,
+			children: (
+				<Text size="sm">
+					Are you sure you want to overwrite the preset named { `"${preset.name}"` } with the current values?
+				</Text>
+			),
+			labels: { confirm: "Overwrite", cancel: "Cancel" },
+			confirmProps: { color: "red" },
+			onConfirm: () => {
+				dispatch(savePresetToRemoteInstance(currentInstance, preset.name, false));
+			}
+		});
 	}, [dispatch, currentInstance]);
 
 	const onDeletePreset = useCallback((preset: PresetRecord) => {
@@ -178,8 +195,9 @@ export default function Instance() {
 				onClose={ closePresetDrawer }
 				onDeletePreset={ onDeletePreset }
 				onLoadPreset={ onLoadPreset }
-				onSavePreset={ onSavePreset }
+				onCreatePreset={ onCreatePreset }
 				onRenamePreset={ onRenamePreset }
+				onSavePreset={ onSavePreset }
 				onSetInitialPreset={ onSetInitialPreset }
 				presets={ currentInstance.presets.valueSeq() }
 			/>

@@ -14,7 +14,8 @@ export type PresetDrawerProps = {
 	onClose: () => any;
 	onDeletePreset: (preset: PresetRecord) => any;
 	onLoadPreset: (preset: PresetRecord) => any;
-	onSavePreset: (name: string) => any;
+	onCreatePreset: (name: string) => any;
+	onSavePreset: (preset: PresetRecord) => any;
 	onRenamePreset: (preset: PresetRecord, name: string) => any;
 	onSetInitialPreset?: (set: PresetRecord) => any;
 	presets: Seq.Indexed<PresetRecord>;
@@ -23,6 +24,7 @@ export type PresetDrawerProps = {
 const PresetDrawer: FunctionComponent<PresetDrawerProps> = memo(function WrappedPresetDrawer({
 	open,
 	onClose,
+	onCreatePreset,
 	onDeletePreset,
 	onLoadPreset,
 	onSavePreset,
@@ -57,7 +59,7 @@ const PresetDrawer: FunctionComponent<PresetDrawerProps> = memo(function Wrapped
 			position="right"
 			title={ <Group gap="xs"><IconElement path={ mdiCamera }/> Presets</Group> }
 		>
-			<SavePresetForm onSave={ onSavePreset } />
+			<SavePresetForm onSave={ onCreatePreset } />
 			<Divider mt="lg" />
 			<DrawerSectionTitle>Saved Presets</DrawerSectionTitle>
 			<Stack gap="sm">
@@ -68,7 +70,8 @@ const PresetDrawer: FunctionComponent<PresetDrawerProps> = memo(function Wrapped
 							preset={ preset }
 							onLoad={ onLoadPreset }
 							onDelete={ onTriggerDeletePreset }
-							onRename = { onRenamePreset }
+							onRename={ onRenamePreset }
+							onSave={ onSavePreset }
 							onSetInitial = { onSetInitialPreset }
 							validateUniqueName={ validateUniquePresetName }
 						/>

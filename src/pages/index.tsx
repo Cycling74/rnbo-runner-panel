@@ -169,8 +169,25 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 		dispatch(loadSetPresetOnRemote(preset));
 	}, [dispatch]);
 
-	const onSavePreset = useCallback((name: string) => {
+	const onCreatePreset = useCallback((name: string) => {
 		dispatch(saveSetPresetToRemote(name));
+	}, [dispatch]);
+
+	const onSavePreset = useCallback((preset: PresetRecord) => {
+		modals.openConfirmModal({
+			title: "Overwrite Preset",
+			centered: true,
+			children: (
+				<Text size="sm">
+					Are you sure you want to overwrite the preset named { `"${preset.name}"` } with the current values?
+				</Text>
+			),
+			labels: { confirm: "Overwrite", cancel: "Cancel" },
+			confirmProps: { color: "red" },
+			onConfirm: () => {
+				dispatch(saveSetPresetToRemote(preset.name, false));
+			}
+		});
 	}, [dispatch]);
 
 	const onDeletePreset = useCallback((preset: PresetRecord) => {
@@ -261,8 +278,9 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 				onClose={ closePresetDrawer }
 				onDeletePreset={ onDeletePreset }
 				onLoadPreset={ onLoadPreset }
-				onSavePreset={ onSavePreset }
+				onCreatePreset={ onCreatePreset }
 				onRenamePreset={ onRenamePreset }
+				onSavePreset={ onSavePreset }
 				presets={ graphPresets }
 			/>
 		</>
