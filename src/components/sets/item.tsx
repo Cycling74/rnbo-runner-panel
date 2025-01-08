@@ -39,14 +39,15 @@ export const GraphSetItem: FunctionComponent<GraphSetItemProps> = memo(function 
 	const onRenameSet = useCallback((e: FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 		inputRef.current?.focus();
-		if (set.name === name) {
+		const trimmedName = name.trim();
+		if (set.name === trimmedName) {
 			setIsEditing(false);
-		} else if (!name?.length) {
+		} else if (!trimmedName?.length) {
 			setError("Please provide a valid set name");
-		} else if (!validateUniqueName(name)) {
-			setError((`A set with the name "${name} already exists"`));
+		} else if (!validateUniqueName(trimmedName)) {
+			setError((`A set with the name "${trimmedName} already exists"`));
 		} else {
-			onRename(set, name);
+			onRename(set, trimmedName);
 		}
 	}, [name, onRename, set, setError, inputRef, setIsEditing, validateUniqueName]);
 

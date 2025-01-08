@@ -20,11 +20,12 @@ export const SavePresetForm: FunctionComponent<SavePresetFormProps> = memo(funct
 
 	const onSavePreset = (e: FormEvent<HTMLFormElement>): void => {
 		e.preventDefault();
-		if (!name?.length) {
+		const trimmedName = name.trim();
+		if (!trimmedName?.length) {
 			setError("Please provide a valid preset name");
 		} else {
 			setError(undefined);
-			onSave(name);
+			onSave(trimmedName);
 			setName("");
 		}
 	};

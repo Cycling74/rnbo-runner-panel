@@ -19,11 +19,12 @@ export const SaveGraphSetForm: FunctionComponent<SaveGraphSetFormProps> = memo(f
 
 	const onSaveSet = (e: FormEvent<HTMLFormElement>): void => {
 		e.preventDefault();
-		if (!name?.length) {
+		const trimmedName = name.trim();
+		if (!trimmedName?.length) {
 			setError("Please provide a valid set name");
 		} else {
 			setError(undefined);
-			onSave(name);
+			onSave(trimmedName);
 			setName("");
 		}
 	};
