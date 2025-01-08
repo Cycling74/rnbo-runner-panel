@@ -48,7 +48,7 @@ export const GraphSetItem: FunctionComponent<GraphSetItemProps> = memo(function 
 		} else {
 			onRename(set, name);
 		}
-	}, [name, onRename, set, setError, inputRef, setIsEditing]);
+	}, [name, onRename, set, setError, inputRef, setIsEditing, validateUniqueName]);
 
 	const onLoadSet = useCallback((e: MouseEvent<HTMLButtonElement>) => {
 		onLoad(set);

@@ -52,7 +52,7 @@ export const GraphSetViewItem: FC<GraphSetViewItemProps> = memo(function Wrapped
 		} else {
 			onRename(setView, name);
 		}
-	}, [name, onRename, setView, setError, setIsEditing]);
+	}, [name, onRename, setView, setError, setIsEditing, validateUniqueName]);
 
 	const onDeleteSetView = useCallback((_e: MouseEvent<HTMLButtonElement>) => {
 		onDelete(setView);
