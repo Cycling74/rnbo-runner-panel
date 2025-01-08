@@ -43,14 +43,15 @@ export const GraphSetViewItem: FC<GraphSetViewItemProps> = memo(function Wrapped
 	const onRenameSetView = useCallback((e: FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 		inputRef.current?.focus();
-		if (setView.name === name) {
+		const trimmedName = name.trim();
+		if (setView.name === trimmedName) {
 			setIsEditing(false);
-		} else if (!name?.length) {
+		} else if (!trimmedName?.length) {
 			setError("Please provide a valid SetView name");
-		} else if (!validateUniqueName(name)) {
-			setError(`A SetView with the name "${name}" already exists`);
+		} else if (!validateUniqueName(trimmedName)) {
+			setError(`A SetView with the name "${trimmedName}" already exists`);
 		} else {
-			onRename(setView, name);
+			onRename(setView, trimmedName);
 		}
 	}, [name, onRename, setView, setError, setIsEditing, validateUniqueName]);
 

@@ -18,9 +18,10 @@ export const CreateSetViewForm: FC<CreateSetViewFormProps> = memo(function Wrapp
 		if (error && e.target.value?.length) setError(undefined);
 	};
 
-	const onSavePreset = (e: FormEvent<HTMLFormElement>): void => {
+	const onSaveSetView = (e: FormEvent<HTMLFormElement>): void => {
 		e.preventDefault();
-		if (!name?.length) {
+		const trimmedName = name.trim();
+		if (!trimmedName?.length) {
 			setError("Please provide a valid SetView name");
 		} else {
 			setError(undefined);
@@ -36,7 +37,7 @@ export const CreateSetViewForm: FC<CreateSetViewFormProps> = memo(function Wrapp
 	}, []);
 
 	return (
-		<form onSubmit={ onSavePreset } >
+		<form onSubmit={ onSaveSetView } >
 			<Group gap="xs" align="flex-end">
 				<TextInput
 					label="Create SetView"
