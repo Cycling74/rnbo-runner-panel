@@ -355,10 +355,13 @@ export const loadPresetOnRemoteInstance = (instance: PatcherInstanceRecord, pres
 		}
 	};
 
-export const savePresetToRemoteInstance = (instance: PatcherInstanceRecord, givenName: string): AppThunk =>
+export const savePresetToRemoteInstance = (instance: PatcherInstanceRecord, givenName: string, ensureUniqueName: boolean = true): AppThunk =>
 	(dispatch) => {
 		try {
-			const name = getUniqueName(givenName, instance.presets.valueSeq().map(p => p.name).toArray());
+			const name = ensureUniqueName
+				? getUniqueName(givenName, instance.presets.valueSeq().map(p => p.name).toArray())
+				: givenName;
+
 			const message = {
 				address: `${instance.path}/presets/save`,
 				args: [
