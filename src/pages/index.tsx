@@ -144,24 +144,20 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 	}, [dispatch]);
 
 	const onSaveSet = useCallback((set: GraphSetRecord) => {
-		if (set.latest) {
-			dispatch(saveGraphSetOnRemote(set.name));
-		} else {
-			modals.openConfirmModal({
-				title: "Overwrite Set",
-				centered: true,
-				children: (
-					<Text size="sm">
-						Are you sure you want to overwrite the set named { `"${set.name}"` }?
-					</Text>
-				),
-				labels: { confirm: "Overwrite", cancel: "Cancel" },
-				confirmProps: { color: "red" },
-				onConfirm: () => {
-					dispatch(saveGraphSetOnRemote(set.name));
-				}
-			});
-		}
+		modals.openConfirmModal({
+			title: "Overwrite Set",
+			centered: true,
+			children: (
+				<Text size="sm">
+					Are you sure you want to overwrite the set named { `"${set.name}"` }?
+				</Text>
+			),
+			labels: { confirm: "Overwrite", cancel: "Cancel" },
+			confirmProps: { color: "red" },
+			onConfirm: () => {
+				dispatch(saveGraphSetOnRemote(set.name, false));
+			}
+		});
 	}, [dispatch]);
 
 	// Presets

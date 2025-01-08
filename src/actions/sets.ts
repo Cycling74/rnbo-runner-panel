@@ -157,12 +157,14 @@ export const loadGraphSetOnRemote = (set: GraphSetRecord): AppThunk =>
 		}
 	};
 
-export const saveGraphSetOnRemote = (givenName: string): AppThunk =>
+export const saveGraphSetOnRemote = (givenName: string, ensureUniqueName: boolean = true): AppThunk =>
 	(dispatch, getState) => {
 		try {
 
 			const graphSets = getGraphSets(getState());
-			const name = getUniqueName(givenName, graphSets.valueSeq().map(s => s.name).toArray());
+			const name = ensureUniqueName
+				? getUniqueName(givenName, graphSets.valueSeq().map(s => s.name).toArray())
+				: givenName;
 
 			const message = {
 				address: "/rnbo/inst/control/sets/save",
