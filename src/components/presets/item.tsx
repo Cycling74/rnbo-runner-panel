@@ -53,14 +53,15 @@ export const PresetItem: FunctionComponent<PresetItemProps> = memo(function Wrap
 	const onRenamePreset = useCallback((e: FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 		inputRef.current?.focus();
-		if (preset.name === name) {
+		const trimmedName = name.trim();
+		if (preset.name === trimmedName) {
 			setIsEditing(false);
-		} else if (!name?.length) {
+		} else if (!trimmedName?.length) {
 			setError("Please provide a valid preset name");
-		} else if (!validateUniqueName(name)) {
-			setError(`A preset with the name "${name}" already exists`);
+		} else if (!validateUniqueName(trimmedName)) {
+			setError(`A preset with the name "${trimmedName}" already exists`);
 		} else {
-			onRename(preset, name);
+			onRename(preset, trimmedName);
 		}
 	}, [name, onRename, preset, setError, inputRef, setIsEditing, validateUniqueName]);
 
