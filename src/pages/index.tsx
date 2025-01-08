@@ -139,11 +139,11 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 		dispatch(renameGraphSetOnRemote(set, name));
 	}, [dispatch]);
 
-	const onSaveSet = useCallback((name: string) => {
+	const onCreateSet = useCallback((name: string) => {
 		dispatch(saveGraphSetOnRemote(name));
 	}, [dispatch]);
 
-	const onSaveSetAs = useCallback((set: GraphSetRecord) => {
+	const onSaveSet = useCallback((set: GraphSetRecord) => {
 		if (set.latest) {
 			dispatch(saveGraphSetOnRemote(set.name));
 		} else {
@@ -268,8 +268,8 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 				onDeleteSet={ onDeleteSet }
 				onLoadSet={ onLoadSet }
 				onRenameSet={ onRenameSet }
+				onCreateSet={ onCreateSet }
 				onSaveSet={ onSaveSet }
-				onSaveSetAs={ onSaveSetAs }
 				open={ setDrawerIsOpen }
 				sets={ graphSets }
 			/>

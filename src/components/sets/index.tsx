@@ -13,11 +13,11 @@ import { mdiEraser, mdiGroup } from "@mdi/js";
 export type SetsDrawerProps = {
 	onClose: () => any;
 	onClearSet: () => any;
+	onCreateSet: (name: string) => any;
 	onDeleteSet: (set: GraphSetRecord) => any;
 	onLoadSet: (set: GraphSetRecord) => any;
 	onRenameSet: (set: GraphSetRecord, name: string) => any;
-	onSaveSet: (name: string) => any;
-	onSaveSetAs: (set: GraphSetRecord) => any;
+	onSaveSet: (set: GraphSetRecord) => any;
 	open: boolean;
 	sets: Seq.Indexed<GraphSetRecord>;
 }
@@ -28,11 +28,11 @@ const SetsDrawer: FunctionComponent<SetsDrawerProps> = memo(function WrappedSets
 	sets,
 
 	onClearSet,
+	onCreateSet,
 	onDeleteSet,
 	onLoadSet,
 	onRenameSet,
-	onSaveSet,
-	onSaveSetAs
+	onSaveSet
 
 }) {
 
@@ -86,7 +86,7 @@ const SetsDrawer: FunctionComponent<SetsDrawerProps> = memo(function WrappedSets
 					</Drawer.Header>
 					<Drawer.Body style={{ flex: 1 }} >
 						<Flex direction="column" style={{ height: "100%" }} gap="lg" >
-							<SaveGraphSetForm onSave={ onSaveSet } />
+							<SaveGraphSetForm onSave={ onCreateSet } />
 							<Divider />
 							<Flex className={ classes.setListWrapper } direction="column">
 								<DrawerSectionTitle>Saved Graph Sets</DrawerSectionTitle>
@@ -99,7 +99,7 @@ const SetsDrawer: FunctionComponent<SetsDrawerProps> = memo(function WrappedSets
 												onRename={ onRenameSet }
 												onLoad={ onLoadSet }
 												onDelete={ onTriggerDeleteSet }
-												onSave={ onSaveSetAs }
+												onSave={ onSaveSet }
 												validateUniqueName={ validateUniqueSetName }
 											/>
 										))
