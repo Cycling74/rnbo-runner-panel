@@ -9,7 +9,7 @@ import { updateSetMetaOnRemoteFromNodes } from "./meta";
 import { NodeType } from "../models/graph";
 import { getNodes } from "../selectors/graph";
 import { ParameterRecord } from "../models/parameter";
-import { getPatcherInstance, getPatcherInstanceParamtersSortedByInstanceIdAndIndex } from "../selectors/patchers";
+import { getPatcherInstance, getPatcherInstanceParametersSortedByInstanceIdAndIndex } from "../selectors/patchers";
 import { OSCQueryRNBOSetView, OSCQueryRNBOSetViewListState } from "../lib/types";
 import { getGraphPresets, getGraphSets, getGraphSetView, getGraphSetViews } from "../selectors/sets";
 import { clamp, getUniqueName, instanceAndParamIndicesToSetViewEntry } from "../lib/util";
@@ -348,7 +348,7 @@ export const createSetViewOnRemote = (givenName: string): AppThunk =>
 	(dispatch, getState) => {
 		try {
 			const state = getState();
-			const params = getPatcherInstanceParamtersSortedByInstanceIdAndIndex(state);
+			const params = getPatcherInstanceParametersSortedByInstanceIdAndIndex(state);
 			const existingViews = getGraphSetViews(state);
 			const name = getUniqueName(givenName, existingViews.valueSeq().map(v => v.name).toArray());
 
@@ -542,7 +542,7 @@ export const removeParameterFromSetView = (setView: GraphSetViewRecord, param: P
 		}
 	};
 
-export const removeAllParamtersFromSetView = (setView: GraphSetViewRecord): AppThunk =>
+export const removeAllParametersFromSetView = (setView: GraphSetViewRecord): AppThunk =>
 	(dispatch) => {
 		try {
 			const message = {
@@ -582,12 +582,12 @@ export const addParameterToSetView = (setView: GraphSetViewRecord, param: Parame
 		}
 	};
 
-export const addAllParamtersToSetView = (setView: GraphSetViewRecord): AppThunk =>
+export const addAllParametersToSetView = (setView: GraphSetViewRecord): AppThunk =>
 	(dispatch, getState) => {
 		try {
 			const state = getState();
 			const params = setView.params.withMutations(list => {
-				getPatcherInstanceParamtersSortedByInstanceIdAndIndex(state)
+				getPatcherInstanceParametersSortedByInstanceIdAndIndex(state)
 					.forEach(param => {
 						if (!setView.paramIds.has(param.setViewId)) {
 							list.push({ instanceId: param.instanceId, paramIndex: param.index });
