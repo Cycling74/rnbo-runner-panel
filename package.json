@@ -10,8 +10,13 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+
     "prepackage-debian": "npm run build",
-    "package-debian": "node scripts/package-debian.mjs",
+    "package-debian": "node scripts/package-linux.mjs --debian ./debian/",
+
+    "prepackage-linux": "npm run build",
+    "package-linux": "node scripts/package-linux.mjs ./build/",
+
     "preversion": "next lint"
   },
   "dependencies": {
