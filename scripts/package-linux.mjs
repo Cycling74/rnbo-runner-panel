@@ -2,6 +2,7 @@ import { dirname, join, resolve } from "path";
 import fs from "fs-extra";
 import { fileURLToPath } from "url";
 import { execSync } from "child_process";
+import { readPkgInfoVersion } from "./utils.mjs";
 
 const { readFileSync, writeFileSync, rmSync, copySync } = fs;
 
@@ -9,15 +10,7 @@ const debian = process.argv.includes("--debian");
 const outdir = process.argv.at(-1);
 
 const basedir = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-
-const readPkgInfoVersion = fpath => {
-	const info = JSON.parse(readFileSync(fpath, { encoding: "utf8"} ));
-	if (!info.version) throw new Error("Missing version property in pacakge.json file");
-	return info.version;
-};
-
 const name = process.env.PKG_NAME || "rnbo-runner-panel";
-const version = process.env.PKG_VERSION || readPkgInfoVersion(join(basedir, "package.json"));
 
 // cleanup if we have an existing export
 rmSync(join(outdir, "usr"), { recursive: true, force: true });
@@ -27,6 +20,7 @@ copySync(join(basedir, "server.py"), join(outdir, "usr", "bin", name), { overwri
 
 //do debian specific packaging
 if (debian) {
+	const version = process.env.PKG_VERSION || readPkgInfoVersion(join(basedir, "package.json"));
 	// add the version into the control file
 	const control = readFileSync(join(outdir, "DEBIAN", "control.in"), "utf8").replace(/[\s\n]*$/, "") + `\nVersion: ${version}\n`;
 	writeFileSync(join(outdir, "DEBIAN", "control"), control);
