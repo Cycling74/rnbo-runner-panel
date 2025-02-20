@@ -84,3 +84,28 @@ jobs:
           aptly repo add bookworm-rpi-beta rnbo-runner-panel_${{ needs.getversion.outputs.version }}.deb
           aptly publish update -batch -passphrase=${{ secrets.APTLY_GPG_PASSWORD }} bookworm s3:c74:
 
+  publish_conan:
+    runs-on: [self-hosted, Linux, x64, digitalocean]
+    needs: [getversion]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Conan Package
+        run: npm run package-conan
+        env:
+          PKG_VERSION: ${{ needs.getversion.outputs.version }}
+
+      - name: Publish Conan Package
+        shell: bash
+        run: |
+          conan remote add cycling ${{secrets.C74_CONAN_REMOTE_URL}}
+          conan user -r cycling -p ${{secrets.C74_CONAN_PASSWORD}} ${{secrets.C74_CONAN_USER}}
+          conan upload -r cycling --all rnborunnerpanel/${{ needs.getversion.outputs.version }}@c74/testing
