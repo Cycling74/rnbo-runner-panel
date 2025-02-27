@@ -8,7 +8,7 @@ import { OSCQueryRNBOState, OSCQueryRNBOInstance, OSCQueryRNBOJackConnections, O
 import { addPatcherNode, deletePortAliases, initConnections, initNodes, removePatcherNode, setPortAliases, updateSetMetaFromRemote, updateSourcePortConnections, updateSystemOrControlPortInfo } from "../actions/graph";
 import { initPatchers } from "../actions/patchers";
 import { initRunnerConfig, updateRunnerConfig } from "../actions/settings";
-import { initSets, setGraphSetLatest, initSetPresets, setGraphSetPresetLatest, initSetViews, updateSetViewName, updateSetViewParameterList, deleteSetView, addSetView } from "../actions/sets";
+import { initSets, setGraphSetLatest, initSetPresets, setGraphSetPresetLatest, initSetViews, updateSetViewName, updateSetViewParameterList, deleteSetView, addSetView, updateSetViewOrder } from "../actions/sets";
 import { initDataFiles } from "../actions/datafiles";
 import { sleep } from "../lib/util";
 import { getPatcherInstance } from "../selectors/patchers";
@@ -556,7 +556,7 @@ export class OSCQueryBridgeControllerPrivate {
 		}
 
 		if (packet.address === "/rnbo/inst/control/sets/views/order") {
-			console.log(packet);
+			return void dispatch(updateSetViewOrder(packet.args as unknown as number[]));
 		}
 
 		const setViewMatch = packet.address.match(setViewPathMatcher);
