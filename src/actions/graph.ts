@@ -34,6 +34,7 @@ const getPatcherOrControlNodeCoordinates = (node: GraphPatcherNodeRecord | Graph
 };
 
 export enum GraphActionType {
+	SET_HAS_REMOTE_META = "SET_HAS_REMOTE_META",
 	DELETE_NODE = "DELETE_NODE",
 	DELETE_NODES = "DELETE_NODES",
 	SET_NODE = "SET_NODE",
@@ -47,6 +48,13 @@ export enum GraphActionType {
 	DELETE_PORT_ALIASES_LIST = "DELETE_PORT_ALIASES_LIST",
 	DELETE_PORTS_ALIASES_LIST = "DELETE_PORTS_ALIASES_LIST"
 }
+
+export interface ISetGraphHasRemoteMeta extends ActionBase {
+	type: GraphActionType.SET_HAS_REMOTE_META;
+	payload: {
+		hasMeta: boolean;
+	};
+};
 
 export interface ISetGraphNode extends ActionBase {
 	type: GraphActionType.SET_NODE;
@@ -133,7 +141,7 @@ export interface IDeleteGraphPortsAliasesList extends ActionBase {
 	};
 }
 
-export type GraphAction = ISetGraphNode | ISetGraphNodes | IDeleteGraphNode | IDeleteGraphNodes
+export type GraphAction = ISetGraphHasRemoteMeta | ISetGraphNode | ISetGraphNodes | IDeleteGraphNode | IDeleteGraphNodes
 | ISetGraphConnection  | IDeleteGraphConnection | ISetGraphConnections  | IDeleteGraphConnections
 | ISetGraphPortAliasesList | ISetGraphPortsAliasesList | IDeleteGraphPortAliasesList | IDeleteGraphPortsAliasesList;
 
@@ -292,6 +300,11 @@ const getControlNodeJackNamesFromPortInfo = (jackPortsInfo: OSCQueryRNBOJackPort
 };
 
 // Meta Handling
+export const setHasRemoteMeta = (hasMeta: boolean): ISetGraphHasRemoteMeta => ({
+	type: GraphActionType.SET_HAS_REMOTE_META,
+	payload: { hasMeta }
+});
+
 export const updateSetMetaFromRemote = (metaString: string): AppThunk =>
 	(dispatch, getState) => {
 		try {
@@ -310,6 +323,7 @@ export const updateSetMetaFromRemote = (metaString: string): AppThunk =>
 			}
 
 			dispatch(setNodes(nodes));
+			dispatch(setHasRemoteMeta(Object.keys(meta.nodes).length > 0));
 		} catch (err) {
 			console.warn(`Failed to update local Set Meta: ${err.message}`);
 		}
@@ -339,14 +353,17 @@ export const initNodes = (jackPortsInfo: OSCQueryRNBOJackPortInfo, instanceInfo:
 		const patcherAndControlNodes: Array<GraphPatcherNodeRecord | GraphControlNodeRecord> = [];
 
 		const meta: OSCQuerySetMeta = deserializeSetMeta(instanceInfo.CONTENTS.control.CONTENTS.sets.CONTENTS.meta.VALUE as string);
+		const hasPositionData = Object.keys(meta.nodes).length > 0;
 
 		for (const [key, value] of Object.entries(instanceInfo.CONTENTS)) {
 			if (!/^\d+$/.test(key)) continue;
 			const info = value as OSCQueryRNBOInstance;
 			let node = GraphPatcherNodeRecord.fromDescription(info);
+
 			const nodeMeta = meta.nodes[node.id];
-			const { x, y } = nodeMeta?.position || getPatcherOrControlNodeCoordinates(node, patcherAndControlNodes);
-			node = node.updatePosition(x, y);
+			if (hasPositionData && nodeMeta) {
+				node = node.updatePosition(nodeMeta.position.x, nodeMeta.position.y);
+			}
 
 			patcherAndControlNodes.push(node);
 			const instance = PatcherInstanceRecord.fromDescription(info);
@@ -367,11 +384,8 @@ export const initNodes = (jackPortsInfo: OSCQueryRNBOJackPortInfo, instanceInfo:
 			});
 
 			const nodeMeta = meta.nodes[controlNode.id];
-			if (nodeMeta) {
+			if (hasPositionData && nodeMeta) {
 				controlNode = controlNode.updatePosition(nodeMeta.position.x, nodeMeta.position.y);
-			} else {
-				const { x, y } = getPatcherOrControlNodeCoordinates(controlNode, patcherAndControlNodes);
-				controlNode = controlNode.updatePosition(x, y);
 			}
 
 			patcherAndControlNodes.push(controlNode);
@@ -381,33 +395,13 @@ export const initNodes = (jackPortsInfo: OSCQueryRNBOJackPortInfo, instanceInfo:
 		// as we assume moving forward that they are SystemNames
 		const systemJackNames = ImmuSet<string>(getSystemNodeJackNamesFromPortInfo(jackPortsInfo, patcherAndControlNodes));
 
-		let systemInputY = -defaultNodeGap;
-		let systemOutputY = -defaultNodeGap;
-
 		const systemNodes: GraphSystemNodeRecord[] = GraphSystemNodeRecord
 			.fromDescription(systemJackNames, jackPortsInfo)
 			.map(sysNode => {
 				const nodeMeta = meta.nodes[sysNode.id];
-				if (nodeMeta) {
-					return sysNode.updatePosition(nodeMeta.position.x, nodeMeta.position.y);
-				}
-
-				let node = sysNode;
-				if (node.id.endsWith(GraphSystemNodeRecord.inputSuffix)) {
-					node = node.updatePosition(
-						0,
-						systemInputY + defaultNodeGap
-					);
-					systemInputY = node.y + node.contentHeight;
-				} else {
-					node = node.updatePosition(
-						node.width + 300 + defaultNodeGap * 2,
-						systemOutputY + defaultNodeGap
-					);
-					systemOutputY = node.y + node.contentHeight;
-				}
-
-				return node;
+				return hasPositionData && nodeMeta
+					? sysNode.updatePosition(nodeMeta.position.x, nodeMeta.position.y)
+					: sysNode;
 			});
 
 		const portAliases: Array<{ portName: GraphPortRecord["portName"]; aliases: string []; }> = [];
@@ -422,6 +416,7 @@ export const initNodes = (jackPortsInfo: OSCQueryRNBOJackPortInfo, instanceInfo:
 		dispatch(setInstanceMessageInports(instanceMessageInports));
 		dispatch(setInstanceMessageOutports(instanceMessageOutports));
 		dispatch(setPortsAliases(portAliases));
+		setHasRemoteMeta(hasPositionData);
 	};
 
 
