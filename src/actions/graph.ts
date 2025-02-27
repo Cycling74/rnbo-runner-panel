@@ -54,7 +54,7 @@ export interface ISetGraphHasRemoteMeta extends ActionBase {
 	payload: {
 		hasMeta: boolean;
 	};
-};
+}
 
 export interface ISetGraphNode extends ActionBase {
 	type: GraphActionType.SET_NODE;
