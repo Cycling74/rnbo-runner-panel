@@ -98,6 +98,7 @@ export const sets = (state: SetState = {
 
 			return {
 				...state,
+				selectedView: state.selectedView === undefined ? view.id : state.selectedView,
 				views: state.views.set(view.id, view)
 			};
 		}
