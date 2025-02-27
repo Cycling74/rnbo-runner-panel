@@ -1,4 +1,4 @@
-import { Map as ImmuMap } from "immutable";
+import { Map as ImmuMap, OrderedSet as ImmuOrderedSet } from "immutable";
 import { RootStateType } from "../lib/store";
 import { GraphSetRecord, GraphSetViewRecord } from "../models/set";
 import { PresetRecord } from "../models/preset";
@@ -70,21 +70,27 @@ export const getGraphSetPresetsSortedByName = createSelector(
 	}
 );
 
-
 export const getGraphSetViews = (state: RootStateType): ImmuMap<GraphSetViewRecord["id"], GraphSetViewRecord> => {
 	return state.sets.views;
 };
 
+export const getGraphSetViewOrder = (state: RootStateType): ImmuOrderedSet<GraphSetViewRecord["id"]> => {
+	return state.sets.viewOrder;
+};
+
 export const getGraphSetViewsBySortOrder = createSelector(
 	[
-		getGraphSetViews
+		getGraphSetViews,
+		getGraphSetViewOrder
 	],
-	(views): ImmuMap<GraphSetViewRecord["id"], GraphSetViewRecord> => {
-		const collator = new Intl.Collator("en-US");
-		return views.sort((va, vb) => {
-			if (va.sortOrder < vb.sortOrder) return -1;
-			if (va.sortOrder > vb.sortOrder) return 1;
-			return collator.compare(va.name, vb.name);
+	(views, order): ImmuMap<GraphSetViewRecord["id"], GraphSetViewRecord> => {
+		return ImmuMap<GraphSetViewRecord["id"], GraphSetViewRecord>().withMutations(map => {
+			order.forEach(o => {
+				const view = views.get(o);
+				if (view) {
+					map.set(view.id, view);
+				}
+			});
 		});
 	}
 );
@@ -92,7 +98,7 @@ export const getGraphSetViewsBySortOrder = createSelector(
 export const getGraphSetView = createSelector(
 	[
 		getGraphSetViews,
-		(state: RootStateType, id: GraphSetViewRecord["id"]): string => id
+		(state: RootStateType, id: GraphSetViewRecord["id"]): number => id
 	],
 	(views, id): GraphSetViewRecord | undefined => {
 		return views.get(id);

@@ -10,7 +10,7 @@ import { NodeType } from "../models/graph";
 import { getNodes } from "../selectors/graph";
 import { ParameterRecord } from "../models/parameter";
 import { getPatcherInstance, getPatcherInstanceParametersSortedByInstanceIdAndIndex } from "../selectors/patchers";
-import { OSCQueryRNBOSetView, OSCQueryRNBOSetViewListState } from "../lib/types";
+import { OSCQueryRNBOSetView, OSCQueryRNBOSetViewState } from "../lib/types";
 import { getGraphPresets, getGraphSets, getGraphSetView, getGraphSetViews } from "../selectors/sets";
 import { clamp, getUniqueName, instanceAndParamIndicesToSetViewEntry } from "../lib/util";
 import { setInstanceWaitingForMidiMappingOnRemote } from "./patchers";
@@ -25,7 +25,8 @@ export enum GraphSetActionType {
 	INIT_SET_VIEWS = "INIT_SET_VIEWS",
 	SET_SET_VIEW = "SET_SET_VIEW",
 	LOAD_SET_VIEW = "LOAD_SET_VIEW",
-	DELETE_SET_VIEW = "DELETE_SET_VIEW"
+	DELETE_SET_VIEW = "DELETE_SET_VIEW",
+	SET_SET_VIEW_ORDER = "SET_SET_VIEW_ORDER"
 }
 
 export interface IInitGraphSets extends ActionBase {
@@ -60,6 +61,7 @@ export interface IInitGraphSetViews extends ActionBase {
 	type: GraphSetActionType.INIT_SET_VIEWS;
 	payload: {
 		views: GraphSetViewRecord[];
+		order: Array<GraphSetViewRecord["id"]>;
 	};
 }
 
@@ -84,9 +86,16 @@ export interface IDeleteGraphSetView extends ActionBase {
 	};
 }
 
+export interface ISetGraphSetViewOrder extends ActionBase {
+	type: GraphSetActionType.SET_SET_VIEW_ORDER;
+	payload: {
+		order: Array<GraphSetViewRecord["id"]>;
+	};
+}
+
 
 export type GraphSetAction = IInitGraphSets | ISetGraphSetsLatest | IInitGraphSetPresets | ISetGraphSetPresetsLatest |
-IInitGraphSetViews | ILoadGraphSetView | ISetGraphSetView | IDeleteGraphSetView;
+IInitGraphSetViews | ILoadGraphSetView | ISetGraphSetView | IDeleteGraphSetView | ISetGraphSetViewOrder;
 
 export const initSets = (names: string[]): GraphSetAction => {
 	return {
@@ -320,19 +329,22 @@ export const renameSetPresetOnRemote = (preset: PresetRecord, newname: string): 
 		}
 	};
 
-export const initSetViews = (viewState?: OSCQueryRNBOSetViewListState): IInitGraphSetViews => {
+export const initSetViews = (viewState?: OSCQueryRNBOSetViewState): IInitGraphSetViews => {
 
 	const views: GraphSetViewRecord[] = [];
-	for (const [id, view] of Object.entries(viewState?.CONTENTS || {}) as Array<[string, OSCQueryRNBOSetView]>) {
+	for (const [id, view] of Object.entries(viewState?.CONTENTS?.list?.CONTENTS || {}) as Array<[string, OSCQueryRNBOSetView]>) {
 		views.push(
 			GraphSetViewRecord.fromDescription(id, view)
 		);
 	}
 
+	const order: number[] = viewState?.CONTENTS?.order?.VALUE  || views.map(v => v.id);
+
 	return {
 		type: GraphSetActionType.INIT_SET_VIEWS,
 		payload: {
-			views
+			views,
+			order
 		}
 	};
 };
@@ -437,7 +449,7 @@ export const destroySetViewOnRemote = (setView: GraphSetViewRecord): AppThunk =>
 		}
 	};
 
-export const deleteSetView = (id: string): AppThunk =>
+export const deleteSetView = (id: number): AppThunk =>
 	(dispatch, getState) => {
 		const state = getState();
 		const setView = getGraphSetView(state, id);
@@ -622,35 +634,6 @@ export const updateSetViewParameterList = (id: GraphSetViewRecord["id"], params:
 		dispatch(setSetView(setView.setParams(params)));
 	};
 
-export const updateSetViewSortOrderOnRemote = (setView: GraphSetViewRecord, sortOrder: number): AppThunk =>
-	(dispatch) => {
-		try {
-			const message = {
-				address: `/rnbo/inst/control/sets/views/list/${setView.id}/sort_order`,
-				args: [
-					{ type: "i", value: sortOrder }
-				]
-			};
-			oscQueryBridge.sendPacket(writePacket(message));
-		} catch (err) {
-			dispatch(showNotification({
-				level: NotificationLevel.error,
-				title: `Error while trying to update sort order for SetView "${setView.name}"`,
-				message: "Please check the console for further details."
-			}));
-			console.log(err);
-		}
-	};
-
-export const updateSetViewSortOrder = (id: GraphSetViewRecord["id"], sortOrder: number): AppThunk =>
-	(dispatch, getState) => {
-		const state = getState();
-		const setView = getGraphSetView(state, id);
-		if (!setView) return;
-
-		dispatch(setSetView(setView.setSortOrder(sortOrder)));
-	};
-
 export const setViewContainedInstancesWaitingForMidiMappingOnRemote = (setView: GraphSetViewRecord, value: boolean): AppThunk =>
 	(dispatch, getState) => {
 
@@ -663,3 +646,12 @@ export const setViewContainedInstancesWaitingForMidiMappingOnRemote = (setView: 
 			dispatch(setInstanceWaitingForMidiMappingOnRemote(instance.id, value));
 		}
 	};
+
+export const updateSetViewOrder = (order: OSCQueryRNBOSetViewState["CONTENTS"]["order"]["VALUE"]): ISetGraphSetViewOrder => {
+	return {
+		type: GraphSetActionType.SET_SET_VIEW_ORDER,
+		payload: {
+			order
+		}
+	};
+};

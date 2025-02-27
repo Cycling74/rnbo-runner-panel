@@ -8,7 +8,7 @@ import { OSCQueryRNBOState, OSCQueryRNBOInstance, OSCQueryRNBOJackConnections, O
 import { addPatcherNode, deletePortAliases, initConnections, initNodes, removePatcherNode, setPortAliases, updateSetMetaFromRemote, updateSourcePortConnections, updateSystemOrControlPortInfo } from "../actions/graph";
 import { initPatchers } from "../actions/patchers";
 import { initRunnerConfig, updateRunnerConfig } from "../actions/settings";
-import { initSets, setGraphSetLatest, initSetPresets, setGraphSetPresetLatest, initSetViews, updateSetViewName, updateSetViewParameterList, deleteSetView, addSetView, updateSetViewSortOrder } from "../actions/sets";
+import { initSets, setGraphSetLatest, initSetPresets, setGraphSetPresetLatest, initSetViews, updateSetViewName, updateSetViewParameterList, deleteSetView, addSetView } from "../actions/sets";
 import { initDataFiles } from "../actions/datafiles";
 import { sleep } from "../lib/util";
 import { getPatcherInstance } from "../selectors/patchers";
@@ -247,7 +247,7 @@ export class OSCQueryBridgeControllerPrivate {
 		dispatch(setGraphSetLatest(state.CONTENTS.inst?.CONTENTS?.control?.CONTENTS?.sets?.CONTENTS?.current?.CONTENTS?.name?.VALUE || ""));
 		dispatch(initSetPresets(state.CONTENTS.inst?.CONTENTS?.control?.CONTENTS?.sets?.CONTENTS?.presets?.CONTENTS?.load?.RANGE?.[0]?.VALS || []));
 		dispatch(setGraphSetPresetLatest(state.CONTENTS.inst?.CONTENTS?.control?.CONTENTS?.sets?.CONTENTS?.presets?.CONTENTS?.loaded?.VALUE || ""));
-		dispatch(initSetViews(state.CONTENTS.inst?.CONTENTS?.control?.CONTENTS?.sets?.CONTENTS?.views?.CONTENTS?.list));
+		dispatch(initSetViews(state.CONTENTS.inst?.CONTENTS?.control?.CONTENTS?.sets?.CONTENTS?.views));
 
 		// TODO could take a bit?
 		try {
@@ -397,7 +397,7 @@ export class OSCQueryBridgeControllerPrivate {
 		// Removed Set View
 		const setViewMatch = path.match(setViewPathMatcher);
 		if (setViewMatch && setViewMatch.groups?.rest === undefined) {
-			return void dispatch(deleteSetView(setViewMatch.groups.id));
+			return void dispatch(deleteSetView(parseInt(setViewMatch.groups.id, 10)));
 		}
 
 		// Handle Alias Removals
@@ -555,22 +555,21 @@ export class OSCQueryBridgeControllerPrivate {
 			return void dispatch(updateSetMetaFromRemote(packet.args as unknown as string));
 		}
 
+		if (packet.address === "/rnbo/inst/control/sets/views/order") {
+			console.log(packet);
+		}
+
 		const setViewMatch = packet.address.match(setViewPathMatcher);
 		if (setViewMatch) {
 			if (setViewMatch.groups?.rest === "/name") {
 				return void dispatch(updateSetViewName(
-					setViewMatch.groups.id,
+					parseInt(setViewMatch.groups.id, 10),
 					packet.args[0] as unknown as string
 				));
 			} else if (setViewMatch.groups?.rest === "/params") {
 				return void dispatch(updateSetViewParameterList(
-					setViewMatch.groups.id,
+					parseInt(setViewMatch.groups.id, 10),
 					packet.args as unknown as string[]
-				));
-			} else if (setViewMatch.groups?.rest === "/sort_order") {
-				return void dispatch(updateSetViewSortOrder(
-					setViewMatch.groups.id,
-					packet.args[0] as unknown as number
 				));
 			}
 		}

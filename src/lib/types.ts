@@ -357,12 +357,18 @@ export type OSCQueryRNBOSetView = OSCQueryBaseNode & {
 	CONTENTS: {
 		name: OSCQueryStringValue;
 		params: OSCQueryListValue<string, string[]>;
-		sort_order: OSCQueryIntValue;
 	}
 };
 
 export type OSCQueryRNBOSetViewListState = OSCQueryBaseNode & {
 	CONTENTS: Record<string, OSCQueryRNBOSetView>;
+};
+
+export type OSCQueryRNBOSetViewState = OSCQueryBaseNode & {
+	CONTENTS: {
+		list: OSCQueryRNBOSetViewListState;
+		order: OSCQueryListValue<string, number[]>;
+	};
 };
 
 export type OSCQueryRNBOInstancesControlState = OSCQueryBaseNode & {
@@ -388,11 +394,7 @@ export type OSCQueryRNBOInstancesControlState = OSCQueryBaseNode & {
 						name: OSCQuerySingleValue<OSCQueryValueType.String, string>;
 					}
 				};
-				views?: OSCQueryBaseNode & {
-					CONTENTS: {
-						list: OSCQueryRNBOSetViewListState;
-					}
-				}
+				views?: OSCQueryRNBOSetViewState;
 			}
 		};
 	};

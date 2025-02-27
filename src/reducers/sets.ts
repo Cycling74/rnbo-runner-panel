@@ -1,4 +1,4 @@
-import { Map as ImmuMap } from "immutable";
+import { Map as ImmuMap, OrderedSet as ImmuOrderedSet } from "immutable";
 import { GraphSetRecord, GraphSetViewRecord } from "../models/set";
 import { PresetRecord } from "../models/preset";
 import { GraphSetAction, GraphSetActionType } from "../actions/sets";
@@ -11,6 +11,7 @@ export type SetState = {
 
 	selectedView: GraphSetViewRecord["id"] | undefined,
 	views: ImmuMap<GraphSetViewRecord["id"], GraphSetViewRecord>;
+	viewOrder: ImmuOrderedSet<GraphSetViewRecord["id"]>;
 };
 
 export const sets = (state: SetState = {
@@ -19,7 +20,8 @@ export const sets = (state: SetState = {
 	presets: ImmuMap<PresetRecord["id"], PresetRecord>(),
 	presetLatest: "",
 	selectedView: undefined,
-	views: ImmuMap<GraphSetViewRecord["id"], GraphSetViewRecord>()
+	views: ImmuMap<GraphSetViewRecord["id"], GraphSetViewRecord>(),
+	viewOrder: ImmuOrderedSet<GraphSetViewRecord["id"]>()
 }, action: GraphSetAction): SetState => {
 
 	switch (action.type) {
@@ -61,11 +63,13 @@ export const sets = (state: SetState = {
 		}
 
 		case GraphSetActionType.INIT_SET_VIEWS: {
-			const { views } = action.payload;
+			const { order, views } = action.payload;
+			const viewRecords = ImmuMap<GraphSetViewRecord["id"], GraphSetViewRecord>(views.map(v => [v.id, v]));
 			return {
 				...state,
 				selectedView: views.length ? views[0].id : undefined,
-				views: ImmuMap<GraphSetViewRecord["id"], GraphSetViewRecord>(views.map(v => [v.id, v]))
+				views: viewRecords,
+				viewOrder: ImmuOrderedSet<GraphSetViewRecord["id"]>(order)
 			};
 		}
 
@@ -84,7 +88,8 @@ export const sets = (state: SetState = {
 			return {
 				...state,
 				selectedView: state.selectedView === view.id ? newViews.first()?.id || undefined : state.selectedView,
-				views: newViews
+				views: newViews,
+				viewOrder: state.viewOrder.delete(view.id)
 			};
 		}
 
@@ -94,6 +99,15 @@ export const sets = (state: SetState = {
 			return {
 				...state,
 				views: state.views.set(view.id, view)
+			};
+		}
+
+		case GraphSetActionType.SET_SET_VIEW_ORDER: {
+			const { order } = action.payload;
+
+			return {
+				...state,
+				viewOrder: ImmuOrderedSet<GraphSetViewRecord["id"]>(order)
 			};
 		}
 

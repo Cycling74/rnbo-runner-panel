@@ -32,19 +32,17 @@ export type GraphSetViewParameterEntry = {
 }
 
 export type GraphSetViewRecordProps = {
-	id: string;
+	id: number;
 	name: string;
 	params: ImmuList<GraphSetViewParameterEntry>;
 	paramIds:  ImmuOrderedSet<string>;
-	sortOrder: number;
 };
 
 export class GraphSetViewRecord extends ImmuRecord<GraphSetViewRecordProps>({
-	id: "0",
+	id: 0,
 	name: "",
 	params: ImmuList<GraphSetViewParameterEntry>(),
-	paramIds: ImmuOrderedSet<string>(),
-	sortOrder: 0
+	paramIds: ImmuOrderedSet<string>()
 }) {
 
 	private static getParamListFromDesc(params: string[]): ImmuList<GraphSetViewParameterEntry> {
@@ -61,21 +59,19 @@ export class GraphSetViewRecord extends ImmuRecord<GraphSetViewRecordProps>({
 
 	public static getEmptyRecord(id: string): GraphSetViewRecord {
 		return new GraphSetViewRecord({
-			id,
+			id: parseInt(id, 10),
 			name: "",
 			params: ImmuList<GraphSetViewParameterEntry>(),
-			paramIds: ImmuOrderedSet<string>(),
-			sortOrder: 0
+			paramIds: ImmuOrderedSet<string>()
 		});
 	}
 
 	public static fromDescription(id: string, desc: OSCQueryRNBOSetView): GraphSetViewRecord {
 		return new GraphSetViewRecord({
-			id,
+			id: parseInt(id, 10),
 			name: desc.CONTENTS.name.VALUE,
 			paramIds: ImmuOrderedSet<string>(desc.CONTENTS.params.VALUE || []),
-			params: this.getParamListFromDesc(desc.CONTENTS.params.VALUE),
-			sortOrder: desc.CONTENTS.sort_order.VALUE
+			params: this.getParamListFromDesc(desc.CONTENTS.params.VALUE)
 		});
 	}
 
@@ -96,9 +92,4 @@ export class GraphSetViewRecord extends ImmuRecord<GraphSetViewRecordProps>({
 			.set("params", list)
 			.set("paramIds", ImmuOrderedSet<string>(params));
 	}
-
-	public setSortOrder(sortOrder: number): GraphSetViewRecord {
-		return this.set("sortOrder", sortOrder);
-	}
-
 }
