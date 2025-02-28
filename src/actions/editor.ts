@@ -1,7 +1,7 @@
 import Dagre from "@dagrejs/dagre";
 import { Connection, EdgeChange, NodeChange, ReactFlowInstance } from "reactflow";
 import { ActionBase, AppThunk } from "../lib/store";
-import { getConnection, getConnectionByNodesAndPorts, getConnections, getNode, getNodes } from "../selectors/graph";
+import { getConnection, getConnectionByNodesAndPorts, getConnections, getHasStoredGraphPositionData, getNode, getNodes } from "../selectors/graph";
 import { GraphConnectionRecord, GraphNode, GraphNodeRecord, GraphPatcherNode, NodeType } from "../models/graph";
 import { showNotification } from "./notifications";
 import { NotificationLevel } from "../models/notification";
@@ -12,6 +12,7 @@ import { setConnection, setNode, setNodes, unloadPatcherNodeOnRemote } from "./g
 import { getGraphEditorInstance, getGraphEditorLockedState } from "../selectors/editor";
 import { defaultNodeGap } from "../lib/constants";
 import { triggerSetMetaUpdateOnRemote, updateSetMetaOnRemoteFromNodes } from "./meta";
+import { sleep } from "../lib/util";
 
 export enum EditorActionType {
 	INIT = "EDITOR_INIT",
@@ -39,13 +40,6 @@ export interface ISetEditorLocked extends ActionBase {
 }
 
 export type EditorAction = IInitEditor | IUnmountEditor | ISetEditorLocked;
-
-export const initEditor = (instance: ReactFlowInstance): IInitEditor => {
-	return {
-		type: EditorActionType.INIT,
-		payload: { instance }
-	};
-};
 
 export const unmountEditor = (): IUnmountEditor => {
 	return {
@@ -330,3 +324,17 @@ export const generateEditorLayout = (): AppThunk =>
 	};
 
 
+export const initEditor = (instance: ReactFlowInstance): AppThunk =>
+	async (dispatch, getState)  => {
+		dispatch({
+			type: EditorActionType.INIT,
+			payload: { instance }
+		});
+
+		const hasPositionData = getHasStoredGraphPositionData(getState());
+		if (!hasPositionData) {
+			dispatch(generateEditorLayout());
+			await sleep(30);
+			dispatch(triggerEditorFitView());
+		}
+	};

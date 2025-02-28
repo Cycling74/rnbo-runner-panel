@@ -3,8 +3,8 @@ import { GraphAction, GraphActionType } from "../actions/graph";
 import { GraphConnectionRecord, GraphNodeRecord, GraphPatcherNodeRecord, GraphPortRecord, NodeType } from "../models/graph";
 
 export interface GraphState {
-
 	connections: ImmuMap<GraphConnectionRecord["id"], GraphConnectionRecord>;
+	hasRemoteMeta: boolean;
 	nodes: ImmuMap<GraphNodeRecord["id"], GraphNodeRecord>;
 	patcherNodeIdByInstanceId: ImmuMap<GraphPatcherNodeRecord["instanceId"], GraphPatcherNodeRecord["id"]>;
 	portAliases: ImmuMap<GraphPortRecord["portName"], string[]>;
@@ -14,6 +14,7 @@ export interface GraphState {
 export const graph = (state: GraphState = {
 
 	connections: ImmuMap<GraphConnectionRecord["id"], GraphConnectionRecord>(),
+	hasRemoteMeta: false,
 	nodes: ImmuMap<GraphNodeRecord["id"], GraphNodeRecord>(),
 	patcherNodeIdByInstanceId: ImmuMap<GraphPatcherNodeRecord["instanceId"], GraphPatcherNodeRecord["id"]>(),
 	portAliases: ImmuMap<GraphPortRecord["portName"], string[]>()
@@ -21,6 +22,15 @@ export const graph = (state: GraphState = {
 }, action: GraphAction): GraphState => {
 
 	switch (action.type) {
+
+		case GraphActionType.SET_HAS_REMOTE_META: {
+			const { hasMeta } = action.payload;
+
+			return {
+				...state,
+				hasRemoteMeta: hasMeta
+			};
+		}
 
 		case GraphActionType.DELETE_NODE: {
 			const { node } = action.payload;

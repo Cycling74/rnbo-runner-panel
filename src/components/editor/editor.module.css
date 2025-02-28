@@ -35,8 +35,14 @@
 	bottom: var(--mantine-spacing-md);
 }
 
+@keyframes editor-fadein {
+	from { opacity: 0; }
+	to   { opacity: 1; }
+}
+
 .editor {
 	flex: 1;
+	animation: editor-fadein 300ms;
 
 	&[data-color-scheme="light"] {
 

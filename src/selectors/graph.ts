@@ -3,6 +3,8 @@ import { RootStateType } from "../lib/store";
 import { GraphConnectionRecord, GraphControlNodeRecord, GraphNodeRecord, GraphPatcherNodeRecord, GraphPortRecord, GraphSystemNodeRecord, NodeType, PortDirection } from "../models/graph";
 import { createSelector } from "reselect";
 
+export const getHasStoredGraphPositionData = (state: RootStateType): boolean => state.graph.hasRemoteMeta;
+
 export const getNodes = (state: RootStateType): ImmuMap<GraphNodeRecord["id"], GraphNodeRecord> => state.graph.nodes;
 export const getPatcherNodeIdsByInstanceId = (state: RootStateType): ImmuMap<GraphPatcherNodeRecord["instanceId"], GraphPatcherNodeRecord["id"]> => state.graph.patcherNodeIdByInstanceId;
 
