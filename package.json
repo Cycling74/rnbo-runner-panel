@@ -1,6 +1,6 @@
 {
   "name": "rnbo-runner-panel",
-  "version": "2.1.1-beta.0",
+  "version": "2.1.1-beta.1",
   "private": true,
   "engines": {
     "node": ">=20 <21"
@@ -10,18 +10,13 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-
     "prepackage-debian": "npm run build",
     "package-debian": "node scripts/package-linux.mjs --debian ./debian/",
-
     "prepackage-linux": "npm run build",
     "package-linux": "node scripts/package-linux.mjs ./build/",
-
     "prepackage-conan": "npm run package-linux",
     "package-conan": "node scripts/package-conan.mjs",
-
     "preversion": "next lint"
-
   },
   "dependencies": {
     "@dagrejs/dagre": "^1.1.4",
