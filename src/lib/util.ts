@@ -1,6 +1,8 @@
-import { KeyboardEvent } from "react";
+import { KeyboardEvent, memo } from "react";
 import { AnyJson, JsonMap, MIDIChannelPressureMetaMapping, MIDIControlChangeMetaMapping, MIDIKeypressMetaMapping, MIDIMetaMapping, MIDINoteMetaMapping, MIDIPitchBendMetaMapping, MIDIProgramChangeMetaMapping, OSCQueryStringValueRange, OSCQueryValueRange } from "./types";
 import { MIDIMetaMappingType } from "./constants";
+
+export const genericMemo: <P>(component: P) => P = memo;
 
 export const sleep = (t: number): Promise<void> => new Promise(resolve => setTimeout(resolve, t));
 
@@ -10,6 +12,15 @@ export const clamp = (num: number, min: number, max: number): number => {
 
 export const scale = (x: number, inLow: number, inHigh: number, outLow: number, outHigh: number): number => {
 	return (x - inLow) * (outHigh - outLow) / (inHigh - inLow) + outLow;
+};
+
+export const getUniqueName = (newName: string, existing: string[]): string => {
+	if (!existing.includes(newName)) return newName;
+	let counter = 1;
+	while (existing.includes(`${newName} - ${counter}`)) {
+		counter++;
+	}
+	return `${newName} - ${counter}`;
 };
 
 export const getStringValueOptions = (range?: OSCQueryStringValueRange): string[] | undefined => {
@@ -65,6 +76,8 @@ export const formatParamValueForDisplay = (value: number | string) => {
 	if (typeof value === "number") return Number.isInteger(value) ? value : value.toFixed(2);
 	return value;
 };
+
+export const instanceAndParamIndicesToSetViewEntry = (instanceId: string, paramIndex: number) => `${instanceId}:${paramIndex}`;
 
 export const cloneJSON = (value: JsonMap): JsonMap => JSON.parse(JSON.stringify(value));
 

@@ -1,40 +1,79 @@
-import React, { memo, useState, useCallback } from "react";
+import React, { memo, useState, useCallback, FC } from "react";
 import { ParameterRecord } from "../../models/parameter";
 import classes from "./parameters.module.css";
-import { ActionIcon, Group, Menu, Indicator, Slider, Tooltip, Text } from "@mantine/core";
+import { ActionIcon, Group, Indicator, MantineColor, Menu, Slider, Tooltip } from "@mantine/core";
+import { formatMIDIMappingToDisplay, formatParamValueForDisplay } from "../../lib/util";
+import { MetadataScope, MIDIMetaMappingType } from "../../lib/constants";
+import { mdiCodeBraces, mdiDotsVertical } from "@mdi/js";
+import { IconElement } from "../elements/icon";
 import { useDisclosure } from "@mantine/hooks";
 import { MetaEditorModal } from "../meta/metaEditorModal";
-import { MetadataScope } from "../../lib/constants";
-import { IconElement } from "../elements/icon";
-import { mdiCodeBraces, mdiDotsVertical, mdiEraser } from "@mdi/js";
-import { modals } from "@mantine/modals";
-import { formatParamValueForDisplay } from "../../lib/util";
 
 export const parameterBoxHeight = 87 + 6; // 87px + 6px margin
 
-interface ParameterProps {
-	instanceIsMIDIMapping: boolean;
+export enum ParameterMenuEntryType {
+	Action,
+	Divider
+}
+
+export type ParameterMenuAction = {
+	action: () => void;
+	color?: MantineColor;
+	disabled?: boolean;
+	icon: string;
+	label: string;
+	type: ParameterMenuEntryType.Action;
+};
+
+export type ParameterMenuDivider = {
+	type: ParameterMenuEntryType.Divider
+};
+
+export type ParameterMenuItem = ParameterMenuAction | ParameterMenuDivider;
+
+export type ParameterItemProps = React.DetailedHTMLProps<React.HTMLAttributes<HTMLDivElement>, HTMLDivElement> & {
+	menuItems?: Array<ParameterMenuItem>
+	disabled?: boolean;
+	displayName?: string;
+	index: number;
 	param: ParameterRecord;
-	onActivateMIDIMapping: (param: ParameterRecord) => any;
 	onRestoreMetadata: (param: ParameterRecord) => any;
 	onSaveMetadata: (param: ParameterRecord, meta: string) => any;
 	onSetNormalizedValue: (param: ParameterRecord, nValue: number) => void;
-	onClearMidiMapping: (param: ParameterRecord) => void;
-}
+};
 
-const Parameter = memo(function WrappedParameter({
-	instanceIsMIDIMapping,
+const renderMenuItem = (entry: ParameterMenuItem, i: number): React.ReactNode => {
+	switch (entry.type) {
+		case ParameterMenuEntryType.Divider:
+			return <Menu.Divider key={ i } />;
+		case ParameterMenuEntryType.Action:
+			return (
+				<Menu.Item key={ i } color={ entry.color } leftSection={ <IconElement path={ entry.icon } /> } onClick={ entry.action } disabled={ entry.disabled || false } >
+					{ entry.label }
+				</Menu.Item>
+			);
+		default:
+			return null;
+	}
+};
+
+const ParameterItem: FC<ParameterItemProps> = memo(function WrappedParameter({
+	menuItems = [],
+	className = "",
+	disabled = false,
+	displayName,
 	param,
-	onActivateMIDIMapping,
-	onSetNormalizedValue,
-	onSaveMetadata,
 	onRestoreMetadata,
-	onClearMidiMapping
-}: ParameterProps) {
+	onSaveMetadata,
+	onSetNormalizedValue,
+	...props
+}: ParameterItemProps) {
 
+	const [showMetaEditor, { toggle: toggleMetaEditor, close: closeMetaEditor }] = useDisclosure();
+	const onSaveMeta = useCallback((meta: string) => onSaveMetadata(param, meta), [param, onSaveMetadata]);
+	const onRestoreMeta = useCallback(() => onRestoreMetadata(param), [param, onRestoreMetadata]);
 	const [localValue, setLocalValue] = useState(param.normalizedValue);
 	const [useLocalValue, setUseLocalValue] = useState(false);
-	const [showMetaEditor, { toggle: toggleMetaEditor, close: closeMetaEditor }] = useDisclosure();
 
 	const onChange = useCallback((nVal: number) => {
 		if (!useLocalValue) setUseLocalValue(true);
@@ -47,41 +86,17 @@ const Parameter = memo(function WrappedParameter({
 		onSetNormalizedValue(param, nVal);
 	}, [setUseLocalValue, onSetNormalizedValue, param]);
 
-	const onTriggerActivateMIDIMapping = useCallback(() => {
-		if (param.waitingForMidiMapping) return;
-		onActivateMIDIMapping(param);
-	}, [param, onActivateMIDIMapping]);
-
-	const onSaveMeta = useCallback((meta: string) => onSaveMetadata(param, meta), [param, onSaveMetadata]);
-	const onRestoreMeta = useCallback(() => onRestoreMetadata(param), [param, onRestoreMetadata]);
-
-
-	const onClearMidiMap = useCallback(() => {
-		modals.openConfirmModal({
-			title: "Clear Parameter MIDI Mapping",
-			centered: true,
-			children: (
-				<Text size="sm" id="red">
-					Are you sure you want to clear the active MIDI mapping for { `"${param.name}"` }?
-				</Text>
-			),
-			labels: { confirm: "Clear", cancel: "Cancel" },
-			confirmProps: { color: "red" },
-			onConfirm: () => onClearMidiMapping(param)
-		});
-	}, [param, onClearMidiMapping]);
-
 	const currentValue = useLocalValue ? localValue : param.normalizedValue;
 	const value = param.getValueForNormalizedValue(currentValue);
 	const stepSize = param.isEnum ? 1 / (param.enumVals.length - 1) : 0.001;
-
-	const indicatorText = param.isMidiMapped ? "This param is MIDI mapped" : undefined;
+	const indicatorText = param.isMidiMapped
+		? formatMIDIMappingToDisplay(param.midiMappingType as MIDIMetaMappingType, param.meta.midi)
+		: null;
 
 	return (
 		<div
-			className={ classes.parameterItem }
-			data-active-midi-mappping={ param.waitingForMidiMapping }
-			onClick={ instanceIsMIDIMapping ? onTriggerActivateMIDIMapping : null }
+			className={ `${classes.parameterWrap} ${className}` }
+			{ ...props }
 		>
 			{
 				showMetaEditor ? (
@@ -103,7 +118,7 @@ const Parameter = memo(function WrappedParameter({
 						classNames={{ root: classes.parameterItemMIDIIndicator }}
 					>
 						<label htmlFor={ param.name } className={ classes.parameterItemLabel } >
-							{ param.name }
+							{ displayName || param.name }
 						</label>
 					</Indicator>
 				</Tooltip>
@@ -116,7 +131,7 @@ const Parameter = memo(function WrappedParameter({
 					flex={ 1 }
 					max={ 1 }
 					min={ 0 }
-					disabled={ instanceIsMIDIMapping }
+					disabled={ disabled }
 					name={ param.name }
 					onChange={ onChange }
 					onChangeEnd={ onChangeEnd }
@@ -129,22 +144,19 @@ const Parameter = memo(function WrappedParameter({
 							: [{ label: `${formatParamValueForDisplay(param.min)}`, value: 0 }, { label: `${formatParamValueForDisplay(param.max)}`, value: 1 }]
 					}
 				/>
-				<Menu position="bottom-end" disabled={ instanceIsMIDIMapping } >
+				<Menu position="bottom-end" disabled={ disabled } >
 					<Menu.Target>
-						<Tooltip label="Open Parameter Action Menu">
-							<ActionIcon variant="subtle" color="gray" size="md" className={ classes.parameterItemActionMenuTarget } >
+						<Tooltip label="Open Parameter Menu" disabled={ disabled }>
+							<ActionIcon variant="subtle" color="gray" size="md" disabled={ disabled } >
 								<IconElement path={ mdiDotsVertical } />
 							</ActionIcon>
 						</Tooltip>
 					</Menu.Target>
 					<Menu.Dropdown>
-						<Menu.Label>Parameter Actions</Menu.Label>
 						<Menu.Item leftSection={ <IconElement path={ mdiCodeBraces } /> } onClick={ toggleMetaEditor }>
 							Edit Metadata
 						</Menu.Item>
-						<Menu.Item color="red" leftSection={ <IconElement path={ mdiEraser } /> } onClick={ onClearMidiMap } disabled={ !param.isMidiMapped } >
-							Clear MIDI Mapping
-						</Menu.Item>
+						{ menuItems.map(renderMenuItem) }
 					</Menu.Dropdown>
 				</Menu>
 			</Group>
@@ -152,4 +164,4 @@ const Parameter = memo(function WrappedParameter({
 	);
 });
 
-export default Parameter;
+export default ParameterItem;

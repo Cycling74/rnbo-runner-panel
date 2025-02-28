@@ -4,14 +4,16 @@ import classes from "./presets.module.css";
 import { PresetRecord } from "../../models/preset";
 import { keyEventIsValidForName, replaceInvalidNameChars } from "../../lib/util";
 import { IconElement } from "../elements/icon";
-import { mdiCheck, mdiClose, mdiDotsVertical, mdiHistory, mdiPencil, mdiStar, mdiTrashCan } from "@mdi/js";
+import { mdiCheck, mdiClose, mdiContentSave, mdiDotsVertical, mdiHistory, mdiPencil, mdiStar, mdiTrashCan } from "@mdi/js";
 
 export type PresetItemProps = {
 	preset: PresetRecord;
-	onDelete: (set: PresetRecord) => any;
-	onLoad: (set: PresetRecord) => any;
-	onRename: (set: PresetRecord, name: string) => any;
-	onSetInitial?: (set: PresetRecord) => any;
+	onDelete: (preset: PresetRecord) => any;
+	onLoad: (preset: PresetRecord) => any;
+	onRename: (preset: PresetRecord, name: string) => any;
+	onSave: (preset: PresetRecord) => any;
+	onSetInitial?: (preset: PresetRecord) => any;
+	validateUniqueName: (name: string) => boolean;
 };
 
 export const PresetItem: FunctionComponent<PresetItemProps> = memo(function WrappedPresetItem({
@@ -19,7 +21,9 @@ export const PresetItem: FunctionComponent<PresetItemProps> = memo(function Wrap
 	onDelete,
 	onLoad,
 	onRename,
-	onSetInitial
+	onSave,
+	onSetInitial,
+	validateUniqueName
 }: PresetItemProps) {
 
 	const [isEditing, setIsEditing] = useState<boolean>(false);
@@ -38,18 +42,28 @@ export const PresetItem: FunctionComponent<PresetItemProps> = memo(function Wrap
 		onSetInitial(preset);
 	}, [preset, onSetInitial]);
 
+	const onSavePreset = useCallback((_e: MouseEvent<HTMLButtonElement>) => {
+		onSave(preset);
+	}, [onSave, preset]);
+
 	const onLoadPreset = useCallback((_e: MouseEvent<HTMLButtonElement>) => {
 		onLoad(preset);
 	}, [onLoad, preset]);
 
 	const onRenamePreset = useCallback((e: FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
-		if (!name?.length) {
+		inputRef.current?.focus();
+		const trimmedName = name.trim();
+		if (preset.name === trimmedName) {
+			setIsEditing(false);
+		} else if (!trimmedName?.length) {
 			setError("Please provide a valid preset name");
+		} else if (!validateUniqueName(trimmedName)) {
+			setError(`A preset with the name "${trimmedName}" already exists`);
 		} else {
-			onRename(preset, name);
+			onRename(preset, trimmedName);
 		}
-	}, [name, onRename, preset, setError]);
+	}, [name, onRename, preset, setError, inputRef, setIsEditing, validateUniqueName]);
 
 	const onDeletePreset = useCallback((_e: MouseEvent<HTMLButtonElement>) => {
 		onDelete(preset);
@@ -60,7 +74,7 @@ export const PresetItem: FunctionComponent<PresetItemProps> = memo(function Wrap
 		if (error && e.target.value?.length) setError(undefined);
 	}, [setName, error, setError]);
 
-	const onKeyDown = useCallback((e: KeyboardEvent<HTMLInputElement>) => {
+	const onKeyDown = useCallback((e: KeyboardEvent<HTMLInputElement>): void => {
 		if (e.key === "Escape") {
 			e.preventDefault();
 			e.stopPropagation();
@@ -71,6 +85,15 @@ export const PresetItem: FunctionComponent<PresetItemProps> = memo(function Wrap
 			e.preventDefault();
 		}
 	}, [toggleEditing]);
+
+	useEffect(() => {
+		if (isEditing && inputRef.current) {
+			inputRef.current.focus();
+		}
+		if (!isEditing) {
+			setError(undefined);
+		}
+	}, [isEditing, inputRef, setError]);
 
 	useEffect(() => {
 		setName(preset.name);
@@ -138,8 +161,10 @@ export const PresetItem: FunctionComponent<PresetItemProps> = memo(function Wrap
 				</Menu.Target>
 				<Menu.Dropdown>
 					<Menu.Label>Preset Actions</Menu.Label>
+					<Menu.Item leftSection={ <IconElement path={ mdiContentSave } /> } onClick={ onSavePreset } >Overwrite</Menu.Item>
 					<Menu.Item leftSection={ <IconElement path={ mdiPencil } /> } onClick={ toggleEditing } >Rename</Menu.Item>
 					{ onSetInitial && <Menu.Item leftSection={ <IconElement path={ mdiStar } /> } onClick={ onSetInitialPreset } >Load on Startup</Menu.Item> }
+					<Menu.Divider />
 					<Menu.Item color="red" leftSection={ <IconElement path={ mdiTrashCan } /> } onClick={ onDeletePreset } >Delete</Menu.Item>
 				</Menu.Dropdown>
 			</Menu>

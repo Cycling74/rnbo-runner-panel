@@ -1,0 +1,33 @@
+.setViewButton {
+	flex: 1;
+}
+
+.setViewNameInput {
+	flex: 1;
+}
+
+.instanceParameterList {
+	border: 1px solid var(--mantine-color-default-border);
+	border-radius: var(--mantine-radius-sm);
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.instanceParameterEntry {
+	border-bottom: 1px solid var(--mantine-color-default-border);
+	font-size: var(--mantine-font-size-sm);
+	padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
+
+	&:last-child {
+		border-bottom: none;
+	}
+}
+
+.instanceParameterEntryName {
+	flex: 1;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+
+}

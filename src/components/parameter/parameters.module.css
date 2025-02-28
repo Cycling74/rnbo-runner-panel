@@ -1,48 +1,52 @@
-.parameterItem {
+.parameterWrap {
+	background-color: var(--parameter-bg-color);
 	break-inside: avoid-column;
+	flex: 1;
+	outline-color: transparent;
+	outline-style: solid;
+	outline-width: 3px;
 	page-break-inside: avoid;
 	padding: 2px 2px var(--mantine-spacing-xl) 2px;
 	margin-bottom: 6px;
-
-	background-color: var(--parameter-bg-color);
-	outline-color: transparent;
-	outline-style: solid;
-	outline-width: 4px;
-
-	&[data-active-midi-mappping="true"] {
-		outline-color:var(--parameter-active-midi-outline);
-	}
 }
 
-.parameterList {
-	gap: var(--mantine-spacing-xl);
-	min-height: 100%;
+.paramWithMIDIMapping {
 
-	&[data-active-midi-mapping="true"] {
+	&[data-instance-mapping="true"] {
 		cursor: pointer;
+		background-color: var(--parameter-mapping-bg-color);
 
-		.parameterItemSlider,
-		.parameterItemActionMenuTarget {
+		&:hover {
+			background-color: var(--parameter-active-mapping-bg-color);
+		}
+
+		> * {
 			pointer-events: none;
 		}
 	}
 
+	&[data-param-mappping="true"] {
+		background-color: var(--parameter-active-mapping-bg-color);
+		outline-color: var(--parameter-active-mapping-outline);
+	}
+}
+
+.parameterList {
+	column-gap: var(--mantine-spacing-xl);
+	min-height: 100%;
+
 	&[data-color-scheme="light"] {
 		--parameter-bg-color: transparent;
-
-		&[data-active-midi-mapping="true"] {
-			--parameter-bg-color: var(--mantine-color-violet-1);
-			--parameter-active-midi-outline: var(--mantine-color-violet-4);
-		}
+		--parameter-mapping-bg-color: var(--mantine-color-violet-1);
+		--parameter-active-mapping-bg-color: var(--mantine-color-violet-2);
+		--parameter-active-mapping-outline: var(--mantine-color-violet-5);
 	}
 
 	&[data-color-scheme="dark"] {
 		--parameter-bg-color: transparent;
-
-		&[data-active-midi-mapping="true"] {
-			--parameter-bg-color: var(--mantine-color-violet-9);
-			--parameter-active-midi-outline: var(--mantine-color-violet-3);
-		}
+		--parameter-mapping-bg-color: var(--mantine-color-violet-9);
+		--parameter-active-mapping-bg-color: var(--mantine-color-violet-4);
+		--parameter-active-mapping-outline: var(--mantine-color-violet-2);
 	}
 }
 

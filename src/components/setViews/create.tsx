@@ -1,14 +1,15 @@
-import { Button, Group, TextInput } from "@mantine/core";
-import { ChangeEvent, FormEvent, FunctionComponent, KeyboardEvent, memo, useCallback, useState } from "react";
+import { ChangeEvent, FC, FormEvent, KeyboardEvent, memo, useCallback, useState } from "react";
 import { keyEventIsValidForName, replaceInvalidNameChars } from "../../lib/util";
+import { Button, Group, TextInput } from "@mantine/core";
 
-export type SaveGraphSetFormProps = {
+export type CreateSetViewFormProps = {
 	onSave: (name: string) => any;
 };
 
-export const SaveGraphSetForm: FunctionComponent<SaveGraphSetFormProps> = memo(function WrappedSaveGraphSetForm({
+export const CreateSetViewForm: FC<CreateSetViewFormProps> = memo(function WrappedCreateSetViewForm({
 	onSave
-}: SaveGraphSetFormProps) {
+}: CreateSetViewFormProps) {
+
 	const [name, setName] = useState<string>("");
 	const [error, setError] = useState<string | undefined>(undefined);
 
@@ -17,14 +18,14 @@ export const SaveGraphSetForm: FunctionComponent<SaveGraphSetFormProps> = memo(f
 		if (error && e.target.value?.length) setError(undefined);
 	};
 
-	const onSaveSet = (e: FormEvent<HTMLFormElement>): void => {
+	const onSaveSetView = (e: FormEvent<HTMLFormElement>): void => {
 		e.preventDefault();
 		const trimmedName = name.trim();
 		if (!trimmedName?.length) {
-			setError("Please provide a valid set name");
+			setError("Please provide a valid SetView name");
 		} else {
 			setError(undefined);
-			onSave(trimmedName);
+			onSave(name);
 			setName("");
 		}
 	};
@@ -36,20 +37,22 @@ export const SaveGraphSetForm: FunctionComponent<SaveGraphSetFormProps> = memo(f
 	}, []);
 
 	return (
-		<form onSubmit={ onSaveSet } >
+		<form onSubmit={ onSaveSetView } >
 			<Group gap="xs" align="flex-end">
 				<TextInput
-					label="Create Set"
-					description="Save the current graph state as a new set"
+					label="Create SetView"
+					description="Create a new view with the given name"
 					placeholder="Name"
 					value={ name }
 					error={ error || undefined }
 					onChange={ onNameChange }
-					onKeyDown={ onKeyDown }
 					style={{ flex: 1 }}
 					size="sm"
+					onKeyDown={ onKeyDown }
 				/>
-				<Button variant="outline" size="sm" type="submit">Save</Button>
+				<Button variant="outline" size="sm" type="submit">
+					Create
+				</Button>
 			</Group>
 		</form>
 	);

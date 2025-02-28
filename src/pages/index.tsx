@@ -139,29 +139,25 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 		dispatch(renameGraphSetOnRemote(set, name));
 	}, [dispatch]);
 
-	const onSaveSet = useCallback((name: string) => {
+	const onCreateSet = useCallback((name: string) => {
 		dispatch(saveGraphSetOnRemote(name));
 	}, [dispatch]);
 
-	const onSaveSetAs = useCallback((set: GraphSetRecord) => {
-		if (set.latest) {
-			dispatch(saveGraphSetOnRemote(set.name));
-		} else {
-			modals.openConfirmModal({
-				title: "Overwrite Set",
-				centered: true,
-				children: (
-					<Text size="sm">
-						Are you sure you want to overwrite the set named { `"${set.name}"` }?
-					</Text>
-				),
-				labels: { confirm: "Overwrite", cancel: "Cancel" },
-				confirmProps: { color: "red" },
-				onConfirm: () => {
-					dispatch(saveGraphSetOnRemote(set.name));
-				}
-			});
-		}
+	const onSaveSet = useCallback((set: GraphSetRecord) => {
+		modals.openConfirmModal({
+			title: "Overwrite Set",
+			centered: true,
+			children: (
+				<Text size="sm">
+					Are you sure you want to overwrite the set named { `"${set.name}"` }?
+				</Text>
+			),
+			labels: { confirm: "Overwrite", cancel: "Cancel" },
+			confirmProps: { color: "red" },
+			onConfirm: () => {
+				dispatch(saveGraphSetOnRemote(set.name, false));
+			}
+		});
 	}, [dispatch]);
 
 	// Presets
@@ -169,8 +165,25 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 		dispatch(loadSetPresetOnRemote(preset));
 	}, [dispatch]);
 
-	const onSavePreset = useCallback((name: string) => {
+	const onCreatePreset = useCallback((name: string) => {
 		dispatch(saveSetPresetToRemote(name));
+	}, [dispatch]);
+
+	const onSavePreset = useCallback((preset: PresetRecord) => {
+		modals.openConfirmModal({
+			title: "Overwrite Preset",
+			centered: true,
+			children: (
+				<Text size="sm">
+					Are you sure you want to overwrite the preset named { `"${preset.name}"` } with the current values?
+				</Text>
+			),
+			labels: { confirm: "Overwrite", cancel: "Cancel" },
+			confirmProps: { color: "red" },
+			onConfirm: () => {
+				dispatch(saveSetPresetToRemote(preset.name, false));
+			}
+		});
 	}, [dispatch]);
 
 	const onDeletePreset = useCallback((preset: PresetRecord) => {
@@ -251,8 +264,8 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 				onDeleteSet={ onDeleteSet }
 				onLoadSet={ onLoadSet }
 				onRenameSet={ onRenameSet }
+				onCreateSet={ onCreateSet }
 				onSaveSet={ onSaveSet }
-				onSaveSetAs={ onSaveSetAs }
 				open={ setDrawerIsOpen }
 				sets={ graphSets }
 			/>
@@ -261,8 +274,9 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 				onClose={ closePresetDrawer }
 				onDeletePreset={ onDeletePreset }
 				onLoadPreset={ onLoadPreset }
-				onSavePreset={ onSavePreset }
+				onCreatePreset={ onCreatePreset }
 				onRenamePreset={ onRenamePreset }
+				onSavePreset={ onSavePreset }
 				presets={ graphPresets }
 			/>
 		</>

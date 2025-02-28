@@ -41,7 +41,7 @@ export const deleteDataFileOnRemote = (file: DataFileRecord): AppThunk =>
 			dispatch(showNotification({
 				level: NotificationLevel.error,
 				title: `Error while trying to delete sample file ${file.id}`,
-				message: "Please check the consolor for further details."
+				message: "Please check the console for further details."
 			}));
 			console.log(err);
 		}

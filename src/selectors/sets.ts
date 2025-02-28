@@ -1,6 +1,6 @@
-import { Map as ImmuMap } from "immutable";
+import { Map as ImmuMap, OrderedSet as ImmuOrderedSet } from "immutable";
 import { RootStateType } from "../lib/store";
-import { GraphSetRecord } from "../models/set";
+import { GraphSetRecord, GraphSetViewRecord } from "../models/set";
 import { PresetRecord } from "../models/preset";
 import { createSelector } from "reselect";
 import { SortOrder } from "../lib/constants";
@@ -19,14 +19,13 @@ export const getGraphSet = createSelector(
 	}
 );
 
-const collator = new Intl.Collator("en-US");
-
 export const getGraphSetsSortedByName = createSelector(
 	[
 		getGraphSets,
 		(state: RootStateType, order: SortOrder): SortOrder => order
 	],
 	(sets, order) => {
+		const collator = new Intl.Collator("en-US");
 		return sets.valueSeq().sort((left: GraphSetRecord, right: GraphSetRecord): number => {
 			return collator.compare(left.name, right.name) * (order === SortOrder.Asc ? 1 : -1);
 		});
@@ -54,6 +53,7 @@ export const getGraphSetPresetsSortedByName = createSelector(
 		(state: RootStateType, order: SortOrder): SortOrder => order
 	],
 	(presets, order) => {
+		const collator = new Intl.Collator("en-US");
 		return presets.valueSeq().sort((left: PresetRecord, right: PresetRecord): number => {
 			let result;
 			if (left.name === right.name) {
@@ -69,3 +69,42 @@ export const getGraphSetPresetsSortedByName = createSelector(
 		});
 	}
 );
+
+export const getGraphSetViews = (state: RootStateType): ImmuMap<GraphSetViewRecord["id"], GraphSetViewRecord> => {
+	return state.sets.views;
+};
+
+export const getGraphSetViewOrder = (state: RootStateType): ImmuOrderedSet<GraphSetViewRecord["id"]> => {
+	return state.sets.viewOrder;
+};
+
+export const getGraphSetViewsBySortOrder = createSelector(
+	[
+		getGraphSetViews,
+		getGraphSetViewOrder
+	],
+	(views, order): ImmuMap<GraphSetViewRecord["id"], GraphSetViewRecord> => {
+		return ImmuMap<GraphSetViewRecord["id"], GraphSetViewRecord>().withMutations(map => {
+			order.forEach(o => {
+				const view = views.get(o);
+				if (view) {
+					map.set(view.id, view);
+				}
+			});
+		});
+	}
+);
+
+export const getGraphSetView = createSelector(
+	[
+		getGraphSetViews,
+		(state: RootStateType, id: GraphSetViewRecord["id"]): number => id
+	],
+	(views, id): GraphSetViewRecord | undefined => {
+		return views.get(id);
+	}
+);
+
+export const getSelectedGraphSetView = (state: RootStateType): GraphSetViewRecord | undefined => {
+	return state.sets.selectedView !== undefined ? state.sets.views.get(state.sets.selectedView) : undefined;
+};

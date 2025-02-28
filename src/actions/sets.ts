@@ -1,19 +1,32 @@
-import { writePacket } from "osc";
+import { OSCArgument, writePacket } from "osc";
 import { oscQueryBridge } from "../controller/oscqueryBridgeController";
 import { ActionBase, AppThunk } from "../lib/store";
-import { GraphSetRecord } from "../models/set";
+import { GraphSetRecord, GraphSetViewRecord } from "../models/set";
 import { PresetRecord } from "../models/preset";
 import { showNotification } from "./notifications";
 import { NotificationLevel } from "../models/notification";
 import { updateSetMetaOnRemoteFromNodes } from "./meta";
 import { NodeType } from "../models/graph";
 import { getNodes } from "../selectors/graph";
+import { ParameterRecord } from "../models/parameter";
+import { getPatcherInstance, getPatcherInstanceParametersSortedByInstanceIdAndIndex } from "../selectors/patchers";
+import { OSCQueryRNBOSetView, OSCQueryRNBOSetViewState } from "../lib/types";
+import { getGraphPresets, getGraphSets, getGraphSetView, getGraphSetViews } from "../selectors/sets";
+import { clamp, getUniqueName, instanceAndParamIndicesToSetViewEntry } from "../lib/util";
+import { setInstanceWaitingForMidiMappingOnRemote } from "./patchers";
 
 export enum GraphSetActionType {
 	INIT_SETS = "INIT_SETS",
-	SET_SET_PRESET_LATEST = "SET_SET_PRESET_LATEST",
-	INIT_SET_PRESETS = "INIT_SET_PRESETS",
 	SET_SET_LATEST = "SET_PRESET_LATEST",
+
+	INIT_SET_PRESETS = "INIT_SET_PRESETS",
+	SET_SET_PRESET_LATEST = "SET_SET_PRESET_LATEST",
+
+	INIT_SET_VIEWS = "INIT_SET_VIEWS",
+	SET_SET_VIEW = "SET_SET_VIEW",
+	LOAD_SET_VIEW = "LOAD_SET_VIEW",
+	DELETE_SET_VIEW = "DELETE_SET_VIEW",
+	SET_SET_VIEW_ORDER = "SET_SET_VIEW_ORDER"
 }
 
 export interface IInitGraphSets extends ActionBase {
@@ -44,7 +57,45 @@ export interface ISetGraphSetPresetsLatest extends ActionBase {
 	}
 }
 
-export type GraphSetAction = IInitGraphSets | ISetGraphSetsLatest | IInitGraphSetPresets | ISetGraphSetPresetsLatest;
+export interface IInitGraphSetViews extends ActionBase {
+	type: GraphSetActionType.INIT_SET_VIEWS;
+	payload: {
+		views: GraphSetViewRecord[];
+		order: Array<GraphSetViewRecord["id"]>;
+	};
+}
+
+export interface ILoadGraphSetView extends ActionBase {
+	type: GraphSetActionType.LOAD_SET_VIEW;
+	payload: {
+		view: GraphSetViewRecord;
+	};
+}
+
+export interface ISetGraphSetView extends ActionBase {
+	type: GraphSetActionType.SET_SET_VIEW;
+	payload: {
+		view: GraphSetViewRecord;
+	};
+}
+
+export interface IDeleteGraphSetView extends ActionBase {
+	type: GraphSetActionType.DELETE_SET_VIEW;
+	payload: {
+		view: GraphSetViewRecord;
+	};
+}
+
+export interface ISetGraphSetViewOrder extends ActionBase {
+	type: GraphSetActionType.SET_SET_VIEW_ORDER;
+	payload: {
+		order: Array<GraphSetViewRecord["id"]>;
+	};
+}
+
+
+export type GraphSetAction = IInitGraphSets | ISetGraphSetsLatest | IInitGraphSetPresets | ISetGraphSetPresetsLatest |
+IInitGraphSetViews | ILoadGraphSetView | ISetGraphSetView | IDeleteGraphSetView | ISetGraphSetViewOrder;
 
 export const initSets = (names: string[]): GraphSetAction => {
 	return {
@@ -60,15 +111,6 @@ export const setGraphSetLatest = (name: string): GraphSetAction => {
 		type: GraphSetActionType.SET_SET_LATEST,
 		payload: {
 			name
-		}
-	};
-};
-
-export const initSetPresets = (names: string[]): GraphSetAction => {
-	return {
-		type: GraphSetActionType.INIT_SET_PRESETS,
-		payload: {
-			presets: names.map(n => PresetRecord.fromDescription(n, n === "initial"))
 		}
 	};
 };
@@ -98,7 +140,7 @@ export const clearGraphSetOnRemote = (): AppThunk =>
 			dispatch(showNotification({
 				level: NotificationLevel.error,
 				title: "Error while trying to clear the set",
-				message: "Please check the consolor for further details."
+				message: "Please check the console for further details."
 			}));
 			console.error(err);
 		}
@@ -118,15 +160,21 @@ export const loadGraphSetOnRemote = (set: GraphSetRecord): AppThunk =>
 			dispatch(showNotification({
 				level: NotificationLevel.error,
 				title: `Error while trying to load set ${set.name}`,
-				message: "Please check the consolor for further details."
+				message: "Please check the console for further details."
 			}));
 			console.error(err);
 		}
 	};
 
-export const saveGraphSetOnRemote = (name: string): AppThunk =>
-	(dispatch) => {
+export const saveGraphSetOnRemote = (givenName: string, ensureUniqueName: boolean = true): AppThunk =>
+	(dispatch, getState) => {
 		try {
+
+			const graphSets = getGraphSets(getState());
+			const name = ensureUniqueName
+				? getUniqueName(givenName, graphSets.valueSeq().map(s => s.name).toArray())
+				: givenName;
+
 			const message = {
 				address: "/rnbo/inst/control/sets/save",
 				args: [
@@ -138,7 +186,7 @@ export const saveGraphSetOnRemote = (name: string): AppThunk =>
 			dispatch(showNotification({
 				level: NotificationLevel.error,
 				title: `Error while trying to save set ${name}`,
-				message: "Please check the consolor for further details."
+				message: "Please check the console for further details."
 			}));
 			console.error(err);
 		}
@@ -158,7 +206,7 @@ export const destroyGraphSetOnRemote = (set: GraphSetRecord): AppThunk =>
 			dispatch(showNotification({
 				level: NotificationLevel.error,
 				title: `Error while trying to delete set ${set.name}`,
-				message: "Please check the consolor for further details."
+				message: "Please check the console for further details."
 			}));
 			console.error(err);
 		}
@@ -179,11 +227,20 @@ export const renameGraphSetOnRemote = (set: GraphSetRecord, newName: string): Ap
 			dispatch(showNotification({
 				level: NotificationLevel.error,
 				title: `Error while trying to rename set ${set.name} -> ${newName}`,
-				message: "Please check the consolor for further details."
+				message: "Please check the console for further details."
 			}));
 			console.error(err);
 		}
 	};
+
+export const initSetPresets = (names: string[]): GraphSetAction => {
+	return {
+		type: GraphSetActionType.INIT_SET_PRESETS,
+		payload: {
+			presets: names.map(n => PresetRecord.fromDescription(n, n === "initial"))
+		}
+	};
+};
 
 export const loadSetPresetOnRemote = (preset: PresetRecord): AppThunk =>
 	(dispatch) => {
@@ -199,15 +256,21 @@ export const loadSetPresetOnRemote = (preset: PresetRecord): AppThunk =>
 			dispatch(showNotification({
 				level: NotificationLevel.error,
 				title: `Error while trying to load preset ${preset.name}`,
-				message: "Please check the consolor for further details."
+				message: "Please check the console for further details."
 			}));
 			console.log(err);
 		}
 	};
 
-export const saveSetPresetToRemote = (name: string): AppThunk =>
-	(dispatch) => {
+export const saveSetPresetToRemote = (givenName: string, ensureUniqueName: boolean = true): AppThunk =>
+	(dispatch, getState) => {
 		try {
+
+			const setPresets = getGraphPresets(getState());
+			const name = ensureUniqueName
+				? getUniqueName(givenName, setPresets.valueSeq().map(p => p.name).toArray())
+				: givenName;
+
 			const message = {
 				address: "/rnbo/inst/control/sets/presets/save",
 				args: [
@@ -219,7 +282,7 @@ export const saveSetPresetToRemote = (name: string): AppThunk =>
 			dispatch(showNotification({
 				level: NotificationLevel.error,
 				title: `Error while trying to save preset ${name}`,
-				message: "Please check the consolor for further details."
+				message: "Please check the console for further details."
 			}));
 			console.log(err);
 		}
@@ -239,7 +302,7 @@ export const destroySetPresetOnRemote = (preset: PresetRecord): AppThunk =>
 			dispatch(showNotification({
 				level: NotificationLevel.error,
 				title: `Error while trying to delete preset ${preset.name}`,
-				message: "Please check the consolor for further details."
+				message: "Please check the console for further details."
 			}));
 			console.log(err);
 		}
@@ -260,8 +323,335 @@ export const renameSetPresetOnRemote = (preset: PresetRecord, newname: string): 
 			dispatch(showNotification({
 				level: NotificationLevel.error,
 				title: `Error while trying to rename preset ${preset.name} to ${newname}`,
-				message: "Please check the consolor for further details."
+				message: "Please check the console for further details."
 			}));
 			console.log(err);
 		}
 	};
+
+export const initSetViews = (viewState?: OSCQueryRNBOSetViewState): IInitGraphSetViews => {
+
+	const views: GraphSetViewRecord[] = [];
+	for (const [id, view] of Object.entries(viewState?.CONTENTS?.list?.CONTENTS || {}) as Array<[string, OSCQueryRNBOSetView]>) {
+		views.push(
+			GraphSetViewRecord.fromDescription(id, view)
+		);
+	}
+
+	const order: number[] = viewState?.CONTENTS?.order?.VALUE  || views.map(v => v.id);
+
+	return {
+		type: GraphSetActionType.INIT_SET_VIEWS,
+		payload: {
+			views,
+			order
+		}
+	};
+};
+
+export const setSetView = (view: GraphSetViewRecord): ISetGraphSetView => {
+	return {
+		type: GraphSetActionType.SET_SET_VIEW,
+		payload: {
+			view
+		}
+	};
+};
+
+export const createSetViewOnRemote = (givenName: string): AppThunk =>
+	(dispatch, getState) => {
+		try {
+			const state = getState();
+			const params = getPatcherInstanceParametersSortedByInstanceIdAndIndex(state);
+			const existingViews = getGraphSetViews(state);
+			const name = getUniqueName(givenName, existingViews.valueSeq().map(v => v.name).toArray());
+
+			const message = {
+				address: "/rnbo/inst/control/sets/views/create",
+				args: [
+					{ type: "s", value: name },
+					...params.map(p => ({ type: "s", value: p.setViewId })).toArray()
+				]
+			};
+			oscQueryBridge.sendPacket(writePacket(message));
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: "Error while trying to create a new SetView",
+				message: "Please check the console for further details."
+			}));
+			console.log(err);
+		}
+	};
+
+export const addSetView = (id: string): ISetGraphSetView => {
+	return {
+		type: GraphSetActionType.SET_SET_VIEW,
+		payload: {
+			view: GraphSetViewRecord.getEmptyRecord(id)
+		}
+	};
+};
+
+export const loadSetView = (setView: GraphSetViewRecord): ILoadGraphSetView => {
+	return {
+		type: GraphSetActionType.LOAD_SET_VIEW,
+		payload: {
+			view: setView
+		}
+	};
+};
+
+export const renameSetViewOnRemote = (setView: GraphSetViewRecord, newname: string): AppThunk =>
+	(dispatch) => {
+		try {
+			const message = {
+				address: `/rnbo/inst/control/sets/views/list/${setView.id}/name`,
+				args: [
+					{ type: "s", value: newname }
+				]
+			};
+			oscQueryBridge.sendPacket(writePacket(message));
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: `Error while trying to rename SetView "${setView.name}" to "${newname}"`,
+				message: "Please check the console for further details."
+			}));
+			console.log(err);
+		}
+	};
+
+export const updateSetViewName = (id: GraphSetViewRecord["id"], newname: string): AppThunk =>
+	(dispatch, getState) => {
+		const state = getState();
+		const setView = getGraphSetView(state, id);
+		if (!setView) return;
+
+		dispatch(setSetView(setView.setName(newname)));
+	};
+
+export const destroySetViewOnRemote = (setView: GraphSetViewRecord): AppThunk =>
+	(dispatch) => {
+		try {
+			const message = {
+				address: "/rnbo/inst/control/sets/views/destroy",
+				args: [{ type: "i", value: setView.id }]
+			};
+			oscQueryBridge.sendPacket(writePacket(message));
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: `Error while trying to destroy SetView "${setView.name}"`,
+				message: "Please check the console for further details."
+			}));
+			console.log(err);
+		}
+	};
+
+export const deleteSetView = (id: number): AppThunk =>
+	(dispatch, getState) => {
+		const state = getState();
+		const setView = getGraphSetView(state, id);
+		if (!setView) return;
+
+		const action: IDeleteGraphSetView = {
+			type: GraphSetActionType.DELETE_SET_VIEW,
+			payload: { view: setView }
+		};
+		dispatch(action);
+	};
+
+export const destroyAllSetViewsOnRemote = (): AppThunk =>
+	(dispatch) => {
+		try {
+			const message = {
+				address: "/rnbo/inst/control/sets/views/destroy",
+				args: [{ type: "i", value: -1 }]
+			};
+			oscQueryBridge.sendPacket(writePacket(message));
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: "Error while trying to destroy all SetViews",
+				message: "Please check the console for further details."
+			}));
+			console.log(err);
+		}
+	};
+
+export const updateSetViewParameterListOnRemote = (setView: GraphSetViewRecord, params: ParameterRecord[]): AppThunk =>
+	(dispatch) => {
+
+		try {
+			const message = {
+				address: `/rnbo/inst/control/sets/views/list/${setView.id}/params`,
+				args: params.map(p => ({ type: "s", value: p.setViewId }))
+			};
+			oscQueryBridge.sendPacket(writePacket(message));
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: `Error while trying to update parameter list of SetView "${setView.name}"`,
+				message: "Please check the console for further details."
+			}));
+			console.log(err);
+		}
+	};
+
+export const offsetParameterIndexInSetView = (setView: GraphSetViewRecord, param: ParameterRecord, offset: number): AppThunk =>
+	(dispatch) => {
+		try {
+			const currentIndex = setView.params.findIndex(entry => entry.instanceId === param.instanceId && entry.paramIndex === param.index);
+			const newIndex = clamp(currentIndex + offset, 0, setView.params.size - 1);
+
+			const newList = setView.params
+				.delete(currentIndex)
+				.insert(newIndex, { instanceId: param.instanceId, paramIndex: param.index });
+			const message = {
+				address: `/rnbo/inst/control/sets/views/list/${setView.id}/params`,
+				args: newList.toArray().map(p => ({ type: "s", value: instanceAndParamIndicesToSetViewEntry(p.instanceId, p.paramIndex) }))
+			};
+			oscQueryBridge.sendPacket(writePacket(message));
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: `Error while trying to update parameter list of SetView "${setView.name}"`,
+				message: "Please check the console for further details."
+			}));
+			console.log(err);
+		}
+	};
+
+export const decreaseParameterIndexInSetView = (setView: GraphSetViewRecord, param: ParameterRecord) => offsetParameterIndexInSetView(
+	setView,
+	param,
+	-1
+);
+
+export const increaseParameterIndexInSetView = (setView: GraphSetViewRecord, param: ParameterRecord): AppThunk => offsetParameterIndexInSetView(
+	setView,
+	param,
+	1
+);
+
+export const removeParameterFromSetView = (setView: GraphSetViewRecord, param: ParameterRecord): AppThunk =>
+	(dispatch) => {
+		try {
+			if (!setView.paramIds.has(param.setViewId)) return;
+			const params = setView.paramIds.remove(param.setViewId).toArray().map(pId => ({ type: "s", value: pId }));
+
+			const message = {
+				address: `/rnbo/inst/control/sets/views/list/${setView.id}/params`,
+				args: params
+			};
+			oscQueryBridge.sendPacket(writePacket(message));
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: `Error while trying to update parameter list of SetView "${setView.name}"`,
+				message: "Please check the console for further details."
+			}));
+			console.log(err);
+		}
+	};
+
+export const removeAllParametersFromSetView = (setView: GraphSetViewRecord): AppThunk =>
+	(dispatch) => {
+		try {
+			const message = {
+				address: `/rnbo/inst/control/sets/views/list/${setView.id}/params`,
+				args: [] as OSCArgument[]
+			};
+			oscQueryBridge.sendPacket(writePacket(message));
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: `Error while trying to update parameter list of SetView "${setView.name}"`,
+				message: "Please check the console for further details."
+			}));
+			console.log(err);
+		}
+	};
+
+export const addParameterToSetView = (setView: GraphSetViewRecord, param: ParameterRecord): AppThunk =>
+	(dispatch) => {
+		try {
+			if (setView.paramIds.has(param.setViewId)) return;
+			const params = setView.paramIds.toArray().map(pId => ({ type: "s", value: pId }));
+			params.push({ type: "s", value: instanceAndParamIndicesToSetViewEntry(param.instanceId, param.index) });
+
+			const message = {
+				address: `/rnbo/inst/control/sets/views/list/${setView.id}/params`,
+				args: params
+			};
+			oscQueryBridge.sendPacket(writePacket(message));
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: `Error while trying to update parameter list of SetView "${setView.name}"`,
+				message: "Please check the console for further details."
+			}));
+			console.log(err);
+		}
+	};
+
+export const addAllParametersToSetView = (setView: GraphSetViewRecord): AppThunk =>
+	(dispatch, getState) => {
+		try {
+			const state = getState();
+			const params = setView.params.withMutations(list => {
+				getPatcherInstanceParametersSortedByInstanceIdAndIndex(state)
+					.forEach(param => {
+						if (!setView.paramIds.has(param.setViewId)) {
+							list.push({ instanceId: param.instanceId, paramIndex: param.index });
+						}
+					});
+			}).toArray();
+
+
+			const message = {
+				address: `/rnbo/inst/control/sets/views/list/${setView.id}/params`,
+				args: params.map(p => ({ type: "s", value: instanceAndParamIndicesToSetViewEntry(p.instanceId, p.paramIndex) }))
+			};
+			oscQueryBridge.sendPacket(writePacket(message));
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: `Error while trying to update parameter list of SetView "${setView.name}"`,
+				message: "Please check the console for further details."
+			}));
+			console.log(err);
+		}
+	};
+
+export const updateSetViewParameterList = (id: GraphSetViewRecord["id"], params: string[]): AppThunk =>
+	(dispatch, getState) => {
+		const state = getState();
+		const setView = getGraphSetView(state, id);
+		if (!setView) return;
+
+		dispatch(setSetView(setView.setParams(params)));
+	};
+
+export const setViewContainedInstancesWaitingForMidiMappingOnRemote = (setView: GraphSetViewRecord, value: boolean): AppThunk =>
+	(dispatch, getState) => {
+
+		const state = getState();
+		const ids = setView.instanceIds.toArray();
+
+		for (const instanceId of ids) {
+			const instance = getPatcherInstance(state, instanceId);
+			if (!instance) continue;
+			dispatch(setInstanceWaitingForMidiMappingOnRemote(instance.id, value));
+		}
+	};
+
+export const updateSetViewOrder = (order: OSCQueryRNBOSetViewState["CONTENTS"]["order"]["VALUE"]): ISetGraphSetViewOrder => {
+	return {
+		type: GraphSetActionType.SET_SET_VIEW_ORDER,
+		payload: {
+			order
+		}
+	};
+};

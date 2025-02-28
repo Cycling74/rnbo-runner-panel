@@ -8,8 +8,8 @@ import classes from "../../components/instance/instance.module.css";
 import { getAppStatus } from "../../selectors/appStatus";
 import { AppStatus, SortOrder } from "../../lib/constants";
 import Link from "next/link";
-import { getPatcherInstanceByIndex, getPatcherInstanceParametersByInstanceIndex, getPatcherInstances, getPatcherInstanceMessageInportsByInstanceIndex, getPatcherInstanceMesssageOutportsByInstanceIndex } from "../../selectors/patchers";
-import { unloadPatcherNodeByIndexOnRemote } from "../../actions/graph";
+import { getPatcherInstance, getPatcherInstanceParametersByInstanceId, getPatcherInstances, getPatcherInstanceMessageInportsByInstanceId, getPatcherInstanceMesssageOutportsByInstanceId } from "../../selectors/patchers";
+import { unloadPatcherNodeOnRemote } from "../../actions/graph";
 import { getAppSetting } from "../../selectors/settings";
 import { AppSetting } from "../../models/settings";
 import PresetDrawer from "../../components/presets";
@@ -23,14 +23,16 @@ import { IconElement } from "../../components/elements/icon";
 import { mdiCamera, mdiChartSankeyVariant, mdiPiano, mdiVectorSquare, mdiVectorSquareRemove } from "@mdi/js";
 import { ResponsiveButton } from "../../components/elements/responsiveButton";
 
+const collator = new Intl.Collator("en-US", { numeric: true });
+
 export default function Instance() {
 
 	const { query, isReady, pathname, push } = useRouter();
 	const [presetDrawerIsOpen, { close: closePresetDrawer, toggle: togglePresetDrawer }] = useDisclosure();
 	const [keyboardModalIsOpen, { close: closeKeyboardModal, toggle: toggleKeyboardModal }] = useDisclosure();
 
-	const { index, ...restQuery } = query;
-	const instanceIndex = parseInt(Array.isArray(index) ? index.join("") : index || "0", 10);
+	const { id, ...restQuery } = query;
+	const instanceId = Array.isArray(id) ? id.join("") : id || "0";
 
 	const dispatch = useAppDispatch();
 
@@ -47,13 +49,13 @@ export default function Instance() {
 		sortAttr,
 		sortOrder
 	] = useAppSelector((state: RootStateType) => {
-		const currentInstance = getPatcherInstanceByIndex(state, instanceIndex);
+		const currentInstance = getPatcherInstance(state, instanceId);
 
 		return [
 			currentInstance,
-			currentInstance ? getPatcherInstanceParametersByInstanceIndex(state, currentInstance.index) : undefined,
-			currentInstance ? getPatcherInstanceMessageInportsByInstanceIndex(state, currentInstance.index) : undefined,
-			currentInstance ? getPatcherInstanceMesssageOutportsByInstanceIndex(state, currentInstance.index) : undefined,
+			currentInstance ? getPatcherInstanceParametersByInstanceId(state, currentInstance.id) : undefined,
+			currentInstance ? getPatcherInstanceMessageInportsByInstanceId(state, currentInstance.id) : undefined,
+			currentInstance ? getPatcherInstanceMesssageOutportsByInstanceId(state, currentInstance.id) : undefined,
 			getAppStatus(state),
 			getPatcherInstances(state),
 			getDataFilesSortedByName(state, SortOrder.Asc),
@@ -65,7 +67,7 @@ export default function Instance() {
 	});
 
 	const onChangeInstance = useCallback((e: ChangeEvent<HTMLSelectElement>) => {
-		push({ pathname, query: { ...query, index: e.currentTarget.value } });
+		push({ pathname, query: { ...query, id: e.currentTarget.value } });
 	}, [push, pathname, query]);
 
 	const onUnloadInstance = useCallback((e: MouseEvent<HTMLButtonElement>) => {
@@ -74,13 +76,13 @@ export default function Instance() {
 			centered: true,
 			children: (
 				<Text size="sm">
-					Are you sure you want to unload the Patcher Instance { currentInstance?.patcher } at index {currentInstance?.index}?
+					Are you sure you want to unload the Patcher Instance { currentInstance?.displayName }?
 				</Text>
 			),
 			labels: { confirm: "Unload", cancel: "Cancel" },
 			confirmProps: { color: "red" },
 			onConfirm: () => {
-				dispatch(unloadPatcherNodeByIndexOnRemote(currentInstance.index));
+				dispatch(unloadPatcherNodeOnRemote(currentInstance.id));
 				push({ pathname: "/", query: restQuery });
 			}
 		});
@@ -90,8 +92,25 @@ export default function Instance() {
 		dispatch(loadPresetOnRemoteInstance(currentInstance, preset));
 	}, [dispatch, currentInstance]);
 
-	const onSavePreset = useCallback((name: string) => {
+	const onCreatePreset = useCallback((name: string) => {
 		dispatch(savePresetToRemoteInstance(currentInstance, name));
+	}, [dispatch, currentInstance]);
+
+	const onSavePreset = useCallback((preset: PresetRecord) => {
+		modals.openConfirmModal({
+			title: "Overwrite Preset",
+			centered: true,
+			children: (
+				<Text size="sm">
+					Are you sure you want to overwrite the preset named { `"${preset.name}"` } with the current values?
+				</Text>
+			),
+			labels: { confirm: "Overwrite", cancel: "Cancel" },
+			confirmProps: { color: "red" },
+			onConfirm: () => {
+				dispatch(savePresetToRemoteInstance(currentInstance, preset.name, false));
+			}
+		});
 	}, [dispatch, currentInstance]);
 
 	const onDeletePreset = useCallback((preset: PresetRecord) => {
@@ -131,10 +150,10 @@ export default function Instance() {
 			<Group justify="space-between" wrap="nowrap">
 				<div style={{ flex: "1 2 50%" }} >
 					<NativeSelect
-						data={ instances.valueSeq().sortBy(n => n.index).toArray().map(d => ({ value: `${d.index}`, label: d.displayName })) }
+						data={ instances.valueSeq().sort((a, b) => collator.compare(a.id, b.id)).toArray().map(d => ({ value: d.id, label: d.displayName })) }
 						leftSection={ <IconElement path={ mdiVectorSquare } /> }
 						onChange={ onChangeInstance }
-						value={ currentInstance.index }
+						value={ currentInstance.id }
 						style={{ maxWidth: 300, width: "100%" }}
 					/>
 				</div>
@@ -176,8 +195,9 @@ export default function Instance() {
 				onClose={ closePresetDrawer }
 				onDeletePreset={ onDeletePreset }
 				onLoadPreset={ onLoadPreset }
-				onSavePreset={ onSavePreset }
+				onCreatePreset={ onCreatePreset }
 				onRenamePreset={ onRenamePreset }
+				onSavePreset={ onSavePreset }
 				onSetInitialPreset={ onSetInitialPreset }
 				presets={ currentInstance.presets.valueSeq() }
 			/>

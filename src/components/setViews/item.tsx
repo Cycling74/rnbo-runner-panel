@@ -1,67 +1,63 @@
-import { ChangeEvent, FormEvent, FunctionComponent, KeyboardEvent, MouseEvent, memo, useCallback, useEffect, useRef, useState } from "react";
-import { GraphSetRecord } from "../../models/set";
+import { ChangeEvent, KeyboardEvent, MouseEvent, FormEvent, memo, useCallback, useState, useRef, useEffect, FC } from "react";
 import { ActionIcon, Button, Group, Menu, TextInput, Tooltip } from "@mantine/core";
-import classes from "./sets.module.css";
+import classes from "./setviews.module.css";
 import { keyEventIsValidForName, replaceInvalidNameChars } from "../../lib/util";
 import { IconElement } from "../elements/icon";
-import { mdiCheck, mdiClose, mdiContentSave, mdiDotsVertical, mdiHistory, mdiPencil, mdiTrashCan } from "@mdi/js";
+import { mdiCheck, mdiClose, mdiDotsVertical, mdiPencil, mdiTrashCan } from "@mdi/js";
+import { GraphSetViewRecord } from "../../models/set";
 
-export type GraphSetItemProps = {
-	set: GraphSetRecord;
-	onDelete: (set: GraphSetRecord) => any;
-	onLoad: (set: GraphSetRecord) => any;
-	onRename: (set: GraphSetRecord, name: string) => any;
-	onSave: (set: GraphSetRecord) => any;
+export type GraphSetViewItemProps = {
+	isActive: boolean;
+	onDelete: (set: GraphSetViewRecord) => any;
+	onLoad: (set: GraphSetViewRecord) => any;
+	onRename: (set: GraphSetViewRecord, name: string) => any;
+	setView: GraphSetViewRecord;
 	validateUniqueName: (name: string) => boolean;
 };
 
-export const GraphSetItem: FunctionComponent<GraphSetItemProps> = memo(function WrappedGraphSet({
-	set,
+export const GraphSetViewItem: FC<GraphSetViewItemProps> = memo(function WrappedGraphSetViewItem({
+	isActive,
 	onDelete,
 	onLoad,
 	onRename,
-	onSave,
+	setView,
 	validateUniqueName
-}: GraphSetItemProps) {
+}: GraphSetViewItemProps) {
 
 	const [isEditing, setIsEditing] = useState<boolean>(false);
 	const [error, setError] = useState<string | undefined>(undefined);
-	const [name, setName] = useState<string>(set.name);
+	const [name, setName] = useState<string>(setView.name);
 	const inputRef = useRef<HTMLInputElement>();
 
 	const toggleEditing = useCallback(() => {
 		if (isEditing) { // reset name upon blur
-			setName(set.name);
+			setName(setView.name);
 		}
 		setIsEditing(!isEditing);
-	}, [setIsEditing, isEditing, set, setName]);
+	}, [setIsEditing, isEditing, setView, setName]);
 
-	const onRenameSet = useCallback((e: FormEvent<HTMLFormElement>) => {
+	const onLoadSetView = useCallback((_e: MouseEvent<HTMLButtonElement>) => {
+		onLoad(setView);
+	}, [onLoad, setView]);
+
+	const onRenameSetView = useCallback((e: FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 		inputRef.current?.focus();
 		const trimmedName = name.trim();
-		if (set.name === trimmedName) {
+		if (setView.name === trimmedName) {
 			setIsEditing(false);
 		} else if (!trimmedName?.length) {
-			setError("Please provide a valid set name");
+			setError("Please provide a valid SetView name");
 		} else if (!validateUniqueName(trimmedName)) {
-			setError((`A set with the name "${trimmedName} already exists"`));
+			setError(`A SetView with the name "${trimmedName}" already exists`);
 		} else {
-			onRename(set, trimmedName);
+			onRename(setView, trimmedName);
 		}
-	}, [name, onRename, set, setError, inputRef, setIsEditing, validateUniqueName]);
+	}, [name, onRename, setView, setError, setIsEditing, validateUniqueName]);
 
-	const onLoadSet = useCallback((e: MouseEvent<HTMLButtonElement>) => {
-		onLoad(set);
-	}, [onLoad, set]);
-
-	const onDeleteSet = useCallback((e: MouseEvent<HTMLButtonElement>) => {
-		onDelete(set);
-	}, [onDelete, set]);
-
-	const onSaveSet = useCallback((_e: MouseEvent<HTMLButtonElement>) => {
-		onSave(set);
-	}, [onSave, set]);
+	const onDeleteSetView = useCallback((_e: MouseEvent<HTMLButtonElement>) => {
+		onDelete(setView);
+	}, [onDelete, setView]);
 
 	const onChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
 		setName(replaceInvalidNameChars(e.target.value));
@@ -81,6 +77,11 @@ export const GraphSetItem: FunctionComponent<GraphSetItemProps> = memo(function 
 	}, [toggleEditing]);
 
 	useEffect(() => {
+		setName(setView.name);
+		setIsEditing(false);
+	}, [setView, setName, setIsEditing]);
+
+	useEffect(() => {
 		if (isEditing && inputRef.current) {
 			inputRef.current.focus();
 		}
@@ -89,16 +90,11 @@ export const GraphSetItem: FunctionComponent<GraphSetItemProps> = memo(function 
 		}
 	}, [isEditing, inputRef, setError]);
 
-	useEffect(() => {
-		setName(set.name);
-		setIsEditing(false);
-	}, [set, setName, setIsEditing]);
-
 	return isEditing ? (
-		<form onSubmit={ onRenameSet } >
+		<form onSubmit={ onRenameSetView } >
 			<Group align="flex-start">
 				<TextInput
-					className={ classes.setItemNameInput }
+					className={ classes.setViewNameInput }
 					onChange={ onChange }
 					onKeyDown={ onKeyDown }
 					ref={ inputRef }
@@ -118,21 +114,21 @@ export const GraphSetItem: FunctionComponent<GraphSetItemProps> = memo(function 
 			</Group>
 		</form>
 	) : (
-
 		<Group gap="xs">
 			<Button
-				className={ classes.setItemButton }
+				fullWidth
+				className={ classes.setViewButton }
 				justify="flex-start"
 				size="sm"
-				variant="default"
-				leftSection={ set?.latest ? (
-					<Tooltip label="This set was loaded last" >
-						<IconElement path={ mdiHistory } />
+				leftSection={ isActive ? (
+					<Tooltip label="This view is currently active" >
+						<IconElement path={ mdiCheck } size="xs" color="green" />
 					</Tooltip>
 				) : null }
-				onClick={ onLoadSet }
+				variant="default"
+				onClick={ onLoadSetView }
 			>
-				{ name }
+				{ setView.name }
 			</Button>
 			<Menu position="bottom-end" >
 				<Menu.Target>
@@ -141,11 +137,9 @@ export const GraphSetItem: FunctionComponent<GraphSetItemProps> = memo(function 
 					</ActionIcon>
 				</Menu.Target>
 				<Menu.Dropdown>
-					<Menu.Label>Graph Set Actions</Menu.Label>
-					<Menu.Item leftSection={ <IconElement path={ mdiContentSave } /> } onClick={ onSaveSet } >Overwrite</Menu.Item>
+					<Menu.Label>SetView Actions</Menu.Label>
 					<Menu.Item leftSection={ <IconElement path={ mdiPencil } /> } onClick={ toggleEditing } >Rename</Menu.Item>
-					<Menu.Divider />
-					<Menu.Item color="red" leftSection={ <IconElement path={ mdiTrashCan } /> } onClick={ onDeleteSet } >Delete</Menu.Item>
+					<Menu.Item color="red" leftSection={ <IconElement path={ mdiTrashCan } /> } onClick={ onDeleteSetView } >Delete</Menu.Item>
 				</Menu.Dropdown>
 			</Menu>
 		</Group>

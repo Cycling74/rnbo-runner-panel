@@ -39,8 +39,8 @@ const MIDISource: FC<MIDISourceProps> = memo(function WrappedMIDISource({
 export type MIDIMappedParamProps = {
 	instance: PatcherInstanceRecord;
 	param: ParameterRecord;
-	onClearMIDIMapping: (instance: PatcherInstanceRecord, param: ParameterRecord) => void;
-	onUpdateMIDIMapping: (instance: PatcherInstanceRecord, param: ParameterRecord, value: string) => void;
+	onClearMIDIMapping: (param: ParameterRecord) => void;
+	onUpdateMIDIMapping: (param: ParameterRecord, value: string) => void;
 };
 
 
@@ -64,13 +64,13 @@ const MIDIMappedParameter: FC<MIDIMappedParamProps> = memo(function WrappedMIDIM
 			),
 			labels: { confirm: "Remove", cancel: "Cancel" },
 			confirmProps: { color: "red" },
-			onConfirm: () => onClearMIDIMapping(instance, param)
+			onConfirm: () => onClearMIDIMapping(param)
 		});
 	}, [param, instance, onClearMIDIMapping]);
 
 	const onUpdateMapping = useCallback((value: string) => {
-		onUpdateMIDIMapping(instance, param, value);
-	}, [instance, param, onUpdateMIDIMapping]);
+		onUpdateMIDIMapping(param, value);
+	}, [param, onUpdateMIDIMapping]);
 
 	return (
 		<Table.Tr>
@@ -81,7 +81,7 @@ const MIDIMappedParameter: FC<MIDIMappedParamProps> = memo(function WrappedMIDIM
 			/>
 			<Table.Td className={ classes.parameterNameColumn } >{ param.name }</Table.Td>
 			<Table.Td className={ classes.patcherInstanceColumn } >
-				<span className={ classes.patcherInstanceIndex } >{ instance.index }</span>
+				<span className={ classes.patcherInstanceIndex } >{ instance.id }</span>
 				<span className={ classes.patcherInstanceName } >: {instance.name}</span>
 			</Table.Td>
 			<Table.Td className={ classes.parameterValueColumn } >{ formatParamValueForDisplay(param.value) }</Table.Td>
@@ -100,7 +100,7 @@ const MIDIMappedParameter: FC<MIDIMappedParamProps> = memo(function WrappedMIDIM
 							<Menu.Item
 								leftSection={ <IconElement path={ mdiVectorSquare } /> }
 								component={ Link }
-								href={{ pathname: "/instances/[index]", query: { ...restQuery, index: instance.index } }}
+								href={{ pathname: "/instances/[id]", query: { ...restQuery, id: instance.id } }}
 							>
 								Show Instance
 							</Menu.Item>
