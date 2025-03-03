@@ -89,7 +89,7 @@ jobs:
     needs: [getversion]
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - uses: actions/setup-node@v3
         with:
@@ -103,7 +103,6 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.x"
-          cache: pip
 
       # Install Conan
       - name: Install Conan
