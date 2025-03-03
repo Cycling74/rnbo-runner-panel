@@ -98,6 +98,17 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # Setup Python
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'
+
+      # Install Conan
+      - name: Install Conan
+        run: |
+          pip install conan==1.60.2
+
       - name: Build Conan Package
         run: npm run package-conan
         env:
