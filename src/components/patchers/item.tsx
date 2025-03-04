@@ -1,21 +1,19 @@
-import { ChangeEvent, FormEvent, FunctionComponent, KeyboardEvent, MouseEvent, memo, useCallback, useEffect, useRef, useState } from "react";
-import { ActionIcon, Button, Group, Menu, TextInput, Tooltip } from "@mantine/core";
+import { ChangeEvent, FocusEvent, FormEvent, FunctionComponent, KeyboardEvent, MouseEvent, memo, useCallback, useEffect, useRef, useState } from "react";
+import { ActionIcon, Group, Menu, Table, Text, TextInput } from "@mantine/core";
 import { PatcherExportRecord } from "../../models/patcher";
 import { keyEventIsValidForName, replaceInvalidNameChars } from "../../lib/util";
 import classes from "./patchers.module.css";
 import { IconElement } from "../elements/icon";
-import { mdiCheck, mdiClose, mdiDotsVertical, mdiPencil, mdiPlus, mdiTrashCan } from "@mdi/js";
+import { mdiCheck, mdiClose, mdiDotsVertical, mdiPencil, mdiTrashCan } from "@mdi/js";
 
 export type PatcherItemProps = {
 	patcher: PatcherExportRecord;
-	onLoad: (p: PatcherExportRecord) => any;
 	onDelete: (p: PatcherExportRecord) => any;
 	onRename: (p: PatcherExportRecord, name: string) => any;
 };
 
 export const PatcherItem: FunctionComponent<PatcherItemProps> = memo(function WrappedPatcherItem({
 	patcher,
-	onLoad,
 	onDelete,
 	onRename
 }: PatcherItemProps) {
@@ -32,25 +30,36 @@ export const PatcherItem: FunctionComponent<PatcherItemProps> = memo(function Wr
 		setIsEditing(!isEditing);
 	}, [setIsEditing, isEditing, patcher, setName]);
 
-	const onRenamePatcher = useCallback((e: FormEvent<HTMLFormElement>) => {
-		e.preventDefault();
-		if (!name?.length) {
+	const triggerRename = useCallback((nName: string) => {
+		if (patcher.name === nName) {
+			// no-op
+		} else if (!nName?.length) {
 			setError("Please provide a valid patcher name");
 		} else {
-			onRename(patcher, name);
+			onRename(patcher, nName);
 		}
-	}, [name, onRename, patcher, setError]);
+		setIsEditing(false);
+	}, [setError, patcher, onRename]);
 
 	const onDeletePatcher = useCallback((_e: MouseEvent<HTMLButtonElement>) => {
 		onDelete(patcher);
 	}, [onDelete, patcher]);
+
+	const onRenamePatcher = useCallback((e: FormEvent<HTMLFormElement>) => {
+		e.preventDefault();
+		triggerRename(name);
+	}, [name, triggerRename]);
+
+	const onBlur = useCallback((e: FocusEvent<HTMLInputElement>) => {
+		triggerRename(name);
+	}, [name, triggerRename]);
 
 	const onChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
 		setName(replaceInvalidNameChars(e.target.value));
 		if (error && e.target.value?.length) setError(undefined);
 	}, [setName, error, setError]);
 
-	const onKeyDown = useCallback((e: KeyboardEvent<HTMLInputElement>) => {
+	const onKeyDown = useCallback((e: KeyboardEvent<HTMLInputElement>): void => {
 		if (e.key === "Escape") {
 			e.preventDefault();
 			e.stopPropagation();
@@ -65,6 +74,7 @@ export const PatcherItem: FunctionComponent<PatcherItemProps> = memo(function Wr
 	useEffect(() => {
 		if (isEditing && inputRef.current) {
 			inputRef.current.focus();
+			inputRef.current.select();
 		}
 		if (!isEditing) {
 			setError(undefined);
@@ -76,59 +86,58 @@ export const PatcherItem: FunctionComponent<PatcherItemProps> = memo(function Wr
 		setIsEditing(false);
 	}, [patcher, setName, setIsEditing]);
 
-	const onLoadPatcher = useCallback((_e: MouseEvent<HTMLButtonElement>) => {
-		onLoad(patcher);
-	}, [onLoad, patcher]);
-
-	return isEditing ? (
-		<form onSubmit={ onRenamePatcher } >
-			<Group align="center" justify="flex-start">
-				<TextInput
-					className={ classes.patcherItemNameInput }
-					onChange={ onChange }
-					onKeyDown={ onKeyDown }
-					ref={ inputRef }
-					size="sm"
-					value={ name }
-					error={ error }
-					variant="default"
-				/>
-				<ActionIcon.Group>
-					<ActionIcon variant="subtle" size="md" color="gray" onClick={ toggleEditing } >
-						<IconElement path={ mdiClose } />
-					</ActionIcon>
-					<ActionIcon variant="subtle" size="md" type="submit">
-						<IconElement path={ mdiCheck } />
-					</ActionIcon>
-				</ActionIcon.Group>
-			</Group>
-		</form>
-	) : (
-		<Group gap="xs">
-			<Tooltip label={ `Click to create a new instance of ${patcher.name}` } >
-				<Button
-					className={ classes.patcherItemButton }
-					justify="flex-start"
-					size="sm"
-					variant="default"
-					onClick={ onLoadPatcher }
-					leftSection={ <IconElement path={ mdiPlus } /> }
-				>
-					{ patcher.name }
-				</Button>
-			</Tooltip>
-			<Menu position="bottom-end" >
-				<Menu.Target>
-					<ActionIcon variant="subtle" color="gray" size="md">
-						<IconElement path={ mdiDotsVertical } />
-					</ActionIcon>
-				</Menu.Target>
-				<Menu.Dropdown>
-					<Menu.Label>Patcher Actions</Menu.Label>
-					<Menu.Item leftSection={ <IconElement path={ mdiPencil } /> } onClick={ toggleEditing } >Rename</Menu.Item>
-					<Menu.Item color="red" leftSection={ <IconElement path={ mdiTrashCan }/> } onClick={ onDeletePatcher } >Delete</Menu.Item>
-				</Menu.Dropdown>
-			</Menu>
-		</Group>
+	return (
+		<Table.Tr className={ classes.patcherItem } >
+			<Table.Td>
+				{
+					isEditing ? (
+						<form onSubmit={ onRenamePatcher } >
+							<Group align="center" justify="flex-start">
+								<TextInput
+									classNames={{
+										input: classes.patcherItemNameInput,
+										root: classes.patcherItemNameInputWrap
+									}}
+									onBlur={ onBlur }
+									onChange={ onChange }
+									onKeyDown={ onKeyDown }
+									ref={ inputRef }
+									size="sm"
+									value={ name }
+									error={ error }
+									variant="unstyled"
+								/>
+								<ActionIcon.Group>
+									<ActionIcon variant="subtle" size="md" color="gray" onPointerDown={ toggleEditing } >
+										<IconElement path={ mdiClose } />
+									</ActionIcon>
+									<ActionIcon variant="subtle" size="md" type="submit">
+										<IconElement path={ mdiCheck } />
+									</ActionIcon>
+								</ActionIcon.Group>
+							</Group>
+						</form>
+					) : (
+						<Text fz="sm" truncate="end" className={ classes.patcherItemName } onClick={ toggleEditing } >
+							{ patcher.name }
+						</Text>
+					)
+				}
+			</Table.Td>
+			<Table.Td>
+				<Menu position="bottom-end" >
+					<Menu.Target>
+						<ActionIcon variant="subtle" color="gray" size="md">
+							<IconElement path={ mdiDotsVertical } />
+						</ActionIcon>
+					</Menu.Target>
+					<Menu.Dropdown>
+						<Menu.Label>Patcher Actions</Menu.Label>
+						<Menu.Item leftSection={ <IconElement path={ mdiPencil } /> } onClick={ toggleEditing } >Rename</Menu.Item>
+						<Menu.Item color="red" leftSection={ <IconElement path={ mdiTrashCan }/> } onClick={ onDeletePatcher } >Delete</Menu.Item>
+					</Menu.Dropdown>
+				</Menu>
+			</Table.Td>
+		</Table.Tr>
 	);
 });
