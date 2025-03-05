@@ -1,4 +1,4 @@
-import { Button, Group, Stack, Text, Tooltip } from "@mantine/core";
+import { Group, Stack, Text } from "@mantine/core";
 import { FunctionComponent, useCallback, useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "../hooks/useAppDispatch";
 import { RootStateType } from "../lib/store";
@@ -19,20 +19,18 @@ import {
 } from "../actions/editor";
 import SetsDrawer from "../components/sets";
 import { destroySetPresetOnRemote, loadSetPresetOnRemote, saveSetPresetToRemote, renameSetPresetOnRemote, clearGraphSetOnRemote, destroyGraphSetOnRemote, loadGraphSetOnRemote, renameGraphSetOnRemote, saveGraphSetOnRemote } from "../actions/sets";
-import { destroyPatcherOnRemote, renamePatcherOnRemote } from "../actions/patchers";
 import { PresetRecord } from "../models/preset";
 import { getGraphSetPresetsSortedByName, getGraphSetsSortedByName } from "../selectors/sets";
 import { useDisclosure } from "@mantine/hooks";
-import PatcherDrawer from "../components/patchers";
 import { PatcherExportRecord } from "../models/patcher";
 import { SortOrder } from "../lib/constants";
 import { GraphSetRecord } from "../models/set";
 import { modals } from "@mantine/modals";
-import { IconElement } from "../components/elements/icon";
-import { mdiCamera, mdiFileExport, mdiGroup } from "@mdi/js";
+import { mdiCamera, mdiGroup } from "@mdi/js";
 import { ResponsiveButton } from "../components/elements/responsiveButton";
 import { initEditor, unmountEditor } from "../actions/editor";
 import { getGraphEditorLockedState } from "../selectors/editor";
+import { AddNodeMenu } from "../components/editor/addNodeMenu";
 
 const Index: FunctionComponent<Record<string, never>> = () => {
 
@@ -53,15 +51,13 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 		getGraphEditorLockedState(state)
 	]);
 
-	const [patcherDrawerIsOpen, { close: closePatcherDrawer, toggle: togglePatcherDrawer }] = useDisclosure();
 	const [setDrawerIsOpen,  { close: closeSetDrawer, toggle: toggleSetDrawer }] = useDisclosure();
 	const [presetDrawerIsOpen, { close: closePresetDrawer, toggle: togglePresetDrawer }] = useDisclosure();
 
 	// Instances
-	const onAddInstance = useCallback((patcher: PatcherExportRecord) => {
+	const onAddPatcherInstance = useCallback((patcher: PatcherExportRecord) => {
 		dispatch(loadPatcherNodeOnRemote(patcher));
-		closePatcherDrawer();
-	}, [dispatch, closePatcherDrawer]);
+	}, [dispatch]);
 
 	// Editor
 	const onEditorInit = useCallback((instance: ReactFlowInstance) => {
@@ -194,14 +190,6 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 		dispatch(renameSetPresetOnRemote(preset, name));
 	}, [dispatch]);
 
-	const onDeletePatcher = useCallback((p: PatcherExportRecord) => {
-		dispatch(destroyPatcherOnRemote(p));
-	}, [dispatch]);
-
-	const onRenamePatcher = useCallback((p: PatcherExportRecord, name: string) => {
-		dispatch(renamePatcherOnRemote(p, name));
-	}, [dispatch]);
-
 	useEffect(() => {
 		return () => dispatch(unmountEditor());
 	}, [dispatch]);
@@ -210,11 +198,10 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 		<>
 			<Stack style={{ height: "100%" }} >
 				<Group justify="space-between" wrap="nowrap">
-					<Tooltip label="Open Exported Patcher Menu">
-						<Button variant="default" leftSection={ <IconElement path={ mdiFileExport } /> } onClick={ togglePatcherDrawer } >
-							Patchers
-						</Button>
-					</Tooltip>
+					<AddNodeMenu
+						onAddPatcherInstance={ onAddPatcherInstance }
+						patchers={ patchers }
+					/>
 					<Group style={{ flex: "0" }} wrap="nowrap" gap="xs" >
 						<ResponsiveButton
 							label="Graph Sets"
@@ -250,14 +237,6 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 					onZoomOut={ onEditorZoomOut }
 				/>
 			</Stack>
-			<PatcherDrawer
-				open={ patcherDrawerIsOpen }
-				patchers={ patchers }
-				onClose={ closePatcherDrawer }
-				onLoadPatcher={ onAddInstance }
-				onRenamePatcher={ onRenamePatcher }
-				onDeletePatcher={ onDeletePatcher }
-			/>
 			<SetsDrawer
 				onClose={ closeSetDrawer }
 				onClearSet={ onClearSet }

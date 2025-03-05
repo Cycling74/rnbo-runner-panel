@@ -9,7 +9,7 @@ import { getShowSettingsModal } from "../../selectors/settings";
 import { ExternalNavLink, NavLink } from "./link";
 import { useRouter } from "next/router";
 import { getFirstPatcherNodeId } from "../../selectors/graph";
-import { mdiChartSankeyVariant, mdiCog, mdiFileMusic, mdiHelpCircle, mdiMidiPort, mdiVectorSquare, mdiTableEye } from "@mdi/js";
+import { mdiChartSankeyVariant, mdiCog, mdiFileMusic, mdiHelpCircle, mdiMidiPort, mdiVectorSquare, mdiTableEye, mdiFileExport } from "@mdi/js";
 
 const AppNav: FunctionComponent = memo(function WrappedNav() {
 
@@ -44,6 +44,12 @@ const AppNav: FunctionComponent = memo(function WrappedNav() {
 						label="Patcher Instance Control"
 						href={{ pathname: "/instances/[id]", query: { ...restQuery, id: instanceId } }}
 						isActive={ pathname === "/instances/[id]" }
+					/>
+					<NavLink
+						icon={ mdiFileExport }
+						label="Patchers"
+						href={{ pathname: "/patchers", query: restQuery }}
+						isActive={ pathname === "/patchers" }
 					/>
 					<NavLink
 						icon={ mdiFileMusic }
