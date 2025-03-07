@@ -191,26 +191,6 @@ export const saveGraphSetOnRemote = (givenName: string, ensureUniqueName: boolea
 		}
 	};
 
-const doLoadGraphSetOnRemote = (set: GraphSetRecord): AppThunk =>
-	(dispatch) => {
-		try {
-			const message = {
-				address: "/rnbo/inst/control/sets/load",
-				args: [
-					{ type: "s", value: set.name }
-				]
-			};
-			oscQueryBridge.sendPacket(writePacket(message));
-		} catch (err) {
-			dispatch(showNotification({
-				level: NotificationLevel.error,
-				title: `Error while trying to load set ${set.name}`,
-				message: "Please check the console for further details."
-			}));
-			console.error(err);
-		}
-}
-
 export const loadGraphSetOnRemote = (set: GraphSetRecord): AppThunk =>
 	async (dispatch, getState) => {
 		try {
