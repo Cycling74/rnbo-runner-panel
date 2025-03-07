@@ -174,7 +174,7 @@ export default function Instance() {
 					/>
 					<ResponsiveButton
 						label="Presets"
-						tooltip="Open Instance Preset Menu"
+						tooltip="Open Device Preset Menu"
 						icon={ mdiCamera }
 						onClick={ togglePresetDrawer }
 					/>

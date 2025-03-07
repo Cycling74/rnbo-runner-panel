@@ -98,7 +98,7 @@ const instanceConfigDetails: Partial<Record<ConfigKey, Omit<ConfigRecordProps, "
 		options: DEFAULT_MIDI_RANGE,
 		path: `/rnbo/inst/config/${ConfigKey.AudioFadeOut}`,
 		tab: SettingsTab.Instance,
-		title: "MIDI Program Change Channel: Load Instance Preset"
+		title: "MIDI Program Change Channel: Load Device Preset"
 	}
 };
 
