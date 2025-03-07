@@ -9,6 +9,19 @@ export const getGraphSets = (state: RootStateType): ImmuMap<GraphSetRecord["id"]
 	return state.sets.sets;
 };
 
+export const getCurrentGraphSetId = (state: RootStateType): string => state.sets.currentId;
+export const getCurrentGraphSetIsDirty = (state: RootStateType): boolean => state.sets.currentIsDirty;
+
+export const getCurrentGraphSet = createSelector(
+	[
+		getGraphSets,
+		getCurrentGraphSetId
+	],
+	(sets: ImmuMap<GraphSetRecord["id"], GraphSetRecord>, currentId: GraphSetRecord["id"]): GraphSetRecord | undefined => {
+		return sets.get(currentId);
+	}
+);
+
 export const getGraphSet = createSelector(
 	[
 		getGraphSets,

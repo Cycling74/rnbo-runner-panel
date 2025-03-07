@@ -5,12 +5,10 @@ import { ParameterRecord } from "./parameter";
 
 export type GraphSetRecordProps = {
 	name: string;
-	latest: boolean;
 };
 
 export class GraphSetRecord extends ImmuRecord<GraphSetRecordProps>({
-	name: "",
-	latest: false
+	name: ""
 }) {
 
 	public static fromDescription(name: string): GraphSetRecord {
@@ -19,10 +17,6 @@ export class GraphSetRecord extends ImmuRecord<GraphSetRecordProps>({
 
 	get id(): string {
 		return this.name;
-	}
-
-	public setLatest(latest: boolean) : GraphSetRecord {
-		return this.set("latest", latest);
 	}
 }
 

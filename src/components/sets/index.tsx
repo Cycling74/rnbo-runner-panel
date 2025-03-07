@@ -17,22 +17,24 @@ export type SetsDrawerProps = {
 	onDeleteSet: (set: GraphSetRecord) => any;
 	onLoadSet: (set: GraphSetRecord) => any;
 	onRenameSet: (set: GraphSetRecord, name: string) => any;
-	onSaveSet: (set: GraphSetRecord) => any;
+	onOverwriteSet: (set: GraphSetRecord) => any;
 	open: boolean;
 	sets: Seq.Indexed<GraphSetRecord>;
+	currentSetId: GraphSetRecord["id"];
 }
 
 const SetsDrawer: FunctionComponent<SetsDrawerProps> = memo(function WrappedSetsDrawer({
 	onClose,
 	open,
 	sets,
+	currentSetId,
 
 	onClearSet,
 	onCreateSet,
 	onDeleteSet,
 	onLoadSet,
 	onRenameSet,
-	onSaveSet
+	onOverwriteSet
 
 }) {
 
@@ -96,10 +98,11 @@ const SetsDrawer: FunctionComponent<SetsDrawerProps> = memo(function WrappedSets
 											<GraphSetItem
 												key={ set.id }
 												set={ set }
+												isCurrent={ set.id === currentSetId }
 												onRename={ onRenameSet }
 												onLoad={ onLoadSet }
 												onDelete={ onTriggerDeleteSet }
-												onSave={ onSaveSet }
+												onOverwrite={ onOverwriteSet }
 												validateUniqueName={ validateUniqueSetName }
 											/>
 										))

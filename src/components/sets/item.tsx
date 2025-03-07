@@ -4,23 +4,25 @@ import { ActionIcon, Button, Group, Menu, TextInput, Tooltip } from "@mantine/co
 import classes from "./sets.module.css";
 import { keyEventIsValidForName, replaceInvalidNameChars } from "../../lib/util";
 import { IconElement } from "../elements/icon";
-import { mdiCheck, mdiClose, mdiContentSave, mdiDotsVertical, mdiHistory, mdiPencil, mdiTrashCan } from "@mdi/js";
+import { mdiCheck, mdiCheckCircleOutline, mdiClose, mdiContentSave, mdiDotsVertical, mdiPencil, mdiTrashCan } from "@mdi/js";
 
 export type GraphSetItemProps = {
 	set: GraphSetRecord;
+	isCurrent: boolean;
 	onDelete: (set: GraphSetRecord) => any;
 	onLoad: (set: GraphSetRecord) => any;
 	onRename: (set: GraphSetRecord, name: string) => any;
-	onSave: (set: GraphSetRecord) => any;
+	onOverwrite: (set: GraphSetRecord) => any;
 	validateUniqueName: (name: string) => boolean;
 };
 
 export const GraphSetItem: FunctionComponent<GraphSetItemProps> = memo(function WrappedGraphSet({
 	set,
+	isCurrent,
 	onDelete,
 	onLoad,
 	onRename,
-	onSave,
+	onOverwrite,
 	validateUniqueName
 }: GraphSetItemProps) {
 
@@ -59,9 +61,9 @@ export const GraphSetItem: FunctionComponent<GraphSetItemProps> = memo(function 
 		onDelete(set);
 	}, [onDelete, set]);
 
-	const onSaveSet = useCallback((_e: MouseEvent<HTMLButtonElement>) => {
-		onSave(set);
-	}, [onSave, set]);
+	const onOverwriteSet = useCallback((_e: MouseEvent<HTMLButtonElement>) => {
+		onOverwrite(set);
+	}, [onOverwrite, set]);
 
 	const onChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
 		setName(replaceInvalidNameChars(e.target.value));
@@ -125,9 +127,9 @@ export const GraphSetItem: FunctionComponent<GraphSetItemProps> = memo(function 
 				justify="flex-start"
 				size="sm"
 				variant="default"
-				leftSection={ set?.latest ? (
-					<Tooltip label="This set was loaded last" >
-						<IconElement path={ mdiHistory } />
+				leftSection={ isCurrent ? (
+					<Tooltip label="This set is currently loaded" >
+						<IconElement path={ mdiCheckCircleOutline } />
 					</Tooltip>
 				) : null }
 				onClick={ onLoadSet }
@@ -142,7 +144,7 @@ export const GraphSetItem: FunctionComponent<GraphSetItemProps> = memo(function 
 				</Menu.Target>
 				<Menu.Dropdown>
 					<Menu.Label>Graph Set Actions</Menu.Label>
-					<Menu.Item leftSection={ <IconElement path={ mdiContentSave } /> } onClick={ onSaveSet } >Overwrite</Menu.Item>
+					<Menu.Item leftSection={ <IconElement path={ mdiContentSave } /> } onClick={ onOverwriteSet } >Overwrite</Menu.Item>
 					<Menu.Item leftSection={ <IconElement path={ mdiPencil } /> } onClick={ toggleEditing } >Rename</Menu.Item>
 					<Menu.Divider />
 					<Menu.Item color="red" leftSection={ <IconElement path={ mdiTrashCan } /> } onClick={ onDeleteSet } >Delete</Menu.Item>

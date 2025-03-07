@@ -17,7 +17,8 @@ import { setInstanceWaitingForMidiMappingOnRemote } from "./patchers";
 
 export enum GraphSetActionType {
 	INIT_SETS = "INIT_SETS",
-	SET_SET_LATEST = "SET_PRESET_LATEST",
+	SET_SET_CURRENT = "SET_SET_CURRENT",
+	SET_SET_CURRENT_DIRTY = "SET_SET_CURRENT_DIRTY",
 
 	INIT_SET_PRESETS = "INIT_SET_PRESETS",
 	SET_SET_PRESET_LATEST = "SET_SET_PRESET_LATEST",
@@ -36,12 +37,20 @@ export interface IInitGraphSets extends ActionBase {
 	}
 }
 
-export interface ISetGraphSetsLatest extends ActionBase {
-	type: GraphSetActionType.SET_SET_LATEST;
+export interface ISetGraphSetCurrent extends ActionBase {
+	type: GraphSetActionType.SET_SET_CURRENT;
 	payload: {
-		name: string
+		name: string;
 	}
 }
+
+export interface ISetGraphSetCurrentDirty extends ActionBase {
+	type: GraphSetActionType.SET_SET_CURRENT_DIRTY;
+	payload: {
+		dirty: boolean;
+	}
+}
+
 
 export interface IInitGraphSetPresets extends ActionBase {
 	type: GraphSetActionType.INIT_SET_PRESETS;
@@ -94,7 +103,7 @@ export interface ISetGraphSetViewOrder extends ActionBase {
 }
 
 
-export type GraphSetAction = IInitGraphSets | ISetGraphSetsLatest | IInitGraphSetPresets | ISetGraphSetPresetsLatest |
+export type GraphSetAction = IInitGraphSets | ISetGraphSetCurrent | ISetGraphSetCurrentDirty | IInitGraphSetPresets | ISetGraphSetPresetsLatest |
 IInitGraphSetViews | ILoadGraphSetView | ISetGraphSetView | IDeleteGraphSetView | ISetGraphSetViewOrder;
 
 export const initSets = (names: string[]): GraphSetAction => {
@@ -106,11 +115,20 @@ export const initSets = (names: string[]): GraphSetAction => {
 	};
 };
 
-export const setGraphSetLatest = (name: string): GraphSetAction => {
+export const setCurrentGraphSet = (name: string): GraphSetAction => {
 	return {
-		type: GraphSetActionType.SET_SET_LATEST,
+		type: GraphSetActionType.SET_SET_CURRENT,
 		payload: {
 			name
+		}
+	};
+};
+
+export const setCurrentGraphSetDirtyState = (dirty: boolean): GraphSetAction => {
+	return {
+		type: GraphSetActionType.SET_SET_CURRENT_DIRTY,
+		payload: {
+			dirty
 		}
 	};
 };

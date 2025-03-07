@@ -1,4 +1,4 @@
-import { Group, Stack, Text } from "@mantine/core";
+import { Group, Stack, Text, Title } from "@mantine/core";
 import { FunctionComponent, useCallback, useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "../hooks/useAppDispatch";
 import { RootStateType } from "../lib/store";
@@ -20,13 +20,13 @@ import {
 import SetsDrawer from "../components/sets";
 import { destroySetPresetOnRemote, loadSetPresetOnRemote, saveSetPresetToRemote, renameSetPresetOnRemote, clearGraphSetOnRemote, destroyGraphSetOnRemote, loadGraphSetOnRemote, renameGraphSetOnRemote, saveGraphSetOnRemote } from "../actions/sets";
 import { PresetRecord } from "../models/preset";
-import { getGraphSetPresetsSortedByName, getGraphSetsSortedByName } from "../selectors/sets";
+import { getCurrentGraphSet, getCurrentGraphSetIsDirty, getGraphSetPresetsSortedByName, getGraphSetsSortedByName } from "../selectors/sets";
 import { useDisclosure } from "@mantine/hooks";
 import { PatcherExportRecord } from "../models/patcher";
 import { SortOrder } from "../lib/constants";
 import { GraphSetRecord } from "../models/set";
 import { modals } from "@mantine/modals";
-import { mdiCamera, mdiGroup } from "@mdi/js";
+import { mdiCamera, mdiContentSave, mdiGroup } from "@mdi/js";
 import { ResponsiveButton } from "../components/elements/responsiveButton";
 import { initEditor, unmountEditor } from "../actions/editor";
 import { getGraphEditorLockedState } from "../selectors/editor";
@@ -40,6 +40,8 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 		nodes,
 		connections,
 		graphSets,
+		currentGraphSet,
+		currentGraphSetIsDirty,
 		graphPresets,
 		editorLocked
 	] = useAppSelector((state: RootStateType) => [
@@ -47,6 +49,8 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 		getNodes(state),
 		getConnections(state),
 		getGraphSetsSortedByName(state, SortOrder.Asc),
+		getCurrentGraphSet(state),
+		getCurrentGraphSetIsDirty(state),
 		getGraphSetPresetsSortedByName(state, SortOrder.Asc),
 		getGraphEditorLockedState(state)
 	]);
@@ -139,7 +143,12 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 		dispatch(saveGraphSetOnRemote(name));
 	}, [dispatch]);
 
-	const onSaveSet = useCallback((set: GraphSetRecord) => {
+	const onSaveCurrentSet = useCallback(() => {
+		if (!currentGraphSet) return;
+		dispatch(saveGraphSetOnRemote(currentGraphSet.name, false));
+	}, [dispatch, currentGraphSet]);
+
+	const onOverwriteSet = useCallback((set: GraphSetRecord) => {
 		modals.openConfirmModal({
 			title: "Overwrite Set",
 			centered: true,
@@ -198,11 +207,27 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 		<>
 			<Stack style={{ height: "100%" }} >
 				<Group justify="space-between" wrap="nowrap">
-					<AddNodeMenu
-						onAddPatcherInstance={ onAddPatcherInstance }
-						patchers={ patchers }
-					/>
+					<Group>
+						<Title size="md" my={ 0 } >
+							{
+								currentGraphSet
+								? `${currentGraphSet.name}${currentGraphSetIsDirty ? "*" : ""}`
+								: "No Graph Set loaded"
+							}
+						</Title>
+					</Group>
 					<Group style={{ flex: "0" }} wrap="nowrap" gap="xs" >
+						<AddNodeMenu
+							onAddPatcherInstance={ onAddPatcherInstance }
+							patchers={ patchers }
+						/>
+						<ResponsiveButton
+							label="Save"
+							tooltip="Save Graph Set"
+							icon={ mdiContentSave }
+							disabled={ !currentGraphSetIsDirty }
+							onClick={ onSaveCurrentSet }
+						/>
 						<ResponsiveButton
 							label="Graph Sets"
 							tooltip="Open Graph Set Menu"
@@ -244,9 +269,10 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 				onLoadSet={ onLoadSet }
 				onRenameSet={ onRenameSet }
 				onCreateSet={ onCreateSet }
-				onSaveSet={ onSaveSet }
+				onOverwriteSet={ onOverwriteSet }
 				open={ setDrawerIsOpen }
 				sets={ graphSets }
+				currentSetId={ currentGraphSet.name }
 			/>
 			<PresetDrawer
 				open={ presetDrawerIsOpen }
