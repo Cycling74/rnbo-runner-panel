@@ -18,7 +18,7 @@ export const getCurrentGraphSet = createSelector(
 		getCurrentGraphSetId
 	],
 	(sets: ImmuMap<GraphSetRecord["id"], GraphSetRecord>, currentId: GraphSetRecord["id"]): GraphSetRecord | undefined => {
-		return sets.get(currentId);
+		return sets.get(currentId) || undefined;
 	}
 );
 
