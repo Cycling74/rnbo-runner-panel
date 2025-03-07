@@ -40,11 +40,11 @@ const SetsDrawer: FunctionComponent<SetsDrawerProps> = memo(function WrappedSets
 
 	const onTriggerDeleteSet = useCallback((set: GraphSetRecord) => {
 		modals.openConfirmModal({
-			title: "Delete Set",
+			title: "Delete Graph",
 			centered: true,
 			children: (
 				<Text size="sm">
-					Are you sure you want to delete the set named { `"${set.name}"` }?
+					Are you sure you want to delete the graph named { `"${set.name}"` }?
 				</Text>
 			),
 			labels: { confirm: "Delete", cancel: "Cancel" },
@@ -66,7 +66,7 @@ const SetsDrawer: FunctionComponent<SetsDrawerProps> = memo(function WrappedSets
 						<Drawer.Title>
 							<Group gap="xs">
 								<IconElement path={ mdiGroup } />
-								Graph Sets
+								Graphs
 							</Group>
 						</Drawer.Title>
 						<Drawer.CloseButton />
@@ -76,7 +76,7 @@ const SetsDrawer: FunctionComponent<SetsDrawerProps> = memo(function WrappedSets
 							<SaveGraphSetForm onSave={ onCreateSet } />
 							<Divider />
 							<Flex className={ classes.setListWrapper } direction="column">
-								<DrawerSectionTitle>Saved Graph Sets</DrawerSectionTitle>
+								<DrawerSectionTitle>Saved Graphs</DrawerSectionTitle>
 								<Stack gap="sm" >
 									{
 										sets.map(set => (
@@ -96,7 +96,7 @@ const SetsDrawer: FunctionComponent<SetsDrawerProps> = memo(function WrappedSets
 							</Flex>
 							<Divider />
 							<Button variant="outline" fullWidth={true} leftSection={ <IconElement path={ mdiEraser } /> } onClick={ onLoadEmptySet } >
-								Create New Graph Set
+								Create New Graph
 							</Button>
 						</Flex>
 					</Drawer.Body>

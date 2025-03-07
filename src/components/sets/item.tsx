@@ -143,7 +143,7 @@ export const GraphSetItem: FunctionComponent<GraphSetItemProps> = memo(function 
 					</ActionIcon>
 				</Menu.Target>
 				<Menu.Dropdown>
-					<Menu.Label>Graph Set Actions</Menu.Label>
+					<Menu.Label>Graph Actions</Menu.Label>
 					<Menu.Item leftSection={ <IconElement path={ mdiPencil } /> } onClick={ toggleEditing } >Rename</Menu.Item>
 					<Menu.Item leftSection={ <IconElement path={ mdiFileReplaceOutline } /> } onClick={ onOverwriteSet } disabled={ isCurrent } >Overwrite</Menu.Item>
 					<Menu.Divider />

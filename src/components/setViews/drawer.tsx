@@ -36,7 +36,7 @@ const SetViewDrawer: FC<CreateSetViewModalProps> = ({
 
 	const onTriggerDeleteSetView = useCallback((setView: GraphSetViewRecord) => {
 		modals.openConfirmModal({
-			title: "Delete SetView",
+			title: "Delete Parameter View",
 			centered: true,
 			children: (
 				<Text size="sm">
@@ -63,7 +63,7 @@ const SetViewDrawer: FC<CreateSetViewModalProps> = ({
 		>
 			<CreateSetViewForm onSave={ onCreateSetView } />
 			<Divider mt="lg" />
-			<DrawerSectionTitle>Saved SetViews</DrawerSectionTitle>
+			<DrawerSectionTitle>Saved Parameter Views</DrawerSectionTitle>
 			<Stack gap="sm">
 				{
 					setViews.valueSeq().map(v => (

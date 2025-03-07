@@ -44,7 +44,7 @@ const InstanceMessagesTab: FunctionComponent<InstanceMessageTabProps> = memo(fun
 			{
 				!messageInports.size ? (
 					<div className={ classes.emptySection }>
-						This patcher instance has no message input ports.
+						This device has no message input ports.
 					</div>
 				) :
 					<MessageInportList
@@ -58,7 +58,7 @@ const InstanceMessagesTab: FunctionComponent<InstanceMessageTabProps> = memo(fun
 			{
 				!messageOutports.size ? (
 					<div className={ classes.emptySection }>
-						This patcher instance has no output ports.
+						This device has no output ports.
 					</div>
 				) :
 					<MessageOutportList

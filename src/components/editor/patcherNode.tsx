@@ -27,7 +27,7 @@ const EditorPatcherNode: FunctionComponent<EditorNodeProps> = memo(function Wrap
 			<div className={ classes.nodeHeader } >
 				<div>{ node.displayName }</div>
 				<div>
-					<Tooltip label="Open Patcher Instance Control">
+					<Tooltip label="Open Device Control">
 						<ActionIcon
 							component={ Link }
 							href={{ pathname: "/instances/[id]", query: { ...query, id: node.instanceId } }}

@@ -109,7 +109,7 @@ export default function SetViews() {
 					<div style={{ flex: "1 2 50%" }} >
 						<Title size="md" my={ 0 } >
 							{
-								currentSetView?.name || "No SetView loaded"
+								currentSetView?.name || "No Parameter View Loaded"
 							}
 						</Title>
 					</div>
@@ -125,13 +125,13 @@ export default function SetViews() {
 						</Tooltip>
 						<ResponsiveButton
 							label="Parameters"
-							tooltip="Manage SetView Parameters"
+							tooltip="Manage Parameters"
 							icon={ mdiTune }
 							onClick={ openAddParametersView }
 						/>
 						<ResponsiveButton
-							label="SetViews"
-							tooltip="Open SetView Menu"
+							label="Parameter Views"
+							tooltip="Open Parameter Views Menu"
 							icon={ mdiTableEye }
 							onClick={ openSetViewDrawer }
 						/>

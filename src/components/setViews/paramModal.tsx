@@ -108,7 +108,7 @@ export const SetViewParameterModal: FC<SetViewParameterModalProps> = memo(functi
 			centered: true,
 			children: (
 				<Text size="sm" id="red">
-					Are you sure you want to append all missing parameters from all instances to the SetView { `"${setView.name}"` }? This action cannot be undone.
+					Are you sure you want to append all missing parameters from all devices to { `"${setView.name}"` }? This action cannot be undone.
 				</Text>
 			),
 			labels: { confirm: "Add", cancel: "Cancel" },
@@ -123,7 +123,7 @@ export const SetViewParameterModal: FC<SetViewParameterModalProps> = memo(functi
 			centered: true,
 			children: (
 				<Text size="sm" id="red">
-					Are you sure you want to remove all parameters from the SetView { `"${setView.name}"` }? This action cannot be undone.
+					Are you sure you want to remove all parameters from { `"${setView.name}"` }? This action cannot be undone.
 				</Text>
 			),
 			labels: { confirm: "Remove", cancel: "Cancel" },
@@ -148,7 +148,7 @@ export const SetViewParameterModal: FC<SetViewParameterModalProps> = memo(functi
 					<Modal.Title>
 						<Group gap="xs">
 							<IconElement path={ mdiTune } />
-							Manage SetView Parameters
+							Manage Parameters
 						</Group>
 					</Modal.Title>
 					<Modal.CloseButton />
@@ -158,7 +158,7 @@ export const SetViewParameterModal: FC<SetViewParameterModalProps> = memo(functi
 						<Group justify="flex-end" >
 							<ResponsiveButton
 								label="Include All"
-								tooltip="Include all parameters in SetView"
+								tooltip="Include all parameters"
 								icon={ mdiPlusBoxMultiple }
 								onClick={ onAddAllParametersToSetView }
 							/>
@@ -166,7 +166,7 @@ export const SetViewParameterModal: FC<SetViewParameterModalProps> = memo(functi
 								label="Remove All"
 								color="red"
 								variant="outline"
-								tooltip="Remove all parameters from SetView"
+								tooltip="Remove all parameters"
 								icon={ mdiMinusBoxMultiple }
 								onClick={ onRemoveAllParametersFromSetView }
 							/>
