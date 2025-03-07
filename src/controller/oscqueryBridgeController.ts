@@ -4,9 +4,9 @@ import { initRunnerInfo, setRunnerInfoValue, setAppStatus, setConnectionEndpoint
 import { AppDispatch, store } from "../lib/store";
 import { ReconnectingWebsocket } from "../lib/reconnectingWs";
 import { AppStatus, RunnerCmdMethod } from "../lib/constants";
-import { OSCQueryRNBOState, OSCQueryRNBOInstance, OSCQueryRNBOJackConnections, OSCQueryRNBOPatchersState, OSCValue, OSCQueryRNBOInstancesMetaState, OSCQueryListValue } from "../lib/types";
-import { addPatcherNode, deletePortAliases, initConnections, initNodes, removePatcherNode, setPortAliases, updateSetMetaFromRemote, updateSourcePortConnections, updateSystemOrControlPortInfo } from "../actions/graph";
-import { initPatchers } from "../actions/patchers";
+import { OSCQueryRNBOState, OSCQueryRNBOInstance, OSCQueryRNBOPatchersState, OSCValue, OSCQueryRNBOInstancesMetaState, OSCQuerySetMeta } from "../lib/types";
+import { deletePortAliases, initConnections, initPorts, setPortAliases, updateSetMetaFromRemote, updateSourcePortConnections, updatePortIOInfo, deletePortById, setPortProperties, deletePatcherNodeByInstanceId, addPort, addPatcherNode } from "../actions/graph";
+import { addInstance, deleteInstanceById, initInstances, initPatchers } from "../actions/patchers";
 import { initRunnerConfig, updateRunnerConfig } from "../actions/settings";
 import { initSets, setCurrentGraphSet, initSetPresets, setGraphSetPresetLatest, initSetViews, updateSetViewName, updateSetViewParameterList, deleteSetView, addSetView, updateSetViewOrder, setCurrentGraphSetDirtyState } from "../actions/sets";
 import { initDataFiles } from "../actions/datafiles";
@@ -28,6 +28,7 @@ import { NotificationLevel } from "../models/notification";
 import { initTransport, updateTransportStatus } from "../actions/transport";
 import { v4 as uuidv4 } from "uuid";
 import { JackInfoKeys } from "../models/runnerInfo";
+import { deserializeSetMeta } from "../lib/meta";
 
 const dispatch = store.dispatch as AppDispatch;
 
@@ -40,12 +41,13 @@ enum OSCQueryCommand {
 }
 
 const portIOPathMatcher = /^\/rnbo\/jack\/info\/ports\/(?<type>audio|midi)\/(?<direction>sources|sinks)$/;
+const portPropertiesPathMatcher = /^\/rnbo\/jack\/info\/ports\/properties\/(?<port>.+)$/;
 const portAliasPathMatcher = /^\/rnbo\/jack\/info\/ports\/aliases\/(?<port>.+)$/;
 const patchersPathMatcher = /^\/rnbo\/patchers/;
 const instancePathMatcher = /^\/rnbo\/inst\/(?<id>\d+)$/;
 const instanceStatePathMatcher = /^\/rnbo\/inst\/(?<id>\d+)\/(?<content>params|messages\/in|messages\/out|presets|data_refs|midi\/last)\/(?<rest>\S+)/;
 const instancePresetPathMatcher = /^\/rnbo\/inst\/(?<id>\d+)\/presets\/(?<property>loaded|initial)$/;
-const connectionsPathMatcher = /^\/rnbo\/jack\/connections\/(?<type>audio|midi)\/(?<name>.+)$/;
+const connectionsPathMatcher = /^\/rnbo\/jack\/connections\/(?<type>audio|midi)\/(?<id>.+)$/;
 const setMetaPathMatcher = /^\/rnbo\/inst\/control\/sets\/meta/;
 const setViewPathMatcher = /^\/rnbo\/inst\/control\/sets\/views\/list\/(?<id>\d+)(?<rest>\/\S+)?/;
 
@@ -192,11 +194,6 @@ export class OSCQueryBridgeControllerPrivate {
 		return state;
 	}
 
-	private async _initConnections() {
-		const connectionsInfo = await this._requestState<OSCQueryRNBOJackConnections>("/rnbo/jack/connections");
-		dispatch(initConnections(connectionsInfo));
-	}
-
 	private async _getDataFileList(): Promise<string[]> {
 		let seq = 0;
 		const filePaths: string[] = JSON.parse((await this.sendCmd(new RunnerCmd(RunnerCmdMethod.ReadFile, {
@@ -213,17 +210,22 @@ export class OSCQueryBridgeControllerPrivate {
 	}
 
 	private async _initAudio(state: OSCQueryRNBOState) {
+		console.log("init audio");
+
 		// Init Transport
 		dispatch(initTransport(state.CONTENTS.jack?.CONTENTS?.transport));
 
 		// Init RunnerInfo
 		dispatch(initRunnerInfo(state));
 
-		// Initialize RNBO Graph Nodes
-		dispatch(initNodes(state.CONTENTS.jack?.CONTENTS.info.CONTENTS.ports, state.CONTENTS.inst));
+		// Initialize RNBO Graph Ports and Nodes
+		dispatch(initPorts(state.CONTENTS.jack?.CONTENTS.info.CONTENTS.ports));
 
-		// Fetch Connections Info
-		await this._initConnections();
+		// Initialize RNBO Graph Connections
+		dispatch(initConnections(state.CONTENTS.jack?.CONTENTS.connections));
+
+		// Initialize RNBO Instances
+		dispatch(initInstances(state.CONTENTS.inst));
 
 		// Set Init App Status
 		dispatch(setAppStatus(AppStatus.Ready));
@@ -235,9 +237,6 @@ export class OSCQueryBridgeControllerPrivate {
 
 		// Init Config
 		dispatch(initRunnerConfig(state));
-
-		// Init RunnerInfo
-		dispatch(initRunnerInfo(state));
 
 		// Init Patcher Info
 		dispatch(initPatchers(state.CONTENTS.patchers));
@@ -271,6 +270,9 @@ export class OSCQueryBridgeControllerPrivate {
 			dispatch(setAppStatus(AppStatus.AudioOff));
 		}
 
+		// Init RNBO Graph Positions or default to a new layout
+		const meta: OSCQuerySetMeta = deserializeSetMeta(state.CONTENTS.inst?.CONTENTS.control.CONTENTS.sets.CONTENTS.meta.VALUE);
+		dispatch(updateSetMetaFromRemote(meta));
 	}
 
 	private _onClose = (evt: ErrorEvent) => {
@@ -325,15 +327,21 @@ export class OSCQueryBridgeControllerPrivate {
 	private async _onPathAdded(path: string): Promise<void> {
 
 		// Handle Instances and Patcher Nodes first
-		if (instancePathMatcher.test(path)) {
+		const instanceMatch = path.match(instancePathMatcher);
+		if (instanceMatch?.groups?.id !== undefined) {
 			// New Instance Added - slight timeout to let the graph build on the runner first
 			await sleep(500);
-			const info = await this._requestState<OSCQueryRNBOInstance>(path);
-			const meta = await this.getMetaState();
-			dispatch(addPatcherNode(info, meta.VALUE as string));
 
-			// Refresh Connections Info to include node
-			return void await this._initConnections();
+			// Add Patcher Instance
+			const info = await this._requestState<OSCQueryRNBOInstance>(path);
+			dispatch(addInstance(info));
+
+			// Add Patcher Node
+			const meta = await this.getMetaState();
+			return void dispatch(addPatcherNode(
+				instanceMatch.groups.id,
+				deserializeSetMeta(meta.VALUE as string)?.nodes?.[instanceMatch.groups.id]
+			));
 		}
 
 		// Handle changes to patchers list - request updated list
@@ -348,11 +356,16 @@ export class OSCQueryBridgeControllerPrivate {
 			return void dispatch(addSetView(setViewMatch.groups.id));
 		}
 
-		// Handle Alias Additions
+		// Handle Port Alias Additions
 		const aliasMatch = path.match(portAliasPathMatcher);
-		if (aliasMatch?.groups?.port) {
-			const portAliases = await this._requestState<OSCQueryListValue<string, string[]>>(`/rnbo/jack/info/ports/aliases/${aliasMatch.groups.port}`);
-			return void dispatch(setPortAliases(aliasMatch?.groups?.port, portAliases.VALUE));
+		if (aliasMatch?.groups?.port !== undefined) {
+			return void dispatch(addPort(aliasMatch?.groups?.port));
+		}
+
+		// Handle Port Property Additions
+		const propMatch = path.match(portPropertiesPathMatcher);
+		if (propMatch?.groups?.port !== undefined) {
+			return void dispatch(addPort(propMatch?.groups?.port));
 		}
 
 		// Parse out if instance path?
@@ -401,18 +414,24 @@ export class OSCQueryBridgeControllerPrivate {
 			return void dispatch(deleteSetView(parseInt(setViewMatch.groups.id, 10)));
 		}
 
-		// Handle Alias Removals
+		// Handle Port Alias Removals
 		const aliasMatch = path.match(portAliasPathMatcher);
 		if (aliasMatch?.groups?.port) {
 			return void dispatch(deletePortAliases(aliasMatch?.groups?.port));
 		}
 
+		// Handle Port Property Removals
+		const propMatch = path.match(portPropertiesPathMatcher);
+		if (propMatch?.groups?.port) {
+			return void dispatch(deletePortById(propMatch?.groups?.port));
+		}
 
 		// Removed Instance
 		const instMatch = path.match(instancePathMatcher);
 		if (instMatch?.groups?.id) {
 			const instanceId = instMatch.groups.id;
-			return void dispatch(removePatcherNode(instanceId));
+			dispatch(deletePatcherNodeByInstanceId(instanceId));
+			return void dispatch(deleteInstanceById(instanceId));
 		}
 
 		// Parse out if instance path?
@@ -465,6 +484,7 @@ export class OSCQueryBridgeControllerPrivate {
 			const sets: Array<string> = data.RANGE?.[0]?.VALS || [];
 			dispatch(initSets(sets));
 		}
+
 		if (data.FULL_PATH === setsPresetsLoadPath) {
 			const names: Array<string> = data.RANGE?.[0]?.VALS || [];
 			dispatch(initSetPresets(names));
@@ -557,7 +577,9 @@ export class OSCQueryBridgeControllerPrivate {
 
 		const setMetaMatch = packet.address.match(setMetaPathMatcher);
 		if (setMetaMatch) {
-			return void dispatch(updateSetMetaFromRemote(packet.args as unknown as string));
+			const meta: OSCQuerySetMeta = deserializeSetMeta((packet.args as unknown as [string])[0]);
+			console.log(meta);
+			return void dispatch(updateSetMetaFromRemote(meta));
 		}
 
 		if (packet.address === "/rnbo/inst/control/sets/views/order") {
@@ -596,17 +618,32 @@ export class OSCQueryBridgeControllerPrivate {
 			return;
 		}
 
+		// Handle Graph Port I/O Updates
 		const portIOMatch = packet.address.match(portIOPathMatcher);
 		if (portIOMatch) {
 			const type: ConnectionType = portIOMatch.groups.type === "midi" ? ConnectionType.MIDI : ConnectionType.Audio;
 			const direction: PortDirection = portIOMatch.groups.direction === "sinks" ? PortDirection.Sink : PortDirection.Source;
-			return void dispatch(updateSystemOrControlPortInfo(type, direction, packet.args as unknown as string[]));
+			return void dispatch(updatePortIOInfo(type, direction, packet.args as unknown as string[]));
 		}
 
+		// Handle Port Alias setting
+		const aliasMatch = packet.address.match(portAliasPathMatcher);
+		if (aliasMatch?.groups?.port) {
+			await sleep(0); // we do this in order to ensure the state fully updated and pending state updates are flushed in case of rapid port creation
+			return void dispatch(setPortAliases(aliasMatch?.groups?.port, packet.args as unknown as string[]));
+		}
 
+		// Handle Port Properties setting
+		const propMatch = packet.address.match(portPropertiesPathMatcher);
+		if (propMatch?.groups?.port) {
+			await sleep(0); // we do this in order to ensure the state fully updated and pending state updates are flushed in case of rapid port creation
+			return void dispatch(setPortProperties(propMatch?.groups?.port, (packet.args as unknown as [string])[0]));
+		}
+
+		// Connection Changes
 		const connectionMatch = packet.address.match(connectionsPathMatcher);
-		if (connectionMatch?.groups?.name) {
-			return void dispatch(updateSourcePortConnections(connectionMatch.groups.name, packet.args as unknown as string[]));
+		if (connectionMatch?.groups?.id) {
+			return void dispatch(updateSourcePortConnections(connectionMatch.groups.id, packet.args as unknown as string[]));
 		}
 
 		// update configs

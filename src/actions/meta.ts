@@ -1,36 +1,21 @@
-import throttle from "lodash.throttle";
+import debounce from "lodash.debounce";
 import { Map as ImmuMap } from "immutable";
-import { GraphNodeRecord } from "../models/graph";
-import { OSCQuerySetMeta } from "../lib/types";
+import { GraphNodeRecord, NodePositionRecord } from "../models/graph";
 import { oscQueryBridge } from "../controller/oscqueryBridgeController";
 import { writePacket } from "osc";
 import { AppThunk } from "../lib/store";
-import { getNodes } from "../selectors/graph";
+import { getNodePositions, getNodes } from "../selectors/graph";
+import { serializeSetMeta } from "../lib/meta";
 
-export const serializeSetMeta = (nodes: GraphNodeRecord[]): string => {
-	const result: OSCQuerySetMeta = { nodes: {} };
-	for (const node of nodes) {
-		result.nodes[node.id] = { position: { x: node.x, y: node.y } };
-	}
-	return JSON.stringify(result);
-};
-
-export const deserializeSetMeta = (metaString: string): OSCQuerySetMeta => {
-	// I don't know why we're getting strings of length 1 but, they can't be valid JSON anyway
-	if (metaString && metaString.length > 1) {
-		try {
-			return JSON.parse(metaString) as OSCQuerySetMeta;
-		} catch (err) {
-			console.warn(`Failed to parse Set Meta when creating new node: ${err.message}`);
-		}
-	}
-	return { nodes: {} };
-};
-
-const doUpdateNodesMeta = throttle((nodes: ImmuMap<GraphNodeRecord["id"], GraphNodeRecord>) => {
+const doUpdateNodesMeta = debounce((nodes: GraphNodeRecord[], positions: ImmuMap<NodePositionRecord["id"], NodePositionRecord>) => {
 	try {
-		const value = serializeSetMeta(nodes.valueSeq().toArray());
+		const relevantPos = nodes.reduce((result, node) => {
+			const pos = positions.get(node.id);
+			if (pos) result.push(pos);
+			return result;
+		}, [] as NodePositionRecord[]);
 
+		const value = serializeSetMeta(relevantPos);
 		const message = {
 			address: "/rnbo/inst/control/sets/meta",
 			args: [
@@ -42,10 +27,21 @@ const doUpdateNodesMeta = throttle((nodes: ImmuMap<GraphNodeRecord["id"], GraphN
 		console.warn(`Failed to update Set Meta on remote: ${err.message}`);
 	}
 
-}, 150, { leading: true, trailing: true });
+}, 150, { leading: false, trailing: true });
 
-export const updateSetMetaOnRemoteFromNodes = (nodes: ImmuMap<GraphNodeRecord["id"], GraphNodeRecord>): AppThunk =>
-	() => doUpdateNodesMeta(nodes);
+export const updateSetMetaOnRemoteFromNodes = (nodes: GraphNodeRecord[]): AppThunk =>
+	(dispatch, getState) => {
+		doUpdateNodesMeta(
+			nodes,
+			getNodePositions(getState())
+		);
+	};
 
 export const triggerSetMetaUpdateOnRemote = (): AppThunk =>
-	(dispatch, getState) => doUpdateNodesMeta(getNodes(getState()));
+	(dispatch, getState) => {
+		const state = getState();
+		doUpdateNodesMeta(
+			getNodes(state).valueSeq().toArray(),
+			getNodePositions(state)
+		);
+	};

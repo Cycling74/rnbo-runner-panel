@@ -1,8 +1,8 @@
 import Router from "next/router";
 import { ActionBase, AppThunk } from "../lib/store";
-import { MIDIMetaMapping, OSCQueryRNBOInstance, OSCQueryRNBOInstancePresetEntries, OSCQueryRNBOPatchersState, OSCValue, ParameterMetaJsonMap } from "../lib/types";
+import { MIDIMetaMapping, OSCQueryRNBOInstance, OSCQueryRNBOInstancePresetEntries, OSCQueryRNBOInstancesState, OSCQueryRNBOPatchersState, OSCValue, ParameterMetaJsonMap } from "../lib/types";
 import { PatcherInstanceRecord } from "../models/instance";
-import { getPatcherInstance, getPatcherInstanceParametersByInstanceId, getPatcherInstanceMessageInportsByInstanceId, getPatcherInstanceMesssageOutportsByInstanceId, getPatcherInstanceMessageInportByPath, getPatcherInstanceMessageOutportByPath, getPatcherInstanceMesssageOutportsByInstanceIdAndTag, getPatcherInstanceParameterByPath, getPatcherInstanceParametersByInstanceIdAndName, getPatcherInstanceMessageInportsByInstanceIdAndTag } from "../selectors/patchers";
+import { getPatcherInstance, getPatcherInstanceParametersByInstanceId, getPatcherInstanceMessageInportsByInstanceId, getPatcherInstanceMesssageOutportsByInstanceId, getPatcherInstanceMessageInportByPath, getPatcherInstanceMessageOutportByPath, getPatcherInstanceMesssageOutportsByInstanceIdAndTag, getPatcherInstanceParameterByPath, getPatcherInstanceParametersByInstanceIdAndName, getPatcherInstanceMessageInportsByInstanceIdAndTag, getPatcherInstances, getPatcherInstanceMessageInports, getPatcherInstanceMessageOutports, getPatcherInstanceParameters } from "../selectors/patchers";
 import { getAppSetting } from "../selectors/settings";
 import { ParameterRecord } from "../models/parameter";
 import { MessagePortRecord } from "../models/messageport";
@@ -221,7 +221,6 @@ export const renamePatcherOnRemote = (patcher: PatcherExportRecord, newName: str
 		}
 	};
 
-
 export const setInstance = (instance: PatcherInstanceRecord): ISetInstance => ({
 	type: PatcherActionType.SET_INSTANCE,
 	payload: {
@@ -333,6 +332,40 @@ export const deleteInstanceMessageOutports = (ports: MessagePortRecord[]): IDele
 		ports
 	}
 });
+
+// Init from State
+export const initInstances = (instanceInfo: OSCQueryRNBOInstancesState): AppThunk =>
+	(dispatch, getState) => {
+
+		const state = getState();
+
+		const instances: PatcherInstanceRecord[] = [];
+		const instanceParameters: ParameterRecord[] = [];
+		const instanceMessageInports: MessagePortRecord[] = [];
+		const instanceMessageOutports: MessagePortRecord[] = [];
+
+		for (const [key, value] of Object.entries(instanceInfo.CONTENTS)) {
+			if (!/^\d+$/.test(key)) continue;
+			const info = value as OSCQueryRNBOInstance;
+			const instance = PatcherInstanceRecord.fromDescription(info);
+			instances.push(instance);
+			instanceParameters.push(...ParameterRecord.fromDescription(instance.id, info.CONTENTS.params));
+			instanceMessageInports.push(...MessagePortRecord.fromDescription(instance.id, info.CONTENTS.messages?.CONTENTS?.in));
+			instanceMessageOutports.push(...MessagePortRecord.fromDescription(instance.id, info.CONTENTS.messages?.CONTENTS?.out));
+		}
+
+		// Clean up existing state
+		dispatch(deleteInstances(getPatcherInstances(state).valueSeq().toArray()));
+		dispatch(deleteInstanceParameters(getPatcherInstanceParameters(state).valueSeq().toArray()));
+		dispatch(deleteInstanceMessageInports(getPatcherInstanceMessageInports(state).valueSeq().toArray()));
+		dispatch(deleteInstanceMessageOutports(getPatcherInstanceMessageOutports(state).valueSeq().toArray()));
+
+		// Set New Instance State
+		dispatch(setInstances(instances));
+		dispatch(setInstanceParameters(instanceParameters));
+		dispatch(setInstanceMessageInports(instanceMessageInports));
+		dispatch(setInstanceMessageOutports(instanceMessageOutports));
+	};
 
 // Trigger Events on Remote OSCQuery Runner
 export const loadPresetOnRemoteInstance = (instance: PatcherInstanceRecord, preset: PresetRecord): AppThunk =>
@@ -456,7 +489,6 @@ export const sendInstanceMessageToRemote = (instance: PatcherInstanceRecord, inp
 			}));
 			return;
 		}
-
 
 		const message = {
 			address: `/rnbo/inst/${instance.id}/messages/in/${inportId}`,
@@ -644,6 +676,26 @@ export const restoreDefaultMessagePortMetaOnRemote = (_instance: PatcherInstance
 	};
 
 // Updates in response to remote OSCQuery Updates
+export const addInstance = (desc: OSCQueryRNBOInstance): AppThunk =>
+	(dispatch) => {
+		const instance = PatcherInstanceRecord.fromDescription(desc);
+		const parameters = ParameterRecord.fromDescription(instance.id, desc.CONTENTS.params);
+		const messageInports = MessagePortRecord.fromDescription(instance.id, desc.CONTENTS.messages?.CONTENTS?.in);
+		const messageOutports = MessagePortRecord.fromDescription(instance.id, desc.CONTENTS.messages?.CONTENTS?.out);
+
+		dispatch(setInstance(instance));
+		dispatch(setInstanceParameters(parameters));
+		dispatch(setInstanceMessageInports(messageInports));
+		dispatch(setInstanceMessageOutports(messageOutports));
+	};
+
+export const deleteInstanceById = (instanceId: PatcherInstanceRecord["id"]): AppThunk =>
+	(dispatch, getState) => {
+		const instance = getPatcherInstance(getState(), instanceId);
+		if (!instance) return;
+		dispatch(deleteInstance(instance));
+	};
+
 export const updateInstancePresetEntries = (instanceId: string, entries: OSCQueryRNBOInstancePresetEntries): AppThunk =>
 	(dispatch, getState) => {
 		try {

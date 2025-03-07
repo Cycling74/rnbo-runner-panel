@@ -1,18 +1,15 @@
-import Dagre from "@dagrejs/dagre";
 import { Connection, EdgeChange, NodeChange, ReactFlowInstance } from "reactflow";
 import { ActionBase, AppThunk } from "../lib/store";
-import { getConnection, getConnectionByNodesAndPorts, getConnections, getHasStoredGraphPositionData, getNode, getNodes } from "../selectors/graph";
-import { GraphConnectionRecord, GraphNode, GraphNodeRecord, GraphPatcherNode, NodeType } from "../models/graph";
+import { getConnection, getConnectionByPorts, getConnections, getEditorNodesAndPorts, getNode, getNodePosition, getNodes, getPort, getPorts } from "../selectors/graph";
+import { GraphConnectionRecord, GraphNode, GraphNodeRecord, NodeType } from "../models/graph";
 import { showNotification } from "./notifications";
 import { NotificationLevel } from "../models/notification";
 import { writePacket } from "osc";
 import { oscQueryBridge } from "../controller/oscqueryBridgeController";
-import { isValidConnection } from "../lib/editorUtils";
-import { setConnection, setNode, setNodes, unloadPatcherNodeOnRemote } from "./graph";
+import { calculateLayout, isValidConnection } from "../lib/editorUtils";
+import { setConnection, setNode, setNodePosition, setNodePositions, unloadPatcherNodeOnRemote } from "./graph";
 import { getGraphEditorInstance, getGraphEditorLockedState } from "../selectors/editor";
-import { defaultNodeGap } from "../lib/constants";
 import { triggerSetMetaUpdateOnRemote, updateSetMetaOnRemoteFromNodes } from "./meta";
-import { sleep } from "../lib/util";
 
 export enum EditorActionType {
 	INIT = "EDITOR_INIT",
@@ -48,7 +45,6 @@ export const unmountEditor = (): IUnmountEditor => {
 	};
 };
 
-
 export const createEditorConnection = (connection: Connection): AppThunk =>
 	(dispatch, getState) => {
 		try {
@@ -59,14 +55,12 @@ export const createEditorConnection = (connection: Connection): AppThunk =>
 			}
 
 			// Valid Connection?
-			const { sourceNode, sourcePort, sinkNode, sinkPort } = isValidConnection(connection, state.graph.nodes);
+			const { sourcePort, sinkPort } = isValidConnection(connection, getPorts(state));
 
 			// Does it already exist?
-			const existingConnection = getConnectionByNodesAndPorts(
+			const existingConnection = getConnectionByPorts(
 				state,
 				{
-					sourceNodeId: sourceNode.id,
-					sinkNodeId: sinkNode.id,
 					sourcePortId: sourcePort.id,
 					sinkPortId: sinkPort.id
 				}
@@ -83,8 +77,8 @@ export const createEditorConnection = (connection: Connection): AppThunk =>
 			const message = {
 				address: "/rnbo/jack/connections/connect",
 				args: [
-					{ type: "s", value: `${sourceNode.jackName}:${sourcePort.id}` },
-					{ type: "s", value: `${sinkNode.jackName}:${sinkPort.id}` }
+					{ type: "s", value: sourcePort.id },
+					{ type: "s", value: sinkPort.id }
 				]
 			};
 
@@ -107,23 +101,17 @@ export const removeEditorConnectionById = (id: GraphConnectionRecord["id"]): App
 			const connection = getConnection(state, id);
 			if (!connection) throw new Error(`Connection with id ${id} does not exist.`);
 
-			const sourceNode = getNode(state, connection.sourceNodeId);
-			if (!sourceNode) throw new Error(`Node with id ${connection.sourceNodeId} does not exist.`);
+			const sourcePort = getPort(state, connection.sourcePortId);
+			if (!sourcePort) throw new Error(`Port with id ${connection.sourcePortId} does not exist.`);
 
-			const sourcePort = sourceNode.getPort(connection.sourcePortId);
-			if (!sourcePort) throw new Error(`Port with id ${connection.sourcePortId} does not exist on node ${sourceNode.id}.`);
-
-			const sinkNode = getNode(state, connection.sinkNodeId);
-			if (!sinkNode) throw new Error(`Node with id ${connection.sinkNodeId} does not exist.`);
-
-			const sinkPort = sinkNode.getPort(connection.sinkPortId);
-			if (!sinkPort) throw new Error(`Port with id ${connection.sinkPortId} does not exist on node ${sinkNode.id}.`);
+			const sinkPort = getPort(state, connection.sinkPortId);
+			if (!sinkPort) throw new Error(`Port with id ${connection.sinkPortId} does not exist.`);
 
 			const message = {
 				address: "/rnbo/jack/connections/disconnect",
 				args: [
-					{ type: "s", value: `${sourceNode.jackName}:${sourcePort.id}` },
-					{ type: "s", value: `${sinkNode.jackName}:${sinkPort.id}` }
+					{ type: "s", value: sourcePort.id },
+					{ type: "s", value: sinkPort.id }
 				]
 			};
 
@@ -150,12 +138,12 @@ export const removeEditorNodeById = (id: GraphNode["id"], updateSetMeta = true):
 				throw new Error(`Node with id ${id} does not exist.`);
 			}
 
-			if (node.type === NodeType.System || node.type === NodeType.Control) {
+			if (node.type === NodeType.System) {
 				throw new Error(`System nodes cannot be removed (id: ${id}).`);
 			}
 
 			dispatch(unloadPatcherNodeOnRemote(node.instanceId));
-			if (updateSetMeta) updateSetMetaOnRemoteFromNodes(getNodes(state).delete(node.id));
+			if (updateSetMeta) updateSetMetaOnRemoteFromNodes(getNodes(state).delete(node.id).valueSeq().toArray());
 
 		} catch (err) {
 			dispatch(showNotification({
@@ -167,13 +155,13 @@ export const removeEditorNodeById = (id: GraphNode["id"], updateSetMeta = true):
 		}
 	};
 
-export const removeEditorNodesById = (ids: GraphPatcherNode["id"][]): AppThunk =>
+export const removeEditorNodesById = (ids: GraphNodeRecord["id"][]): AppThunk =>
 	(dispatch, getState) => {
 		for (const id of ids) {
 			dispatch(removeEditorNodeById(id, false));
 		}
 		// Only at the end update the meta to ensure all coord data has been removed
-		updateSetMetaOnRemoteFromNodes(getNodes(getState()).deleteAll(ids));
+		updateSetMetaOnRemoteFromNodes(getNodes(getState()).deleteAll(ids).valueSeq().toArray());
 	};
 
 export const removeEditorConnectionsById = (ids: GraphConnectionRecord["id"][]): AppThunk =>
@@ -186,9 +174,9 @@ export const removeEditorConnectionsById = (ids: GraphConnectionRecord["id"][]):
 export const changeNodePosition = (id: GraphNode["id"], x: number, y: number): AppThunk =>
 	(dispatch, getState) => {
 		const state = getState();
-		const node = getNode(state, id);
-		if (!node) return;
-		dispatch(setNode(node.updatePosition(x, y)));
+		const pos = getNodePosition(state, id);
+		if (!pos) return;
+		dispatch(setNodePosition(pos.updatePosition(x, y)));
 		dispatch(triggerSetMetaUpdateOnRemote());
 	};
 
@@ -274,7 +262,7 @@ export const toggleEditorLockedState = (): AppThunk =>
 export const triggerEditorFitView = (): AppThunk =>
 	(_, getState) => {
 		const state = getState();
-		getGraphEditorInstance(state)?.fitView();
+		window.requestAnimationFrame(() => getGraphEditorInstance(state)?.fitView());
 	};
 
 export const editorZoomIn = (): AppThunk =>
@@ -291,50 +279,22 @@ export const editorZoomOut = (): AppThunk =>
 
 export const generateEditorLayout = (): AppThunk =>
 	(dispatch, getState) => {
-
 		const state = getState();
 
-		const g = new Dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
-		g.setGraph({ align: "UL", ranksep: defaultNodeGap, nodesep: defaultNodeGap, rankdir: "LR" });
+		const positions = calculateLayout(
+			getPorts(state),
+			getConnections(state),
+			getEditorNodesAndPorts(state)
+		);
 
-		const connections = getConnections(state);
-		connections.valueSeq().forEach(conn => g.setEdge(conn.sourceNodeId, conn.sinkNodeId));
-
-		const nodes = getNodes(state);
-
-		nodes.valueSeq().forEach(n => g.setNode(n.id, {
-			height: n.height,
-			width: n.width
-		}));
-
-		Dagre.layout(g);
-
-		const layoutedNodes = nodes.valueSeq().toArray().map((node: GraphNodeRecord): GraphNodeRecord => {
-			const pos = g.node(node.id);
-			// Shift from dagre anchor (center center) to reactflow anchor (top left)
-			return node.updatePosition(
-				pos.x - (node.width / 2),
-				pos.y - (node.height / 2)
-			);
-		});
-
-		dispatch(setNodes(layoutedNodes));
+		dispatch(setNodePositions(positions));
 		dispatch(triggerSetMetaUpdateOnRemote());
-		window.requestAnimationFrame(() => getGraphEditorInstance(getState())?.fitView());
+		dispatch(triggerEditorFitView());
 	};
 
 
 export const initEditor = (instance: ReactFlowInstance): AppThunk =>
-	async (dispatch, getState)  => {
-		dispatch({
-			type: EditorActionType.INIT,
-			payload: { instance }
-		});
-
-		const hasPositionData = getHasStoredGraphPositionData(getState());
-		if (!hasPositionData) {
-			dispatch(generateEditorLayout());
-			await sleep(30);
-			dispatch(triggerEditorFitView());
-		}
+	async (dispatch)  => {
+		dispatch({ type: EditorActionType.INIT, payload: { instance } });
+		window.requestAnimationFrame(() => instance.fitView());
 	};

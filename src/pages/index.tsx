@@ -3,7 +3,7 @@ import { FunctionComponent, useCallback, useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "../hooks/useAppDispatch";
 import { RootStateType } from "../lib/store";
 import { getPatchersSortedByName } from "../selectors/patchers";
-import { getConnections, getNodes } from "../selectors/graph";
+import { getConnections, getEditorNodesAndPorts, getPorts } from "../selectors/graph";
 import GraphEditor from "../components/editor";
 import PresetDrawer from "../components/presets";
 import { Connection, Edge, EdgeChange, Node, NodeChange, ReactFlowInstance } from "reactflow";
@@ -37,8 +37,9 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 	const dispatch = useAppDispatch();
 	const [
 		patchers,
-		nodes,
+		nodeInfo,
 		connections,
+		ports,
 		graphSets,
 		currentGraphSet,
 		currentGraphSetIsDirty,
@@ -46,8 +47,9 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 		editorLocked
 	] = useAppSelector((state: RootStateType) => [
 		getPatchersSortedByName(state, SortOrder.Asc),
-		getNodes(state),
+		getEditorNodesAndPorts(state),
 		getConnections(state),
+		getPorts(state),
 		getGraphSetsSortedByName(state, SortOrder.Asc),
 		getCurrentGraphSet(state),
 		getCurrentGraphSetIsDirty(state),
@@ -242,9 +244,11 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 						/>
 					</Group>
 				</Group>
+
 				<GraphEditor
-					nodes={ nodes }
+					nodeInfo={ nodeInfo }
 					connections={ connections }
+					ports={ ports }
 
 					onConnect={ onConnectNodes }
 					onNodesChange={ onNodesChange }

@@ -1,6 +1,6 @@
 import { KeyboardEvent, memo } from "react";
 import { AnyJson, JsonMap, MIDIChannelPressureMetaMapping, MIDIControlChangeMetaMapping, MIDIKeypressMetaMapping, MIDIMetaMapping, MIDINoteMetaMapping, MIDIPitchBendMetaMapping, MIDIProgramChangeMetaMapping, OSCQueryStringValueRange, OSCQueryValueRange } from "./types";
-import { MIDIMetaMappingType } from "./constants";
+import { MIDIMetaMappingType, nodePortHeight, nodePortSpacing } from "./constants";
 
 export const genericMemo: <P>(component: P) => P = memo;
 
@@ -211,4 +211,8 @@ export const parseMIDIMappingDisplayValue = (value: string): { type: MIDIMetaMap
 	}
 
 	throw new UnknownMIDIFormatError();
+};
+
+export const calculateNodeContentHeight = (sinkCount: number, sourceCount: number): number => {
+	return (sinkCount > sourceCount ? sinkCount : sourceCount) * (nodePortHeight + nodePortSpacing);
 };

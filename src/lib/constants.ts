@@ -1,3 +1,5 @@
+import { Map as ImmuMap } from "immutable";
+
 export enum WebSocketState {
 	CONNECTING = 0,
 	OPEN = 1,
@@ -102,4 +104,24 @@ export enum MetadataScope {
 	Parameter,
 	Inport,
 	Outport
+}
+
+export enum KnownPortGroup {
+	UserGraphSrc = "rnbo-graph-user-src",
+	UserGraphSink = "rnbo-graph-user-sink",
+	Hidden = "rnbo-graph-hidden"
+}
+
+export const knownPortGroupDisplayNames: ImmuMap<string, string> = ImmuMap({
+	[KnownPortGroup.UserGraphSrc]: "System Input",
+	[KnownPortGroup.UserGraphSink]: "System Output",
+	[KnownPortGroup.Hidden]: "Hidden"
+});
+
+export enum RNBOJackPortPropertyKey {
+	InstanceId = "rnbo-instance-id",
+	Physical = "physical",
+	PortGroup = "http://jackaudio.org/metadata/port-group",
+	PrettyName = "http://jackaudio.org/metadata/pretty-name",
+	Terminal = "terminal"
 }

@@ -1,6 +1,7 @@
+import { Map as ImmuMap } from "immutable";
 import React, { ComponentType, FunctionComponent, memo, useCallback } from "react";
 import ReactFlow, { Connection, Edge, EdgeChange, Node, NodeChange, ReactFlowInstance } from "reactflow";
-import { GraphConnectionRecord, GraphPatcherNodeRecord, NodeType } from "../../models/graph";
+import { GraphConnectionRecord, GraphNodeRecord, NodeType } from "../../models/graph";
 import EditorPatcherNode from "./patcherNode";
 import EditorSystemNode from "./systemNode";
 import { EdgeDataProps, EditorEdgeProps, EditorNodeProps, NodeDataProps } from "./util";
@@ -11,15 +12,16 @@ import "reactflow/dist/base.css";
 import classes from "./editor.module.css";
 import GraphEdge, { RNBOGraphEdgeType } from "./edge";
 import { useRouter } from "next/router";
-import EditorControlNode from "./controlNode";
 import { ActionIcon, Tooltip, useMantineColorScheme } from "@mantine/core";
 import { IconElement } from "../elements/icon";
 import { mdiFitToScreen, mdiLock, mdiLockOpen, mdiMinus, mdiPlus, mdiSitemap } from "@mdi/js";
 import { maxEditorZoom, minEditorZoom } from "../../lib/constants";
+import { EditorNodeDesc } from "../../selectors/graph";
 
 export type GraphEditorProps = {
 	connections: RootStateType["graph"]["connections"];
-	nodes: RootStateType["graph"]["nodes"];
+	nodeInfo: ImmuMap<GraphNodeRecord["id"], EditorNodeDesc>;
+	ports: RootStateType["graph"]["ports"];
 
 	onConnect: (connection: Connection) => any;
 	onNodesDelete: (nodes: Pick<Edge, "id">[]) => void;
@@ -38,7 +40,6 @@ export type GraphEditorProps = {
 };
 
 const nodeTypes: Record<NodeType, ComponentType<EditorNodeProps>> = {
-	[NodeType.Control]: EditorControlNode,
 	[NodeType.Patcher]: EditorPatcherNode,
 	[NodeType.System]: EditorSystemNode
 };
@@ -56,7 +57,8 @@ const GraphEditor: FunctionComponent<GraphEditorProps> = memo(function WrappedFl
 	onEdgesChange,
 	onEdgesDelete,
 
-	nodes,
+	nodeInfo,
+	ports,
 	onInit,
 	onFitView,
 	onAutoLayout,
@@ -73,11 +75,11 @@ const GraphEditor: FunctionComponent<GraphEditorProps> = memo(function WrappedFl
 	// Validate Connection Directions and Types
 	const validateConnection = useCallback((conn: Connection) => {
 		try {
-			return !!isValidConnection(conn, nodes);
+			return !!isValidConnection(conn, ports);
 		} catch (err) {
 			return false;
 		}
-	}, [nodes]);
+	}, [ports]);
 
 	const triggerDeleteEdge = useCallback((id: GraphConnectionRecord["id"]) => {
 		onEdgesDelete([{ id }]);
@@ -85,27 +87,39 @@ const GraphEditor: FunctionComponent<GraphEditorProps> = memo(function WrappedFl
 
 	const onNodeDoubleClick = useCallback((e: React.MouseEvent, node: Node<NodeDataProps>) => {
 		if (node.type !== NodeType.Patcher) return;
-		push({ pathname: "/instances/[id]", query: { ...query, id: (node.data.node as GraphPatcherNodeRecord).instanceId }});
+		push({ pathname: "/instances/[id]", query: { ...query, id: node.data.node.instanceId }});
 	}, [query, push]);
 
-	const flowNodes: Node<NodeDataProps>[] = nodes.valueSeq().toArray().map(node => ({
-		id: node.id,
-		position: {
-			x: node.x,
-			y: node.y
-		},
-		deletable: node.type === NodeType.Patcher,
-		selected: node.selected,
-		type: node?.type,
-		data: { node },
-		style: { height: node.height, width: node.width }
-	}));
+	const flowNodes: Node<NodeDataProps>[] = nodeInfo.valueSeq().toArray().map(({
+		node,
+		x,
+		y,
+		...info
+	}) => {
+		return {
+			id: node.id,
+			position: {
+				x: x,
+				y: y
+			},
+			deletable: node.type === NodeType.Patcher,
+			selected: node.selected,
+			type: node?.type,
+			data: {
+				node,
+				x,
+				y,
+				...info
+			},
+			style: { height: info.height, width: info.width }
+		};
+	});
 
 	const flowEdges: Edge<EdgeDataProps>[] = connections.valueSeq().toArray().map(connection => ({
 		id: connection.id,
-		source: connection.sourceNodeId,
+		source: ports.get(connection.sourcePortId).nodeId,
 		sourceHandle: connection.sourcePortId,
-		target: connection.sinkNodeId,
+		target: ports.get(connection.sinkPortId).nodeId,
 		targetHandle: connection.sinkPortId,
 		type: RNBOGraphEdgeType,
 		selected: connection.selected,

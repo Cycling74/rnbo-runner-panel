@@ -1,59 +1,59 @@
-import { Set as ImmuSet, Map as ImmuMap } from "immutable";
 import { writePacket } from "osc";
 import { oscQueryBridge } from "../controller/oscqueryBridgeController";
 import { ActionBase, AppThunk, RootStateType } from "../lib/store";
-import { OSCQueryRNBOInstance, OSCQueryRNBOInstancesState, OSCQueryRNBOJackConnections, OSCQueryRNBOJackPortInfo, OSCQuerySetMeta, OSCQuerySetNodeMeta } from "../lib/types";
-import { ConnectionType, GraphConnectionRecord, GraphControlNodeRecord, GraphNodeRecord, GraphPatcherNodeRecord, GraphPortRecord, GraphSystemNodeRecord, NodeType, PortDirection, calculateNodeContentHeight, createNodePorts } from "../models/graph";
-import { getConnectionsForSourceNodeAndPort, getNode, getPatcherNodeByInstanceId, getNodes, getSystemNodeByJackNameAndDirection, getConnections, getPatcherNodes, getSystemNodes, getControlNodes } from "../selectors/graph";
+import { OSCQueryRNBOJackConnections, OSCQueryRNBOJackPortInfo, OSCQuerySetMeta, OSCQuerySetNodeMeta } from "../lib/types";
+import { ConnectionType, GraphConnectionRecord, GraphNodeRecord, GraphPortRecord, NodePositionRecord, NodeType, PortDirection } from "../models/graph";
+import { getConnectionsForSourcePort, getNode, getNodes, getConnections, getPorts, getPort, getPortsForTypeAndDirection, getPatcherNodeByInstanceId, getNodePositions, getNodePosition, getEditorNodesAndPorts } from "../selectors/graph";
 import { showNotification } from "./notifications";
 import { NotificationLevel } from "../models/notification";
-import { PatcherInstanceRecord } from "../models/instance";
-import { deleteInstance, setInstance, setInstanceMessageInports, setInstanceMessageOutports, setInstanceParameters, setInstances } from "./patchers";
-import { getPatcherInstance, getPatcherExports } from "../selectors/patchers";
 import { PatcherExportRecord } from "../models/patcher";
-import { defaultNodeGap, nodeDefaultWidth, nodeHeaderHeight } from "../lib/constants";
+import { updateSetMetaOnRemoteFromNodes } from "./meta";
+import { calculateLayout } from "../lib/editorUtils";
 import { getGraphEditorInstance } from "../selectors/editor";
-import { ParameterRecord } from "../models/parameter";
-import { MessagePortRecord } from "../models/messageport";
-import { deserializeSetMeta, updateSetMetaOnRemoteFromNodes } from "./meta";
 
-const getPatcherOrControlNodeCoordinates = (node: GraphPatcherNodeRecord | GraphControlNodeRecord, nodes: GraphNodeRecord[]): { x: number, y: number } => {
+class TempPatcherInstanceCoordinatesStore {
+	constructor(
+		public x: number = 0,
+		public y: number = 0
+	) {}
 
-	let y = 0;
-	if (node instanceof GraphControlNodeRecord) {
-		const bottomNode: GraphNodeRecord | undefined = nodes.reduce((n, current) => {
-			if (current.type === NodeType.System) return n;
-			if (!n) return current;
-			return current.y > n.y ? current : n;
-		}, undefined as GraphNodeRecord | undefined);
-
-		y = bottomNode ? bottomNode.y + bottomNode.height + defaultNodeGap : 0;
+	public setCoordinates({ x, y }: { x: number, y: number }): void {
+		this.x = x;
+		this.y = y;
 	}
 
-	return { x: nodeDefaultWidth + defaultNodeGap, y };
-};
+	public get xWithMargin(): number {
+		return this.x + 50;
+	}
 
-export enum GraphActionType {
-	SET_HAS_REMOTE_META = "SET_HAS_REMOTE_META",
-	DELETE_NODE = "DELETE_NODE",
-	DELETE_NODES = "DELETE_NODES",
-	SET_NODE = "SET_NODE",
-	SET_NODES = "SET_NODES",
-	DELETE_CONNECTION = "DELETE_CONNECTION",
-	DELETE_CONNECTIONS = "DELETE_CONNECTIONS",
-	SET_CONNECTION = "SET_CONNECTION",
-	SET_CONNECTIONS = "SET_CONNECTIONS",
-	SET_PORT_ALIASES_LIST = "SET_PORT_ALIASES_LIST",
-	SET_PORTS_ALIASES_LIST = "SET_PORTS_ALIASES_LIST",
-	DELETE_PORT_ALIASES_LIST = "DELETE_PORT_ALIASES_LIST",
-	DELETE_PORTS_ALIASES_LIST = "DELETE_PORTS_ALIASES_LIST"
+	public get yWithMargin(): number {
+		return this.y + 50;
+	}
 }
 
-export interface ISetGraphHasRemoteMeta extends ActionBase {
-	type: GraphActionType.SET_HAS_REMOTE_META;
-	payload: {
-		hasMeta: boolean;
-	};
+const patcherInstanceCoordinatesStore = new TempPatcherInstanceCoordinatesStore();
+
+export enum GraphActionType {
+
+	SET_NODE = "SET_NODE",
+	SET_NODES = "SET_NODES",
+	DELETE_NODE = "DELETE_NODE",
+	DELETE_NODES = "DELETE_NODES",
+
+	SET_NODE_POSITION = "SET_NODE_POSITION",
+	SET_NODE_POSITIONS = "SET_NODE_POSITIONS",
+	DELETE_NODE_POSITION = "DELETE_NODE_POSITION",
+	DELETE_NODE_POSITIONS = "DELETE_NODE_POSITIONS",
+
+	SET_CONNECTION = "SET_CONNECTION",
+	SET_CONNECTIONS = "SET_CONNECTIONS",
+	DELETE_CONNECTION = "DELETE_CONNECTION",
+	DELETE_CONNECTIONS = "DELETE_CONNECTIONS",
+
+	SET_PORT = "SET_PORT",
+	SET_PORTS = "SET_PORTS",
+	DELETE_PORT = "DELETE_PORT",
+	DELETE_PORTS = "DELETE_PORTS",
 }
 
 export interface ISetGraphNode extends ActionBase {
@@ -81,6 +81,34 @@ export interface IDeleteGraphNodes extends ActionBase {
 	type: GraphActionType.DELETE_NODES;
 	payload: {
 		nodes: GraphNodeRecord[];
+	};
+}
+
+export interface ISetGraphNodePosition extends ActionBase {
+	type: GraphActionType.SET_NODE_POSITION;
+	payload: {
+		position: NodePositionRecord;
+	};
+}
+
+export interface ISetGraphNodePositions extends ActionBase {
+	type: GraphActionType.SET_NODE_POSITIONS;
+	payload: {
+		positions: NodePositionRecord[];
+	};
+}
+
+export interface IDeleteGraphNodePosition extends ActionBase {
+	type: GraphActionType.DELETE_NODE_POSITION;
+	payload: {
+		position: NodePositionRecord;
+	};
+}
+
+export interface IDeleteGraphNodePositions extends ActionBase {
+	type: GraphActionType.DELETE_NODE_POSITIONS;
+	payload: {
+		positions: NodePositionRecord[];
 	};
 }
 
@@ -112,38 +140,38 @@ export interface IDeleteGraphConnections extends ActionBase {
 	};
 }
 
-export interface ISetGraphPortAliasesList extends ActionBase {
-	type: GraphActionType.SET_PORT_ALIASES_LIST;
+export interface ISetGraphPort extends ActionBase {
+	type: GraphActionType.SET_PORT;
 	payload: {
-		portName: GraphPortRecord["portName"];
-		aliases: string[];
+		port: GraphPortRecord;
 	};
 }
 
-export interface ISetGraphPortsAliasesList extends ActionBase {
-	type: GraphActionType.SET_PORTS_ALIASES_LIST;
+export interface ISetGraphPorts extends ActionBase {
+	type: GraphActionType.SET_PORTS;
 	payload: {
-		aliases: Array<{ portName: GraphPortRecord["portName"]; aliases: string[]; }>;
+		ports: GraphPortRecord[];
 	};
 }
 
-export interface IDeleteGraphPortAliasesList extends ActionBase {
-	type: GraphActionType.DELETE_PORT_ALIASES_LIST;
+export interface IDeleteGraphPort extends ActionBase {
+	type: GraphActionType.DELETE_PORT;
 	payload: {
-		portName: GraphPortRecord["portName"];
+		port: GraphPortRecord;
 	};
 }
 
-export interface IDeleteGraphPortsAliasesList extends ActionBase {
-	type: GraphActionType.DELETE_PORTS_ALIASES_LIST;
+export interface IDeleteGraphPorts extends ActionBase {
+	type: GraphActionType.DELETE_PORTS;
 	payload: {
-		portNames: Array<GraphPortRecord["portName"]>;
+		ports: GraphPortRecord[];
 	};
 }
 
-export type GraphAction = ISetGraphHasRemoteMeta | ISetGraphNode | ISetGraphNodes | IDeleteGraphNode | IDeleteGraphNodes
+export type GraphAction = ISetGraphNode | ISetGraphNodes | IDeleteGraphNode | IDeleteGraphNodes
+| ISetGraphNodePosition | ISetGraphNodePositions | IDeleteGraphNodePosition | IDeleteGraphNodePositions
 | ISetGraphConnection  | IDeleteGraphConnection | ISetGraphConnections  | IDeleteGraphConnections
-| ISetGraphPortAliasesList | ISetGraphPortsAliasesList | IDeleteGraphPortAliasesList | IDeleteGraphPortsAliasesList;
+| ISetGraphPort | ISetGraphPorts | IDeleteGraphPort | IDeleteGraphPorts;
 
 
 export const setNode = (node: GraphNodeRecord): GraphAction => {
@@ -178,6 +206,42 @@ export const deleteNodes = (nodes: GraphNodeRecord[]): GraphAction => {
 		type: GraphActionType.DELETE_NODES,
 		payload: {
 			nodes
+		}
+	};
+};
+
+export const setNodePosition = (position: NodePositionRecord): GraphAction => {
+	return {
+		type: GraphActionType.SET_NODE_POSITION,
+		payload: {
+			position
+		}
+	};
+};
+
+export const setNodePositions = (positions: NodePositionRecord[]): GraphAction => {
+	return {
+		type: GraphActionType.SET_NODE_POSITIONS,
+		payload: {
+			positions
+		}
+	};
+};
+
+export const deleteNodePosition = (position: NodePositionRecord): GraphAction => {
+	return {
+		type: GraphActionType.DELETE_NODE_POSITION,
+		payload: {
+			position
+		}
+	};
+};
+
+export const deleteNodePositions = (positions: NodePositionRecord[]): GraphAction => {
+	return {
+		type: GraphActionType.DELETE_NODE_POSITIONS,
+		payload: {
+			positions
 		}
 	};
 };
@@ -218,225 +282,152 @@ export const deleteConnections = (connections: GraphConnectionRecord[]): GraphAc
 	};
 };
 
-export const setPortAliases = (portName: GraphPortRecord["portName"], aliases: string []): GraphAction => {
+export const setPort = (port: GraphPortRecord): GraphAction => {
 	return {
-		type: GraphActionType.SET_PORT_ALIASES_LIST,
+		type: GraphActionType.SET_PORT,
 		payload: {
-			portName,
-			aliases
+			port
 		}
 	};
 };
 
-export const setPortsAliases = (aliases: Array<{ portName: GraphPortRecord["portName"], aliases: string []; }>): GraphAction => {
+export const setPorts = (ports: GraphPortRecord[]): GraphAction => {
 	return {
-		type: GraphActionType.SET_PORTS_ALIASES_LIST,
+		type: GraphActionType.SET_PORTS,
 		payload: {
-			aliases
+			ports
 		}
 	};
 };
 
-export const deletePortAliases = (portName: GraphPortRecord["portName"]): GraphAction => {
+export const deletePort = (port: GraphPortRecord): GraphAction => {
 	return {
-		type: GraphActionType.DELETE_PORT_ALIASES_LIST,
+		type: GraphActionType.DELETE_PORT,
 		payload: {
-			portName
+			port
 		}
 	};
 };
 
-export const deletePortsAliases = (portNames: Array<GraphPortRecord["portName"]>): GraphAction => {
+export const deletePortById = (id: GraphPortRecord["id"]): AppThunk =>
+	(dispatch, getState) => {
+		const port = getPort(getState(), id);
+		if (!port) return;
+		dispatch(deletePort(port));
+	};
+
+export const deletePorts = (ports: GraphPortRecord[]): GraphAction => {
 	return {
-		type: GraphActionType.DELETE_PORTS_ALIASES_LIST,
+		type: GraphActionType.DELETE_PORTS,
 		payload: {
-			portNames
+			ports
 		}
 	};
-};
-
-const isSystemNodeName = (name: string): boolean => (name.startsWith("system") || name.startsWith("Midi-Bridge"));
-
-const filterSystemNodeNames = (portNames: string[], nodes: Array<GraphPatcherNodeRecord | GraphControlNodeRecord>): string[] => {
-	const pNodeIds = new Set(nodes.map(pn => pn.id));
-	return portNames.reduce((result, portName) => {
-		const [nodeName] = portName.split(":");
-		if (!pNodeIds.has(nodeName) && isSystemNodeName(nodeName)) result.push(nodeName);
-		return result;
-	}, [] as string[]);
-};
-
-const filterControlNodeNames = (portNames: string[], nodes: Array<GraphPatcherNodeRecord | GraphControlNodeRecord>): string[] => {
-	const pNodeIds = new Set(nodes.map(pn => pn.id));
-	return portNames.reduce((result, portName) => {
-		const [nodeName] = portName.split(":");
-		if (!pNodeIds.has(nodeName) && !isSystemNodeName(nodeName)) result.push(nodeName);
-		return result;
-	}, [] as string[]);
-};
-
-const getSystemNodeJackNamesFromPortInfo = (jackPortsInfo: OSCQueryRNBOJackPortInfo, nodes: Array<GraphPatcherNodeRecord | GraphControlNodeRecord>): string[] => {
-	return filterSystemNodeNames(
-		[
-			...(jackPortsInfo.CONTENTS?.audio?.CONTENTS?.sources?.VALUE || []),
-			...(jackPortsInfo.CONTENTS?.midi?.CONTENTS?.sources?.VALUE || []),
-			...(jackPortsInfo.CONTENTS?.audio?.CONTENTS?.sinks?.VALUE || []),
-			...(jackPortsInfo.CONTENTS?.midi?.CONTENTS?.sinks?.VALUE || [])
-		],
-		nodes
-	);
-};
-
-const getControlNodeJackNamesFromPortInfo = (jackPortsInfo: OSCQueryRNBOJackPortInfo, nodes: Array<GraphPatcherNodeRecord | GraphControlNodeRecord>): string[] => {
-	return filterControlNodeNames(
-		[
-			...(jackPortsInfo.CONTENTS?.audio?.CONTENTS?.sources?.VALUE || []),
-			...(jackPortsInfo.CONTENTS?.midi?.CONTENTS?.sources?.VALUE || []),
-			...(jackPortsInfo.CONTENTS?.audio?.CONTENTS?.sinks?.VALUE || []),
-			...(jackPortsInfo.CONTENTS?.midi?.CONTENTS?.sinks?.VALUE || [])
-		],
-		nodes
-	);
 };
 
 // Meta Handling
-export const setHasRemoteMeta = (hasMeta: boolean): ISetGraphHasRemoteMeta => ({
-	type: GraphActionType.SET_HAS_REMOTE_META,
-	payload: { hasMeta }
-});
-
-export const updateSetMetaFromRemote = (metaString: string): AppThunk =>
+export const updateSetMetaFromRemote = (setMeta: OSCQuerySetMeta): AppThunk =>
 	(dispatch, getState) => {
 		try {
-			const meta = deserializeSetMeta(metaString);
 			const state = getState();
 
-			const nodes: GraphNodeRecord[] = [];
-			for (const [id, nodeMeta] of Object.entries(meta.nodes)) {
-				const node = getNode(state, id);
-				if (!node) continue;
+			const hasExistingPositionData = Object.keys(setMeta.nodes).length > 0;
+			const positions: NodePositionRecord[] = [];
 
-				const updatedNode = node.updatePosition(nodeMeta.position.x, nodeMeta.position.y);
-				if (node === updatedNode) continue;
+			if (hasExistingPositionData) {
+				const currentPositions = getNodePositions(state);
 
-				nodes.push(updatedNode);
+				for (const [id, nodeMeta] of Object.entries(setMeta.nodes)) {
+					const pos = currentPositions.has(id)
+						? currentPositions.get(id).updatePosition(nodeMeta.position.x, nodeMeta.position.y)
+						:	NodePositionRecord.fromDescription(id, nodeMeta.position.x, nodeMeta.position.y);
+
+					positions.push(pos);
+				}
+			} else {
+				positions.push(...(calculateLayout(
+					getPorts(state),
+					getConnections(state),
+					getEditorNodesAndPorts(state)
+				)));
 			}
 
-			dispatch(setNodes(nodes));
-			dispatch(setHasRemoteMeta(Object.keys(meta.nodes).length > 0));
+			dispatch(setNodePositions(positions));
 		} catch (err) {
 			console.warn(`Failed to update local Set Meta: ${err.message}`);
 		}
 	};
 
+const makePorts = (
+	portIds: string[],
+	type: ConnectionType,
+	direction: PortDirection,
+	propertyMap: OSCQueryRNBOJackPortInfo["CONTENTS"]["properties"]["CONTENTS"],
+	aliasesMap:  OSCQueryRNBOJackPortInfo["CONTENTS"]["aliases"]["CONTENTS"]
+): GraphPortRecord[] => {
+	const result: GraphPortRecord[] = [];
 
-const requestMetaUpdateFromRemote = (): AppThunk =>
-	async (dispatch) => {
-		try {
-			const data = await oscQueryBridge.getMetaState();
-			dispatch(updateSetMetaFromRemote(data.VALUE));
-		} catch (err) {
-			console.warn(`Failed to update Set Meta from remote: ${err.message}`);
-		}
-	};
+	for (const id of portIds) {
+		let port = GraphPortRecord.fromDescription(id, type, direction, propertyMap[id]?.VALUE || "{}");
+		if (aliasesMap[port.id]) port = port.setAliases(aliasesMap[port.id].VALUE);
 
-export const initNodes = (jackPortsInfo: OSCQueryRNBOJackPortInfo, instanceInfo: OSCQueryRNBOInstancesState): AppThunk =>
+		result.push(port);
+	}
+
+	return result;
+};
+
+export const initPorts = (jackPortsInfo: OSCQueryRNBOJackPortInfo): AppThunk =>
 	(dispatch, getState) => {
 
 		const state = getState();
-		const existingNodes = getNodes(state);
 
-		const instances: PatcherInstanceRecord[] = [];
-		const instanceParameters: ParameterRecord[] = [];
-		const instanceMessageInports: MessagePortRecord[] = [];
-		const instanceMessageOutports: MessagePortRecord[] = [];
-		const patcherAndControlNodes: Array<GraphPatcherNodeRecord | GraphControlNodeRecord> = [];
+		const portProperties = jackPortsInfo.CONTENTS?.properties?.CONTENTS || {};
+		const portAliases = jackPortsInfo.CONTENTS.aliases?.CONTENTS || {};
+		const ports: Array<GraphPortRecord> = [
+			...makePorts(jackPortsInfo.CONTENTS.audio.CONTENTS?.sources?.VALUE || [], ConnectionType.Audio, PortDirection.Source, portProperties, portAliases),
+			...makePorts(jackPortsInfo.CONTENTS.midi.CONTENTS?.sources?.VALUE || [], ConnectionType.MIDI, PortDirection.Source, portProperties, portAliases),
+			...makePorts(jackPortsInfo.CONTENTS.audio.CONTENTS?.sinks?.VALUE || [], ConnectionType.Audio, PortDirection.Sink, portProperties, portAliases),
+			...makePorts(jackPortsInfo.CONTENTS.midi.CONTENTS?.sinks?.VALUE || [], ConnectionType.MIDI, PortDirection.Sink, portProperties, portAliases)
+		];
 
-		const meta: OSCQuerySetMeta = deserializeSetMeta(instanceInfo.CONTENTS.control.CONTENTS.sets.CONTENTS.meta.VALUE as string);
-		const hasPositionData = Object.keys(meta.nodes).length > 0;
+		const nodes: Map<GraphNodeRecord["id"], GraphNodeRecord> = new Map<GraphNodeRecord["id"], GraphNodeRecord>();
 
-		for (const [key, value] of Object.entries(instanceInfo.CONTENTS)) {
-			if (!/^\d+$/.test(key)) continue;
-			const info = value as OSCQueryRNBOInstance;
-			let node = GraphPatcherNodeRecord.fromDescription(info);
+		for (const port of ports) {
+			if (nodes.has(port.nodeId)) continue;// already created
 
-			const nodeMeta = meta.nodes[node.id];
-			if (hasPositionData && nodeMeta) {
-				node = node.updatePosition(nodeMeta.position.x, nodeMeta.position.y);
-			}
+			const node: GraphNodeRecord = GraphNodeRecord.fromDescription(
+				port.nodeId,
+				port.isPatcherInstancePort ? NodeType.Patcher : NodeType.System,
+				port.instanceId
+			);
 
-			patcherAndControlNodes.push(node);
-			const instance = PatcherInstanceRecord.fromDescription(info);
-			instances.push(instance);
-			instanceParameters.push(...ParameterRecord.fromDescription(instance.id, info.CONTENTS.params));
-			instanceMessageInports.push(...MessagePortRecord.fromDescription(instance.id, info.CONTENTS.messages?.CONTENTS?.in));
-			instanceMessageOutports.push(...MessagePortRecord.fromDescription(instance.id, info.CONTENTS.messages?.CONTENTS?.out));
+			nodes.set(node.id, node);
 		}
 
-		// Build a list of all Jack generated names that have not been used for PatcherNodes above
-		const controlJackNames = getControlNodeJackNamesFromPortInfo(jackPortsInfo, patcherAndControlNodes);
-		for (const jackName of controlJackNames) {
-			let controlNode = GraphControlNodeRecord.fromDescription(jackName, {
-				audioSinks: jackPortsInfo.CONTENTS.audio.CONTENTS?.sinks?.VALUE?.filter(n => n.startsWith(`${jackName}:`)) || [],
-				audioSources: jackPortsInfo.CONTENTS.audio.CONTENTS?.sources?.VALUE?.filter(n => n.startsWith(`${jackName}:`)) || [],
-				midiSinks: jackPortsInfo.CONTENTS.midi.CONTENTS?.sinks?.VALUE?.filter(n => n.startsWith(`${jackName}:`)) || [],
-				midiSources: jackPortsInfo.CONTENTS.midi.CONTENTS?.sources?.VALUE?.filter(n => n.startsWith(`${jackName}:`)) || []
-			});
+		// Clean up existing state
+		dispatch(deleteNodes(getNodes(state).valueSeq().toArray()));
+		dispatch(deletePorts(getPorts(state).valueSeq().toArray()));
 
-			const nodeMeta = meta.nodes[controlNode.id];
-			if (hasPositionData && nodeMeta) {
-				controlNode = controlNode.updatePosition(nodeMeta.position.x, nodeMeta.position.y);
-			}
-
-			patcherAndControlNodes.push(controlNode);
-		}
-
-		// Build a list of all Jack generated names that have not been used for PatcherNodes above
-		// as we assume moving forward that they are SystemNames
-		const systemJackNames = ImmuSet<string>(getSystemNodeJackNamesFromPortInfo(jackPortsInfo, patcherAndControlNodes));
-
-		const systemNodes: GraphSystemNodeRecord[] = GraphSystemNodeRecord
-			.fromDescription(systemJackNames, jackPortsInfo)
-			.map(sysNode => {
-				const nodeMeta = meta.nodes[sysNode.id];
-				return hasPositionData && nodeMeta
-					? sysNode.updatePosition(nodeMeta.position.x, nodeMeta.position.y)
-					: sysNode;
-			});
-
-		const portAliases: Array<{ portName: GraphPortRecord["portName"]; aliases: string []; }> = [];
-		for (const [portName, aliasInfo] of Object.entries(jackPortsInfo.CONTENTS.aliases?.CONTENTS || {})) {
-			portAliases.push({ portName, aliases: aliasInfo.VALUE });
-		}
-
-		dispatch(deleteNodes(existingNodes.valueSeq().toArray()));
-		dispatch(setNodes([...systemNodes, ...patcherAndControlNodes]));
-		dispatch(setInstances(instances));
-		dispatch(setInstanceParameters(instanceParameters));
-		dispatch(setInstanceMessageInports(instanceMessageInports));
-		dispatch(setInstanceMessageOutports(instanceMessageOutports));
-		dispatch(setPortsAliases(portAliases));
-		setHasRemoteMeta(hasPositionData);
+		// Set new node and ports state
+		dispatch(setNodes(Array.from(nodes.values())));
+		dispatch(setPorts(ports));
 	};
 
 
-const createConnectionRecordsFromSinkList = (state: RootStateType, sourceNode: GraphNodeRecord, sourcePort: GraphPortRecord, sinks: string[]): GraphConnectionRecord[] => {
+const createConnectionRecordsFromSinkList = (
+	state: RootStateType,
+	sourcePort: GraphPortRecord,
+	sinks: string[]
+): GraphConnectionRecord[] => {
 	const connectionRecords: GraphConnectionRecord[] = [];
 
-	for (const sink of sinks) {
-		const [sinkNodeName, ...rest] = sink.split(":");
-		const sinkPortId = rest.join(":");
-
-		const sinkNode = getNode(state, sinkNodeName) || getSystemNodeByJackNameAndDirection(state, sinkNodeName, PortDirection.Sink);
-		if (!sinkNode) continue;
-
-		const sinkPort = sinkNode.getPort(sinkPortId);
+	for (const sinkPortId of sinks) {
+		const sinkPort = getPort(state, sinkPortId);
 		if (!sinkPort) continue;
 
 		connectionRecords.push(new GraphConnectionRecord({
-			sinkNodeId: sinkNode.id,
 			sinkPortId: sinkPort.id,
-			sourceNodeId: sourceNode.id,
 			sourcePortId: sourcePort.id,
 			type: sourcePort.type
 		}));
@@ -451,143 +442,122 @@ export const initConnections = (connectionsInfo: OSCQueryRNBOJackConnections): A
 		const state = getState();
 		const connectionRecords: GraphConnectionRecord[] = [];
 
-		for (const [source, connections] of Object.entries(connectionsInfo.CONTENTS.audio?.CONTENTS || {})) {
-			const [sourceNodeName, ...rest] = source.split(":");
-			const sourcePortId = rest.join(":");
+		for (const [sourcePortId, connections] of Object.entries(connectionsInfo.CONTENTS.audio?.CONTENTS || {})) {
 
-			const sourceNode = getNode(state, sourceNodeName) || getSystemNodeByJackNameAndDirection(state, sourceNodeName, PortDirection.Source);
-			if (!sourceNode) continue;
-
-			const sourcePort = sourceNode.getPort(sourcePortId);
+			const sourcePort = getPort(state, sourcePortId);
 			if (!sourcePort) continue;
 
-			connectionRecords.push(...createConnectionRecordsFromSinkList(state, sourceNode, sourcePort, connections.VALUE));
+			connectionRecords.push(...createConnectionRecordsFromSinkList(state, sourcePort, connections.VALUE));
 		}
 
-		for (const [source, connections] of Object.entries(connectionsInfo.CONTENTS.midi?.CONTENTS || {})) {
-			const [sourceNodeName, ...rest] = source.split(":");
-			const sourcePortId = rest.join(":");
-
-			const sourceNode = getNode(state, sourceNodeName) || getSystemNodeByJackNameAndDirection(state, sourceNodeName, PortDirection.Source);
-			if (!sourceNode) continue;
-
-			const sourcePort = sourceNode.getPort(sourcePortId);
+		for (const [sourcePortId, connections] of Object.entries(connectionsInfo.CONTENTS.midi?.CONTENTS || {})) {
+			const sourcePort = getPort(state, sourcePortId);
 			if (!sourcePort) continue;
-			connectionRecords.push(...createConnectionRecordsFromSinkList(state, sourceNode, sourcePort, connections.VALUE));
+
+			connectionRecords.push(...createConnectionRecordsFromSinkList(state, sourcePort, connections.VALUE));
 		}
 
 		dispatch(deleteConnections(getConnections(state).valueSeq().toArray()));
 		dispatch(setConnections(connectionRecords));
 	};
 
-// Update System or Control I/O
-export const updateSystemOrControlPortInfo = (type: ConnectionType, direction: PortDirection, names: string[]): AppThunk =>
+
+// Update Port I/O Info
+export const updatePortIOInfo = (type: ConnectionType, direction: PortDirection, ids: string[]): AppThunk =>
 	(dispatch, getState) => {
 
 		const state = getState();
+		const currentPorts = getPortsForTypeAndDirection(state, type, direction);
 
-		const patcherNodes = getPatcherNodes(state).valueSeq().toArray();
-		const controlNodes = getControlNodes(state).valueSeq().toArray();
-		const systemNodes = getSystemNodes(state).valueSeq().toArray();
-
-		// Using this set to keep track of newly created System and Control Nodes
-		const systemOrControlJackNames = new Set([
-			...filterSystemNodeNames(names, patcherNodes),
-			...filterControlNodeNames(names, patcherNodes)
-		]);
-
-		const currentSystemOrControlNodes = [...controlNodes, ...systemNodes];
-		const deletedNodes: Array<GraphSystemNodeRecord | GraphControlNodeRecord> = [];
-		const updatedNodes: Array<GraphSystemNodeRecord | GraphControlNodeRecord> = [];
-
-		for (const node of currentSystemOrControlNodes) {
-
-			if (node.type === NodeType.System && node.direction !== direction) { // only system nodes have a "direction" as we split them in two
-				// if not the same direction => ignore for now, another call will handle that
-				continue;
-			}
-
-			// Node already exists - delete from Nodes
-			if (systemOrControlJackNames.has(node.jackName)) {
-				systemOrControlJackNames.delete(node.jackName);
-			}
-
-			// Create Ports relevant for this node for type and direction
-			const newPorts = createNodePorts(node.jackName, type, direction, names);
-			const updatedNode = node.setPortsByType(type, direction, newPorts);
-
-			// Any Ports left or can we remove the node?
-			if (updatedNode.ports.size) {
-				updatedNodes.push(updatedNode);
-			} else {
-				deletedNodes.push(updatedNode);
-			}
+		const portsToDelete = currentPorts.filter(p => !ids.includes(p.id));
+		if (portsToDelete.size > 0) {
+			dispatch(deletePorts(portsToDelete.valueSeq().toArray()));
 		}
 
-		// Create New Nodes
-		let systemInputY = -defaultNodeGap;
-		let systemOutputY = -defaultNodeGap;
-
-		const patchers = getPatcherExports(state).valueSeq();
-		const missingSystemOrControlJackName = Array.from(systemOrControlJackNames.values())
-			.filter(name => !patchers.find(patcher => name.startsWith(`${patcher.name}-`)));
-
-		for (const jackName of missingSystemOrControlJackName) {
-
-			const ports = ImmuMap<GraphPortRecord["id"], GraphPortRecord>(createNodePorts(jackName, type, direction, names).map(p => [p.id, p]));
-			const contentHeight = calculateNodeContentHeight(ports);
-			let node: GraphSystemNodeRecord | GraphControlNodeRecord;
-
-			if (isSystemNodeName(jackName)) {
-				// System Node Name
-				node = new GraphSystemNodeRecord({
-					jackName,
-					direction,
-					id: `${jackName}${direction === PortDirection.Source ? GraphSystemNodeRecord.inputSuffix : GraphSystemNodeRecord.outputSuffix}`,
-					ports,
-					selected: false,
-					x: 0,
-					y: 0,
-					width: nodeDefaultWidth,
-					height: contentHeight + nodeHeaderHeight
-
-				});
-
-				if (direction === PortDirection.Source) {
-					node = node.updatePosition(
-						0,
-						systemInputY + defaultNodeGap
-					);
-					systemInputY = node.y + node.contentHeight;
-				} else {
-					node = node.updatePosition(
-						node.width + 300 + defaultNodeGap * 2,
-						systemOutputY + defaultNodeGap
-					);
-					systemOutputY = node.y + node.contentHeight;
-				}
-
+		const updatedPorts: GraphPortRecord[] = [];
+		for (const portId of ids) {
+			let port: GraphPortRecord;
+			if (currentPorts.has(portId)) {
+				port = currentPorts.get(portId)
+					.setDirection(direction)
+					.setType(type);
 			} else {
-				// Control Node
-				node = new GraphControlNodeRecord({
-					jackName,
-					ports,
-					selected: false,
-					x: 0,
-					y: 0,
-					width: nodeDefaultWidth,
-					height: contentHeight + nodeHeaderHeight
-				});
-				const { x, y } = getPatcherOrControlNodeCoordinates(node, [...patcherNodes, ...controlNodes]);
-				node = node.updatePosition(x, y);
+				port = GraphPortRecord.fromDescription(portId, type, direction, "{}");
 			}
-			updatedNodes.push(node);
+			updatedPorts.push(port);
 		}
 
-		dispatch(deleteNodes(deletedNodes));
-		dispatch(setNodes(updatedNodes));
-		dispatch(requestMetaUpdateFromRemote());
+		const newNodes = updatedPorts
+			.filter(p => p.instanceId === undefined && !getNode(state, p.nodeId))
+			.map(p => GraphNodeRecord.fromDescription(p.nodeId, NodeType.System));
 
+		dispatch(setPorts(updatedPorts));
+		dispatch(setNodes(newNodes));
+	};
+
+export const addPort = (id: GraphPortRecord["id"]): AppThunk =>
+	(dispatch, getState) => {
+
+		const port = getPort(getState(), id);
+		if (port) return;
+		dispatch(setPort(
+			GraphPortRecord.fromDescription(id, ConnectionType.Audio, PortDirection.Sink, "{}")
+		));
+	};
+
+export const setPortAliases = (id: GraphPortRecord["id"], aliases: string []): AppThunk =>
+	(dispatch, getState) => {
+		const port = getPort(getState(), id);
+		if (!port) return;
+
+		dispatch(setPort(port.setAliases(aliases)));
+	};
+
+export const deletePortAliases = (id: GraphPortRecord["id"]): AppThunk =>
+	(dispatch, getState) => {
+		const port = getPort(getState(), id);
+		if (!port) return;
+
+		dispatch(setPort(port.clearAliases()));
+	};
+
+export const setPortProperties = (id: GraphPortRecord["id"], properties: string): AppThunk =>
+	(dispatch, getState) => {
+
+		const state = getState();
+		const port = getPort(state, id);
+		if (!port) return;
+
+		// Create Port
+		dispatch(setPort(port.setProperties(properties)));
+
+		if (port.instanceId !== undefined) {
+			// Check if we need to update the node if of a patcher instance id
+			// this is necessary as we don't really have anything else that maps between
+			// /rnbo/inst/<id> to the <nodeid>:<port_name> when an instance is added
+
+			// Rename patcher node from inst id to node id
+			let patcherNode = getPatcherNodeByInstanceId(state, port.instanceId);
+			if (patcherNode) {
+				patcherNode = patcherNode.set("id", port.nodeId);
+				dispatch(setNode(patcherNode));
+			}
+
+			// Rename position node from inst id to node id
+			const position = getNodePosition(state, port.instanceId);
+			if (position) {
+				dispatch(setNodePosition(position.set("id", port.nodeId)));
+			} else if (!getNodePosition(state, port.nodeId)) {
+				// Create position
+				dispatch(setNodePosition(NodePositionRecord.fromDescription(port.nodeId, patcherInstanceCoordinatesStore.xWithMargin, patcherInstanceCoordinatesStore.yWithMargin)));
+			}
+
+		} else if (!getNode(state, port.nodeId)) {
+			// Need to create a system node and position for it
+			dispatch(setNode(GraphNodeRecord.fromDescription(port.nodeId, NodeType.System)));
+			const coords = getGraphEditorInstance(getState())?.project({ x: 0, y: 0 }) || { x: 0, y: 0 };
+			dispatch(setNodePosition(NodePositionRecord.fromDescription(port.nodeId, coords.x, coords.y)));
+		}
 	};
 
 // Trigger Updates on remote OSCQuery Runner
@@ -604,7 +574,7 @@ export const unloadPatcherNodeOnRemote = (instanceId: string): AppThunk =>
 			oscQueryBridge.sendPacket(writePacket(message));
 
 			const nodes = getNodes(getState());
-			dispatch(updateSetMetaOnRemoteFromNodes(nodes.filterNot(n => n.type === NodeType.Patcher && n.instanceId === instanceId)));
+			dispatch(updateSetMetaOnRemoteFromNodes(nodes.filterNot(n => n.type === NodeType.Patcher && n.instanceId === instanceId).valueSeq().toArray()));
 		} catch (err) {
 			dispatch(showNotification({
 				level: NotificationLevel.error,
@@ -616,8 +586,12 @@ export const unloadPatcherNodeOnRemote = (instanceId: string): AppThunk =>
 	};
 
 export const loadPatcherNodeOnRemote = (patcher: PatcherExportRecord): AppThunk =>
-	(dispatch) => {
+	(dispatch, getState) => {
 		try {
+			patcherInstanceCoordinatesStore.setCoordinates(
+				getGraphEditorInstance(getState())?.project({ x: 0, y: 0 }) || { x: 0, y: 0 }
+			);
+
 			const message = {
 				address: "/rnbo/inst/control/load",
 				args: [
@@ -637,75 +611,77 @@ export const loadPatcherNodeOnRemote = (patcher: PatcherExportRecord): AppThunk 
 	};
 
 // Updates from OSCQuery Runner Remote
-export const updateSourcePortConnections = (source: string, sinks: string[]): AppThunk =>
+export const updateSourcePortConnections = (sourcePortId: string, sinks: string[]): AppThunk =>
 	(dispatch, getState) => {
 		try {
 			const state = getState();
-
-			const [sourceNodeName, ...rest] = source.split(":");
-			const sourcePortId = rest.join(":");
-
-			const sourceNode = getNode(state, sourceNodeName) || getSystemNodeByJackNameAndDirection(state, sourceNodeName, PortDirection.Source);
-			if (!sourceNode) return;
-
-			const sourcePort = sourceNode.getPort(sourcePortId);
+			const sourcePort = getPort(state, sourcePortId);
 			if (!sourcePort) return;
 
 			// Delete old connections
-			const existingConnections = getConnectionsForSourceNodeAndPort(state, { sourceNodeId: sourceNode.id, sourcePortId: sourcePort.id });
+			const existingConnections = getConnectionsForSourcePort(state, sourcePort.id);
 			dispatch(deleteConnections(existingConnections.valueSeq().toArray()));
 
 			// Set new connections
-			const connections = createConnectionRecordsFromSinkList(state, sourceNode, sourcePort, sinks);
+			const connections = createConnectionRecordsFromSinkList(state, sourcePort, sinks);
 			if (connections.length) dispatch(setConnections(connections));
 
-		} catch (e) {
-			console.log(e);
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: `Error while trying to update node connections for with port "${sourcePortId}" `,
+				message: "Please check the console for further details."
+			}));
+			console.error(err);
 		}
 	};
 
-export const addPatcherNode = (desc: OSCQueryRNBOInstance, metaString: string): AppThunk =>
+export const addPatcherNode = (instanceId: string, nodeMeta?: OSCQuerySetNodeMeta): AppThunk =>
 	(dispatch, getState) => {
-		// Create Node
-		let node = GraphPatcherNodeRecord.fromDescription(desc);
-		const setMeta: OSCQuerySetMeta = deserializeSetMeta(metaString);
-		const nodeMeta: OSCQuerySetNodeMeta | undefined = setMeta?.nodes?.[node.id];
+		try {
+			console.log("add patcher", instanceId, nodeMeta);
+			// Create Node
+			const state = getState();
+			const node = getPatcherNodeByInstanceId(state, instanceId) || GraphNodeRecord.fromDescription(instanceId, NodeType.Patcher, instanceId);
 
-		const state = getState();
-		const { x, y } = nodeMeta?.position || getGraphEditorInstance(state)?.project({
-			y: 0,
-			x: 0
-		}) || getPatcherOrControlNodeCoordinates(node, []);
+			const position = getNodePosition(state, node.id) ||
+				NodePositionRecord.fromDescription(
+					node.id,
+					nodeMeta?.position?.x || patcherInstanceCoordinatesStore.xWithMargin,
+					nodeMeta?.position?.y || patcherInstanceCoordinatesStore.yWithMargin
+				);
 
-		node = node.updatePosition(x, y);
-		dispatch(setNode(node));
+			dispatch(setNode(node));
+			dispatch(setNodePosition(position));
 
-		// Create Instance State
-		const instance = PatcherInstanceRecord.fromDescription(desc);
-		const parameters = ParameterRecord.fromDescription(instance.id, desc.CONTENTS.params);
-		const messageInports = MessagePortRecord.fromDescription(instance.id, desc.CONTENTS.messages?.CONTENTS?.in);
-		const messageOutports = MessagePortRecord.fromDescription(instance.id, desc.CONTENTS.messages?.CONTENTS?.out);
-
-		dispatch(setInstance(instance));
-		dispatch(setInstanceParameters(parameters));
-		dispatch(setInstanceMessageInports(messageInports));
-		dispatch(setInstanceMessageOutports(messageOutports));
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: `Error while trying to add node with id "${instanceId}" to the graph`,
+				message: "Please check the console for further details."
+			}));
+			console.error(err);
+		}
 	};
 
-export const removePatcherNode = (instanceId: string): AppThunk =>
+export const deletePatcherNodeByInstanceId = (instanceId: string): AppThunk =>
 	(dispatch, getState) => {
 		try {
 			const state = getState();
-
 			const node = getPatcherNodeByInstanceId(state, instanceId);
 			if (node?.type !== NodeType.Patcher) return;
+
 			dispatch(deleteNode(node));
 
-			const instance = getPatcherInstance(state, instanceId);
-			if (!instance) return;
+			const pos = getNodePosition(state, node.id);
+			if (pos) dispatch(deleteNodePosition(pos));
 
-			dispatch(deleteInstance(instance));
-		} catch (e) {
-			console.log(e);
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: `Error while trying to remove node with id "${instanceId}" from the graph`,
+				message: "Please check the console for further details."
+			}));
+			console.error(err);
 		}
 	};
