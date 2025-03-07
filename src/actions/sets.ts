@@ -11,9 +11,10 @@ import { getNodes } from "../selectors/graph";
 import { ParameterRecord } from "../models/parameter";
 import { getPatcherInstance, getPatcherInstanceParametersSortedByInstanceIdAndIndex } from "../selectors/patchers";
 import { OSCQueryRNBOSetView, OSCQueryRNBOSetViewState } from "../lib/types";
-import { getGraphPresets, getGraphSets, getGraphSetView, getGraphSetViews } from "../selectors/sets";
-import { clamp, getUniqueName, instanceAndParamIndicesToSetViewEntry } from "../lib/util";
+import { getCurrentGraphSet, getCurrentGraphSetIsDirty, getGraphPresets, getGraphSets, getGraphSetView, getGraphSetViews } from "../selectors/sets";
+import { clamp, getUniqueName, instanceAndParamIndicesToSetViewEntry, sleep } from "../lib/util";
 import { setInstanceWaitingForMidiMappingOnRemote } from "./patchers";
+import { showConfirmDialog } from "../lib/dialogs";
 
 export enum GraphSetActionType {
 	INIT_SETS = "INIT_SETS",
@@ -164,26 +165,6 @@ export const clearGraphSetOnRemote = (): AppThunk =>
 		}
 	};
 
-export const loadGraphSetOnRemote = (set: GraphSetRecord): AppThunk =>
-	(dispatch) => {
-		try {
-			const message = {
-				address: "/rnbo/inst/control/sets/load",
-				args: [
-					{ type: "s", value: set.name }
-				]
-			};
-			oscQueryBridge.sendPacket(writePacket(message));
-		} catch (err) {
-			dispatch(showNotification({
-				level: NotificationLevel.error,
-				title: `Error while trying to load set ${set.name}`,
-				message: "Please check the console for further details."
-			}));
-			console.error(err);
-		}
-	};
-
 export const saveGraphSetOnRemote = (givenName: string, ensureUniqueName: boolean = true): AppThunk =>
 	(dispatch, getState) => {
 		try {
@@ -204,6 +185,67 @@ export const saveGraphSetOnRemote = (givenName: string, ensureUniqueName: boolea
 			dispatch(showNotification({
 				level: NotificationLevel.error,
 				title: `Error while trying to save set ${name}`,
+				message: "Please check the console for further details."
+			}));
+			console.error(err);
+		}
+	};
+
+const doLoadGraphSetOnRemote = (set: GraphSetRecord): AppThunk =>
+	(dispatch) => {
+		try {
+			const message = {
+				address: "/rnbo/inst/control/sets/load",
+				args: [
+					{ type: "s", value: set.name }
+				]
+			};
+			oscQueryBridge.sendPacket(writePacket(message));
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: `Error while trying to load set ${set.name}`,
+				message: "Please check the console for further details."
+			}));
+			console.error(err);
+		}
+}
+
+export const loadGraphSetOnRemote = (set: GraphSetRecord): AppThunk =>
+	async (dispatch, getState) => {
+		try {
+			const state = getState();
+			const currentSet = getCurrentGraphSet(state);
+
+			// Set already loaded?
+			if (set.id === currentSet.id) return;
+
+			// Pending Changes?
+			if (getCurrentGraphSetIsDirty(state)) {
+				if (!await showConfirmDialog({
+					title: `Unsaved Changes in ${currentSet.name}`,
+					text: `Save changes to ${currentSet.name} before loading ${set.name}?`,
+					confirmLabel: "Save"
+				})) {
+					// User Canceled, do nothing
+					return;
+				}
+
+				// Save Current GraphSet
+				dispatch(saveGraphSetOnRemote(currentSet.name, false));
+				await sleep(30);
+			}
+
+			const message = {
+				address: "/rnbo/inst/control/sets/load",
+				args: [ { type: "s", value: set.name } ]
+			};
+			oscQueryBridge.sendPacket(writePacket(message));
+
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: `Error while trying to load set ${set.name}`,
 				message: "Please check the console for further details."
 			}));
 			console.error(err);
