@@ -4,7 +4,7 @@ import { ActionIcon, Button, Group, Menu, TextInput, Tooltip } from "@mantine/co
 import classes from "./sets.module.css";
 import { keyEventIsValidForName, replaceInvalidNameChars } from "../../lib/util";
 import { IconElement } from "../elements/icon";
-import { mdiCheck, mdiCheckCircleOutline, mdiClose, mdiContentSave, mdiDotsVertical, mdiFileReplaceOutline, mdiPencil, mdiTrashCan } from "@mdi/js";
+import { mdiCheck, mdiCheckCircleOutline, mdiClose, mdiDotsVertical, mdiFileReplaceOutline, mdiPencil, mdiTrashCan } from "@mdi/js";
 
 export type GraphSetItemProps = {
 	set: GraphSetRecord;

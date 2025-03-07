@@ -18,7 +18,7 @@ import {
 	triggerEditorFitView
 } from "../actions/editor";
 import SetsDrawer from "../components/sets";
-import { destroySetPresetOnRemote, loadSetPresetOnRemote, saveSetPresetToRemote, renameSetPresetOnRemote, clearGraphSetOnRemote, destroyGraphSetOnRemote, loadGraphSetOnRemote, renameGraphSetOnRemote, saveGraphSetOnRemote } from "../actions/sets";
+import { destroySetPresetOnRemote, loadSetPresetOnRemote, saveSetPresetToRemote, renameSetPresetOnRemote, loadNewEmptyGraphSetOnRemote, destroyGraphSetOnRemote, loadGraphSetOnRemote, renameGraphSetOnRemote, saveGraphSetOnRemote } from "../actions/sets";
 import { PresetRecord } from "../models/preset";
 import { getCurrentGraphSet, getCurrentGraphSetIsDirty, getGraphSetPresetsSortedByName, getGraphSetsSortedByName } from "../selectors/sets";
 import { useDisclosure } from "@mantine/hooks";
@@ -121,8 +121,8 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 	}, [dispatch]);
 
 	// Sets
-	const onClearSet = useCallback(() => {
-		dispatch(clearGraphSetOnRemote());
+	const onLoadEmptySet = useCallback(() => {
+		dispatch(loadNewEmptyGraphSetOnRemote());
 		closeSetDrawer();
 	}, [dispatch, closeSetDrawer]);
 
@@ -154,7 +154,7 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 			centered: true,
 			children: (
 				<Text size="sm">
-					Are you sure you want to overwrite the set named { `"${set.name}"` }?
+					Are you sure you want to overwrite the set named { `"${set.name}"` } with the currently loaded graph?
 				</Text>
 			),
 			labels: { confirm: "Overwrite", cancel: "Cancel" },
@@ -211,8 +211,8 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 						<Title size="md" my={ 0 } >
 							{
 								currentGraphSet
-								? `${currentGraphSet.name}${currentGraphSetIsDirty ? "*" : ""}`
-								: "No Graph Set loaded"
+									? `${currentGraphSet.name}${currentGraphSetIsDirty ? "*" : ""}`
+									: "Untitled*"
 							}
 						</Title>
 					</Group>
@@ -264,15 +264,15 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 			</Stack>
 			<SetsDrawer
 				onClose={ closeSetDrawer }
-				onClearSet={ onClearSet }
 				onDeleteSet={ onDeleteSet }
 				onLoadSet={ onLoadSet }
+				onLoadEmptySet={ onLoadEmptySet }
 				onRenameSet={ onRenameSet }
 				onCreateSet={ onCreateSet }
 				onOverwriteSet={ onOverwriteSet }
 				open={ setDrawerIsOpen }
 				sets={ graphSets }
-				currentSetId={ currentGraphSet.name }
+				currentSetId={ currentGraphSet?.name }
 			/>
 			<PresetDrawer
 				open={ presetDrawerIsOpen }
