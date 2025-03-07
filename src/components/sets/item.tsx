@@ -4,7 +4,7 @@ import { ActionIcon, Button, Group, Menu, TextInput, Tooltip } from "@mantine/co
 import classes from "./sets.module.css";
 import { keyEventIsValidForName, replaceInvalidNameChars } from "../../lib/util";
 import { IconElement } from "../elements/icon";
-import { mdiCheck, mdiCheckCircleOutline, mdiClose, mdiContentSave, mdiDotsVertical, mdiPencil, mdiTrashCan } from "@mdi/js";
+import { mdiCheck, mdiCheckCircleOutline, mdiClose, mdiContentSave, mdiDotsVertical, mdiFileReplaceOutline, mdiPencil, mdiTrashCan } from "@mdi/js";
 
 export type GraphSetItemProps = {
 	set: GraphSetRecord;
@@ -144,8 +144,8 @@ export const GraphSetItem: FunctionComponent<GraphSetItemProps> = memo(function 
 				</Menu.Target>
 				<Menu.Dropdown>
 					<Menu.Label>Graph Set Actions</Menu.Label>
-					<Menu.Item leftSection={ <IconElement path={ mdiContentSave } /> } onClick={ onOverwriteSet } >Overwrite</Menu.Item>
 					<Menu.Item leftSection={ <IconElement path={ mdiPencil } /> } onClick={ toggleEditing } >Rename</Menu.Item>
+					<Menu.Item leftSection={ <IconElement path={ mdiFileReplaceOutline } /> } onClick={ onOverwriteSet } disabled={ isCurrent } >Overwrite</Menu.Item>
 					<Menu.Divider />
 					<Menu.Item color="red" leftSection={ <IconElement path={ mdiTrashCan } /> } onClick={ onDeleteSet } >Delete</Menu.Item>
 				</Menu.Dropdown>
