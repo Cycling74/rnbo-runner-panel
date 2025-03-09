@@ -639,7 +639,6 @@ export const updateSourcePortConnections = (sourcePortId: string, sinks: string[
 export const addPatcherNode = (instanceId: string, nodeMeta?: OSCQuerySetNodeMeta): AppThunk =>
 	(dispatch, getState) => {
 		try {
-			console.log("add patcher", instanceId, nodeMeta);
 			// Create Node
 			const state = getState();
 			const node = getPatcherNodeByInstanceId(state, instanceId) || GraphNodeRecord.fromDescription(instanceId, NodeType.Patcher, instanceId);

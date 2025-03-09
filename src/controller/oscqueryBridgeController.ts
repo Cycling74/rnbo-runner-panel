@@ -210,7 +210,6 @@ export class OSCQueryBridgeControllerPrivate {
 	}
 
 	private async _initAudio(state: OSCQueryRNBOState) {
-		console.log("init audio");
 
 		// Init Transport
 		dispatch(initTransport(state.CONTENTS.jack?.CONTENTS?.transport));
@@ -578,7 +577,6 @@ export class OSCQueryBridgeControllerPrivate {
 		const setMetaMatch = packet.address.match(setMetaPathMatcher);
 		if (setMetaMatch) {
 			const meta: OSCQuerySetMeta = deserializeSetMeta((packet.args as unknown as [string])[0]);
-			console.log(meta);
 			return void dispatch(updateSetMetaFromRemote(meta));
 		}
 
