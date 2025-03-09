@@ -1,14 +1,24 @@
-import { Map as ImmuMap } from "immutable";
+import { Map as ImmuMap, OrderedMap as ImmuOrderedMap } from "immutable";
 import { GraphAction, GraphActionType } from "../actions/graph";
-import { GraphConnectionRecord, GraphNodeRecord, GraphPortRecord, NodePositionRecord, NodeType } from "../models/graph";
+import { ConnectionType, GraphConnectionRecord, GraphNodeRecord, GraphPortRecord, NodePositionRecord, NodeType } from "../models/graph";
 
 export interface GraphState {
 	connections: ImmuMap<GraphConnectionRecord["id"], GraphConnectionRecord>;
 	nodes: ImmuMap<GraphNodeRecord["id"], GraphNodeRecord>;
 	nodePositions: ImmuMap<NodePositionRecord["id"], NodePositionRecord>;
 	patcherNodeIdByInstanceId: ImmuMap<GraphNodeRecord["instanceId"], GraphNodeRecord["id"]>;
-	ports: ImmuMap<GraphPortRecord["id"], GraphPortRecord>;
+	ports: ImmuOrderedMap<GraphPortRecord["id"], GraphPortRecord>;
 }
+
+const orderPortMap = (map: ImmuOrderedMap<GraphPortRecord["id"], GraphPortRecord>): ImmuOrderedMap<GraphPortRecord["id"], GraphPortRecord> => {
+	const collator = new Intl.Collator("en-US", { numeric: true, sensitivity: "case", caseFirst: "upper" });
+	return map.sort((pA, pB) => {
+		if (pA.type === pB.type) return collator.compare(pA.displayName, pB.displayName);
+		if (pA.type === ConnectionType.Audio) return -1;
+		if (pA.type === ConnectionType.MIDI) return 1;
+		return 0;
+	});
+};
 
 export const graph = (state: GraphState = {
 
@@ -16,7 +26,7 @@ export const graph = (state: GraphState = {
 	nodes: ImmuMap<GraphNodeRecord["id"], GraphNodeRecord>(),
 	nodePositions: ImmuMap<NodePositionRecord["id"], NodePositionRecord>(),
 	patcherNodeIdByInstanceId: ImmuMap<GraphNodeRecord["instanceId"], GraphNodeRecord["id"]>(),
-	ports: ImmuMap<GraphPortRecord["id"], GraphPortRecord>()
+	ports: ImmuOrderedMap<GraphPortRecord["id"], GraphPortRecord>()
 
 }, action: GraphAction): GraphState => {
 
@@ -168,7 +178,7 @@ export const graph = (state: GraphState = {
 			const { port } = action.payload;
 			return {
 				...state,
-				ports: state.ports.set(port.id, port)
+				ports: orderPortMap(state.ports.set(port.id, port))
 			};
 		}
 
@@ -176,11 +186,11 @@ export const graph = (state: GraphState = {
 			const { ports } = action.payload;
 			return {
 				...state,
-				ports: state.ports.withMutations(map => {
+				ports: orderPortMap(state.ports.withMutations(map => {
 					for (const port of ports) {
 						map.set(port.id, port);
 					}
-				})
+				}))
 			};
 		}
 

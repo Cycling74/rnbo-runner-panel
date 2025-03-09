@@ -1,4 +1,4 @@
-import { Map as ImmuMap, Seq } from "immutable";
+import { Map as ImmuMap, OrderedMap as ImmuOrderedMap, Seq } from "immutable";
 import { RootStateType } from "../lib/store";
 import { ConnectionType, GraphConnectionRecord, GraphNodeRecord, GraphPortRecord, NodePositionRecord, NodeType, PortDirection } from "../models/graph";
 import { createSelector } from "reselect";
@@ -70,7 +70,7 @@ export const getNodePosition = createSelector(
 	}
 );
 
-export const getPorts = (state: RootStateType): ImmuMap<GraphPortRecord["id"], GraphPortRecord> => state.graph.ports;
+export const getPorts = (state: RootStateType): ImmuOrderedMap<GraphPortRecord["id"], GraphPortRecord> => state.graph.ports;
 
 export const getPortsForTypeAndDirection = createSelector(
 	[
@@ -78,7 +78,7 @@ export const getPortsForTypeAndDirection = createSelector(
 		(state: RootStateType, type: ConnectionType): ConnectionType => type,
 		(state: RootStateType, type: ConnectionType, direction: PortDirection): PortDirection => direction
 	],
-	(ports, type, direction): ImmuMap<GraphPortRecord["id"], GraphPortRecord> => {
+	(ports, type, direction): ImmuOrderedMap<GraphPortRecord["id"], GraphPortRecord> => {
 		return ports.filter((p) => p.type === type && p.direction === direction);
 	}
 );
@@ -88,7 +88,7 @@ export const getPortsForNodeId = createSelector(
 		getNode,
 		getPorts
 	],
-	(node, ports): ImmuMap<GraphPortRecord["id"], GraphPortRecord> => {
+	(node, ports): ImmuOrderedMap<GraphPortRecord["id"], GraphPortRecord> => {
 		return ports.filter(p => p.nodeId === node.id);
 	}
 );
