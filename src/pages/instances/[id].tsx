@@ -72,11 +72,11 @@ export default function Instance() {
 
 	const onUnloadInstance = useCallback((e: MouseEvent<HTMLButtonElement>) => {
 		modals.openConfirmModal({
-			title: "Unload Patcher Instance",
+			title: "Delete Device",
 			centered: true,
 			children: (
 				<Text size="sm">
-					Are you sure you want to unload the Patcher Instance { currentInstance?.displayName }?
+					Are you sure you want to delete the device { currentInstance?.displayName }?
 				</Text>
 			),
 			labels: { confirm: "Unload", cancel: "Cancel" },
@@ -159,8 +159,8 @@ export default function Instance() {
 				</div>
 				<Group style={{ flex: "0" }} wrap="nowrap" gap="xs" >
 					<ResponsiveButton
-						label="Unload Instance"
-						tooltip="Unload Patcher Instance"
+						label="Delete"
+						tooltip="Delete Device"
 						icon={ mdiVectorSquareRemove }
 						onClick={ onUnloadInstance }
 						variant="outline"
@@ -174,7 +174,7 @@ export default function Instance() {
 					/>
 					<ResponsiveButton
 						label="Presets"
-						tooltip="Open Instance Preset Menu"
+						tooltip="Open Device Preset Menu"
 						icon={ mdiCamera }
 						onClick={ togglePresetDrawer }
 					/>

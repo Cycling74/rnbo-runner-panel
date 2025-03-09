@@ -60,7 +60,7 @@ const MIDIMappedParameterList: FC<MIDIMappedParameterListProps> = memo(function 
 						sortOrder={ sortOrder }
 						sorted={ sortAttr === MIDIMappedParameterSortAttr.InstanceId }
 					>
-						Instance
+						Device
 					</TableHeaderCell>
 					<TableHeaderCell className={ classes.parameterValueColumnHeader } fz="xs" >
 						Current Value

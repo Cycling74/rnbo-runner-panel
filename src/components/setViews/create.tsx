@@ -40,7 +40,7 @@ export const CreateSetViewForm: FC<CreateSetViewFormProps> = memo(function Wrapp
 		<form onSubmit={ onSaveSetView } >
 			<Group gap="xs" align="flex-end">
 				<TextInput
-					label="Create SetView"
+					label="Create Parameter View"
 					description="Create a new view with the given name"
 					placeholder="Name"
 					value={ name }

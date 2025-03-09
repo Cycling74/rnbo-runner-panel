@@ -46,7 +46,7 @@ const InstanceDataRefsTab: FunctionComponent<InstanceDataRefTabProps> = memo(fun
 			{
 				!instance.datarefs.size ? (
 					<div className={ classes.emptySection }>
-						This patcher instance has no buffers.
+						This device has no buffers.
 					</div>
 				) : <DataRefList datarefs={ instance.datarefs } options={ datafiles } onSetDataRef={ onSetDataRef } onClearDataRef={ onClearDataRef } />
 			}

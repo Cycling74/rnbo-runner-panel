@@ -41,7 +41,7 @@ const AppNav: FunctionComponent = memo(function WrappedNav() {
 					<NavLink
 						disabled={ instanceId === undefined }
 						icon={ mdiVectorSquare }
-						label="Patcher Instance Control"
+						label="Device Control"
 						href={{ pathname: "/instances/[id]", query: { ...restQuery, id: instanceId } }}
 						isActive={ pathname === "/instances/[id]" }
 					/>
@@ -59,7 +59,7 @@ const AppNav: FunctionComponent = memo(function WrappedNav() {
 					/>
 					<NavLink
 						icon={ mdiTableEye }
-						label="SetViews"
+						label="Parameter Views"
 						href={{ pathname: "/setviews", query: { ...restQuery } }}
 						isActive={ pathname === "/setviews" }
 					/>

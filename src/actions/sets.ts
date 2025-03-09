@@ -217,7 +217,7 @@ export const loadNewEmptyGraphSetOnRemote = (): AppThunk =>
 			if (currentSet && getCurrentGraphSetIsDirty(state)) {
 				if (!await showConfirmDialog({
 					title: `Unsaved Changes in ${currentSet.name}`,
-					text: `Save changes to ${currentSet.name} before loading a new empty Graph Set?`,
+					text: `Save changes to ${currentSet.name} before loading a new empty graph?`,
 					confirmLabel: "Save"
 				})) {
 					// User Canceled, do nothing

@@ -225,20 +225,20 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 						/>
 						<ResponsiveButton
 							label="Save"
-							tooltip="Save Graph Set"
+							tooltip="Save Graph"
 							icon={ mdiContentSave }
 							disabled={ !currentGraphSetIsDirty }
 							onClick={ onSaveCurrentSet }
 						/>
 						<ResponsiveButton
-							label="Graph Sets"
-							tooltip="Open Graph Set Menu"
+							label="Graphs"
+							tooltip="Open Graphs Menu"
 							icon={ mdiGroup }
 							onClick={ toggleSetDrawer }
 						/>
 						<ResponsiveButton
 							label="Presets"
-							tooltip="Open Graph Preset Menu"
+							tooltip="Open Graph Presets Menu"
 							icon={ mdiCamera }
 							onClick={ togglePresetDrawer }
 						/>

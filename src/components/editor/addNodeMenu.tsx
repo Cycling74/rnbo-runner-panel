@@ -77,7 +77,7 @@ export const AddNodeMenu: FC<AddNodeMenuProps> = memo(function WrappedAddNodeMen
 	return (
 		<Menu position="bottom-end" opened={ addNodeMenuIsOpen } onOpen={ onTriggerOpen } onClose={ closeMenu } >
 			<Menu.Target ref={ dropdownRef } >
-				<Tooltip label="Add Node to Graph Set">
+				<Tooltip label="Add Node to Graph">
 					<ActionIcon variant="default" size="lg">
 						<IconElement path={ mdiPlusBox } />
 					</ActionIcon>
