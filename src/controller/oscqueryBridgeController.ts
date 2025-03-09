@@ -5,7 +5,7 @@ import { AppDispatch, store } from "../lib/store";
 import { ReconnectingWebsocket } from "../lib/reconnectingWs";
 import { AppStatus, RunnerCmdMethod } from "../lib/constants";
 import { OSCQueryRNBOState, OSCQueryRNBOInstance, OSCQueryRNBOPatchersState, OSCValue, OSCQueryRNBOInstancesMetaState, OSCQuerySetMeta } from "../lib/types";
-import { deletePortAliases, initConnections, initPorts, setPortAliases, updateSetMetaFromRemote, updateSourcePortConnections, updatePortIOInfo, deletePortById, setPortProperties, deletePatcherNodeByInstanceId, addPort, addPatcherNode } from "../actions/graph";
+import { deletePortAliases, initConnections, initPorts, setPortAliases, updateSetMetaFromRemote, updateSourcePortConnections, updatePortIOInfo, deletePortById, setPortProperties, addPort } from "../actions/graph";
 import { addInstance, deleteInstanceById, initInstances, initPatchers } from "../actions/patchers";
 import { initRunnerConfig, updateRunnerConfig } from "../actions/settings";
 import { initSets, setCurrentGraphSet, initSetPresets, setGraphSetPresetLatest, initSetViews, updateSetViewName, updateSetViewParameterList, deleteSetView, addSetView, updateSetViewOrder, setCurrentGraphSetDirtyState } from "../actions/sets";
@@ -333,14 +333,10 @@ export class OSCQueryBridgeControllerPrivate {
 
 			// Add Patcher Instance
 			const info = await this._requestState<OSCQueryRNBOInstance>(path);
-			dispatch(addInstance(info));
+			return void dispatch(addInstance(info));
 
-			// Add Patcher Node
-			const meta = await this.getMetaState();
-			return void dispatch(addPatcherNode(
-				instanceMatch.groups.id,
-				deserializeSetMeta(meta.VALUE as string)?.nodes?.[instanceMatch.groups.id]
-			));
+			// We only create the instance here, adding the Node to the graph is handled
+			// by keeping the ports in sync
 		}
 
 		// Handle changes to patchers list - request updated list
@@ -428,9 +424,9 @@ export class OSCQueryBridgeControllerPrivate {
 		// Removed Instance
 		const instMatch = path.match(instancePathMatcher);
 		if (instMatch?.groups?.id) {
-			const instanceId = instMatch.groups.id;
-			dispatch(deletePatcherNodeByInstanceId(instanceId));
-			return void dispatch(deleteInstanceById(instanceId));
+			// We only delete the instance here, removing the Node from the graph is handled
+			// by keeping the ports in sync
+			return void dispatch(deleteInstanceById(instMatch.groups.id));
 		}
 
 		// Parse out if instance path?

@@ -1,7 +1,7 @@
 import { writePacket } from "osc";
 import { oscQueryBridge } from "../controller/oscqueryBridgeController";
 import { ActionBase, AppThunk, RootStateType } from "../lib/store";
-import { OSCQueryRNBOJackConnections, OSCQueryRNBOJackPortInfo, OSCQuerySetMeta, OSCQuerySetNodeMeta } from "../lib/types";
+import { OSCQueryRNBOJackConnections, OSCQueryRNBOJackPortInfo, OSCQuerySetMeta } from "../lib/types";
 import { ConnectionType, GraphConnectionRecord, GraphNodeRecord, GraphPortRecord, NodePositionRecord, NodeType, PortDirection } from "../models/graph";
 import { getConnectionsForSourcePort, getNode, getNodes, getConnections, getPorts, getPort, getPortsForTypeAndDirection, getPatcherNodeByInstanceId, getNodePositions, getNodePosition, getEditorNodesAndPorts } from "../selectors/graph";
 import { showNotification } from "./notifications";
@@ -488,11 +488,23 @@ export const updatePortIOInfo = (type: ConnectionType, direction: PortDirection,
 		}
 
 		const newNodes = updatedPorts
-			.filter(p => p.instanceId === undefined && !getNode(state, p.nodeId))
+			.filter(p => !getNode(state, p.nodeId))
 			.map(p => GraphNodeRecord.fromDescription(p.nodeId, NodeType.System));
 
 		dispatch(setPorts(updatedPorts));
-		dispatch(setNodes(newNodes));
+
+		if (newNodes.length) {
+			dispatch(setNodes(newNodes));
+			dispatch(setNodePositions(
+				newNodes.map(n => NodePositionRecord
+					.fromDescription(
+						n.id,
+						patcherInstanceCoordinatesStore.xWithMargin,
+						patcherInstanceCoordinatesStore.yWithMargin
+					)
+				)
+			));
+		}
 	};
 
 export const addPort = (id: GraphPortRecord["id"]): AppThunk =>
@@ -630,55 +642,6 @@ export const updateSourcePortConnections = (sourcePortId: string, sinks: string[
 			dispatch(showNotification({
 				level: NotificationLevel.error,
 				title: `Error while trying to update node connections for with port "${sourcePortId}" `,
-				message: "Please check the console for further details."
-			}));
-			console.error(err);
-		}
-	};
-
-export const addPatcherNode = (instanceId: string, nodeMeta?: OSCQuerySetNodeMeta): AppThunk =>
-	(dispatch, getState) => {
-		try {
-			// Create Node
-			const state = getState();
-			const node = getPatcherNodeByInstanceId(state, instanceId) || GraphNodeRecord.fromDescription(instanceId, NodeType.Patcher, instanceId);
-
-			const position = getNodePosition(state, node.id) ||
-				NodePositionRecord.fromDescription(
-					node.id,
-					nodeMeta?.position?.x || patcherInstanceCoordinatesStore.xWithMargin,
-					nodeMeta?.position?.y || patcherInstanceCoordinatesStore.yWithMargin
-				);
-
-			dispatch(setNode(node));
-			dispatch(setNodePosition(position));
-
-		} catch (err) {
-			dispatch(showNotification({
-				level: NotificationLevel.error,
-				title: `Error while trying to add node with id "${instanceId}" to the graph`,
-				message: "Please check the console for further details."
-			}));
-			console.error(err);
-		}
-	};
-
-export const deletePatcherNodeByInstanceId = (instanceId: string): AppThunk =>
-	(dispatch, getState) => {
-		try {
-			const state = getState();
-			const node = getPatcherNodeByInstanceId(state, instanceId);
-			if (node?.type !== NodeType.Patcher) return;
-
-			dispatch(deleteNode(node));
-
-			const pos = getNodePosition(state, node.id);
-			if (pos) dispatch(deleteNodePosition(pos));
-
-		} catch (err) {
-			dispatch(showNotification({
-				level: NotificationLevel.error,
-				title: `Error while trying to remove node with id "${instanceId}" from the graph`,
 				message: "Please check the console for further details."
 			}));
 			console.error(err);
