@@ -135,12 +135,12 @@ export class GraphPortRecord extends ImmuRecord<GraphPortProps> ({
 	}
 }
 
-export type GraphNodeProps= {
+export type GraphNodeProps = {
 	id: string;
 	instanceId: string;
 	selected: boolean;
 	type: NodeType;
-}
+};
 
 export interface GraphNode extends GraphNodeProps {}
 
