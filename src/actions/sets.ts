@@ -158,7 +158,32 @@ export const saveGraphSetOnRemote = (givenName: string, ensureUniqueName: boolea
 		} catch (err) {
 			dispatch(showNotification({
 				level: NotificationLevel.error,
-				title: `Error while trying to save set ${name}`,
+				title: `Error while trying to save set ${givenName}`,
+				message: "Please check the console for further details."
+			}));
+			console.error(err);
+		}
+	};
+
+export const overwriteGraphSetOnRemote = (set: GraphSetRecord): AppThunk =>
+	async (dispatch) => {
+		try {
+			const dialogResult = await showConfirmDialog({
+				text: `Are you sure you want to overwrite the graph named ${set.name} with the currently loaded graph?`,
+				actions: {
+					confirm: { label: "Overwrite Graph" }
+				}
+			});
+
+			if (dialogResult === ConfirmDialogResult.Cancel) {
+				return;
+			}
+
+			dispatch(saveGraphSetOnRemote(set.name, false));
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: `Error while trying to overwrite set ${set.name}`,
 				message: "Please check the console for further details."
 			}));
 			console.error(err);
@@ -255,8 +280,20 @@ export const loadNewEmptyGraphSetOnRemote = (): AppThunk =>
 	};
 
 export const destroyGraphSetOnRemote = (set: GraphSetRecord): AppThunk =>
-	(dispatch) => {
+	async (dispatch) => {
 		try {
+
+			const dialogResult = await showConfirmDialog({
+				text: `Are you sure you want to delete the graph named ${set.name}?`,
+				actions: {
+					confirm: { label: "Delete", color: "red" }
+				}
+			});
+
+			if (dialogResult === ConfirmDialogResult.Cancel) {
+				return;
+			}
+
 			const message = {
 				address: "/rnbo/inst/control/sets/destroy",
 				args: [
@@ -343,7 +380,32 @@ export const saveSetPresetToRemote = (givenName: string, ensureUniqueName: boole
 		} catch (err) {
 			dispatch(showNotification({
 				level: NotificationLevel.error,
-				title: `Error while trying to save preset ${name}`,
+				title: `Error while trying to save preset ${givenName}`,
+				message: "Please check the console for further details."
+			}));
+			console.log(err);
+		}
+	};
+
+export const overwriteSetPresetOnRemote = (preset: PresetRecord): AppThunk =>
+	async (dispatch) => {
+		try {
+
+			const dialogResult = await showConfirmDialog({
+				text: `Are you sure you want to overwrite the preset named ${preset.name} with the current values?`,
+				actions: {
+					confirm: { label: "Overwrite Preset" }
+				}
+			});
+
+			if (dialogResult === ConfirmDialogResult.Cancel) {
+				return;
+			}
+			dispatch(saveSetPresetToRemote(preset.name, false));
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: `Error while trying to overwrite preset ${preset.name}`,
 				message: "Please check the console for further details."
 			}));
 			console.log(err);
@@ -351,8 +413,20 @@ export const saveSetPresetToRemote = (givenName: string, ensureUniqueName: boole
 	};
 
 export const destroySetPresetOnRemote = (preset: PresetRecord): AppThunk =>
-	(dispatch) => {
+	async (dispatch) => {
 		try {
+
+			const dialogResult = await showConfirmDialog({
+				text: `Are you sure you want to delete the preset named ${preset.name}?`,
+				actions: {
+					confirm: { label: "Delete", color: "red" }
+				}
+			});
+
+			if (dialogResult === ConfirmDialogResult.Cancel) {
+				return;
+			}
+
 			const message = {
 				address: "/rnbo/inst/control/sets/presets/destroy",
 				args: [
@@ -494,8 +568,20 @@ export const updateSetViewName = (id: GraphSetViewRecord["id"], newname: string)
 	};
 
 export const destroySetViewOnRemote = (setView: GraphSetViewRecord): AppThunk =>
-	(dispatch) => {
+	async (dispatch) => {
 		try {
+
+			const dialogResult = await showConfirmDialog({
+				text: `Are you sure you want to delete the view named ${setView.name}?`,
+				actions: {
+					confirm: { label: "Delete", color: "red" }
+				}
+			});
+
+			if (dialogResult === ConfirmDialogResult.Cancel) {
+				return;
+			}
+
 			const message = {
 				address: "/rnbo/inst/control/sets/views/destroy",
 				args: [{ type: "i", value: setView.id }]
@@ -619,8 +705,20 @@ export const removeParameterFromSetView = (setView: GraphSetViewRecord, param: P
 	};
 
 export const removeAllParametersFromSetView = (setView: GraphSetViewRecord): AppThunk =>
-	(dispatch) => {
+	async (dispatch) => {
 		try {
+
+			const dialogResult = await showConfirmDialog({
+				text: `Are you sure you want to remove all parameters from ${setView.name}? This action cannot be undone.`,
+				actions: {
+					confirm: { label: "Remove Parameters", color: "red" }
+				}
+			});
+
+			if (dialogResult === ConfirmDialogResult.Cancel) {
+				return;
+			}
+
 			const message = {
 				address: `/rnbo/inst/control/sets/views/list/${setView.id}/params`,
 				args: [] as OSCArgument[]
@@ -659,8 +757,19 @@ export const addParameterToSetView = (setView: GraphSetViewRecord, param: Parame
 	};
 
 export const addAllParametersToSetView = (setView: GraphSetViewRecord): AppThunk =>
-	(dispatch, getState) => {
+	async (dispatch, getState) => {
 		try {
+			const dialogResult = await showConfirmDialog({
+				text: `Are you sure you want to append all missing parameters from all devices to ${setView.name}? This action cannot be undone.`,
+				actions: {
+					confirm: { label: "Add Parameters" }
+				}
+			});
+
+			if (dialogResult === ConfirmDialogResult.Cancel) {
+				return;
+			}
+
 			const state = getState();
 			const params = setView.params.withMutations(list => {
 				getPatcherInstanceParametersSortedByInstanceIdAndIndex(state)
@@ -670,7 +779,6 @@ export const addAllParametersToSetView = (setView: GraphSetViewRecord): AppThunk
 						}
 					});
 			}).toArray();
-
 
 			const message = {
 				address: `/rnbo/inst/control/sets/views/list/${setView.id}/params`,

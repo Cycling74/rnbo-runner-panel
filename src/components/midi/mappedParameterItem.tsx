@@ -1,10 +1,9 @@
 import { FC, memo, useCallback } from "react";
 import { PatcherInstanceRecord } from "../../models/instance";
 import { ParameterRecord } from "../../models/parameter";
-import { ActionIcon, Group, Menu, Table, Text, Tooltip } from "@mantine/core";
+import { ActionIcon, Group, Menu, Table, Tooltip } from "@mantine/core";
 import { mdiDotsVertical, mdiEraser, mdiVectorSquare } from "@mdi/js";
 import { IconElement } from "../elements/icon";
-import { modals } from "@mantine/modals";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import classes from "./midi.module.css";
@@ -54,19 +53,8 @@ const MIDIMappedParameter: FC<MIDIMappedParamProps> = memo(function WrappedMIDIM
 	const { query: restQuery } = useRouter();
 
 	const onClearMapping = useCallback(() => {
-		modals.openConfirmModal({
-			title: "Clear Parameter MIDI Mapping",
-			centered: true,
-			children: (
-				<Text size="sm" id="red">
-					Are you sure you want to remove the active MIDI mapping for { `"${param.name}"` } on patcher instance { `"${instance.displayName}"` }?
-				</Text>
-			),
-			labels: { confirm: "Remove", cancel: "Cancel" },
-			confirmProps: { color: "red" },
-			onConfirm: () => onClearMIDIMapping(param)
-		});
-	}, [param, instance, onClearMIDIMapping]);
+		onClearMIDIMapping(param);
+	}, [param, onClearMIDIMapping]);
 
 	const onUpdateMapping = useCallback((value: string) => {
 		onUpdateMIDIMapping(param, value);

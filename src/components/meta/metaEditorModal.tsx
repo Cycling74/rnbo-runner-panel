@@ -1,13 +1,13 @@
 import { Anchor, Button, Group, Modal, Stack, Text, TextInput, Textarea, Tooltip } from "@mantine/core";
 import { ChangeEvent, FC, FormEvent, memo, useCallback, useEffect, useState } from "react";
 import { useIsMobileDevice } from "../../hooks/useIsMobileDevice";
-import { modals } from "@mantine/modals";
 import { JsonMap } from "../../lib/types";
 import { MetadataScope } from "../../lib/constants";
 import { parseMetaJSONString } from "../../lib/util";
 import classes from "./metaEditorModal.module.css";
 import { IconElement } from "../elements/icon";
 import { mdiClose, mdiCodeBraces } from "@mdi/js";
+import { ConfirmDialogResult, showConfirmDialog } from "../../lib/dialogs";
 
 export type MetaEditorModalProps = {
 	name: string;
@@ -92,50 +92,46 @@ export const MetaEditorModal: FC<MetaEditorModalProps> = memo(function WrappedPa
 
 	const showFullScreen = useIsMobileDevice();
 
-	const onTriggerClose = useCallback(() => {
+	const onTriggerClose = useCallback(async () => {
 		if (hasChanges) {
-			modals.openConfirmModal({
-				title: "Unsaved Changes",
-				centered: true,
-				children: (
-					<Text size="sm" id="red">
-						The meta data has unsaved changes. Are you sure you want to discard them?
-					</Text>
-				),
-				labels: { confirm: "Discard", cancel: "Cancel" },
-				confirmProps: { color: "red" },
-				onConfirm: () => onClose()
+			const result = await showConfirmDialog({
+				text: "The meta data has unsaved changes. Are you sure you want to discard them?",
+				actions: {
+					confirm: { label: "Discard Changes", color: "red" }
+				}
 			});
+
+			if (result === ConfirmDialogResult.Confirm) {
+				// Discard unsaved changes
+				onClose();
+			}
 		} else {
 			onClose();
 		}
 	}, [onClose, hasChanges]);
 
-	const onCancel = useCallback(() => {
+	const onCancel = useCallback(async () => {
 
 		if (hasChanges) {
-			modals.openConfirmModal({
-				title: "Discard Changes",
-				centered: true,
-				children: (
-					<Text size="sm" id="red">
-						The meta data has unsaved changes. Are you sure you want to discard them?
-					</Text>
-				),
-				labels: { confirm: "Discard", cancel: "Cancel" },
-				confirmProps: { color: "red" },
-				onConfirm: () => {
-					setValue(meta);
-					setHasChanges(false);
-
-					try {
-						if (meta) parseMetaJSONString(meta); // ensure valid
-						setError(undefined);
-					} catch (err: unknown) {
-						setError(err instanceof Error ? err : new Error("Invalid JSON format."));
-					}
+			const result = await showConfirmDialog({
+				text: "The meta data has unsaved changes. Are you sure you want to discard them?",
+				actions: {
+					confirm: { label: "Discard Changes", color: "red" }
 				}
 			});
+
+			if (result === ConfirmDialogResult.Confirm) {
+				// Discard unsaved changes
+				setValue(meta);
+				setHasChanges(false);
+
+				try {
+					if (meta) parseMetaJSONString(meta); // ensure valid
+					setError(undefined);
+				} catch (err: unknown) {
+					setError(err instanceof Error ? err : new Error("Invalid JSON format."));
+				}
+			}
 		} else {
 			setValue(meta);
 			setHasChanges(false);
@@ -185,18 +181,17 @@ export const MetaEditorModal: FC<MetaEditorModalProps> = memo(function WrappedPa
 		}
 	}, [setError, setHasChanges, onSaveMeta, value]);
 
-	const onTriggerRestore = useCallback(() => {
-		modals.openConfirmModal({
-			title: "Restore Defaults",
-			centered: true,
-			children: (
-				<Text size="sm" id="red">
-					Are you sure you want to restore the default metadata value? This action cannot be undone.
-				</Text>
-			),
-			labels: { confirm: "Restore", cancel: "Cancel" },
-			onConfirm: () => onRestore()
+	const onTriggerRestore = useCallback(async () => {
+		const result = await showConfirmDialog({
+			text: "Are you sure you want to restore the default metadata value? This action cannot be undone.",
+			actions: {
+				confirm: { label: "Restore Defaults" }
+			}
 		});
+
+		if (result === ConfirmDialogResult.Confirm) {
+			onRestore();
+		}
 	}, [onRestore]);
 
 	const uiLabels = scopeLabels[scope];

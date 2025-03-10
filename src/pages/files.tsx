@@ -1,4 +1,4 @@
-import { Button, Group, Stack, Table, Text } from "@mantine/core";
+import { Button, Group, Stack, Table } from "@mantine/core";
 import { DataFileListItem } from "../components/datafile/item";
 import { useAppDispatch, useAppSelector } from "../hooks/useAppDispatch";
 import { RootStateType } from "../lib/store";
@@ -10,7 +10,6 @@ import { DataFileUploadModal, UploadFile } from "../components/datafile/uploadMo
 import { useDisclosure } from "@mantine/hooks";
 import { deleteDataFileOnRemote } from "../actions/datafiles";
 import { DataFileRecord } from "../models/datafile";
-import { modals } from "@mantine/modals";
 import { NotificationLevel } from "../models/notification";
 import { showNotification } from "../actions/notifications";
 import { IconElement } from "../components/elements/icon";
@@ -32,18 +31,7 @@ const SampleDependencies = () => {
 	}, [setSortOrder, sortOrder]);
 
 	const onDeleteFile = useCallback((file: DataFileRecord) => {
-		modals.openConfirmModal({
-			title: "Delete File",
-			centered: true,
-			children: (
-				<Text size="sm">
-					Are you sure you want to delete the file { `"${file.id}"` } from the device?
-				</Text>
-			),
-			labels: { confirm: "Delete", cancel: "Cancel" },
-			confirmProps: { color: "red" },
-			onConfirm: () => dispatch(deleteDataFileOnRemote(file))
-		});
+		dispatch(deleteDataFileOnRemote(file));
 	}, [dispatch]);
 
 	const onFileUploadSuccess = useCallback((files: UploadFile[]) => {

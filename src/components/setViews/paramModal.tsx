@@ -1,4 +1,4 @@
-import { Accordion, ActionIcon, Group, Modal, Stack, Text, Title } from "@mantine/core";
+import { Accordion, ActionIcon, Group, Modal, Stack, Title } from "@mantine/core";
 import { FC, memo, useCallback } from "react";
 import { useIsMobileDevice } from "../../hooks/useIsMobileDevice";
 import { mdiMinusBox, mdiMinusBoxMultiple, mdiPlusBox, mdiPlusBoxMultiple, mdiTune } from "@mdi/js";
@@ -13,7 +13,6 @@ import { ParameterRecord } from "../../models/parameter";
 import { ResponsiveButton } from "../elements/responsiveButton";
 import { addAllParametersToSetView, addParameterToSetView, removeAllParametersFromSetView, removeParameterFromSetView } from "../../actions/sets";
 import classes from "./setviews.module.css";
-import { modals } from "@mantine/modals";
 
 export type SetViewParameterModalProps = {
 	onClose: () => void;
@@ -103,33 +102,11 @@ export const SetViewParameterModal: FC<SetViewParameterModalProps> = memo(functi
 	]);
 
 	const onAddAllParametersToSetView = useCallback(() => {
-		modals.openConfirmModal({
-			title: "Include all parameters",
-			centered: true,
-			children: (
-				<Text size="sm" id="red">
-					Are you sure you want to append all missing parameters from all devices to { `"${setView.name}"` }? This action cannot be undone.
-				</Text>
-			),
-			labels: { confirm: "Add", cancel: "Cancel" },
-			onConfirm: () => dispatch(addAllParametersToSetView(setView))
-		});
-
+		dispatch(addAllParametersToSetView(setView));
 	}, [dispatch, setView]);
 
 	const onRemoveAllParametersFromSetView = useCallback(() => {
-		modals.openConfirmModal({
-			title: "Remove all parameters",
-			centered: true,
-			children: (
-				<Text size="sm" id="red">
-					Are you sure you want to remove all parameters from { `"${setView.name}"` }? This action cannot be undone.
-				</Text>
-			),
-			labels: { confirm: "Remove", cancel: "Cancel" },
-			confirmProps: { color: "red" },
-			onConfirm: () => dispatch(removeAllParametersFromSetView(setView))
-		});
+		dispatch(removeAllParametersFromSetView(setView));
 	}, [dispatch, setView]);
 
 	const onAddParameterToSetView = useCallback((param: ParameterRecord) => {

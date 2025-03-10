@@ -1,10 +1,9 @@
-import { Button, Divider, Drawer, Flex, Group, Stack, Text } from "@mantine/core";
+import { Button, Divider, Drawer, Flex, Group, Stack } from "@mantine/core";
 import { FunctionComponent, memo, useCallback } from "react";
 import { GraphSetItem } from "./item";
 import { SaveGraphSetForm } from "./save";
 import { DrawerSectionTitle } from "../page/drawer";
 import { GraphSetRecord } from "../../models/set";
-import { modals } from "@mantine/modals";
 import classes from "./sets.module.css";
 import { Seq } from "immutable";
 import { IconElement } from "../elements/icon";
@@ -39,18 +38,7 @@ const SetsDrawer: FunctionComponent<SetsDrawerProps> = memo(function WrappedSets
 }) {
 
 	const onTriggerDeleteSet = useCallback((set: GraphSetRecord) => {
-		modals.openConfirmModal({
-			title: "Delete Graph",
-			centered: true,
-			children: (
-				<Text size="sm">
-					Are you sure you want to delete the graph named { `"${set.name}"` }?
-				</Text>
-			),
-			labels: { confirm: "Delete", cancel: "Cancel" },
-			confirmProps: { color: "red" },
-			onConfirm: () => onDeleteSet(set)
-		});
+		onDeleteSet(set);
 	}, [onDeleteSet]);
 
 	const validateUniqueSetName = useCallback((name: string): boolean => {

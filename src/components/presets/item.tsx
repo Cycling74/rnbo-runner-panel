@@ -4,14 +4,14 @@ import classes from "./presets.module.css";
 import { PresetRecord } from "../../models/preset";
 import { keyEventIsValidForName, replaceInvalidNameChars } from "../../lib/util";
 import { IconElement } from "../elements/icon";
-import { mdiCheck, mdiClose, mdiContentSave, mdiDotsVertical, mdiHistory, mdiPencil, mdiStar, mdiTrashCan } from "@mdi/js";
+import { mdiCheck, mdiClose, mdiDotsVertical, mdiFileReplaceOutline, mdiHistory, mdiPencil, mdiStar, mdiTrashCan } from "@mdi/js";
 
 export type PresetItemProps = {
 	preset: PresetRecord;
 	onDelete: (preset: PresetRecord) => any;
 	onLoad: (preset: PresetRecord) => any;
+	onOverwrite: (preset: PresetRecord) => any;
 	onRename: (preset: PresetRecord, name: string) => any;
-	onSave: (preset: PresetRecord) => any;
 	onSetInitial?: (preset: PresetRecord) => any;
 	validateUniqueName: (name: string) => boolean;
 };
@@ -20,8 +20,8 @@ export const PresetItem: FunctionComponent<PresetItemProps> = memo(function Wrap
 	preset,
 	onDelete,
 	onLoad,
+	onOverwrite,
 	onRename,
-	onSave,
 	onSetInitial,
 	validateUniqueName
 }: PresetItemProps) {
@@ -42,9 +42,9 @@ export const PresetItem: FunctionComponent<PresetItemProps> = memo(function Wrap
 		onSetInitial(preset);
 	}, [preset, onSetInitial]);
 
-	const onSavePreset = useCallback((_e: MouseEvent<HTMLButtonElement>) => {
-		onSave(preset);
-	}, [onSave, preset]);
+	const onOverwritePreset = useCallback((_e: MouseEvent<HTMLButtonElement>) => {
+		onOverwrite(preset);
+	}, [onOverwrite, preset]);
 
 	const onLoadPreset = useCallback((_e: MouseEvent<HTMLButtonElement>) => {
 		onLoad(preset);
@@ -161,7 +161,7 @@ export const PresetItem: FunctionComponent<PresetItemProps> = memo(function Wrap
 				</Menu.Target>
 				<Menu.Dropdown>
 					<Menu.Label>Preset Actions</Menu.Label>
-					<Menu.Item leftSection={ <IconElement path={ mdiContentSave } /> } onClick={ onSavePreset } >Overwrite</Menu.Item>
+					<Menu.Item leftSection={ <IconElement path={ mdiFileReplaceOutline } /> } onClick={ onOverwritePreset } >Overwrite</Menu.Item>
 					<Menu.Item leftSection={ <IconElement path={ mdiPencil } /> } onClick={ toggleEditing } >Rename</Menu.Item>
 					{ onSetInitial && <Menu.Item leftSection={ <IconElement path={ mdiStar } /> } onClick={ onSetInitialPreset } >Load on Startup</Menu.Item> }
 					<Menu.Divider />

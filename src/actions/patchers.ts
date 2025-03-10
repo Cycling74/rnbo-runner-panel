@@ -18,6 +18,7 @@ import { DataFileRecord } from "../models/datafile";
 import { PatcherExportRecord } from "../models/patcher";
 import { cloneJSON, getUniqueName, InvalidMIDIFormatError, parseMIDIMappingDisplayValue, UnknownMIDIFormatError } from "../lib/util";
 import { MIDIMetaMappingType } from "../lib/constants";
+import { ConfirmDialogResult, showConfirmDialog } from "../lib/dialogs";
 
 export enum PatcherActionType {
 	INIT_PATCHERS = "INIT_PATCHERS",
@@ -183,8 +184,20 @@ export const initPatchers = (patchersInfo: OSCQueryRNBOPatchersState): IInitPatc
 };
 
 export const destroyPatcherOnRemote = (patcher: PatcherExportRecord): AppThunk =>
-	(dispatch) => {
+	async (dispatch) => {
 		try {
+
+			const dialogResult = await showConfirmDialog({
+				text: `Are you sure you want to delete the patcher named ${patcher.name}? This action cannot be undone.`,
+				actions: {
+					confirm: { label: "Delete Patcher", color: "red" }
+				}
+			});
+
+			if (dialogResult === ConfirmDialogResult.Cancel) {
+				return;
+			}
+
 			const message: OSCMessage = {
 				address: `/rnbo/patchers/${patcher.name}/destroy`,
 				args: []
@@ -412,9 +425,47 @@ export const savePresetToRemoteInstance = (instance: PatcherInstanceRecord, give
 		}
 	};
 
-export const destroyPresetOnRemoteInstance = (instance: PatcherInstanceRecord, preset: PresetRecord): AppThunk =>
-	(dispatch) => {
+export const onOverwritePresetOnRemoteInstance = (instance: PatcherInstanceRecord, preset: PresetRecord): AppThunk =>
+	async (dispatch) => {
 		try {
+
+			const dialogResult = await showConfirmDialog({
+				text: `Are you sure you want to overwrite the preset named ${preset.name} with the current values?`,
+				actions: {
+					confirm: { label: "Overwrite Preset" }
+				}
+			});
+
+			if (dialogResult === ConfirmDialogResult.Cancel) {
+				return;
+			}
+
+			dispatch(savePresetToRemoteInstance(instance, preset.name, false));
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: `Error while trying to overwrite preset ${preset.name}`,
+				message: "Please check the console for further details."
+			}));
+			console.log(err);
+		}
+	};
+
+export const destroyPresetOnRemoteInstance = (instance: PatcherInstanceRecord, preset: PresetRecord): AppThunk =>
+	async (dispatch) => {
+		try {
+
+			const dialogResult = await showConfirmDialog({
+				text: `Are you sure you want to delete the preset named ${preset.name}?`,
+				actions: {
+					confirm: { label: "Delete", color: "red" }
+				}
+			});
+
+			if (dialogResult === ConfirmDialogResult.Cancel) {
+				return;
+			}
+
 			const message = {
 				address: `${instance.path}/presets/delete`,
 				args: [
@@ -555,6 +606,20 @@ export const setInstanceDataRefValueOnRemote = (instance: PatcherInstanceRecord,
 		oscQueryBridge.sendPacket(writePacket(message));
 	};
 
+export const clearInstanceDataRefValueOnRemote = (instance: PatcherInstanceRecord, dataref: DataRefRecord): AppThunk =>
+	async (dispatch) => {
+		const dialogResult = await showConfirmDialog({
+			text: `Are you sure you want to clear the buffer mapping for ${dataref.id }?`,
+			actions: {
+				confirm: { label: "Clear", color: "red" }
+			}
+		});
+
+		if (dialogResult === ConfirmDialogResult.Confirm) {
+			dispatch(setInstanceDataRefValueOnRemote(instance, dataref));
+		}
+	};
+
 export const setInstanceParameterMetaOnRemote = (param: ParameterRecord, value: string): AppThunk =>
 	() => {
 		const message = {
@@ -591,7 +656,20 @@ export const activateParameterMIDIMappingFocus = (param: ParameterRecord): AppTh
 	};
 
 export const clearParameterMIDIMappingOnRemote = (param: ParameterRecord): AppThunk =>
-	() => {
+	async () => {
+
+		const dialogResult = await showConfirmDialog({
+			text: `Are you sure you want to remove the active MIDI mapping for ${param.name}?`,
+			actions: {
+				confirm: { label: "Remove MIDI Mapping" }
+			}
+		});
+
+		if (dialogResult === ConfirmDialogResult.Cancel) {
+			// User Canceled, nothing to do
+			return;
+		}
+
 		const meta = cloneJSON(param.meta);
 		delete meta.midi;
 
