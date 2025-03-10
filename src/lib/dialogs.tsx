@@ -58,9 +58,9 @@ export const showConfirmDialog = ({
 					<Text fz="md" ta="center">{ text }</Text>
 					<Stack gap="xs">
 						<Button variant="filled" color={ confirm.color } onClick={ onConfirm } >{ confirm.label }</Button>
-						{ discard ? <Button variant="default" color={ discard.color } onClick={ onDiscard } >{ discard?.label } </Button> : null }
+						{ discard ? <Button variant="default" color={ discard.color } onClick={ onDiscard } mb="xs" >{ discard?.label }</Button> : null }
+						<Button variant="default" color={ cancel.color } onClick={ onCancel } >{ cancel.label }</Button>
 					</Stack>
-					<Button variant="default" color={ cancel.color } onClick={ onCancel } >{ cancel.label }</Button>
 				</Stack>
 			),
 			closeOnClickOutside: false,
