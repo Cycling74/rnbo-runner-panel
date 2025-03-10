@@ -1,8 +1,15 @@
 import { EdgeProps, NodeProps } from "reactflow";
-import { GraphConnectionRecord, GraphNodeRecord } from "../../models/graph";
+import { GraphConnectionRecord, GraphNodeRecord, GraphPortRecord } from "../../models/graph";
 
 export type NodeDataProps = {
+	contentHeight: number;
 	node: GraphNodeRecord;
+	sinks: GraphPortRecord[];
+	sources: GraphPortRecord[];
+	x: number;
+	y: number;
+	width: number;
+	height: number;
 };
 
 export type EdgeDataProps = {

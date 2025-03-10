@@ -1,6 +1,5 @@
 import React, { FunctionComponent, memo } from "react";
 import { EditorNodeProps, calcPortOffset } from "./util";
-import { GraphPatcherNodeRecord, GraphPortRecord, PortDirection } from "../../models/graph";
 import EditorPort from "./port";
 import classes from "./editor.module.css";
 import { ActionIcon, Paper, Tooltip } from "@mantine/core";
@@ -11,27 +10,27 @@ import { mdiCogs } from "@mdi/js";
 
 const EditorPatcherNode: FunctionComponent<EditorNodeProps> = memo(function WrappedGraphPatcherNode({
 	data: {
-		node
+		contentHeight,
+		node,
+		sinks,
+		sources,
+		width
 	},
 	selected
 }) {
-	const { query } = useRouter();
-	const { sinks, sources } = node.ports.reduce((result, port) => {
-		result[port.direction === PortDirection.Sink ? "sinks" : "sources"].push(port);
-		return result;
-	}, { sinks: [], sources: [] } as { sinks: GraphPortRecord[]; sources: GraphPortRecord[]; });
 
-	const portSizeLimit = sinks.length && sources.length ? Math.round(node.width / 2) : node.width;
+	const { query } = useRouter();
+	const portSizeLimit = sinks.length && sources.length ? Math.round(width / 2) : width;
 
 	return (
 		<Paper className={ classes.node } shadow="md" withBorder data-selected={ selected } >
 			<div className={ classes.nodeHeader } >
-				<div>{ (node as GraphPatcherNodeRecord).displayName }</div>
+				<div>{ node.displayName }</div>
 				<div>
-					<Tooltip label="Open Patcher Instance Control">
+					<Tooltip label="Open Device Control">
 						<ActionIcon
 							component={ Link }
-							href={{ pathname: "/instances/[id]", query: { ...query, id: (node as GraphPatcherNodeRecord).instanceId } }}
+							href={{ pathname: "/instances/[id]", query: { ...query, id: node.instanceId } }}
 							size="md"
 							variant="transparent"
 						>
@@ -40,7 +39,7 @@ const EditorPatcherNode: FunctionComponent<EditorNodeProps> = memo(function Wrap
 					</Tooltip>
 				</div>
 			</div>
-			<div className={ classes.nodeContent } style={{ height: `${node.contentHeight}px` }} >
+			<div className={ classes.nodeContent } style={{ height: `${contentHeight}px` }} >
 				{
 					sinks.map((port, i) => (
 						<EditorPort

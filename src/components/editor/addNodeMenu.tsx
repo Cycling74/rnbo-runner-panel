@@ -75,9 +75,9 @@ export const AddNodeMenu: FC<AddNodeMenuProps> = memo(function WrappedAddNodeMen
 	}, [setMaxDropdownMenuHeight, openMenu, dropdownRef, theme.spacing.md]);
 
 	return (
-		<Menu position="bottom-start" opened={ addNodeMenuIsOpen } onOpen={ onTriggerOpen } onClose={ closeMenu } >
+		<Menu position="bottom-end" opened={ addNodeMenuIsOpen } onOpen={ onTriggerOpen } onClose={ closeMenu } >
 			<Menu.Target ref={ dropdownRef } >
-				<Tooltip label="Add Node">
+				<Tooltip label="Add Node to Graph">
 					<ActionIcon variant="default" size="lg">
 						<IconElement path={ mdiPlusBox } />
 					</ActionIcon>

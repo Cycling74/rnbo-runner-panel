@@ -1,4 +1,4 @@
-import { Accordion, ActionIcon, Group, Modal, Stack, Text, Title } from "@mantine/core";
+import { Accordion, ActionIcon, Group, Modal, Stack, Title } from "@mantine/core";
 import { FC, memo, useCallback } from "react";
 import { useIsMobileDevice } from "../../hooks/useIsMobileDevice";
 import { mdiMinusBox, mdiMinusBoxMultiple, mdiPlusBox, mdiPlusBoxMultiple, mdiTune } from "@mdi/js";
@@ -13,7 +13,6 @@ import { ParameterRecord } from "../../models/parameter";
 import { ResponsiveButton } from "../elements/responsiveButton";
 import { addAllParametersToSetView, addParameterToSetView, removeAllParametersFromSetView, removeParameterFromSetView } from "../../actions/sets";
 import classes from "./setviews.module.css";
-import { modals } from "@mantine/modals";
 
 export type SetViewParameterModalProps = {
 	onClose: () => void;
@@ -103,33 +102,11 @@ export const SetViewParameterModal: FC<SetViewParameterModalProps> = memo(functi
 	]);
 
 	const onAddAllParametersToSetView = useCallback(() => {
-		modals.openConfirmModal({
-			title: "Include all parameters",
-			centered: true,
-			children: (
-				<Text size="sm" id="red">
-					Are you sure you want to append all missing parameters from all instances to the SetView { `"${setView.name}"` }? This action cannot be undone.
-				</Text>
-			),
-			labels: { confirm: "Add", cancel: "Cancel" },
-			onConfirm: () => dispatch(addAllParametersToSetView(setView))
-		});
-
+		dispatch(addAllParametersToSetView(setView));
 	}, [dispatch, setView]);
 
 	const onRemoveAllParametersFromSetView = useCallback(() => {
-		modals.openConfirmModal({
-			title: "Remove all parameters",
-			centered: true,
-			children: (
-				<Text size="sm" id="red">
-					Are you sure you want to remove all parameters from the SetView { `"${setView.name}"` }? This action cannot be undone.
-				</Text>
-			),
-			labels: { confirm: "Remove", cancel: "Cancel" },
-			confirmProps: { color: "red" },
-			onConfirm: () => dispatch(removeAllParametersFromSetView(setView))
-		});
+		dispatch(removeAllParametersFromSetView(setView));
 	}, [dispatch, setView]);
 
 	const onAddParameterToSetView = useCallback((param: ParameterRecord) => {
@@ -148,7 +125,7 @@ export const SetViewParameterModal: FC<SetViewParameterModalProps> = memo(functi
 					<Modal.Title>
 						<Group gap="xs">
 							<IconElement path={ mdiTune } />
-							Manage SetView Parameters
+							Manage Parameters
 						</Group>
 					</Modal.Title>
 					<Modal.CloseButton />
@@ -158,7 +135,7 @@ export const SetViewParameterModal: FC<SetViewParameterModalProps> = memo(functi
 						<Group justify="flex-end" >
 							<ResponsiveButton
 								label="Include All"
-								tooltip="Include all parameters in SetView"
+								tooltip="Include all parameters"
 								icon={ mdiPlusBoxMultiple }
 								onClick={ onAddAllParametersToSetView }
 							/>
@@ -166,7 +143,7 @@ export const SetViewParameterModal: FC<SetViewParameterModalProps> = memo(functi
 								label="Remove All"
 								color="red"
 								variant="outline"
-								tooltip="Remove all parameters from SetView"
+								tooltip="Remove all parameters"
 								icon={ mdiMinusBoxMultiple }
 								onClick={ onRemoveAllParametersFromSetView }
 							/>

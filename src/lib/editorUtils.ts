@@ -1,11 +1,13 @@
 import { Connection } from "reactflow";
+import { Map as ImmuMap } from "immutable";
+import Dagre from "@dagrejs/dagre";
 import { RootStateType } from "./store";
-import { GraphNodeRecord, GraphPortRecord } from "../models/graph";
+import { GraphConnectionRecord, GraphNodeRecord, GraphPortRecord, NodePositionRecord } from "../models/graph";
+import { defaultNodeGap } from "./constants";
+import { EditorNodeDesc } from "../selectors/graph";
 
-export const isValidConnection = (connection: Connection, nodes: RootStateType["graph"]["nodes"]): {
-	sourceNode: GraphNodeRecord;
+export const isValidConnection = (connection: Connection, ports: RootStateType["graph"]["ports"]): {
 	sourcePort: GraphPortRecord;
-	sinkNode: GraphNodeRecord;
 	sinkPort: GraphPortRecord;
 } => {
 
@@ -14,25 +16,45 @@ export const isValidConnection = (connection: Connection, nodes: RootStateType["
 	}
 
 	// Valid Connection?
-	const sourceNode = nodes.get(connection.source);
-	if (!sourceNode) throw new Error(`Invalid Source Node Id (${connection.source})`);
+	const sourcePort = ports.get(connection.sourceHandle);
+	if (!sourcePort) throw new Error(`Invalid Source (${connection.sourceHandle})`);
 
-	const sourcePort = sourceNode.getPort(connection.sourceHandle);
-	if (!sourcePort) throw new Error(`Invalid Source Port (${connection.sourceHandle} on ${connection.source})`);
-
-	const sinkNode = nodes.get(connection.target);
-	if (!sinkNode) throw new Error(`Invalid Target Node Id (${connection.target})`);
-
-	const sinkPort = sinkNode.getPort(connection.targetHandle);
-	if (!sinkPort) throw new Error(`Invalid Source Port (${connection.targetHandle} on ${connection.target})`);
+	const sinkPort = ports.get(connection.targetHandle);
+	if (!sinkPort) throw new Error(`Invalid Source (${connection.targetHandle})`);
 
 	if (sourcePort.type !== sinkPort.type) throw new Error(`Invalid Connection Type (Can't connect ${sourcePort.type} to ${sinkPort.type})`);
 	if (sourcePort.direction === sinkPort.direction) throw new Error("Invalid Connection");
 
-	return {
-		sourceNode,
-		sourcePort,
-		sinkNode,
-		sinkPort
-	};
+	return { sourcePort, sinkPort };
+};
+
+
+export const calculateLayout = (
+	ports: ImmuMap<GraphPortRecord["id"], GraphPortRecord>,
+	connections: ImmuMap<GraphConnectionRecord["id"], GraphConnectionRecord>,
+	nodeInfo: ImmuMap<GraphNodeRecord["id"], EditorNodeDesc>
+) => {
+
+	const g = new Dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
+	g.setGraph({ align: "UL", ranksep: defaultNodeGap, nodesep: defaultNodeGap, rankdir: "LR" });
+
+	connections.valueSeq().forEach(conn => {
+		const srcId = ports.get(conn.sourcePortId)?.nodeId;
+		const sinkId = ports.get(conn.sinkPortId)?.nodeId;
+		if (srcId === undefined || sinkId === undefined) return;
+
+		g.setEdge(srcId, sinkId);
+	});
+
+	nodeInfo.valueSeq().forEach(({ node, height, width }) => g.setNode(node.id, { height, width }));
+
+	Dagre.layout(g);
+
+	const positions: NodePositionRecord[] = nodeInfo.valueSeq().toArray().map(({ node, width, height }): NodePositionRecord => {
+		// Shift from dagre anchor (center center) to reactflow anchor (top left)
+		const newPos = g.node(node.id);
+		return NodePositionRecord.fromDescription(node.id, newPos.x - (width / 2), newPos.y - (height / 2));
+	});
+
+	return positions;
 };

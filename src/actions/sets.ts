@@ -5,19 +5,18 @@ import { GraphSetRecord, GraphSetViewRecord } from "../models/set";
 import { PresetRecord } from "../models/preset";
 import { showNotification } from "./notifications";
 import { NotificationLevel } from "../models/notification";
-import { updateSetMetaOnRemoteFromNodes } from "./meta";
-import { NodeType } from "../models/graph";
-import { getNodes } from "../selectors/graph";
 import { ParameterRecord } from "../models/parameter";
 import { getPatcherInstance, getPatcherInstanceParametersSortedByInstanceIdAndIndex } from "../selectors/patchers";
 import { OSCQueryRNBOSetView, OSCQueryRNBOSetViewState } from "../lib/types";
-import { getGraphPresets, getGraphSets, getGraphSetView, getGraphSetViews } from "../selectors/sets";
-import { clamp, getUniqueName, instanceAndParamIndicesToSetViewEntry } from "../lib/util";
+import { getCurrentGraphSet, getCurrentGraphSetIsDirty, getGraphPresets, getGraphSets, getGraphSetView, getGraphSetViews } from "../selectors/sets";
+import { clamp, getUniqueName, instanceAndParamIndicesToSetViewEntry, sleep } from "../lib/util";
 import { setInstanceWaitingForMidiMappingOnRemote } from "./patchers";
+import { ConfirmDialogResult, showConfirmDialog } from "../lib/dialogs";
 
 export enum GraphSetActionType {
 	INIT_SETS = "INIT_SETS",
-	SET_SET_LATEST = "SET_PRESET_LATEST",
+	SET_SET_CURRENT = "SET_SET_CURRENT",
+	SET_SET_CURRENT_DIRTY = "SET_SET_CURRENT_DIRTY",
 
 	INIT_SET_PRESETS = "INIT_SET_PRESETS",
 	SET_SET_PRESET_LATEST = "SET_SET_PRESET_LATEST",
@@ -36,12 +35,20 @@ export interface IInitGraphSets extends ActionBase {
 	}
 }
 
-export interface ISetGraphSetsLatest extends ActionBase {
-	type: GraphSetActionType.SET_SET_LATEST;
+export interface ISetGraphSetCurrent extends ActionBase {
+	type: GraphSetActionType.SET_SET_CURRENT;
 	payload: {
-		name: string
+		name: string;
 	}
 }
+
+export interface ISetGraphSetCurrentDirty extends ActionBase {
+	type: GraphSetActionType.SET_SET_CURRENT_DIRTY;
+	payload: {
+		dirty: boolean;
+	}
+}
+
 
 export interface IInitGraphSetPresets extends ActionBase {
 	type: GraphSetActionType.INIT_SET_PRESETS;
@@ -94,7 +101,7 @@ export interface ISetGraphSetViewOrder extends ActionBase {
 }
 
 
-export type GraphSetAction = IInitGraphSets | ISetGraphSetsLatest | IInitGraphSetPresets | ISetGraphSetPresetsLatest |
+export type GraphSetAction = IInitGraphSets | ISetGraphSetCurrent | ISetGraphSetCurrentDirty | IInitGraphSetPresets | ISetGraphSetPresetsLatest |
 IInitGraphSetViews | ILoadGraphSetView | ISetGraphSetView | IDeleteGraphSetView | ISetGraphSetViewOrder;
 
 export const initSets = (names: string[]): GraphSetAction => {
@@ -106,11 +113,20 @@ export const initSets = (names: string[]): GraphSetAction => {
 	};
 };
 
-export const setGraphSetLatest = (name: string): GraphSetAction => {
+export const setCurrentGraphSet = (name: string): GraphSetAction => {
 	return {
-		type: GraphSetActionType.SET_SET_LATEST,
+		type: GraphSetActionType.SET_SET_CURRENT,
 		payload: {
 			name
+		}
+	};
+};
+
+export const setCurrentGraphSetDirtyState = (dirty: boolean): GraphSetAction => {
+	return {
+		type: GraphSetActionType.SET_SET_CURRENT_DIRTY,
+		payload: {
+			dirty
 		}
 	};
 };
@@ -124,52 +140,9 @@ export const setGraphSetPresetLatest = (name: string): GraphSetAction => {
 	};
 };
 
-export const clearGraphSetOnRemote = (): AppThunk =>
-	(dispatch, getState) => {
-		try {
-			const message = {
-				address: "/rnbo/inst/control/unload",
-				args: [
-					{ type: "i", value: -1 }
-				]
-			};
-			oscQueryBridge.sendPacket(writePacket(message));
-			const nodes = getNodes(getState());
-			dispatch(updateSetMetaOnRemoteFromNodes(nodes.filter(n => n.type !== NodeType.Patcher)));
-		} catch (err) {
-			dispatch(showNotification({
-				level: NotificationLevel.error,
-				title: "Error while trying to clear the set",
-				message: "Please check the console for further details."
-			}));
-			console.error(err);
-		}
-	};
-
-export const loadGraphSetOnRemote = (set: GraphSetRecord): AppThunk =>
-	(dispatch) => {
-		try {
-			const message = {
-				address: "/rnbo/inst/control/sets/load",
-				args: [
-					{ type: "s", value: set.name }
-				]
-			};
-			oscQueryBridge.sendPacket(writePacket(message));
-		} catch (err) {
-			dispatch(showNotification({
-				level: NotificationLevel.error,
-				title: `Error while trying to load set ${set.name}`,
-				message: "Please check the console for further details."
-			}));
-			console.error(err);
-		}
-	};
-
 export const saveGraphSetOnRemote = (givenName: string, ensureUniqueName: boolean = true): AppThunk =>
 	(dispatch, getState) => {
 		try {
-
 			const graphSets = getGraphSets(getState());
 			const name = ensureUniqueName
 				? getUniqueName(givenName, graphSets.valueSeq().map(s => s.name).toArray())
@@ -185,7 +158,121 @@ export const saveGraphSetOnRemote = (givenName: string, ensureUniqueName: boolea
 		} catch (err) {
 			dispatch(showNotification({
 				level: NotificationLevel.error,
-				title: `Error while trying to save set ${name}`,
+				title: `Error while trying to save set ${givenName}`,
+				message: "Please check the console for further details."
+			}));
+			console.error(err);
+		}
+	};
+
+export const overwriteGraphSetOnRemote = (set: GraphSetRecord): AppThunk =>
+	async (dispatch) => {
+		try {
+			const dialogResult = await showConfirmDialog({
+				text: `Are you sure you want to overwrite the graph named ${set.name} with the currently loaded graph?`,
+				actions: {
+					confirm: { label: "Overwrite Graph" }
+				}
+			});
+
+			if (dialogResult === ConfirmDialogResult.Cancel) {
+				return;
+			}
+
+			dispatch(saveGraphSetOnRemote(set.name, false));
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: `Error while trying to overwrite set ${set.name}`,
+				message: "Please check the console for further details."
+			}));
+			console.error(err);
+		}
+	};
+
+export const loadGraphSetOnRemote = (set: GraphSetRecord): AppThunk =>
+	async (dispatch, getState) => {
+		try {
+			const state = getState();
+			const currentSet = getCurrentGraphSet(state);
+
+			// Set already loaded?
+			if (currentSet?.id === set.id) return;
+
+			// Pending Changes?
+			if (currentSet && getCurrentGraphSetIsDirty(state)) {
+				const dialogResult = await showConfirmDialog({
+					text: `Save changes to ${currentSet.name} before loading ${set.name}?`,
+					actions: {
+						discard: { label: "Discard Changes" },
+						confirm: { label: "Save Changes" }
+					}
+				});
+
+				if (dialogResult === ConfirmDialogResult.Cancel) {
+					// User Canceled, do nothing
+					return;
+				} else if (dialogResult === ConfirmDialogResult.Confirm) {
+					// Save before proceeding
+					dispatch(saveGraphSetOnRemote(currentSet.name, false));
+					await sleep(30);
+				}
+			}
+
+			const message = {
+				address: "/rnbo/inst/control/sets/load",
+				args: [ { type: "s", value: set.name } ]
+			};
+			oscQueryBridge.sendPacket(writePacket(message));
+
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: `Error while trying to load set ${set.name}`,
+				message: "Please check the console for further details."
+			}));
+			console.error(err);
+		}
+	};
+
+export const loadNewEmptyGraphSetOnRemote = (): AppThunk =>
+	async (dispatch, getState) => {
+		try {
+
+			const state = getState();
+			const currentSet = getCurrentGraphSet(state);
+
+			// Pending Changes?
+			if (currentSet && getCurrentGraphSetIsDirty(state)) {
+				const dialogResult = await showConfirmDialog({
+					text: `Save changes to ${currentSet.name} before loading a new empty graph?`,
+					actions: {
+						discard: { label: "Discard Changes" },
+						confirm: { label: "Save Changes" }
+					}
+				});
+
+				if (dialogResult === ConfirmDialogResult.Cancel) {
+					// User Canceled, do nothing
+					return;
+				} else if (dialogResult === ConfirmDialogResult.Confirm) {
+					// Save before proceeding
+					dispatch(saveGraphSetOnRemote(currentSet.name, false));
+					await sleep(30);
+				}
+			}
+
+			const message = {
+				address: "/rnbo/inst/control/unload",
+				args: [
+					{ type: "i", value: -1 }
+				]
+			};
+			oscQueryBridge.sendPacket(writePacket(message));
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: "Error while trying to load a new empty set",
 				message: "Please check the console for further details."
 			}));
 			console.error(err);
@@ -193,8 +280,20 @@ export const saveGraphSetOnRemote = (givenName: string, ensureUniqueName: boolea
 	};
 
 export const destroyGraphSetOnRemote = (set: GraphSetRecord): AppThunk =>
-	(dispatch) => {
+	async (dispatch) => {
 		try {
+
+			const dialogResult = await showConfirmDialog({
+				text: `Are you sure you want to delete the graph named ${set.name}?`,
+				actions: {
+					confirm: { label: "Delete", color: "red" }
+				}
+			});
+
+			if (dialogResult === ConfirmDialogResult.Cancel) {
+				return;
+			}
+
 			const message = {
 				address: "/rnbo/inst/control/sets/destroy",
 				args: [
@@ -281,7 +380,32 @@ export const saveSetPresetToRemote = (givenName: string, ensureUniqueName: boole
 		} catch (err) {
 			dispatch(showNotification({
 				level: NotificationLevel.error,
-				title: `Error while trying to save preset ${name}`,
+				title: `Error while trying to save preset ${givenName}`,
+				message: "Please check the console for further details."
+			}));
+			console.log(err);
+		}
+	};
+
+export const overwriteSetPresetOnRemote = (preset: PresetRecord): AppThunk =>
+	async (dispatch) => {
+		try {
+
+			const dialogResult = await showConfirmDialog({
+				text: `Are you sure you want to overwrite the preset named ${preset.name} with the current values?`,
+				actions: {
+					confirm: { label: "Overwrite Preset" }
+				}
+			});
+
+			if (dialogResult === ConfirmDialogResult.Cancel) {
+				return;
+			}
+			dispatch(saveSetPresetToRemote(preset.name, false));
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: `Error while trying to overwrite preset ${preset.name}`,
 				message: "Please check the console for further details."
 			}));
 			console.log(err);
@@ -289,8 +413,20 @@ export const saveSetPresetToRemote = (givenName: string, ensureUniqueName: boole
 	};
 
 export const destroySetPresetOnRemote = (preset: PresetRecord): AppThunk =>
-	(dispatch) => {
+	async (dispatch) => {
 		try {
+
+			const dialogResult = await showConfirmDialog({
+				text: `Are you sure you want to delete the preset named ${preset.name}?`,
+				actions: {
+					confirm: { label: "Delete", color: "red" }
+				}
+			});
+
+			if (dialogResult === ConfirmDialogResult.Cancel) {
+				return;
+			}
+
 			const message = {
 				address: "/rnbo/inst/control/sets/presets/destroy",
 				args: [
@@ -432,8 +568,20 @@ export const updateSetViewName = (id: GraphSetViewRecord["id"], newname: string)
 	};
 
 export const destroySetViewOnRemote = (setView: GraphSetViewRecord): AppThunk =>
-	(dispatch) => {
+	async (dispatch) => {
 		try {
+
+			const dialogResult = await showConfirmDialog({
+				text: `Are you sure you want to delete the view named ${setView.name}?`,
+				actions: {
+					confirm: { label: "Delete", color: "red" }
+				}
+			});
+
+			if (dialogResult === ConfirmDialogResult.Cancel) {
+				return;
+			}
+
 			const message = {
 				address: "/rnbo/inst/control/sets/views/destroy",
 				args: [{ type: "i", value: setView.id }]
@@ -557,8 +705,20 @@ export const removeParameterFromSetView = (setView: GraphSetViewRecord, param: P
 	};
 
 export const removeAllParametersFromSetView = (setView: GraphSetViewRecord): AppThunk =>
-	(dispatch) => {
+	async (dispatch) => {
 		try {
+
+			const dialogResult = await showConfirmDialog({
+				text: `Are you sure you want to remove all parameters from ${setView.name}? This action cannot be undone.`,
+				actions: {
+					confirm: { label: "Remove Parameters", color: "red" }
+				}
+			});
+
+			if (dialogResult === ConfirmDialogResult.Cancel) {
+				return;
+			}
+
 			const message = {
 				address: `/rnbo/inst/control/sets/views/list/${setView.id}/params`,
 				args: [] as OSCArgument[]
@@ -597,8 +757,19 @@ export const addParameterToSetView = (setView: GraphSetViewRecord, param: Parame
 	};
 
 export const addAllParametersToSetView = (setView: GraphSetViewRecord): AppThunk =>
-	(dispatch, getState) => {
+	async (dispatch, getState) => {
 		try {
+			const dialogResult = await showConfirmDialog({
+				text: `Are you sure you want to append all missing parameters from all devices to ${setView.name}? This action cannot be undone.`,
+				actions: {
+					confirm: { label: "Add Parameters" }
+				}
+			});
+
+			if (dialogResult === ConfirmDialogResult.Cancel) {
+				return;
+			}
+
 			const state = getState();
 			const params = setView.params.withMutations(list => {
 				getPatcherInstanceParametersSortedByInstanceIdAndIndex(state)
@@ -608,7 +779,6 @@ export const addAllParametersToSetView = (setView: GraphSetViewRecord): AppThunk
 						}
 					});
 			}).toArray();
-
 
 			const message = {
 				address: `/rnbo/inst/control/sets/views/list/${setView.id}/params`,

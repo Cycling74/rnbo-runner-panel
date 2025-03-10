@@ -21,7 +21,7 @@ export const SaveGraphSetForm: FunctionComponent<SaveGraphSetFormProps> = memo(f
 		e.preventDefault();
 		const trimmedName = name.trim();
 		if (!trimmedName?.length) {
-			setError("Please provide a valid set name");
+			setError("Please provide a valid name");
 		} else {
 			setError(undefined);
 			onSave(trimmedName);
@@ -39,8 +39,8 @@ export const SaveGraphSetForm: FunctionComponent<SaveGraphSetFormProps> = memo(f
 		<form onSubmit={ onSaveSet } >
 			<Group gap="xs" align="flex-end">
 				<TextInput
-					label="Create Set"
-					description="Save the current graph state as a new set"
+					label="Create Graph"
+					description="Save the current state as a new graph"
 					placeholder="Name"
 					value={ name }
 					error={ error || undefined }

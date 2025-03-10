@@ -3,7 +3,7 @@ import { useAppDispatch, useAppSelector } from "../../hooks/useAppDispatch";
 import { RootStateType } from "../../lib/store";
 import InstanceComponent from "../../components/instance";
 import { useRouter } from "next/router";
-import { Button, Group, NativeSelect, Stack, Text } from "@mantine/core";
+import { Button, Group, NativeSelect, Stack } from "@mantine/core";
 import classes from "../../components/instance/instance.module.css";
 import { getAppStatus } from "../../selectors/appStatus";
 import { AppStatus, SortOrder } from "../../lib/constants";
@@ -14,11 +14,10 @@ import { getAppSetting } from "../../selectors/settings";
 import { AppSetting } from "../../models/settings";
 import PresetDrawer from "../../components/presets";
 import { PresetRecord } from "../../models/preset";
-import { destroyPresetOnRemoteInstance, renamePresetOnRemoteInstance, setInitialPresetOnRemoteInstance, loadPresetOnRemoteInstance, savePresetToRemoteInstance } from "../../actions/patchers";
+import { destroyPresetOnRemoteInstance, renamePresetOnRemoteInstance, setInitialPresetOnRemoteInstance, loadPresetOnRemoteInstance, savePresetToRemoteInstance, onOverwritePresetOnRemoteInstance } from "../../actions/patchers";
 import { useDisclosure } from "@mantine/hooks";
 import { getDataFilesSortedByName } from "../../selectors/datafiles";
 import InstanceKeyboardModal from "../../components/keyroll/modal";
-import { modals } from "@mantine/modals";
 import { IconElement } from "../../components/elements/icon";
 import { mdiCamera, mdiChartSankeyVariant, mdiPiano, mdiVectorSquare, mdiVectorSquareRemove } from "@mdi/js";
 import { ResponsiveButton } from "../../components/elements/responsiveButton";
@@ -71,21 +70,7 @@ export default function Instance() {
 	}, [push, pathname, query]);
 
 	const onUnloadInstance = useCallback((e: MouseEvent<HTMLButtonElement>) => {
-		modals.openConfirmModal({
-			title: "Unload Patcher Instance",
-			centered: true,
-			children: (
-				<Text size="sm">
-					Are you sure you want to unload the Patcher Instance { currentInstance?.displayName }?
-				</Text>
-			),
-			labels: { confirm: "Unload", cancel: "Cancel" },
-			confirmProps: { color: "red" },
-			onConfirm: () => {
-				dispatch(unloadPatcherNodeOnRemote(currentInstance.id));
-				push({ pathname: "/", query: restQuery });
-			}
-		});
+		dispatch(unloadPatcherNodeOnRemote(currentInstance.id));
 	}, [dispatch, currentInstance, push, restQuery]);
 
 	const onLoadPreset = useCallback((preset: PresetRecord) => {
@@ -96,21 +81,8 @@ export default function Instance() {
 		dispatch(savePresetToRemoteInstance(currentInstance, name));
 	}, [dispatch, currentInstance]);
 
-	const onSavePreset = useCallback((preset: PresetRecord) => {
-		modals.openConfirmModal({
-			title: "Overwrite Preset",
-			centered: true,
-			children: (
-				<Text size="sm">
-					Are you sure you want to overwrite the preset named { `"${preset.name}"` } with the current values?
-				</Text>
-			),
-			labels: { confirm: "Overwrite", cancel: "Cancel" },
-			confirmProps: { color: "red" },
-			onConfirm: () => {
-				dispatch(savePresetToRemoteInstance(currentInstance, preset.name, false));
-			}
-		});
+	const onOverwritePreset = useCallback((preset: PresetRecord) => {
+		dispatch(onOverwritePresetOnRemoteInstance(currentInstance, preset));
 	}, [dispatch, currentInstance]);
 
 	const onDeletePreset = useCallback((preset: PresetRecord) => {
@@ -159,8 +131,8 @@ export default function Instance() {
 				</div>
 				<Group style={{ flex: "0" }} wrap="nowrap" gap="xs" >
 					<ResponsiveButton
-						label="Unload Instance"
-						tooltip="Unload Patcher Instance"
+						label="Delete"
+						tooltip="Delete Device"
 						icon={ mdiVectorSquareRemove }
 						onClick={ onUnloadInstance }
 						variant="outline"
@@ -174,7 +146,7 @@ export default function Instance() {
 					/>
 					<ResponsiveButton
 						label="Presets"
-						tooltip="Open Instance Preset Menu"
+						tooltip="Open Device Preset Menu"
 						icon={ mdiCamera }
 						onClick={ togglePresetDrawer }
 					/>
@@ -197,7 +169,7 @@ export default function Instance() {
 				onLoadPreset={ onLoadPreset }
 				onCreatePreset={ onCreatePreset }
 				onRenamePreset={ onRenamePreset }
-				onSavePreset={ onSavePreset }
+				onOverwritePreset={ onOverwritePreset }
 				onSetInitialPreset={ onSetInitialPreset }
 				presets={ currentInstance.presets.valueSeq() }
 			/>

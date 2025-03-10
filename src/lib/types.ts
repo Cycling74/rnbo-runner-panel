@@ -1,3 +1,5 @@
+import { KnownPortGroup, RNBOJackPortPropertyKey } from "./constants";
+
 // See https://github.com/Microsoft/TypeScript/issues/1897
 export type AnyJson =
  | string
@@ -167,6 +169,14 @@ export type OSCQueryRNBOInstanceConfig = OSCQueryBaseNode & {
 	}
 };
 
+export type RNBOJackPortProperties = {
+	[RNBOJackPortPropertyKey.InstanceId]?: number;
+	[RNBOJackPortPropertyKey.Physical]?: true;
+	[RNBOJackPortPropertyKey.PortGroup]?: KnownPortGroup | string;
+	[RNBOJackPortPropertyKey.PrettyName]?: string;
+	[RNBOJackPortPropertyKey.Terminal]?: true;
+}
+
 export type OSCQueryRNBOJackPortInfo = OSCQueryBaseNode & {
 	CONTENTS: {
 		audio: OSCQueryBaseNode & {
@@ -183,6 +193,9 @@ export type OSCQueryRNBOJackPortInfo = OSCQueryBaseNode & {
 		};
 		aliases: OSCQueryBaseNode & {
 			CONTENTS?: Record<string, OSCQueryListValue<string, string[]>>;
+		};
+		properties: OSCQueryBaseNode & {
+			CONTENTS: Record<string, OSCQueryStringValue>;
 		};
 	};
 };
@@ -391,7 +404,8 @@ export type OSCQueryRNBOInstancesControlState = OSCQueryBaseNode & {
 				};
 				current?: OSCQueryBaseNode & {
 					CONTENTS: {
-						name: OSCQuerySingleValue<OSCQueryValueType.String, string>;
+						name: OSCQueryStringValue;
+						dirty: OSCQueryBooleanValue;
 					}
 				};
 				views?: OSCQueryRNBOSetViewState;

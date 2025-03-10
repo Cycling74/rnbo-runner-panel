@@ -46,7 +46,7 @@ export class PatcherInstanceRecord extends ImmuRecord<PatcherInstanceProps>({
 }) {
 
 	public get displayName(): string {
-		return `${this.id}: ${this.name}`;
+		return this.name;
 	}
 
 	public setWaitingForMapping(value: boolean): PatcherInstanceRecord {

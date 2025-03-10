@@ -1,10 +1,9 @@
-import { Button, Divider, Drawer, Flex, Group, Stack, Text } from "@mantine/core";
-import { FunctionComponent, MouseEvent, memo, useCallback } from "react";
+import { Button, Divider, Drawer, Flex, Group, Stack } from "@mantine/core";
+import { FunctionComponent, memo, useCallback } from "react";
 import { GraphSetItem } from "./item";
 import { SaveGraphSetForm } from "./save";
 import { DrawerSectionTitle } from "../page/drawer";
 import { GraphSetRecord } from "../../models/set";
-import { modals } from "@mantine/modals";
 import classes from "./sets.module.css";
 import { Seq } from "immutable";
 import { IconElement } from "../elements/icon";
@@ -12,59 +11,35 @@ import { mdiEraser, mdiGroup } from "@mdi/js";
 
 export type SetsDrawerProps = {
 	onClose: () => any;
-	onClearSet: () => any;
 	onCreateSet: (name: string) => any;
 	onDeleteSet: (set: GraphSetRecord) => any;
 	onLoadSet: (set: GraphSetRecord) => any;
+	onLoadEmptySet: () => any;
 	onRenameSet: (set: GraphSetRecord, name: string) => any;
-	onSaveSet: (set: GraphSetRecord) => any;
+	onOverwriteSet: (set: GraphSetRecord) => any;
 	open: boolean;
 	sets: Seq.Indexed<GraphSetRecord>;
+	currentSetId: GraphSetRecord["id"];
 }
 
 const SetsDrawer: FunctionComponent<SetsDrawerProps> = memo(function WrappedSetsDrawer({
 	onClose,
 	open,
 	sets,
+	currentSetId,
 
-	onClearSet,
 	onCreateSet,
 	onDeleteSet,
 	onLoadSet,
+	onLoadEmptySet,
 	onRenameSet,
-	onSaveSet
+	onOverwriteSet
 
 }) {
 
 	const onTriggerDeleteSet = useCallback((set: GraphSetRecord) => {
-		modals.openConfirmModal({
-			title: "Delete Set",
-			centered: true,
-			children: (
-				<Text size="sm">
-					Are you sure you want to delete the set named { `"${set.name}"` }?
-				</Text>
-			),
-			labels: { confirm: "Delete", cancel: "Cancel" },
-			confirmProps: { color: "red" },
-			onConfirm: () => onDeleteSet(set)
-		});
+		onDeleteSet(set);
 	}, [onDeleteSet]);
-
-	const onTriggerClearSet = useCallback((_e: MouseEvent<HTMLButtonElement>) => {
-		modals.openConfirmModal({
-			title: "Clear Set",
-			centered: true,
-			children: (
-				<Text size="sm">
-					Are you sure you want to clear the working set? Any unsaved changes will be lost.
-				</Text>
-			),
-			labels: { confirm: "Ok", cancel: "Cancel" },
-			confirmProps: { color: "red" },
-			onConfirm: () => onClearSet()
-		});
-	}, [onClearSet]);
 
 	const validateUniqueSetName = useCallback((name: string): boolean => {
 		return !sets.find(s => s.name === name);
@@ -79,7 +54,7 @@ const SetsDrawer: FunctionComponent<SetsDrawerProps> = memo(function WrappedSets
 						<Drawer.Title>
 							<Group gap="xs">
 								<IconElement path={ mdiGroup } />
-								Graph Sets
+								Graphs
 							</Group>
 						</Drawer.Title>
 						<Drawer.CloseButton />
@@ -89,17 +64,18 @@ const SetsDrawer: FunctionComponent<SetsDrawerProps> = memo(function WrappedSets
 							<SaveGraphSetForm onSave={ onCreateSet } />
 							<Divider />
 							<Flex className={ classes.setListWrapper } direction="column">
-								<DrawerSectionTitle>Saved Graph Sets</DrawerSectionTitle>
+								<DrawerSectionTitle>Saved Graphs</DrawerSectionTitle>
 								<Stack gap="sm" >
 									{
 										sets.map(set => (
 											<GraphSetItem
 												key={ set.id }
 												set={ set }
+												isCurrent={ set.id === currentSetId }
 												onRename={ onRenameSet }
 												onLoad={ onLoadSet }
 												onDelete={ onTriggerDeleteSet }
-												onSave={ onSaveSet }
+												onOverwrite={ onOverwriteSet }
 												validateUniqueName={ validateUniqueSetName }
 											/>
 										))
@@ -107,8 +83,8 @@ const SetsDrawer: FunctionComponent<SetsDrawerProps> = memo(function WrappedSets
 								</Stack>
 							</Flex>
 							<Divider />
-							<Button variant="outline" fullWidth={true} leftSection={ <IconElement path={ mdiEraser } /> } onClick={ onTriggerClearSet } color="red" >
-								Clear Graph Set
+							<Button variant="outline" fullWidth={true} leftSection={ <IconElement path={ mdiEraser } /> } onClick={ onLoadEmptySet } >
+								Create New Graph
 							</Button>
 						</Flex>
 					</Drawer.Body>

@@ -9,10 +9,12 @@ export type ResponsiveButtonProps = {
 	icon: string;
 	onClick: (e: MouseEvent<HTMLButtonElement>) => any;
 	tooltip?: string;
+	disabled?: boolean;
 }
 
 export const ResponsiveButton: FC<ResponsiveButtonProps> = ({
 	color,
+	disabled = false,
 	variant = "default",
 	label,
 	icon,
@@ -23,7 +25,7 @@ export const ResponsiveButton: FC<ResponsiveButtonProps> = ({
 	return (
 		<>
 			<Tooltip label={ tooltip || "" } disabled={ !tooltip?.length }>
-				<Button visibleFrom="sm" variant={ variant } color={ color } leftSection={ <IconElement path={ icon } /> } onClick={ onClick } >
+				<Button visibleFrom="sm" variant={ variant } color={ color } leftSection={ <IconElement path={ icon } /> } onClick={ onClick } disabled={ disabled } >
 					{ label }
 				</Button>
 			</Tooltip>

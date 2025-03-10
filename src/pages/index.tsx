@@ -1,9 +1,9 @@
-import { Group, Stack, Text } from "@mantine/core";
+import { Group, Stack, Title } from "@mantine/core";
 import { FunctionComponent, useCallback, useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "../hooks/useAppDispatch";
 import { RootStateType } from "../lib/store";
 import { getPatchersSortedByName } from "../selectors/patchers";
-import { getConnections, getNodes } from "../selectors/graph";
+import { getConnections, getEditorNodesAndPorts, getPorts } from "../selectors/graph";
 import GraphEditor from "../components/editor";
 import PresetDrawer from "../components/presets";
 import { Connection, Edge, EdgeChange, Node, NodeChange, ReactFlowInstance } from "reactflow";
@@ -18,15 +18,14 @@ import {
 	triggerEditorFitView
 } from "../actions/editor";
 import SetsDrawer from "../components/sets";
-import { destroySetPresetOnRemote, loadSetPresetOnRemote, saveSetPresetToRemote, renameSetPresetOnRemote, clearGraphSetOnRemote, destroyGraphSetOnRemote, loadGraphSetOnRemote, renameGraphSetOnRemote, saveGraphSetOnRemote } from "../actions/sets";
+import { destroySetPresetOnRemote, loadSetPresetOnRemote, saveSetPresetToRemote, renameSetPresetOnRemote, loadNewEmptyGraphSetOnRemote, destroyGraphSetOnRemote, loadGraphSetOnRemote, renameGraphSetOnRemote, saveGraphSetOnRemote, overwriteGraphSetOnRemote, overwriteSetPresetOnRemote } from "../actions/sets";
 import { PresetRecord } from "../models/preset";
-import { getGraphSetPresetsSortedByName, getGraphSetsSortedByName } from "../selectors/sets";
+import { getCurrentGraphSet, getCurrentGraphSetIsDirty, getGraphSetPresetsSortedByName, getGraphSetsSortedByName } from "../selectors/sets";
 import { useDisclosure } from "@mantine/hooks";
 import { PatcherExportRecord } from "../models/patcher";
 import { SortOrder } from "../lib/constants";
 import { GraphSetRecord } from "../models/set";
-import { modals } from "@mantine/modals";
-import { mdiCamera, mdiGroup } from "@mdi/js";
+import { mdiCamera, mdiContentSave, mdiGroup } from "@mdi/js";
 import { ResponsiveButton } from "../components/elements/responsiveButton";
 import { initEditor, unmountEditor } from "../actions/editor";
 import { getGraphEditorLockedState } from "../selectors/editor";
@@ -37,16 +36,22 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 	const dispatch = useAppDispatch();
 	const [
 		patchers,
-		nodes,
+		nodeInfo,
 		connections,
+		ports,
 		graphSets,
+		currentGraphSet,
+		currentGraphSetIsDirty,
 		graphPresets,
 		editorLocked
 	] = useAppSelector((state: RootStateType) => [
 		getPatchersSortedByName(state, SortOrder.Asc),
-		getNodes(state),
+		getEditorNodesAndPorts(state),
 		getConnections(state),
+		getPorts(state),
 		getGraphSetsSortedByName(state, SortOrder.Asc),
+		getCurrentGraphSet(state),
+		getCurrentGraphSetIsDirty(state),
 		getGraphSetPresetsSortedByName(state, SortOrder.Asc),
 		getGraphEditorLockedState(state)
 	]);
@@ -73,17 +78,7 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 	}, [dispatch]);
 
 	const onEditorAutoLayout = useCallback(() => {
-		modals.openConfirmModal({
-			title: "Rerrange Graph",
-			centered: true,
-			children: (
-				<Text size="sm">
-					Are you sure you want to rearrange and auto-layout the current graph? This action cannot be undone.
-				</Text>
-			),
-			labels: { confirm: "Confirm", cancel: "Cancel" },
-			onConfirm: () => dispatch(generateEditorLayout())
-		});
+		dispatch(generateEditorLayout());
 	}, [dispatch]);
 
 	const onEditorZoomIn = useCallback(() => {
@@ -117,8 +112,8 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 	}, [dispatch]);
 
 	// Sets
-	const onClearSet = useCallback(() => {
-		dispatch(clearGraphSetOnRemote());
+	const onLoadEmptySet = useCallback(() => {
+		dispatch(loadNewEmptyGraphSetOnRemote());
 		closeSetDrawer();
 	}, [dispatch, closeSetDrawer]);
 
@@ -139,21 +134,13 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 		dispatch(saveGraphSetOnRemote(name));
 	}, [dispatch]);
 
-	const onSaveSet = useCallback((set: GraphSetRecord) => {
-		modals.openConfirmModal({
-			title: "Overwrite Set",
-			centered: true,
-			children: (
-				<Text size="sm">
-					Are you sure you want to overwrite the set named { `"${set.name}"` }?
-				</Text>
-			),
-			labels: { confirm: "Overwrite", cancel: "Cancel" },
-			confirmProps: { color: "red" },
-			onConfirm: () => {
-				dispatch(saveGraphSetOnRemote(set.name, false));
-			}
-		});
+	const onSaveCurrentSet = useCallback(() => {
+		if (!currentGraphSet) return;
+		dispatch(saveGraphSetOnRemote(currentGraphSet.name, false));
+	}, [dispatch, currentGraphSet]);
+
+	const onOverwriteSet = useCallback((set: GraphSetRecord) => {
+		dispatch(overwriteGraphSetOnRemote(set));
 	}, [dispatch]);
 
 	// Presets
@@ -165,21 +152,8 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 		dispatch(saveSetPresetToRemote(name));
 	}, [dispatch]);
 
-	const onSavePreset = useCallback((preset: PresetRecord) => {
-		modals.openConfirmModal({
-			title: "Overwrite Preset",
-			centered: true,
-			children: (
-				<Text size="sm">
-					Are you sure you want to overwrite the preset named { `"${preset.name}"` } with the current values?
-				</Text>
-			),
-			labels: { confirm: "Overwrite", cancel: "Cancel" },
-			confirmProps: { color: "red" },
-			onConfirm: () => {
-				dispatch(saveSetPresetToRemote(preset.name, false));
-			}
-		});
+	const onOverwritePreset = useCallback((preset: PresetRecord) => {
+		dispatch(overwriteSetPresetOnRemote(preset));
 	}, [dispatch]);
 
 	const onDeletePreset = useCallback((preset: PresetRecord) => {
@@ -198,28 +172,46 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 		<>
 			<Stack style={{ height: "100%" }} >
 				<Group justify="space-between" wrap="nowrap">
-					<AddNodeMenu
-						onAddPatcherInstance={ onAddPatcherInstance }
-						patchers={ patchers }
-					/>
+					<Group>
+						<Title size="md" my={ 0 } >
+							{
+								currentGraphSet
+									? `${currentGraphSet.name}${currentGraphSetIsDirty ? "*" : ""}`
+									: "Untitled*"
+							}
+						</Title>
+					</Group>
 					<Group style={{ flex: "0" }} wrap="nowrap" gap="xs" >
+						<AddNodeMenu
+							onAddPatcherInstance={ onAddPatcherInstance }
+							patchers={ patchers }
+						/>
 						<ResponsiveButton
-							label="Graph Sets"
-							tooltip="Open Graph Set Menu"
+							label="Save"
+							tooltip="Save Graph"
+							icon={ mdiContentSave }
+							disabled={ !currentGraphSetIsDirty }
+							onClick={ onSaveCurrentSet }
+						/>
+						<ResponsiveButton
+							label="Graphs"
+							tooltip="Open Graphs Menu"
 							icon={ mdiGroup }
 							onClick={ toggleSetDrawer }
 						/>
 						<ResponsiveButton
 							label="Presets"
-							tooltip="Open Graph Preset Menu"
+							tooltip="Open Graph Presets Menu"
 							icon={ mdiCamera }
 							onClick={ togglePresetDrawer }
 						/>
 					</Group>
 				</Group>
+
 				<GraphEditor
-					nodes={ nodes }
+					nodeInfo={ nodeInfo }
 					connections={ connections }
+					ports={ ports }
 
 					onConnect={ onConnectNodes }
 					onNodesChange={ onNodesChange }
@@ -239,14 +231,15 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 			</Stack>
 			<SetsDrawer
 				onClose={ closeSetDrawer }
-				onClearSet={ onClearSet }
 				onDeleteSet={ onDeleteSet }
 				onLoadSet={ onLoadSet }
+				onLoadEmptySet={ onLoadEmptySet }
 				onRenameSet={ onRenameSet }
 				onCreateSet={ onCreateSet }
-				onSaveSet={ onSaveSet }
+				onOverwriteSet={ onOverwriteSet }
 				open={ setDrawerIsOpen }
 				sets={ graphSets }
+				currentSetId={ currentGraphSet?.name }
 			/>
 			<PresetDrawer
 				open={ presetDrawerIsOpen }
@@ -255,7 +248,7 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 				onLoadPreset={ onLoadPreset }
 				onCreatePreset={ onCreatePreset }
 				onRenamePreset={ onRenamePreset }
-				onSavePreset={ onSavePreset }
+				onOverwritePreset={ onOverwritePreset }
 				presets={ graphPresets }
 			/>
 		</>

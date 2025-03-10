@@ -47,9 +47,9 @@ export const GraphSetViewItem: FC<GraphSetViewItemProps> = memo(function Wrapped
 		if (setView.name === trimmedName) {
 			setIsEditing(false);
 		} else if (!trimmedName?.length) {
-			setError("Please provide a valid SetView name");
+			setError("Please provide a valid name");
 		} else if (!validateUniqueName(trimmedName)) {
-			setError(`A SetView with the name "${trimmedName}" already exists`);
+			setError(`A parameter view with the name "${trimmedName}" already exists`);
 		} else {
 			onRename(setView, trimmedName);
 		}

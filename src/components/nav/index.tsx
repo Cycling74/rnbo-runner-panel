@@ -8,7 +8,7 @@ import { RootStateType } from "../../lib/store";
 import { getShowSettingsModal } from "../../selectors/settings";
 import { ExternalNavLink, NavLink } from "./link";
 import { useRouter } from "next/router";
-import { getFirstPatcherNodeId } from "../../selectors/graph";
+import { getFirstPatcherNodeInstanceId } from "../../selectors/graph";
 import { mdiChartSankeyVariant, mdiCog, mdiFileMusic, mdiHelpCircle, mdiMidiPort, mdiVectorSquare, mdiTableEye, mdiFileExport } from "@mdi/js";
 
 const AppNav: FunctionComponent = memo(function WrappedNav() {
@@ -22,7 +22,7 @@ const AppNav: FunctionComponent = memo(function WrappedNav() {
 		instanceId
 	] = useAppSelector((state: RootStateType) => [
 		getShowSettingsModal(state),
-		getFirstPatcherNodeId(state)
+		getFirstPatcherNodeInstanceId(state)
 	]);
 
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -41,7 +41,7 @@ const AppNav: FunctionComponent = memo(function WrappedNav() {
 					<NavLink
 						disabled={ instanceId === undefined }
 						icon={ mdiVectorSquare }
-						label="Patcher Instance Control"
+						label="Device Control"
 						href={{ pathname: "/instances/[id]", query: { ...restQuery, id: instanceId } }}
 						isActive={ pathname === "/instances/[id]" }
 					/>
@@ -59,7 +59,7 @@ const AppNav: FunctionComponent = memo(function WrappedNav() {
 					/>
 					<NavLink
 						icon={ mdiTableEye }
-						label="SetViews"
+						label="Parameter Views"
 						href={{ pathname: "/setviews", query: { ...restQuery } }}
 						isActive={ pathname === "/setviews" }
 					/>

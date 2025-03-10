@@ -5,7 +5,8 @@ import { GraphSetAction, GraphSetActionType } from "../actions/sets";
 
 export type SetState = {
 	sets: ImmuMap<GraphSetRecord["id"], GraphSetRecord>;
-	latest: string;
+	currentId: GraphSetRecord["id"];
+	currentIsDirty: boolean;
 	presets: ImmuMap<PresetRecord["id"], PresetRecord>;
 	presetLatest: string;
 
@@ -16,7 +17,8 @@ export type SetState = {
 
 export const sets = (state: SetState = {
 	sets: ImmuMap<GraphSetRecord["id"], GraphSetRecord>(),
-	latest: "",
+	currentId: "",
+	currentIsDirty: false,
 	presets: ImmuMap<PresetRecord["id"], PresetRecord>(),
 	presetLatest: "",
 	selectedView: undefined,
@@ -31,7 +33,7 @@ export const sets = (state: SetState = {
 
 			return {
 				...state,
-				sets: ImmuMap<GraphSetRecord["id"], GraphSetRecord>(sets.map(p => [p.id, p.setLatest(p.name === state.latest)]))
+				sets: ImmuMap<GraphSetRecord["id"], GraphSetRecord>(sets.map(p => [p.id, p]))
 			};
 		}
 
@@ -53,12 +55,19 @@ export const sets = (state: SetState = {
 			};
 		}
 
-		case GraphSetActionType.SET_SET_LATEST: {
+		case GraphSetActionType.SET_SET_CURRENT: {
 			const { name } = action.payload;
 			return {
 				...state,
-				latest: name,
-				sets: state.sets.map(set => { return set.setLatest(set.name === name); })
+				currentId: name
+			};
+		}
+
+		case GraphSetActionType.SET_SET_CURRENT_DIRTY: {
+			const { dirty } = action.payload;
+			return {
+				...state,
+				currentIsDirty: dirty
 			};
 		}
 
