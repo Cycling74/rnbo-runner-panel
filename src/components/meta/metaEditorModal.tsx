@@ -68,24 +68,21 @@ export const MetaEditorModal: FC<MetaEditorModalProps> = memo(function WrappedPa
 			return;
 		}
 
-		modals.openConfirmModal({
-			title: "Received Remote Changes",
-			centered: true,
-			children: (
-				<Text size="sm" id="red">
-					The meta data has been updated on the runner. Should any local changes be overwritten by the new remote value?
-				</Text>
-			),
-			labels: { confirm: "Overwrite", cancel: "Cancel" },
-			confirmProps: { color: "red" },
-			onCancel: () => {
-				setInitialValue(meta);
-			},
-			onConfirm: () => {
+		showConfirmDialog({
+			text: "The meta data has been updated on the runner. Should any local changes be overwritten by the new remote value?",
+			actions: {
+				confirm: { label: "Overwrite Changes" },
+				cancel: { label: "Keep Unsaved Changes" }
+			}
+		}).then((result: ConfirmDialogResult) => {
+
+			if (result === ConfirmDialogResult.Confirm) {
 				setError(undefined);
 				setInitialValue(meta);
 				setValue(meta);
 				setHasChanges(false);
+			} else {
+				setInitialValue(meta);
 			}
 		});
 	}, [meta, initialValue, setInitialValue, setValue, hasChanges, setHasChanges, setError]);
