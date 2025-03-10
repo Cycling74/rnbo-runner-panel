@@ -1,5 +1,5 @@
 import { Map as ImmuMap }from "immutable";
-import { Divider, Drawer, Group, Stack, Text } from "@mantine/core";
+import { Divider, Drawer, Group, Stack } from "@mantine/core";
 import { FC, useCallback } from "react";
 import { IconElement } from "../elements/icon";
 import { mdiTableEye } from "@mdi/js";
@@ -7,7 +7,6 @@ import { DrawerSectionTitle } from "../page/drawer";
 import { CreateSetViewForm } from "./create";
 import { GraphSetViewRecord } from "../../models/set";
 import { GraphSetViewItem } from "./item";
-import { modals } from "@mantine/modals";
 
 export type CreateSetViewModalProps = {
 	onClose: () => void;
@@ -35,18 +34,7 @@ const SetViewDrawer: FC<CreateSetViewModalProps> = ({
 }) => {
 
 	const onTriggerDeleteSetView = useCallback((setView: GraphSetViewRecord) => {
-		modals.openConfirmModal({
-			title: "Delete Parameter View",
-			centered: true,
-			children: (
-				<Text size="sm">
-					Are you sure you want to delete the view named { `"${setView.name}"` }?
-				</Text>
-			),
-			labels: { confirm: "Delete", cancel: "Cancel" },
-			confirmProps: { color: "red" },
-			onConfirm: () => onDeleteSetView(setView)
-		});
+		onDeleteSetView(setView);
 	}, [onDeleteSetView]);
 
 	const validateUniqueSetViewName = useCallback((name: string): boolean => {

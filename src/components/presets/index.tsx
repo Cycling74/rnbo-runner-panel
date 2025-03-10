@@ -1,9 +1,8 @@
-import { Divider, Drawer, Group, Stack, Text } from "@mantine/core";
+import { Divider, Drawer, Group, Stack } from "@mantine/core";
 import { FunctionComponent, memo, useCallback } from "react";
 import { PresetItem } from "./item";
 import { SavePresetForm } from "./save";
 import { DrawerSectionTitle } from "../page/drawer";
-import { modals } from "@mantine/modals";
 import { PresetRecord } from "../../models/preset";
 import { Seq } from "immutable";
 import { IconElement } from "../elements/icon";
@@ -15,7 +14,7 @@ export type PresetDrawerProps = {
 	onDeletePreset: (preset: PresetRecord) => any;
 	onLoadPreset: (preset: PresetRecord) => any;
 	onCreatePreset: (name: string) => any;
-	onSavePreset: (preset: PresetRecord) => any;
+	onOverwritePreset: (preset: PresetRecord) => any;
 	onRenamePreset: (preset: PresetRecord, name: string) => any;
 	onSetInitialPreset?: (set: PresetRecord) => any;
 	presets: Seq.Indexed<PresetRecord>;
@@ -27,25 +26,14 @@ const PresetDrawer: FunctionComponent<PresetDrawerProps> = memo(function Wrapped
 	onCreatePreset,
 	onDeletePreset,
 	onLoadPreset,
-	onSavePreset,
+	onOverwritePreset,
 	onRenamePreset,
 	onSetInitialPreset,
 	presets
 }: PresetDrawerProps) {
 
 	const onTriggerDeletePreset = useCallback((preset: PresetRecord) => {
-		modals.openConfirmModal({
-			title: "Delete Preset",
-			centered: true,
-			children: (
-				<Text size="sm">
-					Are you sure you want to delete the preset named { `"${preset.name}"` }?
-				</Text>
-			),
-			labels: { confirm: "Delete", cancel: "Cancel" },
-			confirmProps: { color: "red" },
-			onConfirm: () => onDeletePreset(preset)
-		});
+		onDeletePreset(preset);
 	}, [onDeletePreset]);
 
 	const validateUniquePresetName = useCallback((name: string): boolean => {
@@ -71,7 +59,7 @@ const PresetDrawer: FunctionComponent<PresetDrawerProps> = memo(function Wrapped
 							onLoad={ onLoadPreset }
 							onDelete={ onTriggerDeletePreset }
 							onRename={ onRenamePreset }
-							onSave={ onSavePreset }
+							onOverwrite={ onOverwritePreset }
 							onSetInitial = { onSetInitialPreset }
 							validateUniqueName={ validateUniquePresetName }
 						/>

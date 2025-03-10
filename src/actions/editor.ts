@@ -10,6 +10,7 @@ import { calculateLayout, isValidConnection } from "../lib/editorUtils";
 import { setConnection, setNode, setNodePosition, setNodePositions, unloadPatcherNodeOnRemote } from "./graph";
 import { getGraphEditorInstance, getGraphEditorLockedState } from "../selectors/editor";
 import { triggerSetMetaUpdateOnRemote, updateSetMetaOnRemoteFromNodes } from "./meta";
+import { ConfirmDialogResult, showConfirmDialog } from "../lib/dialogs";
 
 export enum EditorActionType {
 	INIT = "EDITOR_INIT",
@@ -278,18 +279,38 @@ export const editorZoomOut = (): AppThunk =>
 	};
 
 export const generateEditorLayout = (): AppThunk =>
-	(dispatch, getState) => {
-		const state = getState();
+	async (dispatch, getState) => {
+		try {
 
-		const positions = calculateLayout(
-			getPorts(state),
-			getConnections(state),
-			getEditorNodesAndPorts(state)
-		);
+			const dialogResult = await showConfirmDialog({
+				text: "Are you sure you want to rearrange and auto-layout the current graph? This action cannot be undone.",
+				actions: {
+					confirm: { label: "Rearrange Graph "}
+				}
+			});
 
-		dispatch(setNodePositions(positions));
-		dispatch(triggerSetMetaUpdateOnRemote());
-		dispatch(triggerEditorFitView());
+			if (dialogResult === ConfirmDialogResult.Cancel) {
+				return;
+			}
+
+			const state = getState();
+			const positions = calculateLayout(
+				getPorts(state),
+				getConnections(state),
+				getEditorNodesAndPorts(state)
+			);
+
+			dispatch(setNodePositions(positions));
+			dispatch(triggerSetMetaUpdateOnRemote());
+			dispatch(triggerEditorFitView());
+		} catch (err) {
+			dispatch(showNotification({
+				title: "Failed to rearrange graph",
+				level: NotificationLevel.error,
+				message: err.message
+			}));
+			console.error(err);
+		}
 	};
 
 

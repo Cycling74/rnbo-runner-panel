@@ -10,6 +10,9 @@ import { PatcherExportRecord } from "../models/patcher";
 import { updateSetMetaOnRemoteFromNodes } from "./meta";
 import { calculateLayout } from "../lib/editorUtils";
 import { getGraphEditorInstance } from "../selectors/editor";
+import Router from "next/router";
+import { ConfirmDialogResult, showConfirmDialog } from "../lib/dialogs";
+import { getPatcherInstance } from "../selectors/patchers";
 
 class TempPatcherInstanceCoordinatesStore {
 	constructor(
@@ -574,8 +577,23 @@ export const setPortProperties = (id: GraphPortRecord["id"], properties: string)
 
 // Trigger Updates on remote OSCQuery Runner
 export const unloadPatcherNodeOnRemote = (instanceId: string): AppThunk =>
-	(dispatch, getState) => {
+	async (dispatch, getState) => {
 		try {
+
+			const state = getState();
+			const pInstance = getPatcherInstance(state, instanceId);
+			if (!pInstance) return;
+
+			const dialogResult = await showConfirmDialog({
+				text: `Are you sure you want to delete the device ${ pInstance?.displayName }?`,
+				actions: {
+					confirm: { label: "Delete Device", color: "red" }
+				}
+			});
+
+			if (dialogResult === ConfirmDialogResult.Cancel) {
+				return;
+			}
 
 			const message = {
 				address: "/rnbo/inst/control/unload",
@@ -585,8 +603,14 @@ export const unloadPatcherNodeOnRemote = (instanceId: string): AppThunk =>
 			};
 			oscQueryBridge.sendPacket(writePacket(message));
 
-			const nodes = getNodes(getState());
+			const nodes = getNodes(state);
 			dispatch(updateSetMetaOnRemoteFromNodes(nodes.filterNot(n => n.type === NodeType.Patcher && n.instanceId === instanceId).valueSeq().toArray()));
+
+			if (Router.asPath.startsWith(`/instances/${encodeURIComponent(pInstance.id)}`)) {
+				const rQuery = { ...Router.query };
+				delete rQuery.id;
+				Router.push({ pathname: "/", query: rQuery });
+			}
 		} catch (err) {
 			dispatch(showNotification({
 				level: NotificationLevel.error,

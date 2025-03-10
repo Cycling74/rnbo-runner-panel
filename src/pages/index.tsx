@@ -1,4 +1,4 @@
-import { Group, Stack, Text, Title } from "@mantine/core";
+import { Group, Stack, Title } from "@mantine/core";
 import { FunctionComponent, useCallback, useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "../hooks/useAppDispatch";
 import { RootStateType } from "../lib/store";
@@ -18,14 +18,13 @@ import {
 	triggerEditorFitView
 } from "../actions/editor";
 import SetsDrawer from "../components/sets";
-import { destroySetPresetOnRemote, loadSetPresetOnRemote, saveSetPresetToRemote, renameSetPresetOnRemote, loadNewEmptyGraphSetOnRemote, destroyGraphSetOnRemote, loadGraphSetOnRemote, renameGraphSetOnRemote, saveGraphSetOnRemote } from "../actions/sets";
+import { destroySetPresetOnRemote, loadSetPresetOnRemote, saveSetPresetToRemote, renameSetPresetOnRemote, loadNewEmptyGraphSetOnRemote, destroyGraphSetOnRemote, loadGraphSetOnRemote, renameGraphSetOnRemote, saveGraphSetOnRemote, overwriteGraphSetOnRemote, overwriteSetPresetOnRemote } from "../actions/sets";
 import { PresetRecord } from "../models/preset";
 import { getCurrentGraphSet, getCurrentGraphSetIsDirty, getGraphSetPresetsSortedByName, getGraphSetsSortedByName } from "../selectors/sets";
 import { useDisclosure } from "@mantine/hooks";
 import { PatcherExportRecord } from "../models/patcher";
 import { SortOrder } from "../lib/constants";
 import { GraphSetRecord } from "../models/set";
-import { modals } from "@mantine/modals";
 import { mdiCamera, mdiContentSave, mdiGroup } from "@mdi/js";
 import { ResponsiveButton } from "../components/elements/responsiveButton";
 import { initEditor, unmountEditor } from "../actions/editor";
@@ -79,17 +78,7 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 	}, [dispatch]);
 
 	const onEditorAutoLayout = useCallback(() => {
-		modals.openConfirmModal({
-			title: "Rerrange Graph",
-			centered: true,
-			children: (
-				<Text size="sm">
-					Are you sure you want to rearrange and auto-layout the current graph? This action cannot be undone.
-				</Text>
-			),
-			labels: { confirm: "Confirm", cancel: "Cancel" },
-			onConfirm: () => dispatch(generateEditorLayout())
-		});
+		dispatch(generateEditorLayout());
 	}, [dispatch]);
 
 	const onEditorZoomIn = useCallback(() => {
@@ -151,20 +140,7 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 	}, [dispatch, currentGraphSet]);
 
 	const onOverwriteSet = useCallback((set: GraphSetRecord) => {
-		modals.openConfirmModal({
-			title: "Overwrite Set",
-			centered: true,
-			children: (
-				<Text size="sm">
-					Are you sure you want to overwrite the set named { `"${set.name}"` } with the currently loaded graph?
-				</Text>
-			),
-			labels: { confirm: "Overwrite", cancel: "Cancel" },
-			confirmProps: { color: "red" },
-			onConfirm: () => {
-				dispatch(saveGraphSetOnRemote(set.name, false));
-			}
-		});
+		dispatch(overwriteGraphSetOnRemote(set));
 	}, [dispatch]);
 
 	// Presets
@@ -176,21 +152,8 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 		dispatch(saveSetPresetToRemote(name));
 	}, [dispatch]);
 
-	const onSavePreset = useCallback((preset: PresetRecord) => {
-		modals.openConfirmModal({
-			title: "Overwrite Preset",
-			centered: true,
-			children: (
-				<Text size="sm">
-					Are you sure you want to overwrite the preset named { `"${preset.name}"` } with the current values?
-				</Text>
-			),
-			labels: { confirm: "Overwrite", cancel: "Cancel" },
-			confirmProps: { color: "red" },
-			onConfirm: () => {
-				dispatch(saveSetPresetToRemote(preset.name, false));
-			}
-		});
+	const onOverwritePreset = useCallback((preset: PresetRecord) => {
+		dispatch(overwriteSetPresetOnRemote(preset));
 	}, [dispatch]);
 
 	const onDeletePreset = useCallback((preset: PresetRecord) => {
@@ -285,7 +248,7 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 				onLoadPreset={ onLoadPreset }
 				onCreatePreset={ onCreatePreset }
 				onRenamePreset={ onRenamePreset }
-				onSavePreset={ onSavePreset }
+				onOverwritePreset={ onOverwritePreset }
 				presets={ graphPresets }
 			/>
 		</>

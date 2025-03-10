@@ -5,6 +5,7 @@ import { NotificationLevel } from "../models/notification";
 import { RunnerCmd, oscQueryBridge } from "../controller/oscqueryBridgeController";
 import { RunnerCmdMethod } from "../lib/constants";
 import * as Base64 from "js-base64";
+import { ConfirmDialogResult, showConfirmDialog } from "../lib/dialogs";
 
 export enum DataFilesActionType {
 	INIT = "INIT_DATAFILES",
@@ -31,6 +32,18 @@ export const initDataFiles = (paths: string[]): DataFileAction => {
 export const deleteDataFileOnRemote = (file: DataFileRecord): AppThunk =>
 	async (dispatch) => {
 		try {
+
+			const dialogResult = await showConfirmDialog({
+				text: `Are you sure you want to delete the file ${file.id} from the device?`,
+				actions: {
+					confirm: { label: "Delete File", color: "red"}
+				}
+			});
+
+			if (dialogResult === ConfirmDialogResult.Cancel) {
+				return;
+			}
+
 			await oscQueryBridge.sendCmd(
 				new RunnerCmd(RunnerCmdMethod.DeleteFile, {
 					filename: file.fileName,
