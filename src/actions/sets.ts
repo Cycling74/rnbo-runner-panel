@@ -11,7 +11,7 @@ import { OSCQueryRNBOSetView, OSCQueryRNBOSetViewState } from "../lib/types";
 import { getCurrentGraphSet, getCurrentGraphSetIsDirty, getGraphPresets, getGraphSets, getGraphSetView, getGraphSetViews } from "../selectors/sets";
 import { clamp, getUniqueName, instanceAndParamIndicesToSetViewEntry, sleep } from "../lib/util";
 import { setInstanceWaitingForMidiMappingOnRemote } from "./patchers";
-import { showConfirmDialog } from "../lib/dialogs";
+import { ConfirmDialogResult, showConfirmDialog } from "../lib/dialogs";
 
 export enum GraphSetActionType {
 	INIT_SETS = "INIT_SETS",
@@ -176,18 +176,22 @@ export const loadGraphSetOnRemote = (set: GraphSetRecord): AppThunk =>
 
 			// Pending Changes?
 			if (currentSet && getCurrentGraphSetIsDirty(state)) {
-				if (!await showConfirmDialog({
-					title: `Unsaved Changes in ${currentSet.name}`,
+				const dialogResult = await showConfirmDialog({
 					text: `Save changes to ${currentSet.name} before loading ${set.name}?`,
-					confirmLabel: "Save"
-				})) {
+					actions: {
+						discard: { label: "Discard Changes" },
+						confirm: { label: "Save Changes" }
+					}
+				});
+
+				if (dialogResult === ConfirmDialogResult.Cancel) {
 					// User Canceled, do nothing
 					return;
+				} else if (dialogResult === ConfirmDialogResult.Confirm) {
+					// Save before proceeding
+					dispatch(saveGraphSetOnRemote(currentSet.name, false));
+					await sleep(30);
 				}
-
-				// Save Current GraphSet
-				dispatch(saveGraphSetOnRemote(currentSet.name, false));
-				await sleep(30);
 			}
 
 			const message = {
@@ -215,18 +219,22 @@ export const loadNewEmptyGraphSetOnRemote = (): AppThunk =>
 
 			// Pending Changes?
 			if (currentSet && getCurrentGraphSetIsDirty(state)) {
-				if (!await showConfirmDialog({
-					title: `Unsaved Changes in ${currentSet.name}`,
+				const dialogResult = await showConfirmDialog({
 					text: `Save changes to ${currentSet.name} before loading a new empty graph?`,
-					confirmLabel: "Save"
-				})) {
+					actions: {
+						discard: { label: "Discard Changes" },
+						confirm: { label: "Save Changes" }
+					}
+				});
+
+				if (dialogResult === ConfirmDialogResult.Cancel) {
 					// User Canceled, do nothing
 					return;
+				} else if (dialogResult === ConfirmDialogResult.Confirm) {
+					// Save before proceeding
+					dispatch(saveGraphSetOnRemote(currentSet.name, false));
+					await sleep(30);
 				}
-
-				// Save Current GraphSet
-				dispatch(saveGraphSetOnRemote(currentSet.name, false));
-				await sleep(30);
 			}
 
 			const message = {

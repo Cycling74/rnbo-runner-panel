@@ -1,28 +1,70 @@
 import { modals } from "@mantine/modals";
-import { Text } from "@mantine/core";
+import { Button, MantineColor, Stack, Text } from "@mantine/core";
+import { v4 } from "uuid";
+
+export type ConfirmAction = {
+	label: string;
+	color?: MantineColor;
+}
 
 export type ConfirmDialogDesc = {
-	title: string;
 	text: string;
-	cancelLabel?: string;
-	confirmLabel?: string;
+	actions: {
+		cancel?: ConfirmAction;
+		discard?: ConfirmAction;
+		confirm?: ConfirmAction;
+	};
 };
 
-export const showConfirmDialog = ({
-	title,
-	text,
-	cancelLabel = "Cancel",
-	confirmLabel = "Confirm"
-}: ConfirmDialogDesc): Promise<boolean> => {
+export enum ConfirmDialogResult {
+	Cancel,
+	Discard,
+	Confirm
+}
 
-	return new Promise<boolean>(resolve => {
-		modals.openConfirmModal({
-			title,
+export const showConfirmDialog = ({
+	text,
+	actions: {
+		cancel = { label: "Cancel" },
+		discard = undefined,
+		confirm = { label: "Confirm" }
+	}
+}: ConfirmDialogDesc): Promise<ConfirmDialogResult> => {
+
+	return new Promise<ConfirmDialogResult>(resolve => {
+		const modalId = v4();
+
+		const onCancel = () => {
+			modals.close(modalId);
+			resolve(ConfirmDialogResult.Cancel);
+		};
+
+		const onDiscard = () => {
+			modals.close(modalId);
+			resolve(ConfirmDialogResult.Discard);
+		};
+
+		const onConfirm = () => {
+			modals.close(modalId);
+			resolve(ConfirmDialogResult.Confirm);
+		};
+
+
+		modals.open({
+			modalId,
 			centered: true,
-			children: <Text fz="sm">{ text }</Text>,
-			labels: { confirm: confirmLabel, cancel: cancelLabel },
-			onConfirm: () => resolve(true),
-			onCancel: () => resolve(false)
+			children: (
+				<Stack gap="lg">
+					<Text fz="md" ta="center">{ text }</Text>
+					<Stack gap="xs">
+						<Button variant="filled" color={ confirm.color } onClick={ onConfirm } >{ confirm.label }</Button>
+						{ discard ? <Button variant="default" color={ discard.color } onClick={ onDiscard } >{ discard?.label } </Button> : null }
+					</Stack>
+					<Button variant="default" color={ cancel.color } onClick={ onCancel } >{ cancel.label }</Button>
+				</Stack>
+			),
+			closeOnClickOutside: false,
+			withCloseButton: false
 		});
 	});
 };
