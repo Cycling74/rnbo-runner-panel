@@ -119,6 +119,7 @@ export default function SetViews() {
 								onClick={ onToggleMIDIMapping }
 								variant={ currentSetViewIsMIDIMapping ? "filled" : "default" }
 								color={ currentSetViewIsMIDIMapping ? "violet.4" : undefined }
+								size="lg"
 							>
 								<IconElement path={ mdiMidiPort } />
 							</ActionIcon>
