@@ -6,6 +6,11 @@
 	flex: 1;
 }
 
+.viewListWrapper {
+	flex: 1;
+	padding-top: var(--mantine-spacing-xs);
+}
+
 .instanceParameterList {
 	border: 1px solid var(--mantine-color-default-border);
 	border-radius: var(--mantine-radius-sm);

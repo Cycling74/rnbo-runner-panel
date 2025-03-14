@@ -11,7 +11,7 @@ import { OSCQueryRNBOSetView, OSCQueryRNBOSetViewState } from "../lib/types";
 import { getCurrentGraphSet, getCurrentGraphSetIsDirty, getGraphPresets, getGraphSets, getGraphSetView, getGraphSetViews } from "../selectors/sets";
 import { clamp, getUniqueName, instanceAndParamIndicesToSetViewEntry, sleep } from "../lib/util";
 import { setInstanceWaitingForMidiMappingOnRemote } from "./patchers";
-import { DialogResult, showConfirmDialog } from "../lib/dialogs";
+import { DialogResult, showConfirmDialog, showTextInputDialog } from "../lib/dialogs";
 
 export enum GraphSetActionType {
 	INIT_SETS = "INIT_SETS",
@@ -387,6 +387,37 @@ export const saveSetPresetToRemote = (givenName: string, ensureUniqueName: boole
 		}
 	};
 
+
+export const createSetPresetOnRemote = (): AppThunk =>
+	async (dispatch) => {
+		try {
+			const dialogResult = await showTextInputDialog({
+				text: `Please name the new graph preset`,
+				actions: {
+					confirm: { label: "Create Preset" }
+				},
+				validate: (v: string) => {
+					const value = v.trim();
+					if (!value?.length) return "Please provide a valid, non empty name.";
+					return true;
+				}
+			});
+
+			if (dialogResult === DialogResult.Cancel) {
+				return;
+			}
+
+			dispatch(saveSetPresetToRemote(dialogResult, true));
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: "Error while trying to create graph preset",
+				message: "Please check the console for further details."
+			}));
+			console.log(err);
+		}
+	};
+
 export const overwriteSetPresetOnRemote = (preset: PresetRecord): AppThunk =>
 	async (dispatch) => {
 		try {
@@ -494,13 +525,30 @@ export const setSetView = (view: GraphSetViewRecord): ISetGraphSetView => {
 	};
 };
 
-export const createSetViewOnRemote = (givenName: string): AppThunk =>
-	(dispatch, getState) => {
+export const createSetViewOnRemote = (): AppThunk =>
+	async (dispatch, getState) => {
 		try {
+
+			const dialogResult = await showTextInputDialog({
+				text: `Please name the new parameter view`,
+				actions: {
+					confirm: { label: "Create Parameter View" }
+				},
+				validate: (v: string) => {
+					const value = v.trim();
+					if (!value?.length) return "Please provide a valid, non empty name.";
+					return true;
+				}
+			});
+
+			if (dialogResult === DialogResult.Cancel) {
+				return;
+			}
+
 			const state = getState();
 			const params = getPatcherInstanceParametersSortedByInstanceIdAndIndex(state);
 			const existingViews = getGraphSetViews(state);
-			const name = getUniqueName(givenName, existingViews.valueSeq().map(v => v.name).toArray());
+			const name = getUniqueName(dialogResult, existingViews.valueSeq().map(v => v.name).toArray());
 
 			const message = {
 				address: "/rnbo/inst/control/sets/views/create",

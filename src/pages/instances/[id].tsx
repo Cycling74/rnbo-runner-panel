@@ -14,7 +14,7 @@ import { getAppSetting } from "../../selectors/settings";
 import { AppSetting } from "../../models/settings";
 import PresetDrawer from "../../components/presets";
 import { PresetRecord } from "../../models/preset";
-import { destroyPresetOnRemoteInstance, renamePresetOnRemoteInstance, setInitialPresetOnRemoteInstance, loadPresetOnRemoteInstance, savePresetToRemoteInstance, onOverwritePresetOnRemoteInstance } from "../../actions/patchers";
+import { destroyPresetOnRemoteInstance, renamePresetOnRemoteInstance, setInitialPresetOnRemoteInstance, loadPresetOnRemoteInstance, savePresetToRemoteInstance, onOverwritePresetOnRemoteInstance, createPresetOnRemoteInstance } from "../../actions/patchers";
 import { useDisclosure } from "@mantine/hooks";
 import { getDataFilesSortedByName } from "../../selectors/datafiles";
 import InstanceKeyboardModal from "../../components/keyroll/modal";
@@ -77,8 +77,8 @@ export default function Instance() {
 		dispatch(loadPresetOnRemoteInstance(currentInstance, preset));
 	}, [dispatch, currentInstance]);
 
-	const onCreatePreset = useCallback((name: string) => {
-		dispatch(savePresetToRemoteInstance(currentInstance, name));
+	const onCreatePreset = useCallback(() => {
+		dispatch(createPresetOnRemoteInstance(currentInstance));
 	}, [dispatch, currentInstance]);
 
 	const onOverwritePreset = useCallback((preset: PresetRecord) => {

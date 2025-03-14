@@ -1,13 +1,11 @@
 import { Button, Divider, Drawer, Flex, Group, Stack } from "@mantine/core";
 import { FunctionComponent, memo, useCallback } from "react";
 import { GraphSetItem } from "./item";
-import { SaveGraphSetForm } from "./save";
-import { DrawerSectionTitle } from "../page/drawer";
 import { GraphSetRecord } from "../../models/set";
 import classes from "./sets.module.css";
 import { Seq } from "immutable";
 import { IconElement } from "../elements/icon";
-import { mdiEraser, mdiGroup } from "@mdi/js";
+import { mdiGroup, mdiPlus } from "@mdi/js";
 
 export type SetsDrawerProps = {
 	onClose: () => any;
@@ -61,10 +59,7 @@ const SetsDrawer: FunctionComponent<SetsDrawerProps> = memo(function WrappedSets
 					</Drawer.Header>
 					<Drawer.Body style={{ flex: 1 }} >
 						<Flex direction="column" style={{ height: "100%" }} gap="lg" >
-							<SaveGraphSetForm onSave={ onCreateSet } />
-							<Divider />
 							<Flex className={ classes.setListWrapper } direction="column">
-								<DrawerSectionTitle>Saved Graphs</DrawerSectionTitle>
 								<Stack gap="sm" >
 									{
 										sets.map(set => (
@@ -83,7 +78,7 @@ const SetsDrawer: FunctionComponent<SetsDrawerProps> = memo(function WrappedSets
 								</Stack>
 							</Flex>
 							<Divider />
-							<Button variant="outline" fullWidth={true} leftSection={ <IconElement path={ mdiEraser } /> } onClick={ onLoadEmptySet } >
+							<Button variant="outline" fullWidth={true} leftSection={ <IconElement path={ mdiPlus } /> } onClick={ onLoadEmptySet } >
 								Create New Graph
 							</Button>
 						</Flex>
