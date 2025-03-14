@@ -2,25 +2,25 @@ import { modals } from "@mantine/modals";
 import { Button, MantineColor, Stack, Text } from "@mantine/core";
 import { v4 } from "uuid";
 
-export type ConfirmAction = {
+export type DialogAction = {
 	label: string;
 	color?: MantineColor;
+};
+
+export enum DialogResult {
+	Cancel,
+	Discard,
+	Confirm
 }
 
 export type ConfirmDialogDesc = {
 	text: string;
 	actions: {
-		cancel?: ConfirmAction;
-		discard?: ConfirmAction;
-		confirm?: ConfirmAction;
+		cancel?: DialogAction;
+		discard?: DialogAction;
+		confirm?: DialogAction;
 	};
 };
-
-export enum ConfirmDialogResult {
-	Cancel,
-	Discard,
-	Confirm
-}
 
 export const showConfirmDialog = ({
 	text,
@@ -29,24 +29,24 @@ export const showConfirmDialog = ({
 		discard = undefined,
 		confirm = { label: "Confirm" }
 	}
-}: ConfirmDialogDesc): Promise<ConfirmDialogResult> => {
+}: ConfirmDialogDesc): Promise<DialogResult> => {
 
-	return new Promise<ConfirmDialogResult>(resolve => {
+	return new Promise<DialogResult>(resolve => {
 		const modalId = v4();
 
 		const onCancel = () => {
 			modals.close(modalId);
-			resolve(ConfirmDialogResult.Cancel);
+			resolve(DialogResult.Cancel);
 		};
 
 		const onDiscard = () => {
 			modals.close(modalId);
-			resolve(ConfirmDialogResult.Discard);
+			resolve(DialogResult.Discard);
 		};
 
 		const onConfirm = () => {
 			modals.close(modalId);
-			resolve(ConfirmDialogResult.Confirm);
+			resolve(DialogResult.Confirm);
 		};
 
 

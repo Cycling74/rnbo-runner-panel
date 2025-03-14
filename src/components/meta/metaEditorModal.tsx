@@ -7,7 +7,7 @@ import { parseMetaJSONString } from "../../lib/util";
 import classes from "./metaEditorModal.module.css";
 import { IconElement } from "../elements/icon";
 import { mdiClose, mdiCodeBraces } from "@mdi/js";
-import { ConfirmDialogResult, showConfirmDialog } from "../../lib/dialogs";
+import { DialogResult, showConfirmDialog } from "../../lib/dialogs";
 
 export type MetaEditorModalProps = {
 	name: string;
@@ -74,9 +74,9 @@ export const MetaEditorModal: FC<MetaEditorModalProps> = memo(function WrappedPa
 				confirm: { label: "Overwrite Changes" },
 				cancel: { label: "Keep Unsaved Changes" }
 			}
-		}).then((result: ConfirmDialogResult) => {
+		}).then((result: DialogResult) => {
 
-			if (result === ConfirmDialogResult.Confirm) {
+			if (result === DialogResult.Confirm) {
 				setError(undefined);
 				setInitialValue(meta);
 				setValue(meta);
@@ -98,7 +98,7 @@ export const MetaEditorModal: FC<MetaEditorModalProps> = memo(function WrappedPa
 				}
 			});
 
-			if (result === ConfirmDialogResult.Confirm) {
+			if (result === DialogResult.Confirm) {
 				// Discard unsaved changes
 				onClose();
 			}
@@ -117,7 +117,7 @@ export const MetaEditorModal: FC<MetaEditorModalProps> = memo(function WrappedPa
 				}
 			});
 
-			if (result === ConfirmDialogResult.Confirm) {
+			if (result === DialogResult.Confirm) {
 				// Discard unsaved changes
 				setValue(meta);
 				setHasChanges(false);
@@ -186,7 +186,7 @@ export const MetaEditorModal: FC<MetaEditorModalProps> = memo(function WrappedPa
 			}
 		});
 
-		if (result === ConfirmDialogResult.Confirm) {
+		if (result === DialogResult.Confirm) {
 			onRestore();
 		}
 	}, [onRestore]);

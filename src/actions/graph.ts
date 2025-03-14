@@ -11,7 +11,7 @@ import { updateSetMetaOnRemoteFromNodes } from "./meta";
 import { calculateLayout } from "../lib/editorUtils";
 import { getGraphEditorInstance } from "../selectors/editor";
 import Router from "next/router";
-import { ConfirmDialogResult, showConfirmDialog } from "../lib/dialogs";
+import { DialogResult, showConfirmDialog } from "../lib/dialogs";
 import { getPatcherInstance } from "../selectors/patchers";
 
 class TempPatcherInstanceCoordinatesStore {
@@ -591,7 +591,7 @@ export const unloadPatcherNodeOnRemote = (instanceId: string): AppThunk =>
 				}
 			});
 
-			if (dialogResult === ConfirmDialogResult.Cancel) {
+			if (dialogResult === DialogResult.Cancel) {
 				return;
 			}
 

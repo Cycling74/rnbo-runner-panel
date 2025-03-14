@@ -5,7 +5,7 @@ import { NotificationLevel } from "../models/notification";
 import { RunnerCmd, oscQueryBridge } from "../controller/oscqueryBridgeController";
 import { RunnerCmdMethod } from "../lib/constants";
 import * as Base64 from "js-base64";
-import { ConfirmDialogResult, showConfirmDialog } from "../lib/dialogs";
+import { DialogResult, showConfirmDialog } from "../lib/dialogs";
 
 export enum DataFilesActionType {
 	INIT = "INIT_DATAFILES",
@@ -40,7 +40,7 @@ export const deleteDataFileOnRemote = (file: DataFileRecord): AppThunk =>
 				}
 			});
 
-			if (dialogResult === ConfirmDialogResult.Cancel) {
+			if (dialogResult === DialogResult.Cancel) {
 				return;
 			}
 

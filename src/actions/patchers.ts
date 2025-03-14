@@ -18,7 +18,7 @@ import { DataFileRecord } from "../models/datafile";
 import { PatcherExportRecord } from "../models/patcher";
 import { cloneJSON, getUniqueName, InvalidMIDIFormatError, parseMIDIMappingDisplayValue, UnknownMIDIFormatError } from "../lib/util";
 import { MIDIMetaMappingType } from "../lib/constants";
-import { ConfirmDialogResult, showConfirmDialog } from "../lib/dialogs";
+import { DialogResult, showConfirmDialog } from "../lib/dialogs";
 
 export enum PatcherActionType {
 	INIT_PATCHERS = "INIT_PATCHERS",
@@ -194,7 +194,7 @@ export const destroyPatcherOnRemote = (patcher: PatcherExportRecord): AppThunk =
 				}
 			});
 
-			if (dialogResult === ConfirmDialogResult.Cancel) {
+			if (dialogResult === DialogResult.Cancel) {
 				return;
 			}
 
@@ -436,7 +436,7 @@ export const onOverwritePresetOnRemoteInstance = (instance: PatcherInstanceRecor
 				}
 			});
 
-			if (dialogResult === ConfirmDialogResult.Cancel) {
+			if (dialogResult === DialogResult.Cancel) {
 				return;
 			}
 
@@ -462,7 +462,7 @@ export const destroyPresetOnRemoteInstance = (instance: PatcherInstanceRecord, p
 				}
 			});
 
-			if (dialogResult === ConfirmDialogResult.Cancel) {
+			if (dialogResult === DialogResult.Cancel) {
 				return;
 			}
 
@@ -615,7 +615,7 @@ export const clearInstanceDataRefValueOnRemote = (instance: PatcherInstanceRecor
 			}
 		});
 
-		if (dialogResult === ConfirmDialogResult.Confirm) {
+		if (dialogResult === DialogResult.Confirm) {
 			dispatch(setInstanceDataRefValueOnRemote(instance, dataref));
 		}
 	};
@@ -665,7 +665,7 @@ export const clearParameterMIDIMappingOnRemote = (param: ParameterRecord): AppTh
 			}
 		});
 
-		if (dialogResult === ConfirmDialogResult.Cancel) {
+		if (dialogResult === DialogResult.Cancel) {
 			// User Canceled, nothing to do
 			return;
 		}

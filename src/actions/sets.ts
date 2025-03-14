@@ -11,7 +11,7 @@ import { OSCQueryRNBOSetView, OSCQueryRNBOSetViewState } from "../lib/types";
 import { getCurrentGraphSet, getCurrentGraphSetIsDirty, getGraphPresets, getGraphSets, getGraphSetView, getGraphSetViews } from "../selectors/sets";
 import { clamp, getUniqueName, instanceAndParamIndicesToSetViewEntry, sleep } from "../lib/util";
 import { setInstanceWaitingForMidiMappingOnRemote } from "./patchers";
-import { ConfirmDialogResult, showConfirmDialog } from "../lib/dialogs";
+import { DialogResult, showConfirmDialog } from "../lib/dialogs";
 
 export enum GraphSetActionType {
 	INIT_SETS = "INIT_SETS",
@@ -175,7 +175,7 @@ export const overwriteGraphSetOnRemote = (set: GraphSetRecord): AppThunk =>
 				}
 			});
 
-			if (dialogResult === ConfirmDialogResult.Cancel) {
+			if (dialogResult === DialogResult.Cancel) {
 				return;
 			}
 
@@ -209,10 +209,10 @@ export const loadGraphSetOnRemote = (set: GraphSetRecord): AppThunk =>
 					}
 				});
 
-				if (dialogResult === ConfirmDialogResult.Cancel) {
+				if (dialogResult === DialogResult.Cancel) {
 					// User Canceled, do nothing
 					return;
-				} else if (dialogResult === ConfirmDialogResult.Confirm) {
+				} else if (dialogResult === DialogResult.Confirm) {
 					// Save before proceeding
 					dispatch(saveGraphSetOnRemote(currentSet.name, false));
 					await sleep(30);
@@ -252,10 +252,10 @@ export const loadNewEmptyGraphSetOnRemote = (): AppThunk =>
 					}
 				});
 
-				if (dialogResult === ConfirmDialogResult.Cancel) {
+				if (dialogResult === DialogResult.Cancel) {
 					// User Canceled, do nothing
 					return;
-				} else if (dialogResult === ConfirmDialogResult.Confirm) {
+				} else if (dialogResult === DialogResult.Confirm) {
 					// Save before proceeding
 					dispatch(saveGraphSetOnRemote(currentSet.name, false));
 					await sleep(30);
@@ -290,7 +290,7 @@ export const destroyGraphSetOnRemote = (set: GraphSetRecord): AppThunk =>
 				}
 			});
 
-			if (dialogResult === ConfirmDialogResult.Cancel) {
+			if (dialogResult === DialogResult.Cancel) {
 				return;
 			}
 
@@ -398,7 +398,7 @@ export const overwriteSetPresetOnRemote = (preset: PresetRecord): AppThunk =>
 				}
 			});
 
-			if (dialogResult === ConfirmDialogResult.Cancel) {
+			if (dialogResult === DialogResult.Cancel) {
 				return;
 			}
 			dispatch(saveSetPresetToRemote(preset.name, false));
@@ -423,7 +423,7 @@ export const destroySetPresetOnRemote = (preset: PresetRecord): AppThunk =>
 				}
 			});
 
-			if (dialogResult === ConfirmDialogResult.Cancel) {
+			if (dialogResult === DialogResult.Cancel) {
 				return;
 			}
 
@@ -578,7 +578,7 @@ export const destroySetViewOnRemote = (setView: GraphSetViewRecord): AppThunk =>
 				}
 			});
 
-			if (dialogResult === ConfirmDialogResult.Cancel) {
+			if (dialogResult === DialogResult.Cancel) {
 				return;
 			}
 
@@ -715,7 +715,7 @@ export const removeAllParametersFromSetView = (setView: GraphSetViewRecord): App
 				}
 			});
 
-			if (dialogResult === ConfirmDialogResult.Cancel) {
+			if (dialogResult === DialogResult.Cancel) {
 				return;
 			}
 
@@ -766,7 +766,7 @@ export const addAllParametersToSetView = (setView: GraphSetViewRecord): AppThunk
 				}
 			});
 
-			if (dialogResult === ConfirmDialogResult.Cancel) {
+			if (dialogResult === DialogResult.Cancel) {
 				return;
 			}
 
