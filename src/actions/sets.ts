@@ -392,7 +392,7 @@ export const createSetPresetOnRemote = (): AppThunk =>
 	async (dispatch) => {
 		try {
 			const dialogResult = await showTextInputDialog({
-				text: `Please name the new graph preset`,
+				text: "Please name the new graph preset",
 				actions: {
 					confirm: { label: "Create Preset" }
 				},
@@ -530,7 +530,7 @@ export const createSetViewOnRemote = (): AppThunk =>
 		try {
 
 			const dialogResult = await showTextInputDialog({
-				text: `Please name the new parameter view`,
+				text: "Please name the new parameter view",
 				actions: {
 					confirm: { label: "Create Parameter View" }
 				},

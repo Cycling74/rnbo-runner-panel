@@ -104,13 +104,12 @@ const InputModal: FC<InputDialogDesc & { onCancel: () => void; onConfirm: (v: st
 	const onTriggerConfirm = useCallback((e: FormEvent<HTMLFormElement>): void => {
 		e.preventDefault();
 		const v = value.trim();
-		if (!validate) return onConfirm(v);
+		if (!validate) return void onConfirm(v);
 
 		const msg = validate(v);
-		if (msg === true) return onConfirm(v);
-		setErrorMsg(msg);
-
-	}, [onConfirm, setErrorMsg, value]);
+		if (msg === true) return void onConfirm(v);
+		return void setErrorMsg(msg);
+	}, [onConfirm, setErrorMsg, value, validate]);
 
 	return (
 		<form onSubmit={ onTriggerConfirm } >
@@ -171,4 +170,4 @@ export const showTextInputDialog = ({
 			withCloseButton: false
 		});
 	});
-}
+};

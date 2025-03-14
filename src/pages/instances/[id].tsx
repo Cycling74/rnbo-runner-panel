@@ -14,7 +14,7 @@ import { getAppSetting } from "../../selectors/settings";
 import { AppSetting } from "../../models/settings";
 import PresetDrawer from "../../components/presets";
 import { PresetRecord } from "../../models/preset";
-import { destroyPresetOnRemoteInstance, renamePresetOnRemoteInstance, setInitialPresetOnRemoteInstance, loadPresetOnRemoteInstance, savePresetToRemoteInstance, onOverwritePresetOnRemoteInstance, createPresetOnRemoteInstance } from "../../actions/patchers";
+import { destroyPresetOnRemoteInstance, renamePresetOnRemoteInstance, setInitialPresetOnRemoteInstance, loadPresetOnRemoteInstance, onOverwritePresetOnRemoteInstance, createPresetOnRemoteInstance } from "../../actions/patchers";
 import { useDisclosure } from "@mantine/hooks";
 import { getDataFilesSortedByName } from "../../selectors/datafiles";
 import InstanceKeyboardModal from "../../components/keyroll/modal";
@@ -71,7 +71,7 @@ export default function Instance() {
 
 	const onUnloadInstance = useCallback((e: MouseEvent<HTMLButtonElement>) => {
 		dispatch(unloadPatcherNodeOnRemote(currentInstance.id));
-	}, [dispatch, currentInstance, push, restQuery]);
+	}, [dispatch, currentInstance]);
 
 	const onLoadPreset = useCallback((preset: PresetRecord) => {
 		dispatch(loadPresetOnRemoteInstance(currentInstance, preset));
