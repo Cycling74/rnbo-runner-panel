@@ -1,5 +1,5 @@
-import { ActionIcon, Button, Group, Popover, SegmentedControl, Select, Stack, Text, TextInput, Tooltip } from "@mantine/core";
-import { ChangeEvent, ComponentType, FC, FunctionComponent, MouseEvent, KeyboardEvent as ReactKeyboardEvent, memo, useCallback, useEffect, useRef, useState } from "react";
+import { ActionIcon, Button, Group, Popover, SegmentedControl, Select, Stack, Text, Tooltip } from "@mantine/core";
+import { ComponentType, FunctionComponent, MouseEvent, memo, useCallback, useEffect, useState } from "react";
 import { ParameterSortAttr, SortOrder } from "../../lib/constants";
 import ParameterList, { ParameterListProps } from "../parameter/list";
 import { ParameterRecord } from "../../models/parameter";
@@ -15,77 +15,15 @@ import {
 import { OrderedSet as ImmuOrderedSet, Map as ImmuMap } from "immutable";
 import { setAppSetting } from "../../actions/settings";
 import { AppSetting, AppSettingRecord } from "../../models/settings";
-import { useDebouncedCallback, useDisclosure } from "@mantine/hooks";
+import { useDebouncedCallback } from "@mantine/hooks";
 import { IconElement } from "../elements/icon";
-import { mdiClose, mdiMagnify, mdiMidiPort, mdiSort, mdiSortAscending, mdiSortDescending } from "@mdi/js";
+import { mdiMidiPort, mdiSort, mdiSortAscending, mdiSortDescending } from "@mdi/js";
 import { ParameterMIDIActionsProps, withParameterMIDIActions } from "../parameter/withMidiActions";
 import ParameterItem from "../parameter/item";
+import { SearchInput } from "../page/searchInput";
 
 const ParameterComponentType = withParameterMIDIActions(ParameterItem);
 const ParameterListComponent: ComponentType<ParameterListProps<ParameterMIDIActionsProps>> = ParameterList;
-
-type ParameterSearchInputProps = {
-	onSearch: (query: string) => any;
-}
-
-const ParameterSearchInput: FC<ParameterSearchInputProps> = memo(function WrappedParameterSearchInput({
-	onSearch
-}) {
-
-	const [showSearchInput, showSearchInputActions] = useDisclosure();
-	const [searchValue, setSearchValue] = useState<string>("");
-	const searchInputRef = useRef<HTMLInputElement>();
-
-	const onChangeSearchValue = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-		setSearchValue(e.target.value);
-	}, [setSearchValue]);
-
-	const onBlur = useCallback(() => {
-		if (!searchValue?.length) showSearchInputActions.close();
-	}, [searchValue, showSearchInputActions]);
-
-	const onClear = useCallback(() => {
-		setSearchValue("");
-		searchInputRef.current?.focus();
-	}, [setSearchValue]);
-
-	const onKeyDown = useCallback((e: ReactKeyboardEvent<HTMLInputElement>) => {
-		if (e.key === "Escape") {
-			if (searchValue.length) {
-				setSearchValue("");
-			} else {
-				searchInputRef.current?.blur();
-			}
-		}
-	}, [setSearchValue, searchInputRef, searchValue]);
-
-	useEffect(() => {
-		onSearch(searchValue);
-	}, [searchValue, onSearch]);
-
-	return (
-		showSearchInput || searchValue?.length ? (
-			<TextInput
-				autoFocus
-				ref={ searchInputRef }
-				onKeyDown={ onKeyDown }
-				onBlur={ onBlur }
-				onChange={ onChangeSearchValue }
-				leftSection={ <IconElement path={ mdiMagnify } /> } size="xs"
-				rightSection={(
-					<ActionIcon variant="transparent" color="gray" onClick={ onClear } >
-						<IconElement path={ mdiClose } size="1em" />
-					</ActionIcon>
-				)}
-				value={ searchValue }
-			/>
-		) : (
-			<ActionIcon size="md" variant="default" onClick={ showSearchInputActions.open } >
-				<IconElement path={ mdiMagnify } />
-			</ActionIcon>
-		)
-	);
-});
 
 const collator = new Intl.Collator("en-US");
 const parameterComparators: Record<ParameterSortAttr, Record<SortOrder, (a: ParameterRecord, b: ParameterRecord) => number>> = {
@@ -216,7 +154,7 @@ const InstanceParameterTab: FunctionComponent<InstanceParameterTabProps> = memo(
 					</ActionIcon>
 				</Tooltip>
 				<Group justify="flex-end" gap="xs">
-					<ParameterSearchInput onSearch={ onSearch } />
+					<SearchInput onSearch={ onSearch } />
 					<Popover position="bottom-end" withArrow>
 						<Popover.Target>
 							<Button size="xs" variant="default" leftSection={ <IconElement path={ mdiSort } /> } >
