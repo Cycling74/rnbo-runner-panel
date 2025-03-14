@@ -141,16 +141,16 @@ export const getPatcherInstanceParametersByInstanceId = createSelector(
 export const getPatcherInstancesAndParameters = createSelector(
 	[
 		getPatcherInstances,
-		getPatcherInstanceParameters
+		getPatcherInstanceParameters,
+		(state: RootStateType, searchValue: string): string => searchValue
 	],
-	(instances, parameters): ImmuMap<PatcherInstanceRecord["id"], { instance: PatcherInstanceRecord; parameters: Seq.Indexed<ParameterRecord>; }> => {
+	(instances, parameters, searchValue): ImmuMap<PatcherInstanceRecord["id"], { instance: PatcherInstanceRecord; parameters: Seq.Indexed<ParameterRecord>; }> => {
 		return ImmuMap<PatcherInstanceRecord["id"], { instance: PatcherInstanceRecord; parameters: Seq.Indexed<ParameterRecord>; }>()
 			.withMutations(map => {
 				instances.valueSeq().forEach(instance => {
-					map.set(instance.id, {
-						instance,
-						parameters: parameters.filter(p => p.instanceId === instance.id).valueSeq()
-					});
+					const params = parameters.filter(p => p.instanceId === instance.id && (!searchValue.length || p.matchesQuery(searchValue))).valueSeq();
+					if (!params.size) return;
+					map.set(instance.id, { instance, parameters: params });
 				});
 			});
 	}
