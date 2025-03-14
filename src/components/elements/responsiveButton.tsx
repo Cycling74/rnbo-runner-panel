@@ -1,4 +1,4 @@
-import { ActionIcon, Button, ButtonProps, Tooltip } from "@mantine/core";
+import { ActionIcon, Button, ButtonProps, MantineSize, Tooltip } from "@mantine/core";
 import { FC, MouseEvent } from "react";
 import { IconElement } from "./icon";
 
@@ -10,6 +10,7 @@ export type ResponsiveButtonProps = {
 	onClick: (e: MouseEvent<HTMLButtonElement>) => any;
 	tooltip?: string;
 	disabled?: boolean;
+	size?: MantineSize;
 }
 
 export const ResponsiveButton: FC<ResponsiveButtonProps> = ({
@@ -19,13 +20,14 @@ export const ResponsiveButton: FC<ResponsiveButtonProps> = ({
 	label,
 	icon,
 	onClick,
+	size = "sm",
 	tooltip
 }) => {
 
 	return (
 		<>
 			<Tooltip label={ tooltip || "" } disabled={ !tooltip?.length }>
-				<Button visibleFrom="sm" variant={ variant } color={ color } leftSection={ <IconElement path={ icon } /> } onClick={ onClick } disabled={ disabled } >
+				<Button visibleFrom="sm"  size={ size } variant={ variant } color={ color } leftSection={ <IconElement path={ icon } /> } onClick={ onClick } disabled={ disabled } >
 					{ label }
 				</Button>
 			</Tooltip>
