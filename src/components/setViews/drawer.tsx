@@ -47,7 +47,7 @@ const SetViewDrawer: FC<CreateSetViewModalProps> = ({
 			opened={ open }
 			onClose={ onClose }
 			position="right"
-			title={ <Group gap="xs"><IconElement path={ mdiTableEye }/> SetViews</Group> }
+			title={ <Group gap="xs"><IconElement path={ mdiTableEye }/> Parameter Views</Group> }
 		>
 			<CreateSetViewForm onSave={ onCreateSetView } />
 			<Divider mt="lg" />
