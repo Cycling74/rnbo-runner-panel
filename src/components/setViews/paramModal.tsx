@@ -1,5 +1,6 @@
+import { Set as ImmuSet } from "immutable";
 import { Accordion, ActionIcon, Group, Modal, Stack, Title } from "@mantine/core";
-import { FC, memo, useCallback } from "react";
+import { FC, memo, useCallback, useState } from "react";
 import { useIsMobileDevice } from "../../hooks/useIsMobileDevice";
 import { mdiMinusBox, mdiMinusBoxMultiple, mdiPlusBox, mdiPlusBoxMultiple, mdiTune } from "@mdi/js";
 import { IconElement } from "../elements/icon";
@@ -13,6 +14,7 @@ import { ParameterRecord } from "../../models/parameter";
 import { ResponsiveButton } from "../elements/responsiveButton";
 import { addAllParametersToSetView, addParameterToSetView, removeAllParametersFromSetView, removeParameterFromSetView } from "../../actions/sets";
 import classes from "./setviews.module.css";
+import { SearchInput } from "../page/searchInput";
 
 export type SetViewParameterModalProps = {
 	onClose: () => void;
@@ -95,11 +97,15 @@ export const SetViewParameterModal: FC<SetViewParameterModalProps> = memo(functi
 
 	const showFullScreen = useIsMobileDevice();
 	const dispatch = useAppDispatch();
+	const [searchValue, setSearchValue] = useState<string>("");
 	const [
 		instanceParamInfo
 	] = useAppSelector((state: RootStateType) => [
-		getPatcherInstancesAndParameters(state)
+		getPatcherInstancesAndParameters(state, searchValue)
 	]);
+
+
+	const [revealedInstances, setRevealedInstances] = useState<ImmuSet<PatcherInstanceRecord["id"]>>(ImmuSet());
 
 	const onAddAllParametersToSetView = useCallback(() => {
 		dispatch(addAllParametersToSetView(setView));
@@ -117,6 +123,10 @@ export const SetViewParameterModal: FC<SetViewParameterModalProps> = memo(functi
 		dispatch(removeParameterFromSetView(setView, param));
 	}, [dispatch, setView]);
 
+	const onChangeAccordion = useCallback((value: string[]) => {
+		setRevealedInstances(ImmuSet(value));
+	}, [setRevealedInstances]);
+
 	return (
 		<Modal.Root opened onClose={ onClose } fullScreen={ showFullScreen } size="xl">
 			<Modal.Overlay />
@@ -132,23 +142,33 @@ export const SetViewParameterModal: FC<SetViewParameterModalProps> = memo(functi
 				</Modal.Header>
 				<Modal.Body>
 					<Stack gap="md">
-						<Group justify="flex-end" >
-							<ResponsiveButton
-								label="Include All"
-								tooltip="Include all parameters"
-								icon={ mdiPlusBoxMultiple }
-								onClick={ onAddAllParametersToSetView }
-							/>
-							<ResponsiveButton
-								label="Remove All"
-								color="red"
-								variant="outline"
-								tooltip="Remove all parameters"
-								icon={ mdiMinusBoxMultiple }
-								onClick={ onRemoveAllParametersFromSetView }
-							/>
+						<Group justify="space-between" >
+							<Group>
+								<ResponsiveButton
+									label="Include All"
+									tooltip="Include all parameters"
+									icon={ mdiPlusBoxMultiple }
+									onClick={ onAddAllParametersToSetView }
+									size="xs"
+								/>
+								<ResponsiveButton
+									label="Remove All"
+									color="red"
+									variant="outline"
+									tooltip="Remove all parameters"
+									icon={ mdiMinusBoxMultiple }
+									onClick={ onRemoveAllParametersFromSetView }
+									size="xs"
+								/>
+							</Group>
+							<SearchInput onSearch={ setSearchValue } />
 						</Group>
-						<Accordion variant="separated" >
+						<Accordion variant="separated"
+							multiple
+							onChange={ onChangeAccordion }
+							transitionDuration={ 30 }
+							value={ searchValue?.length ? instanceParamInfo.valueSeq().map(({ instance }) => instance.id).toArray() : revealedInstances.toArray() }
+						>
 							{
 								instanceParamInfo.valueSeq().map(({ instance, parameters}) => (
 									<InstanceEntry
