@@ -3,7 +3,7 @@ import { PatcherExportRecord } from "../../models/patcher";
 import { Seq } from "immutable";
 import { ActionIcon, Alert, Anchor, Menu, Text, Tooltip, useMantineTheme } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
-import { mdiPlusBox } from "@mdi/js";
+import { mdiPlusBoxOutline } from "@mdi/js";
 import { IconElement } from "../elements/icon";
 import classes from "./addNodeMenu.module.css";
 
@@ -79,7 +79,7 @@ export const AddNodeMenu: FC<AddNodeMenuProps> = memo(function WrappedAddNodeMen
 			<Menu.Target ref={ dropdownRef } >
 				<Tooltip label="Add Node to Graph">
 					<ActionIcon variant="default" size="lg">
-						<IconElement path={ mdiPlusBox } />
+						<IconElement path={ mdiPlusBoxOutline } />
 					</ActionIcon>
 				</Tooltip>
 			</Menu.Target>

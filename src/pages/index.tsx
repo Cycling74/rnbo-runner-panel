@@ -18,7 +18,7 @@ import {
 	triggerEditorFitView
 } from "../actions/editor";
 import SetsDrawer from "../components/sets";
-import { destroySetPresetOnRemote, loadSetPresetOnRemote, saveSetPresetToRemote, renameSetPresetOnRemote, loadNewEmptyGraphSetOnRemote, destroyGraphSetOnRemote, loadGraphSetOnRemote, renameGraphSetOnRemote, saveGraphSetOnRemote, overwriteGraphSetOnRemote, overwriteSetPresetOnRemote } from "../actions/sets";
+import { destroySetPresetOnRemote, loadSetPresetOnRemote, renameSetPresetOnRemote, loadNewEmptyGraphSetOnRemote, destroyGraphSetOnRemote, loadGraphSetOnRemote, renameGraphSetOnRemote, saveGraphSetOnRemote, overwriteGraphSetOnRemote, overwriteSetPresetOnRemote, createSetPresetOnRemote } from "../actions/sets";
 import { PresetRecord } from "../models/preset";
 import { getCurrentGraphSet, getCurrentGraphSetIsDirty, getGraphSetPresetsSortedByName, getGraphSetsSortedByName } from "../selectors/sets";
 import { useDisclosure } from "@mantine/hooks";
@@ -148,8 +148,8 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 		dispatch(loadSetPresetOnRemote(preset));
 	}, [dispatch]);
 
-	const onCreatePreset = useCallback((name: string) => {
-		dispatch(saveSetPresetToRemote(name));
+	const onCreatePreset = useCallback(() => {
+		dispatch(createSetPresetOnRemote());
 	}, [dispatch]);
 
 	const onOverwritePreset = useCallback((preset: PresetRecord) => {

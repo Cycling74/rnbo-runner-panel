@@ -37,8 +37,8 @@ export default function SetViews() {
 		];
 	});
 
-	const onCreateSetView = useCallback((name: string) => {
-		dispatch(createSetViewOnRemote(name));
+	const onCreateSetView = useCallback(() => {
+		dispatch(createSetViewOnRemote());
 	}, [dispatch]);
 
 	const onLoadSetView = useCallback((view: GraphSetViewRecord) => {

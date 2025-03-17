@@ -18,7 +18,7 @@ import { DataFileRecord } from "../models/datafile";
 import { PatcherExportRecord } from "../models/patcher";
 import { cloneJSON, getUniqueName, InvalidMIDIFormatError, parseMIDIMappingDisplayValue, UnknownMIDIFormatError } from "../lib/util";
 import { MIDIMetaMappingType } from "../lib/constants";
-import { ConfirmDialogResult, showConfirmDialog } from "../lib/dialogs";
+import { DialogResult, showConfirmDialog, showTextInputDialog } from "../lib/dialogs";
 
 export enum PatcherActionType {
 	INIT_PATCHERS = "INIT_PATCHERS",
@@ -194,7 +194,7 @@ export const destroyPatcherOnRemote = (patcher: PatcherExportRecord): AppThunk =
 				}
 			});
 
-			if (dialogResult === ConfirmDialogResult.Cancel) {
+			if (dialogResult === DialogResult.Cancel) {
 				return;
 			}
 
@@ -436,7 +436,7 @@ export const onOverwritePresetOnRemoteInstance = (instance: PatcherInstanceRecor
 				}
 			});
 
-			if (dialogResult === ConfirmDialogResult.Cancel) {
+			if (dialogResult === DialogResult.Cancel) {
 				return;
 			}
 
@@ -445,6 +445,36 @@ export const onOverwritePresetOnRemoteInstance = (instance: PatcherInstanceRecor
 			dispatch(showNotification({
 				level: NotificationLevel.error,
 				title: `Error while trying to overwrite preset ${preset.name}`,
+				message: "Please check the console for further details."
+			}));
+			console.log(err);
+		}
+	};
+
+export const createPresetOnRemoteInstance = (instance: PatcherInstanceRecord): AppThunk =>
+	async (dispatch) => {
+		try {
+			const dialogResult = await showTextInputDialog({
+				text: `Please name the new preset for ${instance.displayName}`,
+				actions: {
+					confirm: { label: "Create Preset" }
+				},
+				validate: (v: string) => {
+					const value = v.trim();
+					if (!value?.length) return "Please provide a valid, non empty name.";
+					return true;
+				}
+			});
+
+			if (dialogResult === DialogResult.Cancel) {
+				return;
+			}
+
+			dispatch(savePresetToRemoteInstance(instance, dialogResult, true));
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: "Error while trying to create preset",
 				message: "Please check the console for further details."
 			}));
 			console.log(err);
@@ -462,7 +492,7 @@ export const destroyPresetOnRemoteInstance = (instance: PatcherInstanceRecord, p
 				}
 			});
 
-			if (dialogResult === ConfirmDialogResult.Cancel) {
+			if (dialogResult === DialogResult.Cancel) {
 				return;
 			}
 
@@ -615,7 +645,7 @@ export const clearInstanceDataRefValueOnRemote = (instance: PatcherInstanceRecor
 			}
 		});
 
-		if (dialogResult === ConfirmDialogResult.Confirm) {
+		if (dialogResult === DialogResult.Confirm) {
 			dispatch(setInstanceDataRefValueOnRemote(instance, dataref));
 		}
 	};
@@ -665,7 +695,7 @@ export const clearParameterMIDIMappingOnRemote = (param: ParameterRecord): AppTh
 			}
 		});
 
-		if (dialogResult === ConfirmDialogResult.Cancel) {
+		if (dialogResult === DialogResult.Cancel) {
 			// User Canceled, nothing to do
 			return;
 		}

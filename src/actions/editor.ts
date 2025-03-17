@@ -10,7 +10,7 @@ import { calculateLayout, isValidConnection } from "../lib/editorUtils";
 import { setConnection, setNode, setNodePosition, setNodePositions, unloadPatcherNodeOnRemote } from "./graph";
 import { getGraphEditorInstance, getGraphEditorLockedState } from "../selectors/editor";
 import { triggerSetMetaUpdateOnRemote, updateSetMetaOnRemoteFromNodes } from "./meta";
-import { ConfirmDialogResult, showConfirmDialog } from "../lib/dialogs";
+import { DialogResult, showConfirmDialog } from "../lib/dialogs";
 
 export enum EditorActionType {
 	INIT = "EDITOR_INIT",
@@ -289,7 +289,7 @@ export const generateEditorLayout = (): AppThunk =>
 				}
 			});
 
-			if (dialogResult === ConfirmDialogResult.Cancel) {
+			if (dialogResult === DialogResult.Cancel) {
 				return;
 			}
 
