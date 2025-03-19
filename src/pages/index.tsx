@@ -20,7 +20,7 @@ import {
 import SetsDrawer from "../components/sets";
 import { destroySetPresetOnRemote, loadSetPresetOnRemote, renameSetPresetOnRemote, loadNewEmptyGraphSetOnRemote, destroyGraphSetOnRemote, loadGraphSetOnRemote, renameGraphSetOnRemote, saveGraphSetOnRemote, overwriteGraphSetOnRemote, overwriteSetPresetOnRemote, createSetPresetOnRemote, saveCurrentGraphSetOnRemote } from "../actions/sets";
 import { PresetRecord } from "../models/preset";
-import { getCurrentGraphSet, getCurrentGraphSetIsDirty, getGraphSetPresetsSortedByName, getGraphSetsSortedByName } from "../selectors/sets";
+import { getCurrentGraphSet, getCurrentGraphSetId, getCurrentGraphSetIsDirty, getGraphSetPresetsSortedByName, getGraphSetsSortedByName } from "../selectors/sets";
 import { useDisclosure } from "@mantine/hooks";
 import { PatcherExportRecord } from "../models/patcher";
 import { SortOrder } from "../lib/constants";
@@ -41,6 +41,7 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 		ports,
 		graphSets,
 		currentGraphSet,
+		currentGraphSetId,
 		currentGraphSetIsDirty,
 		graphPresets,
 		editorLocked
@@ -51,6 +52,7 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 		getPorts(state),
 		getGraphSetsSortedByName(state, SortOrder.Asc),
 		getCurrentGraphSet(state),
+		getCurrentGraphSetId(state),
 		getCurrentGraphSetIsDirty(state),
 		getGraphSetPresetsSortedByName(state, SortOrder.Asc),
 		getGraphEditorLockedState(state)
@@ -135,9 +137,9 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 	}, [dispatch]);
 
 	const onSaveCurrentSet = useCallback(() => {
-		if (!currentGraphSet) return;
+		if (!currentGraphSetId) return;
 		dispatch(saveCurrentGraphSetOnRemote());
-	}, [dispatch, currentGraphSet]);
+	}, [dispatch, currentGraphSetId]);
 
 	const onOverwriteSet = useCallback((set: GraphSetRecord) => {
 		dispatch(overwriteGraphSetOnRemote(set));
@@ -239,7 +241,7 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 				onOverwriteSet={ onOverwriteSet }
 				open={ setDrawerIsOpen }
 				sets={ graphSets }
-				currentSetId={ currentGraphSet?.name }
+				currentSetId={ currentGraphSetId }
 			/>
 			<PresetDrawer
 				open={ presetDrawerIsOpen }
