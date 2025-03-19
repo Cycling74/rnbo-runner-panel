@@ -8,7 +8,7 @@ import { NotificationLevel } from "../models/notification";
 import { ParameterRecord } from "../models/parameter";
 import { getPatcherInstance, getPatcherInstanceParametersSortedByInstanceIdAndIndex } from "../selectors/patchers";
 import { OSCQueryRNBOSetView, OSCQueryRNBOSetViewState } from "../lib/types";
-import { getCurrentGraphSet, getCurrentGraphSetIsDirty, getGraphPresets, getGraphSets, getGraphSetView, getGraphSetViews } from "../selectors/sets";
+import { getCurrentGraphSet, getCurrentGraphSetId, getCurrentGraphSetIsDirty, getGraphPresets, getGraphSets, getGraphSetView, getGraphSetViews } from "../selectors/sets";
 import { clamp, getUniqueName, instanceAndParamIndicesToSetViewEntry, sleep, validateGraphSetName, validatePresetName, validateSetViewName } from "../lib/util";
 import { setInstanceWaitingForMidiMappingOnRemote } from "./patchers";
 import { DialogResult, showConfirmDialog, showTextInputDialog } from "../lib/dialogs";
@@ -171,11 +171,12 @@ export const saveCurrentGraphSetOnRemote = (): AppThunk =>
 	async (dispatch, getState) => {
 
 		try {
-			const set = getCurrentGraphSet(getState());
-			if (!set) return;
+			// id == name
+			const id = getCurrentGraphSetId(getState());
+			if (!id) return;
 
-			const name = set.name !== UnsavedSetName
-				? set.name
+			const name = id !== UnsavedSetName
+				? id
 				: (
 					await showTextInputDialog({
 						text: "Please name the graph",
