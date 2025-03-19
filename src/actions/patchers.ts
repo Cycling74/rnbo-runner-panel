@@ -16,7 +16,7 @@ import { AppSetting } from "../models/settings";
 import { DataRefRecord } from "../models/dataref";
 import { DataFileRecord } from "../models/datafile";
 import { PatcherExportRecord } from "../models/patcher";
-import { cloneJSON, getUniqueName, InvalidMIDIFormatError, parseMIDIMappingDisplayValue, UnknownMIDIFormatError } from "../lib/util";
+import { cloneJSON, getUniqueName, InvalidMIDIFormatError, parseMIDIMappingDisplayValue, UnknownMIDIFormatError, validatePresetName } from "../lib/util";
 import { MIDIMetaMappingType } from "../lib/constants";
 import { DialogResult, showConfirmDialog, showTextInputDialog } from "../lib/dialogs";
 
@@ -459,11 +459,7 @@ export const createPresetOnRemoteInstance = (instance: PatcherInstanceRecord): A
 				actions: {
 					confirm: { label: "Create Preset" }
 				},
-				validate: (v: string) => {
-					const value = v.trim();
-					if (!value?.length) return "Please provide a valid, non empty name.";
-					return true;
-				}
+				validate: validatePresetName
 			});
 
 			if (dialogResult === DialogResult.Cancel) {

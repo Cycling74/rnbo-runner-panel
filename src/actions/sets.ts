@@ -9,7 +9,7 @@ import { ParameterRecord } from "../models/parameter";
 import { getPatcherInstance, getPatcherInstanceParametersSortedByInstanceIdAndIndex } from "../selectors/patchers";
 import { OSCQueryRNBOSetView, OSCQueryRNBOSetViewState } from "../lib/types";
 import { getCurrentGraphSet, getCurrentGraphSetIsDirty, getGraphPresets, getGraphSets, getGraphSetView, getGraphSetViews } from "../selectors/sets";
-import { clamp, getUniqueName, instanceAndParamIndicesToSetViewEntry, sleep } from "../lib/util";
+import { clamp, getUniqueName, instanceAndParamIndicesToSetViewEntry, sleep, validatePresetName, validateSetViewName } from "../lib/util";
 import { setInstanceWaitingForMidiMappingOnRemote } from "./patchers";
 import { DialogResult, showConfirmDialog, showTextInputDialog } from "../lib/dialogs";
 
@@ -396,11 +396,7 @@ export const createSetPresetOnRemote = (): AppThunk =>
 				actions: {
 					confirm: { label: "Create Preset" }
 				},
-				validate: (v: string) => {
-					const value = v.trim();
-					if (!value?.length) return "Please provide a valid, non empty name.";
-					return true;
-				}
+				validate: validatePresetName
 			});
 
 			if (dialogResult === DialogResult.Cancel) {
@@ -534,11 +530,7 @@ export const createSetViewOnRemote = (): AppThunk =>
 				actions: {
 					confirm: { label: "Create Parameter View" }
 				},
-				validate: (v: string) => {
-					const value = v.trim();
-					if (!value?.length) return "Please provide a valid, non empty name.";
-					return true;
-				}
+				validate: validateSetViewName
 			});
 
 			if (dialogResult === DialogResult.Cancel) {
