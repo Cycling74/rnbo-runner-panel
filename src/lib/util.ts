@@ -1,6 +1,6 @@
 import { KeyboardEvent, memo } from "react";
 import { AnyJson, JsonMap, MIDIChannelPressureMetaMapping, MIDIControlChangeMetaMapping, MIDIKeypressMetaMapping, MIDIMetaMapping, MIDINoteMetaMapping, MIDIPitchBendMetaMapping, MIDIProgramChangeMetaMapping, OSCQueryStringValueRange, OSCQueryValueRange } from "./types";
-import { MIDIMetaMappingType, nodePortHeight, nodePortSpacing } from "./constants";
+import { MIDIMetaMappingType, nodePortHeight, nodePortSpacing, UnsavedSetName } from "./constants";
 
 export const genericMemo: <P>(component: P) => P = memo;
 
@@ -215,4 +215,23 @@ export const parseMIDIMappingDisplayValue = (value: string): { type: MIDIMetaMap
 
 export const calculateNodeContentHeight = (sinkCount: number, sourceCount: number): number => {
 	return (sinkCount > sourceCount ? sinkCount : sourceCount) * (nodePortHeight + nodePortSpacing);
+};
+
+export const validateGraphSetName = (v: string): true | string => {
+	const value = v.trim();
+	if (!value?.length) return "Please provide a valid, non empty name.";
+	if (value === UnsavedSetName) return `"${UnsavedSetName}" is a reserved name, please use a non-reserved name.`;
+	return true;
+};
+
+export const validatePresetName = (v: string): true | string => {
+	const value = v.trim();
+	if (!value?.length) return "Please provide a valid, non empty name.";
+	return true;
+};
+
+export const validateSetViewName = (v: string): true | string => {
+	const value = v.trim();
+	if (!value?.length) return "Please provide a valid, non empty name.";
+	return true;
 };

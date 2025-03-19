@@ -8,10 +8,11 @@ import { NotificationLevel } from "../models/notification";
 import { ParameterRecord } from "../models/parameter";
 import { getPatcherInstance, getPatcherInstanceParametersSortedByInstanceIdAndIndex } from "../selectors/patchers";
 import { OSCQueryRNBOSetView, OSCQueryRNBOSetViewState } from "../lib/types";
-import { getCurrentGraphSet, getCurrentGraphSetIsDirty, getGraphPresets, getGraphSets, getGraphSetView, getGraphSetViews } from "../selectors/sets";
-import { clamp, getUniqueName, instanceAndParamIndicesToSetViewEntry, sleep } from "../lib/util";
+import { getCurrentGraphSet, getCurrentGraphSetId, getCurrentGraphSetIsDirty, getGraphPresets, getGraphSets, getGraphSetView, getGraphSetViews } from "../selectors/sets";
+import { clamp, getUniqueName, instanceAndParamIndicesToSetViewEntry, sleep, validateGraphSetName, validatePresetName, validateSetViewName } from "../lib/util";
 import { setInstanceWaitingForMidiMappingOnRemote } from "./patchers";
 import { DialogResult, showConfirmDialog, showTextInputDialog } from "../lib/dialogs";
+import { UnsavedSetName } from "../lib/constants";
 
 export enum GraphSetActionType {
 	INIT_SETS = "INIT_SETS",
@@ -164,6 +165,41 @@ export const saveGraphSetOnRemote = (givenName: string, ensureUniqueName: boolea
 			console.error(err);
 		}
 	};
+
+
+export const saveCurrentGraphSetOnRemote = (): AppThunk =>
+	async (dispatch, getState) => {
+
+		try {
+			// id == name
+			const id = getCurrentGraphSetId(getState());
+			if (!id) return;
+
+			const name = id !== UnsavedSetName
+				? id
+				: (
+					await showTextInputDialog({
+						text: "Please name the graph",
+						actions: {
+							confirm: { label: "Save Graph" }
+						},
+						validate: validateGraphSetName
+					}));
+
+			if (name === DialogResult.Cancel) {
+				return;
+			}
+			dispatch(saveGraphSetOnRemote(name, false));
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: "Error while trying to save graph",
+				message: "Please check the console for further details."
+			}));
+			console.error(err);
+		}
+	};
+
 
 export const overwriteGraphSetOnRemote = (set: GraphSetRecord): AppThunk =>
 	async (dispatch) => {
@@ -396,11 +432,7 @@ export const createSetPresetOnRemote = (): AppThunk =>
 				actions: {
 					confirm: { label: "Create Preset" }
 				},
-				validate: (v: string) => {
-					const value = v.trim();
-					if (!value?.length) return "Please provide a valid, non empty name.";
-					return true;
-				}
+				validate: validatePresetName
 			});
 
 			if (dialogResult === DialogResult.Cancel) {
@@ -534,11 +566,7 @@ export const createSetViewOnRemote = (): AppThunk =>
 				actions: {
 					confirm: { label: "Create Parameter View" }
 				},
-				validate: (v: string) => {
-					const value = v.trim();
-					if (!value?.length) return "Please provide a valid, non empty name.";
-					return true;
-				}
+				validate: validateSetViewName
 			});
 
 			if (dialogResult === DialogResult.Cancel) {
