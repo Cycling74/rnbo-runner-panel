@@ -1,20 +1,20 @@
-import { Button, Divider, Drawer, Flex, Group, Stack } from "@mantine/core";
+import { ActionIcon, Button, Divider, Drawer, Flex, Group, Menu, Stack } from "@mantine/core";
 import { FunctionComponent, memo, useCallback } from "react";
 import { GraphSetItem } from "./item";
 import { GraphSetRecord } from "../../models/set";
 import classes from "./sets.module.css";
 import { Seq } from "immutable";
 import { IconElement } from "../elements/icon";
-import { mdiGroup, mdiPlus } from "@mdi/js";
+import { mdiContentSaveMove, mdiDotsVertical, mdiGroup, mdiPlus } from "@mdi/js";
 
 export type SetsDrawerProps = {
 	onClose: () => any;
-	onCreateSet: (name: string) => any;
 	onDeleteSet: (set: GraphSetRecord) => any;
 	onLoadSet: (set: GraphSetRecord) => any;
 	onLoadEmptySet: () => any;
-	onRenameSet: (set: GraphSetRecord, name: string) => any;
 	onOverwriteSet: (set: GraphSetRecord) => any;
+	onRenameSet: (set: GraphSetRecord, name: string) => any;
+	onSaveSetAs: () => any;
 	open: boolean;
 	sets: Seq.Indexed<GraphSetRecord>;
 	currentSetId: GraphSetRecord["id"];
@@ -26,12 +26,12 @@ const SetsDrawer: FunctionComponent<SetsDrawerProps> = memo(function WrappedSets
 	sets,
 	currentSetId,
 
-	onCreateSet,
 	onDeleteSet,
 	onLoadSet,
 	onLoadEmptySet,
+	onOverwriteSet,
 	onRenameSet,
-	onOverwriteSet
+	onSaveSetAs
 
 }) {
 
@@ -78,9 +78,26 @@ const SetsDrawer: FunctionComponent<SetsDrawerProps> = memo(function WrappedSets
 								</Stack>
 							</Flex>
 							<Divider />
-							<Button variant="outline" fullWidth={true} leftSection={ <IconElement path={ mdiPlus } /> } onClick={ onLoadEmptySet } >
-								Create New Graph
-							</Button>
+							<Group>
+								<Button
+									variant="outline"
+									fullWidth={true}
+									leftSection={ <IconElement path={ mdiPlus } /> } onClick={ onLoadEmptySet }
+									className={ classes.newSetButton }
+								>
+									Create New Graph
+								</Button>
+								<Menu position="top-end" >
+									<Menu.Target>
+										<ActionIcon variant="subtle" color="gray">
+											<IconElement path={ mdiDotsVertical } />
+										</ActionIcon>
+									</Menu.Target>
+									<Menu.Dropdown>
+										<Menu.Item leftSection={ <IconElement path={ mdiContentSaveMove } /> } onClick={ onSaveSetAs } >Save As</Menu.Item>
+									</Menu.Dropdown>
+								</Menu>
+							</Group>
 						</Flex>
 					</Drawer.Body>
 				</Flex>

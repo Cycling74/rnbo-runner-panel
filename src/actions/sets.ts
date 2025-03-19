@@ -226,6 +226,37 @@ export const overwriteGraphSetOnRemote = (set: GraphSetRecord): AppThunk =>
 		}
 	};
 
+export const saveGraphSetOnRemoteAs = (): AppThunk =>
+	async (dispatch) => {
+		try {
+
+			const dialogResult = await showTextInputDialog({
+				text: "Please name the graph",
+				actions: {
+					confirm: { label: "Save Graph" }
+				},
+				validate: (v: string) => {
+					const value = v.trim();
+					if (!value?.length) return "Please provide a valid, non empty name.";
+					return true;
+				}
+			});
+
+			if (dialogResult === DialogResult.Cancel) {
+				return;
+			}
+
+			dispatch(saveGraphSetOnRemote(dialogResult, true));
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: "Error while trying to save graph",
+				message: "Please check the console for further details."
+			}));
+			console.error(err);
+		}
+	};
+
 export const loadGraphSetOnRemote = (set: GraphSetRecord): AppThunk =>
 	async (dispatch, getState) => {
 		try {
