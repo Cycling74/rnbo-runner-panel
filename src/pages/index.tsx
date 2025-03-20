@@ -1,4 +1,4 @@
-import { Group, Stack, Title } from "@mantine/core";
+import { Group, Stack } from "@mantine/core";
 import { FunctionComponent, useCallback, useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "../hooks/useAppDispatch";
 import { RootStateType } from "../lib/store";
@@ -31,6 +31,7 @@ import { initEditor, unmountEditor } from "../actions/editor";
 import { getGraphEditorLockedState } from "../selectors/editor";
 import { AddNodeMenu } from "../components/editor/addNodeMenu";
 import { SaveGraphSplitButton } from "../components/editor/saveGraphSplitButton";
+import { GraphSetTitle } from "../components/editor/setTitle";
 
 const Index: FunctionComponent<Record<string, never>> = () => {
 
@@ -175,15 +176,10 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 		<>
 			<Stack style={{ height: "100%" }} >
 				<Group justify="space-between" wrap="nowrap">
-					<Group>
-						<Title size="md" my={ 0 } >
-							{
-								currentGraphSet
-									? `${currentGraphSet.name}${currentGraphSetIsDirty ? "*" : ""}`
-									: "Untitled*"
-							}
-						</Title>
-					</Group>
+					<GraphSetTitle
+						name={ currentGraphSet?.name || "Untitled" }
+						isDirty={ !currentGraphSet || currentGraphSetIsDirty }
+					/>
 					<Group style={{ flex: "0" }} wrap="nowrap" gap="xs" >
 						<AddNodeMenu
 							onAddPatcherInstance={ onAddPatcherInstance }
@@ -208,7 +204,6 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 						/>
 					</Group>
 				</Group>
-
 				<GraphEditor
 					nodeInfo={ nodeInfo }
 					connections={ connections }
