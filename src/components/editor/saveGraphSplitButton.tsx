@@ -17,7 +17,7 @@ export const SaveGraphSplitButton: FC<SaveGraphSplitButtonProps> = memo(function
 	onSaveCurrentSetAs
 }) {
 	return (
-		<Group gap={ 0 } >
+		<Group gap={ 0 } wrap="nowrap">
 			<ResponsiveButton
 				className={ styles.saveButton }
 				label="Save"
