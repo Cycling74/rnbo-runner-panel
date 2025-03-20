@@ -25,11 +25,12 @@ import { useDisclosure } from "@mantine/hooks";
 import { PatcherExportRecord } from "../models/patcher";
 import { SortOrder } from "../lib/constants";
 import { GraphSetRecord } from "../models/set";
-import { mdiCamera, mdiContentSave, mdiGroup } from "@mdi/js";
+import { mdiCamera, mdiGroup } from "@mdi/js";
 import { ResponsiveButton } from "../components/elements/responsiveButton";
 import { initEditor, unmountEditor } from "../actions/editor";
 import { getGraphEditorLockedState } from "../selectors/editor";
 import { AddNodeMenu } from "../components/editor/addNodeMenu";
+import { SaveGraphSplitButton } from "../components/editor/saveGraphSplitButton";
 
 const Index: FunctionComponent<Record<string, never>> = () => {
 
@@ -132,14 +133,14 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 		dispatch(renameGraphSetOnRemote(set, name));
 	}, [dispatch]);
 
-	const onSaveSetAs = useCallback(() => {
-		dispatch(saveGraphSetOnRemoteAs());
-	}, [dispatch]);
-
 	const onSaveCurrentSet = useCallback(() => {
 		if (!currentGraphSetId) return;
 		dispatch(saveCurrentGraphSetOnRemote());
 	}, [dispatch, currentGraphSetId]);
+
+	const onSaveCurrentSetAs = useCallback(() => {
+		dispatch(saveGraphSetOnRemoteAs());
+	}, [dispatch]);
 
 	const onOverwriteSet = useCallback((set: GraphSetRecord) => {
 		dispatch(overwriteGraphSetOnRemote(set));
@@ -188,12 +189,10 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 							onAddPatcherInstance={ onAddPatcherInstance }
 							patchers={ patchers }
 						/>
-						<ResponsiveButton
-							label="Save"
-							tooltip="Save Graph"
-							icon={ mdiContentSave }
-							disabled={ !currentGraphSetIsDirty }
-							onClick={ onSaveCurrentSet }
+						<SaveGraphSplitButton
+							onSaveCurrentSet={ onSaveCurrentSet }
+							onSaveCurrentSetAs={ onSaveCurrentSetAs }
+							onLoadEmptySet={ onLoadEmptySet }
 						/>
 						<ResponsiveButton
 							label="Graphs"
