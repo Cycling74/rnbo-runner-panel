@@ -235,9 +235,7 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 				onClose={ closeSetDrawer }
 				onDeleteSet={ onDeleteSet }
 				onLoadSet={ onLoadSet }
-				onLoadEmptySet={ onLoadEmptySet }
 				onRenameSet={ onRenameSet }
-				onSaveSetAs={ onSaveSetAs }
 				onOverwriteSet={ onOverwriteSet }
 				open={ setDrawerIsOpen }
 				sets={ graphSets }
