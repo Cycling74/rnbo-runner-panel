@@ -18,7 +18,7 @@ import {
 	triggerEditorFitView
 } from "../actions/editor";
 import SetsDrawer from "../components/sets";
-import { destroySetPresetOnRemote, loadSetPresetOnRemote, renameSetPresetOnRemote, loadNewEmptyGraphSetOnRemote, destroyGraphSetOnRemote, loadGraphSetOnRemote, renameGraphSetOnRemote, overwriteGraphSetOnRemote, overwriteSetPresetOnRemote, createSetPresetOnRemote, saveGraphSetOnRemoteAs, saveCurrentGraphSetOnRemote } from "../actions/sets";
+import { destroySetPresetOnRemote, loadSetPresetOnRemote, renameSetPresetOnRemote, loadNewEmptyGraphSetOnRemote, destroyGraphSetOnRemote, loadGraphSetOnRemote, renameGraphSetOnRemote, overwriteGraphSetOnRemote, overwriteSetPresetOnRemote, createSetPresetOnRemote, saveCurrentGraphSetOnRemote, saveCurrentGraphSetOnRemoteAs } from "../actions/sets";
 import { PresetRecord } from "../models/preset";
 import { getCurrentGraphSet, getCurrentGraphSetId, getCurrentGraphSetIsDirty, getGraphSetPresetsSortedByName, getGraphSetsSortedByName } from "../selectors/sets";
 import { useDisclosure } from "@mantine/hooks";
@@ -139,7 +139,7 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 	}, [dispatch, currentGraphSetId]);
 
 	const onSaveCurrentSetAs = useCallback(() => {
-		dispatch(saveGraphSetOnRemoteAs());
+		dispatch(saveCurrentGraphSetOnRemoteAs());
 	}, [dispatch]);
 
 	const onOverwriteSet = useCallback((set: GraphSetRecord) => {

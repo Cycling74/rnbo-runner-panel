@@ -226,7 +226,7 @@ export const overwriteGraphSetOnRemote = (set: GraphSetRecord): AppThunk =>
 		}
 	};
 
-export const saveGraphSetOnRemoteAs = (): AppThunk =>
+export const saveCurrentGraphSetOnRemoteAs = (): AppThunk =>
 	async (dispatch) => {
 		try {
 
