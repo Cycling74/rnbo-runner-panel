@@ -4,6 +4,7 @@ import { IconElement } from "./icon";
 
 export type ResponsiveButtonProps = {
 	color?: ButtonProps["color"];
+	className?: string;
 	variant?: ButtonProps["variant"];
 	label: string;
 	icon: string;
@@ -15,6 +16,7 @@ export type ResponsiveButtonProps = {
 
 export const ResponsiveButton: FC<ResponsiveButtonProps> = ({
 	color,
+	className = undefined,
 	disabled = false,
 	variant = "default",
 	label,
@@ -27,12 +29,12 @@ export const ResponsiveButton: FC<ResponsiveButtonProps> = ({
 	return (
 		<>
 			<Tooltip label={ tooltip || "" } disabled={ !tooltip?.length }>
-				<Button visibleFrom="sm"  size={ size } variant={ variant } color={ color } leftSection={ <IconElement path={ icon } /> } onClick={ onClick } disabled={ disabled } >
+				<Button className={ className } visibleFrom="sm"  size={ size } variant={ variant } color={ color } leftSection={ <IconElement path={ icon } /> } onClick={ onClick } disabled={ disabled } >
 					{ label }
 				</Button>
 			</Tooltip>
 			<Tooltip label={ tooltip || "" } disabled={ !tooltip?.length }>
-				<ActionIcon hiddenFrom="sm" variant={ variant } color={ color } onClick={ onClick } size="lg">
+				<ActionIcon hiddenFrom="sm" className={ className } variant={ variant } color={ color } onClick={ onClick } size={ 36 } >
 					<IconElement path={ icon } />
 				</ActionIcon>
 			</Tooltip>

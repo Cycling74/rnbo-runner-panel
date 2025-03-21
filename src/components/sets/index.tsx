@@ -1,20 +1,18 @@
-import { Button, Divider, Drawer, Flex, Group, Stack } from "@mantine/core";
+import { Drawer, Flex, Group, Stack } from "@mantine/core";
 import { FunctionComponent, memo, useCallback } from "react";
 import { GraphSetItem } from "./item";
 import { GraphSetRecord } from "../../models/set";
 import classes from "./sets.module.css";
 import { Seq } from "immutable";
 import { IconElement } from "../elements/icon";
-import { mdiGroup, mdiPlus } from "@mdi/js";
+import { mdiGroup } from "@mdi/js";
 
 export type SetsDrawerProps = {
 	onClose: () => any;
-	onCreateSet: (name: string) => any;
 	onDeleteSet: (set: GraphSetRecord) => any;
 	onLoadSet: (set: GraphSetRecord) => any;
-	onLoadEmptySet: () => any;
-	onRenameSet: (set: GraphSetRecord, name: string) => any;
 	onOverwriteSet: (set: GraphSetRecord) => any;
+	onRenameSet: (set: GraphSetRecord, name: string) => any;
 	open: boolean;
 	sets: Seq.Indexed<GraphSetRecord>;
 	currentSetId: GraphSetRecord["id"];
@@ -26,13 +24,10 @@ const SetsDrawer: FunctionComponent<SetsDrawerProps> = memo(function WrappedSets
 	sets,
 	currentSetId,
 
-	onCreateSet,
 	onDeleteSet,
 	onLoadSet,
-	onLoadEmptySet,
-	onRenameSet,
-	onOverwriteSet
-
+	onOverwriteSet,
+	onRenameSet
 }) {
 
 	const onTriggerDeleteSet = useCallback((set: GraphSetRecord) => {
@@ -77,10 +72,6 @@ const SetsDrawer: FunctionComponent<SetsDrawerProps> = memo(function WrappedSets
 									}
 								</Stack>
 							</Flex>
-							<Divider />
-							<Button variant="outline" fullWidth={true} leftSection={ <IconElement path={ mdiPlus } /> } onClick={ onLoadEmptySet } >
-								Create New Graph
-							</Button>
 						</Flex>
 					</Drawer.Body>
 				</Flex>

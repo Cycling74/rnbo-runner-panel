@@ -1,4 +1,4 @@
-import { Group, Stack, Title } from "@mantine/core";
+import { Group, Stack } from "@mantine/core";
 import { FunctionComponent, useCallback, useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "../hooks/useAppDispatch";
 import { RootStateType } from "../lib/store";
@@ -18,18 +18,20 @@ import {
 	triggerEditorFitView
 } from "../actions/editor";
 import SetsDrawer from "../components/sets";
-import { destroySetPresetOnRemote, loadSetPresetOnRemote, renameSetPresetOnRemote, loadNewEmptyGraphSetOnRemote, destroyGraphSetOnRemote, loadGraphSetOnRemote, renameGraphSetOnRemote, saveGraphSetOnRemote, overwriteGraphSetOnRemote, overwriteSetPresetOnRemote, createSetPresetOnRemote, saveCurrentGraphSetOnRemote } from "../actions/sets";
+import { destroySetPresetOnRemote, loadSetPresetOnRemote, renameSetPresetOnRemote, loadNewEmptyGraphSetOnRemote, destroyGraphSetOnRemote, loadGraphSetOnRemote, renameGraphSetOnRemote, overwriteGraphSetOnRemote, overwriteSetPresetOnRemote, createSetPresetOnRemote, saveCurrentGraphSetOnRemote, saveCurrentGraphSetOnRemoteAs } from "../actions/sets";
 import { PresetRecord } from "../models/preset";
 import { getCurrentGraphSet, getCurrentGraphSetId, getCurrentGraphSetIsDirty, getGraphSetPresetsSortedByName, getGraphSetsSortedByName } from "../selectors/sets";
 import { useDisclosure } from "@mantine/hooks";
 import { PatcherExportRecord } from "../models/patcher";
 import { SortOrder } from "../lib/constants";
 import { GraphSetRecord } from "../models/set";
-import { mdiCamera, mdiContentSave, mdiGroup } from "@mdi/js";
+import { mdiCamera, mdiGroup } from "@mdi/js";
 import { ResponsiveButton } from "../components/elements/responsiveButton";
 import { initEditor, unmountEditor } from "../actions/editor";
 import { getGraphEditorLockedState } from "../selectors/editor";
 import { AddNodeMenu } from "../components/editor/addNodeMenu";
+import { SaveGraphSplitButton } from "../components/editor/saveGraphSplitButton";
+import { GraphSetTitle } from "../components/editor/setTitle";
 
 const Index: FunctionComponent<Record<string, never>> = () => {
 
@@ -132,14 +134,14 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 		dispatch(renameGraphSetOnRemote(set, name));
 	}, [dispatch]);
 
-	const onCreateSet = useCallback((name: string) => {
-		dispatch(saveGraphSetOnRemote(name));
-	}, [dispatch]);
-
 	const onSaveCurrentSet = useCallback(() => {
 		if (!currentGraphSetId) return;
 		dispatch(saveCurrentGraphSetOnRemote());
 	}, [dispatch, currentGraphSetId]);
+
+	const onSaveCurrentSetAs = useCallback(() => {
+		dispatch(saveCurrentGraphSetOnRemoteAs());
+	}, [dispatch]);
 
 	const onOverwriteSet = useCallback((set: GraphSetRecord) => {
 		dispatch(overwriteGraphSetOnRemote(set));
@@ -174,26 +176,19 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 		<>
 			<Stack style={{ height: "100%" }} >
 				<Group justify="space-between" wrap="nowrap">
-					<Group>
-						<Title size="md" my={ 0 } >
-							{
-								currentGraphSet
-									? `${currentGraphSet.name}${currentGraphSetIsDirty ? "*" : ""}`
-									: "Untitled*"
-							}
-						</Title>
-					</Group>
+					<GraphSetTitle
+						name={ currentGraphSet?.name || "Untitled" }
+						isDirty={ !currentGraphSet || currentGraphSetIsDirty }
+					/>
 					<Group style={{ flex: "0" }} wrap="nowrap" gap="xs" >
 						<AddNodeMenu
 							onAddPatcherInstance={ onAddPatcherInstance }
 							patchers={ patchers }
 						/>
-						<ResponsiveButton
-							label="Save"
-							tooltip="Save Graph"
-							icon={ mdiContentSave }
-							disabled={ !currentGraphSetIsDirty }
-							onClick={ onSaveCurrentSet }
+						<SaveGraphSplitButton
+							onSaveCurrentSet={ onSaveCurrentSet }
+							onSaveCurrentSetAs={ onSaveCurrentSetAs }
+							onLoadEmptySet={ onLoadEmptySet }
 						/>
 						<ResponsiveButton
 							label="Graphs"
@@ -209,7 +204,6 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 						/>
 					</Group>
 				</Group>
-
 				<GraphEditor
 					nodeInfo={ nodeInfo }
 					connections={ connections }
@@ -235,9 +229,7 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 				onClose={ closeSetDrawer }
 				onDeleteSet={ onDeleteSet }
 				onLoadSet={ onLoadSet }
-				onLoadEmptySet={ onLoadEmptySet }
 				onRenameSet={ onRenameSet }
-				onCreateSet={ onCreateSet }
 				onOverwriteSet={ onOverwriteSet }
 				open={ setDrawerIsOpen }
 				sets={ graphSets }
