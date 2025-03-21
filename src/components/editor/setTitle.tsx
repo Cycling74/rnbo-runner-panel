@@ -12,8 +12,11 @@ export const GraphSetTitle: FC<GraphSetTitleProps> = ({
 	name
 }) => {
 	return (
-		<Title size="md" my={ 0 } className={ styles.title } data-is-dirty={ isDirty } >
-			{ name }
-		</Title>
+		<div className={ styles.wrap } >
+			<Title size="md" my={ 0 } className={ styles.title } >
+				{ name }
+			</Title>
+			{ isDirty ? <span>*</span> : null }
+		</div>
 	);
 };

@@ -1,18 +1,15 @@
+.wrap {
+	align-items: center;
+	display: flex;
+	flex: 1;
+	flex-wrap: nowrap;
+	gap: 1px;
+	min-width: 0;
+}
+
 .title {
+	min-width: 0;
 	overflow: hidden;
-	position: relative;
+	white-space: nowrap;
 	text-overflow: ellipsis;
-
-	&:after {
-		content: "*";
-		display: none;
-		margin-left: var(--mantine-spacing-xs);
-		position: absolute;
-		right: 0;
-		top: 0;
-	}
-
-	&[data-is-dirty="true"]:after {
-		display: block;
-	}
 }
