@@ -757,15 +757,15 @@ export const updateSetViewParameterListOnRemote = (setView: GraphSetViewRecord, 
 export const offsetParameterIndexInSetView = (setView: GraphSetViewRecord, param: ParameterRecord, offset: number): AppThunk =>
 	(dispatch) => {
 		try {
-			const currentIndex = setView.params.findIndex(entry => entry.instanceId === param.instanceId && entry.paramIndex === param.index);
+			const currentIndex = setView.params.findIndex(entry => entry.instanceId === param.instanceId && entry.paramName === param.name);
 			const newIndex = clamp(currentIndex + offset, 0, setView.params.size - 1);
 
 			const newList = setView.params
 				.delete(currentIndex)
-				.insert(newIndex, { instanceId: param.instanceId, paramIndex: param.index });
+				.insert(newIndex, { instanceId: param.instanceId, paramName: param.name });
 			const message = {
 				address: `/rnbo/inst/control/sets/views/list/${setView.id}/params`,
-				args: newList.toArray().map(p => ({ type: "s", value: instanceAndParamIndicesToSetViewEntry(p.instanceId, p.paramIndex) }))
+				args: newList.toArray().map(p => ({ type: "s", value: instanceAndParamIndicesToSetViewEntry(p.instanceId, p.paramName) }))
 			};
 			oscQueryBridge.sendPacket(writePacket(message));
 		} catch (err) {
@@ -846,7 +846,7 @@ export const addParameterToSetView = (setView: GraphSetViewRecord, param: Parame
 		try {
 			if (setView.paramIds.has(param.setViewId)) return;
 			const params = setView.paramIds.toArray().map(pId => ({ type: "s", value: pId }));
-			params.push({ type: "s", value: instanceAndParamIndicesToSetViewEntry(param.instanceId, param.index) });
+			params.push({ type: "s", value: instanceAndParamIndicesToSetViewEntry(param.instanceId, param.name) });
 
 			const message = {
 				address: `/rnbo/inst/control/sets/views/list/${setView.id}/params`,
@@ -882,14 +882,14 @@ export const addAllParametersToSetView = (setView: GraphSetViewRecord): AppThunk
 				getPatcherInstanceParametersSortedByInstanceIdAndIndex(state)
 					.forEach(param => {
 						if (!setView.paramIds.has(param.setViewId)) {
-							list.push({ instanceId: param.instanceId, paramIndex: param.index });
+							list.push({ instanceId: param.instanceId, paramName: param.name });
 						}
 					});
 			}).toArray();
 
 			const message = {
 				address: `/rnbo/inst/control/sets/views/list/${setView.id}/params`,
-				args: params.map(p => ({ type: "s", value: instanceAndParamIndicesToSetViewEntry(p.instanceId, p.paramIndex) }))
+				args: params.map(p => ({ type: "s", value: instanceAndParamIndicesToSetViewEntry(p.instanceId, p.paramName) }))
 			};
 			oscQueryBridge.sendPacket(writePacket(message));
 		} catch (err) {

@@ -89,7 +89,7 @@ export class ParameterRecord extends ImmuRecord<ParameterRecordProps>({
 	}
 
 	public get setViewId(): string {
-		return instanceAndParamIndicesToSetViewEntry(this.instanceId, this.index);
+		return instanceAndParamIndicesToSetViewEntry(this.instanceId, this.name);
 	}
 
 	public getValueForNormalizedValue(nv: number): string | number {
