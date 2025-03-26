@@ -31,20 +31,20 @@ const parameterComparators: Record<ParameterSortAttr, Record<SortOrder, (a: Para
 		[SortOrder.Asc]: (a: ParameterRecord, b: ParameterRecord) => {
 			if (a.index < b.index) return -1;
 			if (a.index > b.index) return 1;
-			return collator.compare(a.name.toLowerCase(), b.name.toLowerCase());
+			return collator.compare(a.label.toLowerCase(), b.label.toLowerCase());
 		},
 		[SortOrder.Desc]: (a: ParameterRecord, b: ParameterRecord) => {
 			if (a.index > b.index) return -1;
 			if (a.index < b.index) return 1;
-			return collator.compare(a.name.toLowerCase(), b.name.toLowerCase()) * -1;
+			return collator.compare(a.label.toLowerCase(), b.label.toLowerCase()) * -1;
 		}
 	},
 	[ParameterSortAttr.Name]: {
 		[SortOrder.Asc]: (a: ParameterRecord, b: ParameterRecord) => {
-			return collator.compare(a.name.toLowerCase(), b.name.toLowerCase());
+			return collator.compare(a.label.toLowerCase(), b.label.toLowerCase());
 		},
 		[SortOrder.Desc]: (a: ParameterRecord, b: ParameterRecord) => {
-			return collator.compare(a.name.toLowerCase(), b.name.toLowerCase()) * -1;
+			return collator.compare(a.label.toLowerCase(), b.label.toLowerCase()) * -1;
 		}
 	}
 };
@@ -135,7 +135,7 @@ const InstanceParameterTab: FunctionComponent<InstanceParameterTabProps> = memo(
 	const displayParameters = ImmuOrderedSet<ParameterRecord>().withMutations(set => {
 		sortedParameterIds.forEach(id => {
 			const p = parameters.get(id);
-			if (p && (!searchValue?.length || p.matchesQuery(searchValue))) {
+			if (p && (!searchValue?.length || p.matchesQuery(searchValue.toLowerCase()))) {
 				set.add(p);
 			}
 		});

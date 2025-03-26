@@ -6,7 +6,7 @@ import { ReconnectingWebsocket } from "../lib/reconnectingWs";
 import { AppStatus, RunnerCmdMethod } from "../lib/constants";
 import { OSCQueryRNBOState, OSCQueryRNBOInstance, OSCQueryRNBOPatchersState, OSCValue, OSCQueryRNBOInstancesMetaState, OSCQuerySetMeta } from "../lib/types";
 import { deletePortAliases, initConnections, initPorts, setPortAliases, updateSetMetaFromRemote, updateSourcePortConnections, updatePortIOInfo, deletePortById, setPortProperties, addPort } from "../actions/graph";
-import { addInstance, deleteInstanceById, initInstances, initPatchers } from "../actions/patchers";
+import { addInstance, deleteInstanceById, initInstances, initPatchers, updateInstanceParameterDisplayName } from "../actions/patchers";
 import { initRunnerConfig, updateRunnerConfig } from "../actions/settings";
 import { initSets, setCurrentGraphSet, initSetPresets, setGraphSetPresetLatest, initSetViews, updateSetViewName, updateSetViewParameterList, deleteSetView, addSetView, updateSetViewOrder, setCurrentGraphSetDirtyState } from "../actions/sets";
 import { initDataFiles } from "../actions/datafiles";
@@ -381,7 +381,8 @@ export class OSCQueryBridgeControllerPrivate {
 		} else if (
 			instInfoMatch.groups.content === "params" &&
 			!instInfoMatch.groups.rest.endsWith("/normalized") &&
-			!instInfoMatch.groups.rest.endsWith("/meta")
+			!instInfoMatch.groups.rest.endsWith("/meta") &&
+			!instInfoMatch.groups.rest.endsWith("/display_name")
 		) {
 			// Add Parameter
 			const paramInfo = await this._requestState< OSCQueryRNBOInstance["CONTENTS"]["params"]>(`/rnbo/inst/${instanceId}/params`);
@@ -451,7 +452,8 @@ export class OSCQueryBridgeControllerPrivate {
 			instInfoMatch.groups.content === "params" &&
 			!instInfoMatch.groups.rest.endsWith("/index") &&
 			!instInfoMatch.groups.rest.endsWith("/meta") &&
-			!instInfoMatch.groups.rest.endsWith("/normalized")
+			!instInfoMatch.groups.rest.endsWith("/normalized") &&
+			!instInfoMatch.groups.rest.endsWith("/display_name")
 		) {
 			return void dispatch(removeInstanceParameterByPath(path));
 		}
@@ -671,6 +673,11 @@ export class OSCQueryBridgeControllerPrivate {
 			// Meta Update
 			const name = packetMatch.groups.rest.split("/").slice(0, -1).join("/");
 			return void dispatch(updateInstanceParameterMeta(instanceId, name, packet.args[0] as unknown as string));
+		} else if (
+			packetMatch.groups.content === "params" && packetMatch.groups.rest.endsWith("/display_name")
+		) {
+			const name = packetMatch.groups.rest.split("/").slice(0, -1).join("/");
+			return void dispatch(updateInstanceParameterDisplayName(instanceId, name, packet.args[0] as unknown as string));
 		} else if (
 			packetMatch.groups.content === "params"
 		) {

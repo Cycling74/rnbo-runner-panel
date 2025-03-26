@@ -1085,6 +1085,19 @@ export const updateInstanceParameterMeta = (instanceId: string, name: ParameterR
 		}
 	};
 
+export const updateInstanceParameterDisplayName = (instanceId: string, name: ParameterRecord["name"], displayName: string): AppThunk =>
+	(dispatch, getState) => {
+		try {
+			const state = getState();
+			const param = getPatcherInstanceParametersByInstanceIdAndName(state, instanceId, name);
+			if (!param) return;
+
+			dispatch(setInstanceParameter(param.setDisplayName(displayName)));
+		} catch (e) {
+			console.log(e);
+		}
+	};
+
 export const updateInstanceMessageOutportMeta = (instanceId: string, tag: MessagePortRecord["tag"], value: string): AppThunk =>
 	(dispatch, getState) => {
 		try {
