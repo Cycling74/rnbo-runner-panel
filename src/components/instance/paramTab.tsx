@@ -135,7 +135,7 @@ const InstanceParameterTab: FunctionComponent<InstanceParameterTabProps> = memo(
 	const displayParameters = ImmuOrderedSet<ParameterRecord>().withMutations(set => {
 		sortedParameterIds.forEach(id => {
 			const p = parameters.get(id);
-			if (p && (!searchValue?.length || p.matchesQuery(searchValue))) {
+			if (p && (!searchValue?.length || p.matchesQuery(searchValue.toLowerCase()))) {
 				set.add(p);
 			}
 		});

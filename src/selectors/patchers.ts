@@ -148,7 +148,7 @@ export const getPatcherInstancesAndParameters = createSelector(
 		return ImmuMap<PatcherInstanceRecord["id"], { instance: PatcherInstanceRecord; parameters: Seq.Indexed<ParameterRecord>; }>()
 			.withMutations(map => {
 				instances.valueSeq().forEach(instance => {
-					const params = parameters.filter(p => p.instanceId === instance.id && (!searchValue.length || p.matchesQuery(searchValue))).valueSeq();
+					const params = parameters.filter(p => p.instanceId === instance.id && (!searchValue.length || p.matchesQuery(searchValue.toLowerCase()))).valueSeq();
 					if (!params.size) return;
 					map.set(instance.id, { instance, parameters: params });
 				});
