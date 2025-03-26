@@ -22,7 +22,7 @@ export class GraphSetRecord extends ImmuRecord<GraphSetRecordProps>({
 
 export type GraphSetViewParameterEntry = {
 	instanceId: PatcherInstanceRecord["id"];
-	paramIndex: ParameterRecord["index"];
+	paramName: ParameterRecord["name"];
 }
 
 export type GraphSetViewRecordProps = {
@@ -42,10 +42,9 @@ export class GraphSetViewRecord extends ImmuRecord<GraphSetViewRecordProps>({
 	private static getParamListFromDesc(params: string[]): ImmuList<GraphSetViewParameterEntry> {
 		return ImmuList<GraphSetViewParameterEntry>().withMutations(list => {
 			for (const p of params) {
-				const [instanceId, pIndex] = p.split(":");
-				const paramIndex = parseInt(pIndex, 10);
-				if (instanceId.length && !isNaN(paramIndex)) {
-					list.push({ instanceId, paramIndex });
+				const [instanceId, paramName] = p.split(":");
+				if (instanceId?.length && paramName?.length) {
+					list.push({ instanceId, paramName });
 				}
 			}
 		});

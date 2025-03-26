@@ -98,8 +98,8 @@ export const getPatcherInstanceParametersBySetView = createSelector(
 	(parameters, viewParamList): ImmuOrderedSet<ParameterRecord> => {
 		return ImmuOrderedSet<ParameterRecord>().withMutations(list => {
 			const entries = viewParamList.valueSeq().toArray();
-			for (const { instanceId, paramIndex } of entries) {
-				const param = parameters.find(p => p.instanceId === instanceId && p.index === paramIndex);
+			for (const { instanceId, paramName } of entries) {
+				const param = parameters.find(p => p.instanceId === instanceId && p.name === paramName);
 				if (param) list.add(param);
 			}
 		});

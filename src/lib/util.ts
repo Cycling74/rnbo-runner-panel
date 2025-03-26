@@ -77,7 +77,7 @@ export const formatParamValueForDisplay = (value: number | string) => {
 	return value;
 };
 
-export const instanceAndParamIndicesToSetViewEntry = (instanceId: string, paramIndex: number) => `${instanceId}:${paramIndex}`;
+export const instanceAndParamIndicesToSetViewEntry = (instanceId: string, paramName: string) => `${instanceId}:${paramName}`;
 
 export const cloneJSON = (value: JsonMap): JsonMap => JSON.parse(JSON.stringify(value));
 
