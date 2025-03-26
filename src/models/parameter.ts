@@ -114,7 +114,7 @@ export class ParameterRecord extends ImmuRecord<ParameterRecordProps>({
 	}
 
 	public matchesQuery(query: string): boolean {
-		return this.name.toLowerCase().includes(query);
+		return this.displayName.toLowerCase().includes(query) || this.name.toLowerCase().includes(query);
 	}
 
 	public setDisplayName(value: string): ParameterRecord {
