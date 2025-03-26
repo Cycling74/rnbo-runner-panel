@@ -5,6 +5,7 @@ import { MIDIMetaMappingType } from "../lib/constants";
 
 export type ParameterRecordProps = {
 
+	displayName: string;
 	enumVals: Array<string | number>;
 	index: number;
 	instanceId: string;
@@ -23,6 +24,7 @@ export type ParameterRecordProps = {
 }
 export class ParameterRecord extends ImmuRecord<ParameterRecordProps>({
 
+	displayName: "",
 	enumVals: [],
 	index: 0,
 	instanceId: "0",
@@ -30,7 +32,7 @@ export class ParameterRecord extends ImmuRecord<ParameterRecordProps>({
 	max: 1,
 	meta: {},
 	metaString: "",
-	name: "name",
+	name: "",
 	normalizedValue: 0,
 	path: "",
 	type: "f",
@@ -51,6 +53,7 @@ export class ParameterRecord extends ImmuRecord<ParameterRecordProps>({
 
 			// use setMeta to consolidate midi mapping detection logic
 			result.push((new ParameterRecord({
+				displayName: paramInfo.CONTENTS.display_name?.VALUE || "",
 				enumVals: paramInfo.RANGE?.[0]?.VALS || [],
 				index: paramInfo.CONTENTS?.index?.VALUE || 0,
 				instanceId,
@@ -88,6 +91,10 @@ export class ParameterRecord extends ImmuRecord<ParameterRecordProps>({
 		return this.enumVals.length >= 1;
 	}
 
+	public get label(): string {
+		return this.displayName || this.name;
+	}
+
 	public get setViewId(): string {
 		return instanceAndParamIndicesToSetViewEntry(this.instanceId, this.name);
 	}
@@ -108,6 +115,10 @@ export class ParameterRecord extends ImmuRecord<ParameterRecordProps>({
 
 	public matchesQuery(query: string): boolean {
 		return this.name.toLowerCase().includes(query);
+	}
+
+	public setDisplayName(value: string): ParameterRecord {
+		return this.set("displayName", value || "");
 	}
 
 	public setMeta(value: string): ParameterRecord {

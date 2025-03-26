@@ -34,7 +34,7 @@ export type ParameterMenuItem = ParameterMenuAction | ParameterMenuDivider;
 export type ParameterItemProps = React.DetailedHTMLProps<React.HTMLAttributes<HTMLDivElement>, HTMLDivElement> & {
 	menuItems?: Array<ParameterMenuItem>
 	disabled?: boolean;
-	displayName?: string;
+	displayPrefix?: string;
 	index: number;
 	param: ParameterRecord;
 	onRestoreMetadata: (param: ParameterRecord) => any;
@@ -61,7 +61,7 @@ const ParameterItem: FC<ParameterItemProps> = memo(function WrappedParameter({
 	menuItems = [],
 	className = "",
 	disabled = false,
-	displayName,
+	displayPrefix = undefined,
 	param,
 	onRestoreMetadata,
 	onSaveMetadata,
@@ -89,6 +89,7 @@ const ParameterItem: FC<ParameterItemProps> = memo(function WrappedParameter({
 	const currentValue = useLocalValue ? localValue : param.normalizedValue;
 	const value = param.getValueForNormalizedValue(currentValue);
 	const stepSize = param.isEnum ? 1 / (param.enumVals.length - 1) : 0.001;
+	const displayName = displayPrefix ? `${displayPrefix} ${param.label}` : param.label;
 	const indicatorText = param.isMidiMapped
 		? formatMIDIMappingToDisplay(param.midiMappingType as MIDIMetaMappingType, param.meta.midi)
 		: null;
@@ -105,7 +106,7 @@ const ParameterItem: FC<ParameterItemProps> = memo(function WrappedParameter({
 						onRestore={ onRestoreMeta }
 						onSaveMeta={ onSaveMeta }
 						meta={ param.metaString }
-						name={ param.name }
+						name={ displayName }
 						scope={ MetadataScope.Parameter }
 					/>
 				) : null
@@ -118,7 +119,7 @@ const ParameterItem: FC<ParameterItemProps> = memo(function WrappedParameter({
 						classNames={{ root: classes.parameterItemMIDIIndicator }}
 					>
 						<label htmlFor={ param.name } className={ classes.parameterItemLabel } >
-							{ displayName || param.name }
+							{ displayName }
 						</label>
 					</Indicator>
 				</Tooltip>

@@ -17,7 +17,6 @@ export function withParameterSetViewActions(
 	const compDisplayName = WrappedComponent.displayName || WrappedComponent.name || "Component";
 
 	const ParameterWithSetViewActions: FC<ParameterItemProps & ParameterSetViewActionsProps> = memo(({
-		displayName,
 		menuItems = [],
 		index,
 		listSize,
@@ -42,7 +41,7 @@ export function withParameterSetViewActions(
 
 		return (
 			<WrappedComponent
-				displayName={ `${param.instanceId}: ${displayName || param.name}` }
+				displayPrefix={ `${param.instanceId}:` }
 				index={ index }
 				param={ param }
 				{ ...props }
