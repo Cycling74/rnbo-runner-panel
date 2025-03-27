@@ -1,6 +1,7 @@
 .saveButton {
 	border-top-right-radius: 0;
 	border-bottom-right-radius: 0;
+	border: 1px solid var(--mantine-color-default-border);
 }
 
 .dropdownButton {

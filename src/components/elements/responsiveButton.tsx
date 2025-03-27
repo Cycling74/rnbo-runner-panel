@@ -34,7 +34,7 @@ export const ResponsiveButton: FC<ResponsiveButtonProps> = ({
 				</Button>
 			</Tooltip>
 			<Tooltip label={ tooltip || "" } disabled={ !tooltip?.length }>
-				<ActionIcon hiddenFrom="sm" className={ className } variant={ variant } color={ color } onClick={ onClick } size={ 36 } >
+				<ActionIcon hiddenFrom="sm" className={ className } variant={ variant } color={ color } onClick={ onClick } size={ 36 } disabled={ disabled } >
 					<IconElement path={ icon } />
 				</ActionIcon>
 			</Tooltip>

@@ -263,11 +263,26 @@ export const loadGraphSetOnRemote = (set: GraphSetRecord): AppThunk =>
 			const state = getState();
 			const currentSet = getCurrentGraphSet(state);
 
-			// Set already loaded?
-			if (currentSet?.id === set.id) return;
+			if (!currentSet) {
+				const dialogResult = await showConfirmDialog({
+					text: `Are you sure you want to load ${set.name} and discard the unsaved graph?`,
+					actions: {
+						confirm: { label: "Load Graph & Discard Changes" }
+					}
+				});
 
-			// Pending Changes?
-			if (currentSet && getCurrentGraphSetIsDirty(state)) {
+				if (dialogResult === DialogResult.Cancel) return;
+
+			} else if (currentSet.id === set.id && getCurrentGraphSetIsDirty(state)) {
+				const dialogResult = await showConfirmDialog({
+					text: `Are you sure you want to reload ${currentSet.name} and discard any unsaved changes?`,
+					actions: {
+						confirm: { label: "Reload Graph & Discard Changes" }
+					}
+				});
+
+				if (dialogResult === DialogResult.Cancel) return;
+			} else if (getCurrentGraphSetIsDirty(state)) {
 				const dialogResult = await showConfirmDialog({
 					text: `Save changes to ${currentSet.name} before loading ${set.name}?`,
 					actions: {
@@ -275,9 +290,7 @@ export const loadGraphSetOnRemote = (set: GraphSetRecord): AppThunk =>
 						confirm: { label: "Save Changes" }
 					}
 				});
-
 				if (dialogResult === DialogResult.Cancel) {
-					// User Canceled, do nothing
 					return;
 				} else if (dialogResult === DialogResult.Confirm) {
 					// Save before proceeding
