@@ -189,6 +189,7 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 							onSaveCurrentSet={ onSaveCurrentSet }
 							onSaveCurrentSetAs={ onSaveCurrentSetAs }
 							onLoadEmptySet={ onLoadEmptySet }
+							isDirty={ !currentGraphSet || currentGraphSetIsDirty }
 						/>
 						<ResponsiveButton
 							label="Graphs"

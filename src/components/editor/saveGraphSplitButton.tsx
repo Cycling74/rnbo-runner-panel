@@ -6,12 +6,14 @@ import { IconElement } from "../elements/icon";
 import styles from "./saveGraphSplitButton.module.css";
 
 export type SaveGraphSplitButtonProps = {
+	isDirty: boolean;
 	onLoadEmptySet: () => void;
 	onSaveCurrentSet: () => void;
 	onSaveCurrentSetAs: () => void;
 };
 
 export const SaveGraphSplitButton: FC<SaveGraphSplitButtonProps> = memo(function WrapedSaveGraphButtton({
+	isDirty,
 	onLoadEmptySet,
 	onSaveCurrentSet,
 	onSaveCurrentSetAs
@@ -25,6 +27,7 @@ export const SaveGraphSplitButton: FC<SaveGraphSplitButtonProps> = memo(function
 				variant="default"
 				icon={ mdiContentSave }
 				onClick={ onSaveCurrentSet }
+				disabled={ !isDirty }
 			/>
 			<Menu position="bottom-end" >
 				<Menu.Target>
