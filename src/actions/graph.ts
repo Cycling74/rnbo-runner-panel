@@ -3,7 +3,7 @@ import { oscQueryBridge } from "../controller/oscqueryBridgeController";
 import { ActionBase, AppThunk, RootStateType } from "../lib/store";
 import { OSCQueryRNBOJackConnections, OSCQueryRNBOJackPortInfo, OSCQuerySetMeta } from "../lib/types";
 import { ConnectionType, GraphConnectionRecord, GraphNodeRecord, GraphPortRecord, NodePositionRecord, NodeType, PortDirection } from "../models/graph";
-import { getConnectionsForSourcePort, getNode, getNodes, getConnections, getPorts, getPort, getPortsForTypeAndDirection, getPatcherNodeByInstanceId, getNodePositions, getNodePosition, getEditorNodesAndPorts } from "../selectors/graph";
+import { getConnectionsForSourcePort, getNode, getNodes, getConnections, getPorts, getPort, getPortsForTypeAndDirection, getPatcherNodeByInstanceId, getNodePositions, getNodePosition, getEditorNodesAndPorts, getPortsForNodeId } from "../selectors/graph";
 import { showNotification } from "./notifications";
 import { NotificationLevel } from "../models/notification";
 import { PatcherExportRecord } from "../models/patcher";
@@ -540,38 +540,49 @@ export const setPortProperties = (id: GraphPortRecord["id"], properties: string)
 	(dispatch, getState) => {
 
 		const state = getState();
-		const port = getPort(state, id);
-		if (!port) return;
+		const currentPort = getPort(state, id);
+		if (!currentPort) return;
 
 		// Create Port
-		dispatch(setPort(port.setProperties(properties)));
+		const updatedPort = currentPort.setProperties(properties);
+		dispatch(setPort(updatedPort));
 
-		if (port.instanceId !== undefined) {
+		if (updatedPort.instanceId !== undefined) {
 			// Check if we need to update the node if of a patcher instance id
 			// this is necessary as we don't really have anything else that maps between
 			// /rnbo/inst/<id> to the <nodeid>:<port_name> when an instance is added
 
 			// Rename patcher node from inst id to node id
-			let patcherNode = getPatcherNodeByInstanceId(state, port.instanceId);
+			let patcherNode = getPatcherNodeByInstanceId(state, updatedPort.instanceId);
 			if (patcherNode) {
-				patcherNode = patcherNode.set("id", port.nodeId);
+				patcherNode = patcherNode.set("id", updatedPort.nodeId);
 				dispatch(setNode(patcherNode));
 			}
 
 			// Rename position node from inst id to node id
-			const position = getNodePosition(state, port.instanceId);
+			const position = getNodePosition(state, updatedPort.instanceId);
 			if (position) {
-				dispatch(setNodePosition(position.set("id", port.nodeId)));
-			} else if (!getNodePosition(state, port.nodeId)) {
+				dispatch(setNodePosition(position.set("id", updatedPort.nodeId)));
+			} else if (!getNodePosition(state, updatedPort.nodeId)) {
 				// Create position
-				dispatch(setNodePosition(NodePositionRecord.fromDescription(port.nodeId, patcherInstanceCoordinatesStore.xWithMargin, patcherInstanceCoordinatesStore.yWithMargin)));
+				dispatch(setNodePosition(NodePositionRecord.fromDescription(updatedPort.nodeId, patcherInstanceCoordinatesStore.xWithMargin, patcherInstanceCoordinatesStore.yWithMargin)));
 			}
 
-		} else if (!getNode(state, port.nodeId)) {
+		} else if (!getNode(state, updatedPort.nodeId)) {
 			// Need to create a system node and position for it
-			dispatch(setNode(GraphNodeRecord.fromDescription(port.nodeId, NodeType.System)));
+			const node = getNode(state, currentPort.nodeId) || GraphNodeRecord.fromDescription(updatedPort.nodeId, NodeType.System);
 			const coords = getGraphEditorInstance(getState())?.project({ x: 0, y: 0 }) || { x: 0, y: 0 };
-			dispatch(setNodePosition(NodePositionRecord.fromDescription(port.nodeId, coords.x, coords.y)));
+			const pos = getNodePosition(state, currentPort.nodeId) || NodePositionRecord.fromDescription(updatedPort.nodeId, coords.x, coords.y);
+
+			dispatch(setNode(node));
+			dispatch(setNodePosition(pos));
+		}
+
+		if (updatedPort.instanceId === undefined && currentPort.nodeId !== updatedPort.nodeId && getPortsForNodeId(state, currentPort.nodeId).size === 1) {
+			const node = getNode(state, currentPort.nodeId);
+			if (node) dispatch(deleteNode(node));
+			const pos = getNodePosition(state, currentPort.nodeId);
+			if (pos) dispatch(deleteNodePosition(pos));
 		}
 	};
 
