@@ -42,7 +42,7 @@ const ParameterEntry: FC<ParamEntryProps> = memo(function WrappedParameterEntry(
 		<li className={ classes.instanceParameterEntry } >
 			<Group gap="xs" >
 				<div className={ classes.instanceParameterEntryName } >
-					{ parameter.name }
+					{ parameter.label }
 				</div>
 				<ActionIcon.Group>
 					<ActionIcon onClick={ onTriggerAdd } variant="subtle" disabled={ isInSet } >
