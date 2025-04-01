@@ -17,6 +17,7 @@ import { IconElement } from "../elements/icon";
 import { mdiFitToScreen, mdiLock, mdiLockOpen, mdiMinus, mdiPlus, mdiSitemap } from "@mdi/js";
 import { maxEditorZoom, minEditorZoom } from "../../lib/constants";
 import { EditorNodeDesc } from "../../selectors/graph";
+import { getHotkeyHandler } from "@mantine/hooks";
 
 export type GraphEditorProps = {
 	connections: RootStateType["graph"]["connections"];
@@ -81,6 +82,14 @@ const GraphEditor: FunctionComponent<GraphEditorProps> = memo(function WrappedFl
 		onEdgesChange([{ id, type: "remove" }]);
 	}, [onEdgesChange]);
 
+	const handleHotKeyDelete = useCallback(() => {
+		const edgeChanges: EdgeChange[] = connections.valueSeq().filter(c => c.selected).toArray().map(c => ({ id: c.id, type: "remove" }));
+		if (edgeChanges.length) onEdgesChange(edgeChanges);
+
+		const nodeChanges: NodeChange[] = nodeInfo.valueSeq().filter(info => info.node.selected).toArray().map(info => ({ id: info.node.id, type: "remove" }));
+		if (nodeChanges.length) onNodesChange(nodeChanges);
+	}, [connections, nodeInfo, onEdgesChange, onNodesChange]);
+
 	const onNodeDoubleClick = useCallback((e: React.MouseEvent, node: Node<NodeDataProps>) => {
 		if (node.type !== NodeType.Patcher) return;
 		push({ pathname: "/instances/[id]", query: { ...query, id: node.data.node.instanceId }});
@@ -128,6 +137,7 @@ const GraphEditor: FunctionComponent<GraphEditorProps> = memo(function WrappedFl
 		<div className={ classes.editor } data-color-scheme={ colorScheme } >
 			<ReactFlow
 				isValidConnection={ validateConnection }
+				deleteKeyCode={[]}
 				edges={ flowEdges }
 				nodes={ flowNodes }
 				onEdgesChange={ onEdgesChange }
@@ -146,6 +156,9 @@ const GraphEditor: FunctionComponent<GraphEditorProps> = memo(function WrappedFl
 				nodesConnectable={ !locked }
 				edgesFocusable={ !locked }
 				elementsSelectable={ !locked }
+				onKeyDown={ getHotkeyHandler([
+					["backspace", handleHotKeyDelete]
+				]) }
 			/>
 			<div className={ classes.controls } >
 				<ActionIcon.Group orientation="vertical">
