@@ -6,7 +6,7 @@ import { getPatchersSortedByName } from "../selectors/patchers";
 import { getConnections, getEditorNodesAndPorts, getPorts } from "../selectors/graph";
 import GraphEditor from "../components/editor";
 import PresetDrawer from "../components/presets";
-import { Connection, Edge, EdgeChange, Node, NodeChange, ReactFlowInstance } from "reactflow";
+import { Connection, EdgeChange, NodeChange, ReactFlowInstance } from "reactflow";
 import { loadPatcherNodeOnRemote } from "../actions/graph";
 import {
 	applyEditorEdgeChanges, applyEditorNodeChanges, createEditorConnection,

@@ -1,7 +1,7 @@
 import { Connection, EdgeChange, NodeChange, ReactFlowInstance } from "reactflow";
 import { ActionBase, AppThunk } from "../lib/store";
 import { getConnection, getConnectionByPorts, getConnections, getEditorNodesAndPorts, getNode, getNodePosition, getNodes, getPort, getPorts } from "../selectors/graph";
-import { GraphConnectionRecord, GraphNode, GraphNodeRecord, NodeType } from "../models/graph";
+import { GraphConnectionRecord, GraphNode, NodeType } from "../models/graph";
 import { showNotification } from "./notifications";
 import { NotificationLevel } from "../models/notification";
 import { writePacket } from "osc";
