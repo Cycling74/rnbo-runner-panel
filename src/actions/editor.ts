@@ -139,9 +139,7 @@ export const removeEditorNodeById = (id: GraphNode["id"], updateSetMeta = true):
 				throw new Error(`Node with id ${id} does not exist.`);
 			}
 
-			if (node.type === NodeType.System) {
-				throw new Error(`System nodes cannot be removed (id: ${id}).`);
-			}
+			if (node.type === NodeType.System) return;
 
 			dispatch(unloadPatcherNodeOnRemote(node.instanceId));
 			if (updateSetMeta) updateSetMetaOnRemoteFromNodes(getNodes(state).delete(node.id).valueSeq().toArray());
