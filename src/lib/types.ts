@@ -1,3 +1,4 @@
+import { ConnectionType } from "../models/graph";
 import { KnownPortGroup, RNBOJackPortPropertyKey } from "./constants";
 
 // See https://github.com/Microsoft/TypeScript/issues/1897
@@ -174,7 +175,9 @@ export type RNBOJackPortProperties = {
 	[RNBOJackPortPropertyKey.Physical]?: true;
 	[RNBOJackPortPropertyKey.PortGroup]?: KnownPortGroup | string;
 	[RNBOJackPortPropertyKey.PrettyName]?: string;
+	[RNBOJackPortPropertyKey.Source]: boolean;
 	[RNBOJackPortPropertyKey.Terminal]?: true;
+	[RNBOJackPortPropertyKey.Type]: ConnectionType;
 }
 
 export type OSCQueryRNBOJackPortInfo = OSCQueryBaseNode & {

@@ -123,7 +123,9 @@ export enum RNBOJackPortPropertyKey {
 	Physical = "physical",
 	PortGroup = "http://jackaudio.org/metadata/port-group",
 	PrettyName = "http://jackaudio.org/metadata/pretty-name",
-	Terminal = "terminal"
+	Source = "source",
+	Terminal = "terminal",
+	Type = "type"
 }
 
 export const UnsavedSetName = "(untitled)";
