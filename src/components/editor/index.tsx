@@ -24,9 +24,7 @@ export type GraphEditorProps = {
 	ports: RootStateType["graph"]["ports"];
 
 	onConnect: (connection: Connection) => any;
-	onNodesDelete: (nodes: Pick<Edge, "id">[]) => void;
 	onNodesChange: (changes: NodeChange[]) => void;
-	onEdgesDelete: (edges: Pick<Edge, "id">[]) => void;
 	onEdgesChange: (changes: EdgeChange[]) => void;
 
 	zoom: number;
@@ -53,9 +51,7 @@ const GraphEditor: FunctionComponent<GraphEditorProps> = memo(function WrappedFl
 
 	onConnect,
 	onNodesChange,
-	onNodesDelete,
 	onEdgesChange,
-	onEdgesDelete,
 
 	nodeInfo,
 	ports,
@@ -82,8 +78,8 @@ const GraphEditor: FunctionComponent<GraphEditorProps> = memo(function WrappedFl
 	}, [ports]);
 
 	const triggerDeleteEdge = useCallback((id: GraphConnectionRecord["id"]) => {
-		onEdgesDelete([{ id }]);
-	}, [onEdgesDelete]);
+		onEdgesChange([{ id, type: "remove" }]);
+	}, [onEdgesChange]);
 
 	const onNodeDoubleClick = useCallback((e: React.MouseEvent, node: Node<NodeDataProps>) => {
 		if (node.type !== NodeType.Patcher) return;
@@ -134,9 +130,7 @@ const GraphEditor: FunctionComponent<GraphEditorProps> = memo(function WrappedFl
 				isValidConnection={ validateConnection }
 				edges={ flowEdges }
 				nodes={ flowNodes }
-				onEdgesDelete={ onEdgesDelete }
 				onEdgesChange={ onEdgesChange }
-				onNodesDelete={ onNodesDelete }
 				onNodesChange={ onNodesChange }
 				onNodeDoubleClick={ onNodeDoubleClick }
 				onConnect={ onConnect }

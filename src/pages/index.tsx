@@ -13,7 +13,6 @@ import {
 	editorZoomIn,
 	editorZoomOut,
 	generateEditorLayout,
-	removeEditorConnectionsById, removeEditorNodesById,
 	toggleEditorLockedState,
 	triggerEditorFitView
 } from "../actions/editor";
@@ -102,17 +101,9 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 		dispatch(applyEditorNodeChanges(changes));
 	}, [dispatch]);
 
-	const onNodesDelete = useCallback((nodes: Pick<Node, "id">[]) => {
-		dispatch(removeEditorNodesById(nodes.map(n => n.id)));
-	}, [dispatch]);
-
 	// Edges
 	const onEdgesChange = useCallback((changes: EdgeChange[]) => {
 		dispatch(applyEditorEdgeChanges(changes));
-	}, [dispatch]);
-
-	const onEdgesDelete = useCallback((edges: Pick<Edge, "id">[]) => {
-		dispatch(removeEditorConnectionsById(edges.map(e => e.id)));
 	}, [dispatch]);
 
 	// Sets
@@ -212,9 +203,7 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 
 					onConnect={ onConnectNodes }
 					onNodesChange={ onNodesChange }
-					onNodesDelete={ onNodesDelete }
 					onEdgesChange={ onEdgesChange }
-					onEdgesDelete={ onEdgesDelete }
 
 					onInit={ onEditorInit }
 					onAutoLayout={ onEditorAutoLayout }

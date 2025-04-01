@@ -154,22 +154,6 @@ export const removeEditorNodeById = (id: GraphNode["id"], updateSetMeta = true):
 		}
 	};
 
-export const removeEditorNodesById = (ids: GraphNodeRecord["id"][]): AppThunk =>
-	(dispatch, getState) => {
-		for (const id of ids) {
-			dispatch(removeEditorNodeById(id, false));
-		}
-		// Only at the end update the meta to ensure all coord data has been removed
-		updateSetMetaOnRemoteFromNodes(getNodes(getState()).deleteAll(ids).valueSeq().toArray());
-	};
-
-export const removeEditorConnectionsById = (ids: GraphConnectionRecord["id"][]): AppThunk =>
-	(dispatch) => {
-		for (const id of ids) {
-			dispatch(removeEditorConnectionById(id));
-		}
-	};
-
 export const changeNodePosition = (id: GraphNode["id"], x: number, y: number): AppThunk =>
 	(dispatch, getState) => {
 		const state = getState();
@@ -215,7 +199,9 @@ export const applyEditorNodeChanges = (changes: NodeChange[]): AppThunk =>
 					break;
 				}
 
-				case "remove": // handled separetely via dedicated action
+				case "remove":
+					dispatch(removeEditorNodeById(change.id));
+					break;
 				case "add":
 				case "reset":
 				case "dimensions":
@@ -234,7 +220,9 @@ export const applyEditorEdgeChanges = (changes: EdgeChange[]): AppThunk =>
 					break;
 				}
 
-				case "remove": // handled separetely via dedicated action
+				case "remove":
+					dispatch(removeEditorConnectionById(change.id));
+					break;
 				case "add":
 				case "reset":
 				default:
