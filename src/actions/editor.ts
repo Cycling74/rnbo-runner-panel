@@ -146,7 +146,7 @@ export const removeEditorNodeById = (id: GraphNode["id"], updateSetMeta = true):
 
 		} catch (err) {
 			dispatch(showNotification({
-				title: "Failed to node",
+				title: "Failed to delete node",
 				level: NotificationLevel.error,
 				message: err.message
 			}));
