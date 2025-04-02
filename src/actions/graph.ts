@@ -2,8 +2,8 @@ import { writePacket } from "osc";
 import { oscQueryBridge } from "../controller/oscqueryBridgeController";
 import { ActionBase, AppThunk, RootStateType } from "../lib/store";
 import { OSCQueryRNBOJackConnections, OSCQueryRNBOJackPortInfo, OSCQuerySetMeta } from "../lib/types";
-import { ConnectionType, GraphConnectionRecord, GraphNodeRecord, GraphPortRecord, NodePositionRecord, NodeType, PortDirection } from "../models/graph";
-import { getConnectionsForSourcePort, getNode, getNodes, getConnections, getPorts, getPort, getPortsForTypeAndDirection, getPatcherNodeByInstanceId, getNodePositions, getNodePosition, getEditorNodesAndPorts } from "../selectors/graph";
+import { GraphConnectionRecord, GraphNodeRecord, GraphPortRecord, NodePositionRecord, NodeType } from "../models/graph";
+import { getConnectionsForSourcePort, getNode, getNodes, getConnections, getPorts, getPort, getNodePositions, getNodePosition, getEditorNodesAndPorts } from "../selectors/graph";
 import { showNotification } from "./notifications";
 import { NotificationLevel } from "../models/notification";
 import { PatcherExportRecord } from "../models/patcher";
@@ -362,16 +362,13 @@ export const updateSetMetaFromRemote = (setMeta: OSCQuerySetMeta): AppThunk =>
 	};
 
 const makePorts = (
-	portIds: string[],
-	type: ConnectionType,
-	direction: PortDirection,
 	propertyMap: OSCQueryRNBOJackPortInfo["CONTENTS"]["properties"]["CONTENTS"],
 	aliasesMap:  OSCQueryRNBOJackPortInfo["CONTENTS"]["aliases"]["CONTENTS"]
 ): GraphPortRecord[] => {
 	const result: GraphPortRecord[] = [];
 
-	for (const id of portIds) {
-		let port = GraphPortRecord.fromDescription(id, type, direction, propertyMap[id]?.VALUE || "{}");
+	for (const [id, properties] of Object.entries(propertyMap)) {
+		let port = GraphPortRecord.fromDescription(id, properties.VALUE || "{}");
 		if (aliasesMap[port.id]) port = port.setAliases(aliasesMap[port.id].VALUE);
 
 		result.push(port);
@@ -387,13 +384,8 @@ export const initPorts = (jackPortsInfo: OSCQueryRNBOJackPortInfo): AppThunk =>
 
 		const portProperties = jackPortsInfo.CONTENTS?.properties?.CONTENTS || {};
 		const portAliases = jackPortsInfo.CONTENTS.aliases?.CONTENTS || {};
-		const ports: Array<GraphPortRecord> = [
-			...makePorts(jackPortsInfo.CONTENTS.audio.CONTENTS?.sources?.VALUE || [], ConnectionType.Audio, PortDirection.Source, portProperties, portAliases),
-			...makePorts(jackPortsInfo.CONTENTS.midi.CONTENTS?.sources?.VALUE || [], ConnectionType.MIDI, PortDirection.Source, portProperties, portAliases),
-			...makePorts(jackPortsInfo.CONTENTS.audio.CONTENTS?.sinks?.VALUE || [], ConnectionType.Audio, PortDirection.Sink, portProperties, portAliases),
-			...makePorts(jackPortsInfo.CONTENTS.midi.CONTENTS?.sinks?.VALUE || [], ConnectionType.MIDI, PortDirection.Sink, portProperties, portAliases)
-		];
 
+		const ports: Array<GraphPortRecord> = makePorts(portProperties, portAliases);
 		const nodes: Map<GraphNodeRecord["id"], GraphNodeRecord> = new Map<GraphNodeRecord["id"], GraphNodeRecord>();
 
 		for (const port of ports) {
@@ -464,60 +456,12 @@ export const initConnections = (connectionsInfo: OSCQueryRNBOJackConnections): A
 		dispatch(setConnections(connectionRecords));
 	};
 
-
-// Update Port I/O Info
-export const updatePortIOInfo = (type: ConnectionType, direction: PortDirection, ids: string[]): AppThunk =>
-	(dispatch, getState) => {
-
-		const state = getState();
-		const currentPorts = getPortsForTypeAndDirection(state, type, direction);
-
-		const portsToDelete = currentPorts.filter(p => !ids.includes(p.id));
-		if (portsToDelete.size > 0) {
-			dispatch(deletePorts(portsToDelete.valueSeq().toArray()));
-		}
-
-		const updatedPorts: GraphPortRecord[] = [];
-		for (const portId of ids) {
-			let port: GraphPortRecord;
-			if (currentPorts.has(portId)) {
-				port = currentPorts.get(portId)
-					.setDirection(direction)
-					.setType(type);
-			} else {
-				port = GraphPortRecord.fromDescription(portId, type, direction, "{}");
-			}
-			updatedPorts.push(port);
-		}
-
-		const newNodes = updatedPorts
-			.filter(p => !getNode(state, p.nodeId))
-			.map(p => GraphNodeRecord.fromDescription(p.nodeId, NodeType.System));
-
-		dispatch(setPorts(updatedPorts));
-
-		if (newNodes.length) {
-			dispatch(setNodes(newNodes));
-			dispatch(setNodePositions(
-				newNodes.map(n => NodePositionRecord
-					.fromDescription(
-						n.id,
-						patcherInstanceCoordinatesStore.xWithMargin,
-						patcherInstanceCoordinatesStore.yWithMargin
-					)
-				)
-			));
-		}
-	};
-
-export const addPort = (id: GraphPortRecord["id"]): AppThunk =>
+export const addPort = (id: GraphPortRecord["id"], properties: string = "{}"): AppThunk =>
 	(dispatch, getState) => {
 
 		const port = getPort(getState(), id);
 		if (port) return;
-		dispatch(setPort(
-			GraphPortRecord.fromDescription(id, ConnectionType.Audio, PortDirection.Sink, "{}")
-		));
+		dispatch(setPort(GraphPortRecord.fromDescription(id, properties)));
 	};
 
 export const setPortAliases = (id: GraphPortRecord["id"], aliases: string []): AppThunk =>
@@ -540,39 +484,24 @@ export const setPortProperties = (id: GraphPortRecord["id"], properties: string)
 	(dispatch, getState) => {
 
 		const state = getState();
-		const port = getPort(state, id);
-		if (!port) return;
+		const port = getPort(state, id)?.setProperties(properties) || GraphPortRecord.fromDescription(id, properties);
 
 		// Create Port
-		dispatch(setPort(port.setProperties(properties)));
+		dispatch(setPort(port));
 
-		if (port.instanceId !== undefined) {
-			// Check if we need to update the node if of a patcher instance id
-			// this is necessary as we don't really have anything else that maps between
-			// /rnbo/inst/<id> to the <nodeid>:<port_name> when an instance is added
-
-			// Rename patcher node from inst id to node id
-			let patcherNode = getPatcherNodeByInstanceId(state, port.instanceId);
-			if (patcherNode) {
-				patcherNode = patcherNode.set("id", port.nodeId);
-				dispatch(setNode(patcherNode));
+		if (!getNodePosition(state, port.nodeId)) {
+			let pos: NodePositionRecord;
+			if (port.isPatcherInstancePort) {
+				pos = NodePositionRecord.fromDescription(port.nodeId, patcherInstanceCoordinatesStore.xWithMargin, patcherInstanceCoordinatesStore.yWithMargin);
+			} else {
+				const coords = getGraphEditorInstance(getState())?.project({ x: 0, y: 0 }) || { x: 0, y: 0 };
+				pos = getNodePosition(state, port.nodeId) || NodePositionRecord.fromDescription(port.nodeId, coords.x, coords.y);
 			}
-
-			// Rename position node from inst id to node id
-			const position = getNodePosition(state, port.instanceId);
-			if (position) {
-				dispatch(setNodePosition(position.set("id", port.nodeId)));
-			} else if (!getNodePosition(state, port.nodeId)) {
-				// Create position
-				dispatch(setNodePosition(NodePositionRecord.fromDescription(port.nodeId, patcherInstanceCoordinatesStore.xWithMargin, patcherInstanceCoordinatesStore.yWithMargin)));
-			}
-
-		} else if (!getNode(state, port.nodeId)) {
-			// Need to create a system node and position for it
-			dispatch(setNode(GraphNodeRecord.fromDescription(port.nodeId, NodeType.System)));
-			const coords = getGraphEditorInstance(getState())?.project({ x: 0, y: 0 }) || { x: 0, y: 0 };
-			dispatch(setNodePosition(NodePositionRecord.fromDescription(port.nodeId, coords.x, coords.y)));
+			dispatch(setNodePosition(pos));
 		}
+
+		const node = getNode(state, port.nodeId) || GraphNodeRecord.fromDescription(port.nodeId, port.isPatcherInstancePort ? NodeType.Patcher : NodeType.System);
+		dispatch(setNode(node.set("type", port.isPatcherInstancePort ? NodeType.Patcher : NodeType.System)));
 	};
 
 // Trigger Updates on remote OSCQuery Runner

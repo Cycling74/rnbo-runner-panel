@@ -43,30 +43,32 @@ export class NodePositionRecord extends ImmuRecord<NodePositionProps>({
 export type GraphPortProps = {
 	aliases: ImmuSet<string>;
 	id: string;
-	direction: PortDirection;
 	nodeId: string;
 	portName: string;
 	properties: RNBOJackPortProperties;
-	type: ConnectionType;
 }
+
+const defaultGraphPortProperties = Object.freeze({
+	source: true,
+	type: ConnectionType.Audio
+});
 
 export class GraphPortRecord extends ImmuRecord<GraphPortProps> ({
 
 	aliases: ImmuSet<string>(),
 	id: "",
-	direction: PortDirection.Source,
 	nodeId: "",
 	portName: "",
-	properties: {},
-	type: ConnectionType.Audio
+	properties: defaultGraphPortProperties
 
 }) {
 
 	private static parseProperties(value: string): RNBOJackPortProperties {
 		try {
-			return JSON.parse(value) as RNBOJackPortProperties;
+			const vals = JSON.parse(value) as RNBOJackPortProperties;
+			return { ...defaultGraphPortProperties, ...vals };
 		} catch (err) {
-			return {};
+			return defaultGraphPortProperties;
 		}
 	}
 
@@ -89,6 +91,14 @@ export class GraphPortRecord extends ImmuRecord<GraphPortProps> ({
 			: undefined;
 	}
 
+	public get direction(): PortDirection {
+		return this.properties.source ? PortDirection.Source : PortDirection.Sink;
+	}
+
+	public get type(): ConnectionType {
+		return this.properties.type || ConnectionType.Audio;
+	}
+
 	public addAlias(alias: string): GraphPortRecord {
 		return this.aliases.has(alias) ? this : this.set("aliases", this.aliases.add(alias));
 	}
@@ -105,10 +115,6 @@ export class GraphPortRecord extends ImmuRecord<GraphPortProps> ({
 		return this.set("aliases", ImmuSet<string>(aliases));
 	}
 
-	public setDirection(direction: PortDirection): GraphPortRecord {
-		return this.set("direction", direction);
-	}
-
 	public setProperties(propertyVal: string): GraphPortRecord {
 		const properties = GraphPortRecord.parseProperties(propertyVal);
 		const nodeId = properties[RNBOJackPortPropertyKey.PortGroup] || this.nodeId;
@@ -117,17 +123,11 @@ export class GraphPortRecord extends ImmuRecord<GraphPortProps> ({
 			.set("nodeId", nodeId);
 	}
 
-	public setType(type: ConnectionType): GraphPortRecord {
-		return this.set("type", type);
-	}
-
-	public static fromDescription(id: string, type: ConnectionType, direction: PortDirection, propertyVal: string): GraphPortRecord {
+	public static fromDescription(id: string, propertyVal: string): GraphPortRecord {
 		const properties = this.parseProperties(propertyVal);
 
 		return new GraphPortRecord({
 			id,
-			direction,
-			type,
 			nodeId: properties[RNBOJackPortPropertyKey.PortGroup] || id.split(":").shift(),
 			portName: id.split(":").pop(),
 			properties

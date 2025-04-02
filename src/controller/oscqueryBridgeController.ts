@@ -5,7 +5,7 @@ import { AppDispatch, store } from "../lib/store";
 import { ReconnectingWebsocket } from "../lib/reconnectingWs";
 import { AppStatus, RunnerCmdMethod } from "../lib/constants";
 import { OSCQueryRNBOState, OSCQueryRNBOInstance, OSCQueryRNBOPatchersState, OSCValue, OSCQueryRNBOInstancesMetaState, OSCQuerySetMeta } from "../lib/types";
-import { deletePortAliases, initConnections, initPorts, setPortAliases, updateSetMetaFromRemote, updateSourcePortConnections, updatePortIOInfo, deletePortById, setPortProperties, addPort } from "../actions/graph";
+import { deletePortAliases, initConnections, initPorts, setPortAliases, updateSetMetaFromRemote, updateSourcePortConnections, deletePortById, setPortProperties, addPort } from "../actions/graph";
 import { addInstance, deleteInstanceById, initInstances, initPatchers, updateInstanceParameterDisplayName } from "../actions/patchers";
 import { initRunnerConfig, updateRunnerConfig } from "../actions/settings";
 import { initSets, setCurrentGraphSet, initSetPresets, setGraphSetPresetLatest, initSetViews, updateSetViewName, updateSetViewParameterList, deleteSetView, addSetView, updateSetViewOrder, setCurrentGraphSetDirtyState } from "../actions/sets";
@@ -22,7 +22,6 @@ import {
 	removeInstanceMessageInportByPath,
 	removeInstanceMessageOutportByPath
 } from "../actions/patchers";
-import { ConnectionType, PortDirection } from "../models/graph";
 import { showNotification } from "../actions/notifications";
 import { NotificationLevel } from "../models/notification";
 import { initTransport, updateTransportStatus } from "../actions/transport";
@@ -40,7 +39,6 @@ enum OSCQueryCommand {
 	ATTRIBUTES_CHANGED = "ATTRIBUTES_CHANGED"
 }
 
-const portIOPathMatcher = /^\/rnbo\/jack\/info\/ports\/(?<type>audio|midi)\/(?<direction>sources|sinks)$/;
 const portPropertiesPathMatcher = /^\/rnbo\/jack\/info\/ports\/properties\/(?<port>.+)$/;
 const portAliasPathMatcher = /^\/rnbo\/jack\/info\/ports\/aliases\/(?<port>.+)$/;
 const patchersPathMatcher = /^\/rnbo\/patchers/;
@@ -612,14 +610,6 @@ export class OSCQueryBridgeControllerPrivate {
 				}
 			}
 			return;
-		}
-
-		// Handle Graph Port I/O Updates
-		const portIOMatch = packet.address.match(portIOPathMatcher);
-		if (portIOMatch) {
-			const type: ConnectionType = portIOMatch.groups.type === "midi" ? ConnectionType.MIDI : ConnectionType.Audio;
-			const direction: PortDirection = portIOMatch.groups.direction === "sinks" ? PortDirection.Sink : PortDirection.Source;
-			return void dispatch(updatePortIOInfo(type, direction, packet.args as unknown as string[]));
 		}
 
 		// Handle Port Alias setting
