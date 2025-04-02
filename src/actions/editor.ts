@@ -1,7 +1,7 @@
 import { Connection, EdgeChange, NodeChange, ReactFlowInstance } from "reactflow";
 import { ActionBase, AppThunk } from "../lib/store";
 import { getConnection, getConnectionByPorts, getConnections, getEditorNodesAndPorts, getNode, getNodePosition, getNodes, getPort, getPorts } from "../selectors/graph";
-import { GraphConnectionRecord, GraphNode, GraphNodeRecord, NodeType } from "../models/graph";
+import { GraphConnectionRecord, GraphNode, NodeType } from "../models/graph";
 import { showNotification } from "./notifications";
 import { NotificationLevel } from "../models/notification";
 import { writePacket } from "osc";
@@ -139,36 +139,18 @@ export const removeEditorNodeById = (id: GraphNode["id"], updateSetMeta = true):
 				throw new Error(`Node with id ${id} does not exist.`);
 			}
 
-			if (node.type === NodeType.System) {
-				throw new Error(`System nodes cannot be removed (id: ${id}).`);
-			}
+			if (node.type === NodeType.System) return;
 
 			dispatch(unloadPatcherNodeOnRemote(node.instanceId));
 			if (updateSetMeta) updateSetMetaOnRemoteFromNodes(getNodes(state).delete(node.id).valueSeq().toArray());
 
 		} catch (err) {
 			dispatch(showNotification({
-				title: "Failed to node",
+				title: "Failed to delete node",
 				level: NotificationLevel.error,
 				message: err.message
 			}));
 			console.error(err);
-		}
-	};
-
-export const removeEditorNodesById = (ids: GraphNodeRecord["id"][]): AppThunk =>
-	(dispatch, getState) => {
-		for (const id of ids) {
-			dispatch(removeEditorNodeById(id, false));
-		}
-		// Only at the end update the meta to ensure all coord data has been removed
-		updateSetMetaOnRemoteFromNodes(getNodes(getState()).deleteAll(ids).valueSeq().toArray());
-	};
-
-export const removeEditorConnectionsById = (ids: GraphConnectionRecord["id"][]): AppThunk =>
-	(dispatch) => {
-		for (const id of ids) {
-			dispatch(removeEditorConnectionById(id));
 		}
 	};
 
@@ -217,7 +199,9 @@ export const applyEditorNodeChanges = (changes: NodeChange[]): AppThunk =>
 					break;
 				}
 
-				case "remove": // handled separetely via dedicated action
+				case "remove":
+					dispatch(removeEditorNodeById(change.id));
+					break;
 				case "add":
 				case "reset":
 				case "dimensions":
@@ -236,7 +220,9 @@ export const applyEditorEdgeChanges = (changes: EdgeChange[]): AppThunk =>
 					break;
 				}
 
-				case "remove": // handled separetely via dedicated action
+				case "remove":
+					dispatch(removeEditorConnectionById(change.id));
+					break;
 				case "add":
 				case "reset":
 				default:

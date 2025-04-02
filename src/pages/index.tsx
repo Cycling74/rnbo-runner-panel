@@ -6,14 +6,13 @@ import { getPatchersSortedByName } from "../selectors/patchers";
 import { getConnections, getEditorNodesAndPorts, getPorts } from "../selectors/graph";
 import GraphEditor from "../components/editor";
 import PresetDrawer from "../components/presets";
-import { Connection, Edge, EdgeChange, Node, NodeChange, ReactFlowInstance } from "reactflow";
+import { Connection, EdgeChange, NodeChange, ReactFlowInstance } from "reactflow";
 import { loadPatcherNodeOnRemote } from "../actions/graph";
 import {
 	applyEditorEdgeChanges, applyEditorNodeChanges, createEditorConnection,
 	editorZoomIn,
 	editorZoomOut,
 	generateEditorLayout,
-	removeEditorConnectionsById, removeEditorNodesById,
 	toggleEditorLockedState,
 	triggerEditorFitView
 } from "../actions/editor";
@@ -102,17 +101,9 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 		dispatch(applyEditorNodeChanges(changes));
 	}, [dispatch]);
 
-	const onNodesDelete = useCallback((nodes: Pick<Node, "id">[]) => {
-		dispatch(removeEditorNodesById(nodes.map(n => n.id)));
-	}, [dispatch]);
-
 	// Edges
 	const onEdgesChange = useCallback((changes: EdgeChange[]) => {
 		dispatch(applyEditorEdgeChanges(changes));
-	}, [dispatch]);
-
-	const onEdgesDelete = useCallback((edges: Pick<Edge, "id">[]) => {
-		dispatch(removeEditorConnectionsById(edges.map(e => e.id)));
 	}, [dispatch]);
 
 	// Sets
@@ -212,9 +203,7 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 
 					onConnect={ onConnectNodes }
 					onNodesChange={ onNodesChange }
-					onNodesDelete={ onNodesDelete }
 					onEdgesChange={ onEdgesChange }
-					onEdgesDelete={ onEdgesDelete }
 
 					onInit={ onEditorInit }
 					onAutoLayout={ onEditorAutoLayout }
