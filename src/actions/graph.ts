@@ -338,6 +338,7 @@ export const updateSetMetaFromRemote = (setMeta: OSCQuerySetMeta): AppThunk =>
 			const positions: NodePositionRecord[] = [];
 
 			if (hasExistingPositionData) {
+				const remainingNodeIds = new Set<string>(getNodes(state).valueSeq().map(n => n.id).toArray());
 				const currentPositions = getNodePositions(state);
 
 				for (const [id, nodeMeta] of Object.entries(setMeta.nodes)) {
@@ -346,6 +347,19 @@ export const updateSetMetaFromRemote = (setMeta: OSCQuerySetMeta): AppThunk =>
 						:	NodePositionRecord.fromDescription(id, nodeMeta.position.x, nodeMeta.position.y);
 
 					positions.push(pos);
+					remainingNodeIds.delete(id);
+				}
+
+				// Ensure that all nodes have a position
+				if (remainingNodeIds.size > 0) {
+					let offset = -1;
+					const coords = getGraphEditorInstance(getState())?.project({ x: 0, y: 0 }) || { x: 0, y: 0 };
+					for (const nodeId of Array.from(remainingNodeIds.values())) {
+						if (!currentPositions.has(nodeId)) {
+							offset++;
+							positions.push(NodePositionRecord.fromDescription(nodeId, coords.x + offset * 75, coords.y + offset * 75));
+						}
+					}
 				}
 			} else {
 				positions.push(...(calculateLayout(
