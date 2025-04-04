@@ -1,8 +1,8 @@
 import Router from "next/router";
 import { ActionBase, AppThunk } from "../lib/store";
-import { MIDIMetaMapping, OSCQueryRNBOInstance, OSCQueryRNBOInstancePresetEntries, OSCQueryRNBOInstancesState, OSCQueryRNBOPatchersState, OSCValue, ParameterMetaJsonMap } from "../lib/types";
+import { MIDIMetaMapping, OSCQueryRNBOInstance, OSCQueryRNBOInstanceDataRefs, OSCQueryRNBOInstancePresetEntries, OSCQueryRNBOInstancesState, OSCQueryRNBOPatchersState, OSCValue, ParameterMetaJsonMap } from "../lib/types";
 import { PatcherInstanceRecord } from "../models/instance";
-import { getPatcherInstance, getPatcherInstanceParametersByInstanceId, getPatcherInstanceMessageInportsByInstanceId, getPatcherInstanceMesssageOutportsByInstanceId, getPatcherInstanceMessageInportByPath, getPatcherInstanceMessageOutportByPath, getPatcherInstanceMesssageOutportsByInstanceIdAndTag, getPatcherInstanceParameterByPath, getPatcherInstanceParametersByInstanceIdAndName, getPatcherInstanceMessageInportsByInstanceIdAndTag, getPatcherInstances, getPatcherInstanceMessageInports, getPatcherInstanceMessageOutports, getPatcherInstanceParameters } from "../selectors/patchers";
+import { getPatcherInstance, getPatcherInstanceParametersByInstanceId, getPatcherInstanceMessageInportsByInstanceId, getPatcherInstanceMesssageOutportsByInstanceId, getPatcherInstanceMessageInportByPath, getPatcherInstanceMessageOutportByPath, getPatcherInstanceMesssageOutportsByInstanceIdAndTag, getPatcherInstanceParameterByPath, getPatcherInstanceParametersByInstanceIdAndName, getPatcherInstanceMessageInportsByInstanceIdAndTag, getPatcherInstances, getPatcherInstanceMessageInports, getPatcherInstanceMessageOutports, getPatcherInstanceParameters, getPatcherInstanceDataRefs, getPatcherInstanceDataRefsByInstanceIdAndName, getPatcherInstanceDataRefByPath, getPatcherInstanceDataRefsByInstanceId } from "../selectors/patchers";
 import { getAppSetting } from "../selectors/settings";
 import { ParameterRecord } from "../models/parameter";
 import { MessagePortRecord } from "../models/messageport";
@@ -41,7 +41,12 @@ export enum PatcherActionType {
 	SET_MESSAGE_OUTPORT = "SET_MESSAGE_OUTPORT",
 	SET_MESSAGE_OUTPORTS = "SET_MESSAGE_OUTPORTS",
 	DELETE_MESSAGE_OUTPORT = "DELETE_MESSAGE_OUTPORT",
-	DELETE_MESSAGE_OUTPORTS = "DELETE_MESSAGE_OUTPORTS"
+	DELETE_MESSAGE_OUTPORTS = "DELETE_MESSAGE_OUTPORTS",
+
+	SET_DATA_REF = "SET_DATA_REF",
+	SET_DATA_REFS = "SET_DATA_REFS",
+	DELETE_DATA_REF = "DELETE_DATA_REF",
+	DELETE_DATA_REFS = "DELETE_DATA_REFS"
 }
 
 export interface IInitPatchers extends ActionBase {
@@ -163,10 +168,39 @@ export interface IDeleteInstanceMessageOutports extends ActionBase {
 	};
 }
 
+export interface ISetInstanceDataRef extends ActionBase {
+	type: PatcherActionType.SET_DATA_REF;
+	payload: {
+		ref: DataRefRecord;
+	};
+}
+
+export interface ISetInstanceDataRefs extends ActionBase {
+	type: PatcherActionType.SET_DATA_REFS;
+	payload: {
+		refs: DataRefRecord[];
+	};
+}
+
+export interface IDeleteInstanceDataRef extends ActionBase {
+	type: PatcherActionType.DELETE_DATA_REF;
+	payload: {
+		ref: DataRefRecord;
+	};
+}
+
+export interface IDeleteInstanceDataRefs extends ActionBase {
+	type: PatcherActionType.DELETE_DATA_REFS;
+	payload: {
+		refs: DataRefRecord[];
+	};
+}
+
 export type InstanceAction = IInitPatchers | ISetInstance | ISetInstances | IDeleteInstance | IDeleteInstances |
 ISetInstanceParameter | ISetInstanceParameters | IDeleteInstanceParameter | IDeleteInstanceParameters |
 ISetInstanceMessageInport | ISetInstanceMessageInports | IDeleteInstanceMessageInport | IDeleteInstanceMessageInports |
-ISetInstanceMessageOutport | ISetInstanceMessageOutports | IDeleteInstanceMessageOutport | IDeleteInstanceMessageOutports;
+ISetInstanceMessageOutport | ISetInstanceMessageOutports | IDeleteInstanceMessageOutport | IDeleteInstanceMessageOutports |
+ISetInstanceDataRef | ISetInstanceDataRefs | IDeleteInstanceDataRef | IDeleteInstanceDataRefs;
 
 export const initPatchers = (patchersInfo: OSCQueryRNBOPatchersState): IInitPatchers => {
 
@@ -346,6 +380,34 @@ export const deleteInstanceMessageOutports = (ports: MessagePortRecord[]): IDele
 	}
 });
 
+export const setInstanceDataRef = (ref: DataRefRecord): ISetInstanceDataRef => ({
+	type: PatcherActionType.SET_DATA_REF,
+	payload: {
+		ref
+	}
+});
+
+export const setInstanceDataRefs = (refs: DataRefRecord[]): ISetInstanceDataRefs => ({
+	type: PatcherActionType.SET_DATA_REFS,
+	payload: {
+		refs
+	}
+});
+
+export const deleteInstanceDataRef = (ref: DataRefRecord): IDeleteInstanceDataRef => ({
+	type: PatcherActionType.DELETE_DATA_REF,
+	payload: {
+		ref
+	}
+});
+
+export const deleteInstanceDataRefs = (refs: DataRefRecord[]): IDeleteInstanceDataRefs => ({
+	type: PatcherActionType.DELETE_DATA_REFS,
+	payload: {
+		refs
+	}
+});
+
 // Init from State
 export const initInstances = (instanceInfo: OSCQueryRNBOInstancesState): AppThunk =>
 	(dispatch, getState) => {
@@ -356,6 +418,7 @@ export const initInstances = (instanceInfo: OSCQueryRNBOInstancesState): AppThun
 		const instanceParameters: ParameterRecord[] = [];
 		const instanceMessageInports: MessagePortRecord[] = [];
 		const instanceMessageOutports: MessagePortRecord[] = [];
+		const instanceDataRefs: DataRefRecord[] = [];
 
 		for (const [key, value] of Object.entries(instanceInfo.CONTENTS)) {
 			if (!/^\d+$/.test(key)) continue;
@@ -365,6 +428,7 @@ export const initInstances = (instanceInfo: OSCQueryRNBOInstancesState): AppThun
 			instanceParameters.push(...ParameterRecord.fromDescription(instance.id, info.CONTENTS.params));
 			instanceMessageInports.push(...MessagePortRecord.fromDescription(instance.id, info.CONTENTS.messages?.CONTENTS?.in));
 			instanceMessageOutports.push(...MessagePortRecord.fromDescription(instance.id, info.CONTENTS.messages?.CONTENTS?.out));
+			instanceDataRefs.push(...DataRefRecord.fromDescription(instance.id, info.CONTENTS.data_refs));
 		}
 
 		// Clean up existing state
@@ -372,12 +436,14 @@ export const initInstances = (instanceInfo: OSCQueryRNBOInstancesState): AppThun
 		dispatch(deleteInstanceParameters(getPatcherInstanceParameters(state).valueSeq().toArray()));
 		dispatch(deleteInstanceMessageInports(getPatcherInstanceMessageInports(state).valueSeq().toArray()));
 		dispatch(deleteInstanceMessageOutports(getPatcherInstanceMessageOutports(state).valueSeq().toArray()));
+		dispatch(deleteInstanceDataRefs(getPatcherInstanceDataRefs(state).valueSeq().toArray()));
 
 		// Set New Instance State
 		dispatch(setInstances(instances));
 		dispatch(setInstanceParameters(instanceParameters));
 		dispatch(setInstanceMessageInports(instanceMessageInports));
 		dispatch(setInstanceMessageOutports(instanceMessageOutports));
+		dispatch(setInstanceDataRefs(instanceDataRefs));
 	};
 
 // Trigger Events on Remote OSCQuery Runner
@@ -623,7 +689,7 @@ export const setInstanceDataRefValueOnRemote = (instance: PatcherInstanceRecord,
 	() => {
 
 		const message = {
-			address: `${instance.path}/data_refs/${dataref.id}`,
+			address: dataref.path,
 			args: [
 				{ type: "s", value: file?.fileName || "" } // no files unsets
 			]
@@ -635,7 +701,7 @@ export const setInstanceDataRefValueOnRemote = (instance: PatcherInstanceRecord,
 export const clearInstanceDataRefValueOnRemote = (instance: PatcherInstanceRecord, dataref: DataRefRecord): AppThunk =>
 	async (dispatch) => {
 		const dialogResult = await showConfirmDialog({
-			text: `Are you sure you want to clear the buffer mapping for ${dataref.id }?`,
+			text: `Are you sure you want to clear the buffer mapping for ${dataref.name } on ${instance.displayName}?`,
 			actions: {
 				confirm: { label: "Clear", color: "red" }
 			}
@@ -786,11 +852,13 @@ export const addInstance = (desc: OSCQueryRNBOInstance): AppThunk =>
 		const parameters = ParameterRecord.fromDescription(instance.id, desc.CONTENTS.params);
 		const messageInports = MessagePortRecord.fromDescription(instance.id, desc.CONTENTS.messages?.CONTENTS?.in);
 		const messageOutports = MessagePortRecord.fromDescription(instance.id, desc.CONTENTS.messages?.CONTENTS?.out);
+		const dataRefs = DataRefRecord.fromDescription(instance.id, desc.CONTENTS.data_refs);
 
 		dispatch(setInstance(instance));
 		dispatch(setInstanceParameters(parameters));
 		dispatch(setInstanceMessageInports(messageInports));
 		dispatch(setInstanceMessageOutports(messageOutports));
+		dispatch(setInstanceDataRefs(dataRefs));
 	};
 
 export const deleteInstanceById = (instanceId: PatcherInstanceRecord["id"]): AppThunk =>
@@ -947,22 +1015,6 @@ export const updateInstanceParameters = (instanceId: string, desc: OSCQueryRNBOI
 		}
 	};
 
-export const updateInstanceDataRefValue = (instanceId: string, name: string, value: string): AppThunk =>
-	(dispatch, getState) => {
-		try {
-			const state = getState();
-
-			const instance = getPatcherInstance(state, instanceId);
-			if (!instance) return;
-
-			dispatch(setInstance(
-				instance.setDataRefValue(name, value)
-			));
-		} catch (e) {
-			console.log(e);
-		}
-	};
-
 export const updateInstanceParameterValue = (instanceId: string, name: ParameterRecord["name"], value: number): AppThunk =>
 	(dispatch, getState) => {
 		try {
@@ -984,6 +1036,52 @@ export const updateInstanceParameterValueNormalized = (instanceId: string, name:
 			if (!param) return;
 
 			dispatch(setInstanceParameter(param.setNormalizedValue(value)));
+		} catch (e) {
+			console.log(e);
+		}
+	};
+
+export const updateInstanceDataRefs = (instanceId: string, desc: OSCQueryRNBOInstanceDataRefs): AppThunk =>
+	(dispatch, getState) => {
+		try {
+			if (!desc) return;
+
+			const state = getState();
+			const instance = getPatcherInstance(state, instanceId);
+			if (!instance) return;
+
+			const currentRefs = getPatcherInstanceDataRefsByInstanceId(state, instance.id);
+			dispatch(deleteInstanceDataRefs(currentRefs.valueSeq().toArray()));
+
+			const newRefs = DataRefRecord.fromDescription(instance.id, desc);
+			dispatch(setInstanceDataRefs(newRefs));
+		} catch (e) {
+			console.log(e);
+		}
+	};
+
+export const removeInstanceDataRefByPath = (path: string): AppThunk =>
+	(dispatch, getState) => {
+		try {
+			const state = getState();
+			const dataRef = getPatcherInstanceDataRefByPath(state, path);
+			if (!dataRef) return;
+
+			dispatch(deleteInstanceDataRef(dataRef));
+		} catch (e) {
+			console.log(e);
+		}
+	};
+
+
+export const updateInstanceDataRefValue = (instanceId: string, name: string, value: string): AppThunk =>
+	(dispatch, getState) => {
+		try {
+			const state = getState();
+			const dataRef = getPatcherInstanceDataRefsByInstanceIdAndName(state, instanceId, name);
+			if (!dataRef) return;
+
+			dispatch(setInstanceDataRef(dataRef.setValue(value)));
 		} catch (e) {
 			console.log(e);
 		}
@@ -1126,6 +1224,20 @@ export const updateInstanceMessageInportMeta = (instanceId: string, tag: Message
 			if (!port) return;
 
 			dispatch(setInstanceMessageInport(port.setMeta(value)));
+		} catch (e) {
+			console.log(e);
+		}
+	};
+
+export const updateInstanceDataRefMeta = (instanceId: string, name: DataRefRecord["name"], value: string): AppThunk =>
+	(dispatch, getState) => {
+		try {
+			const state = getState();
+
+			const dataRef = getPatcherInstanceDataRefsByInstanceIdAndName(state, instanceId, name);
+			if (!dataRef) return;
+
+			dispatch(setInstanceDataRef(dataRef.setMeta(value)));
 		} catch (e) {
 			console.log(e);
 		}

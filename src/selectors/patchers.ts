@@ -7,6 +7,7 @@ import { MessagePortRecord } from "../models/messageport";
 import { PatcherExportRecord } from "../models/patcher";
 import { SortOrder } from "../lib/constants";
 import { GraphSetViewRecord } from "../models/set";
+import { DataRefRecord } from "../models/dataref";
 
 export const getPatcherExports = (state: RootStateType): ImmuMap<PatcherExportRecord["id"], PatcherExportRecord> => {
 	return state.patchers.exports;
@@ -254,5 +255,51 @@ export const getPatcherInstanceMesssageOutportsByInstanceIdAndTag = createSelect
 	],
 	(ports, instanceId, tag): MessagePortRecord | undefined => {
 		return ports.find(p => p.instanceId === instanceId && p.tag === tag);
+	}
+);
+
+
+export const getPatcherInstanceDataRefs = (state: RootStateType): ImmuMap<DataRefRecord["id"], DataRefRecord> => state.patchers.instanceDataRefs;
+
+export const getPatcherInstanceDataRef = createSelector(
+	[
+		getPatcherInstanceDataRefs,
+		(state: RootStateType, id: DataRefRecord["id"]): DataRefRecord["id"] => id
+	],
+	(refs, id): DataRefRecord | undefined => {
+		return refs.get(id);
+	}
+);
+
+export const getPatcherInstanceDataRefByPath = createSelector(
+	[
+		getPatcherInstanceDataRefs,
+		(state: RootStateType, path: DataRefRecord["path"]): DataRefRecord["path"] => path
+	],
+	(refs, path): DataRefRecord | undefined => {
+		return refs.find(r => r.path === path);
+	}
+);
+
+export const getPatcherInstanceDataRefsByInstanceId = createSelector(
+	[
+		getPatcherInstanceDataRefs,
+		(state: RootStateType, instanceId: PatcherInstanceRecord["id"]): PatcherInstanceRecord["id"] => instanceId
+	],
+	(refs, instanceId): ImmuMap<DataRefRecord["id"], DataRefRecord> => {
+		return refs.filter(r => {
+			return r.instanceId === instanceId;
+		});
+	}
+);
+
+export const getPatcherInstanceDataRefsByInstanceIdAndName = createSelector(
+	[
+		getPatcherInstanceDataRefs,
+		(state: RootStateType, instanceId: PatcherInstanceRecord["id"]): PatcherInstanceRecord["id"] => instanceId,
+		(state: RootStateType, instanceId: PatcherInstanceRecord["id"], name: DataRefRecord["name"]): DataRefRecord["name"] => name
+	],
+	(refs, instanceId, name): DataRefRecord | undefined => {
+		return refs.find(r => r.instanceId === instanceId && r.name === name);
 	}
 );

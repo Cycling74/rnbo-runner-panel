@@ -8,7 +8,7 @@ import classes from "../../components/instance/instance.module.css";
 import { getAppStatus } from "../../selectors/appStatus";
 import { AppStatus, SortOrder } from "../../lib/constants";
 import Link from "next/link";
-import { getPatcherInstance, getPatcherInstanceParametersByInstanceId, getPatcherInstances, getPatcherInstanceMessageInportsByInstanceId, getPatcherInstanceMesssageOutportsByInstanceId } from "../../selectors/patchers";
+import { getPatcherInstance, getPatcherInstanceParametersByInstanceId, getPatcherInstances, getPatcherInstanceMessageInportsByInstanceId, getPatcherInstanceMesssageOutportsByInstanceId, getPatcherInstanceDataRefsByInstanceId } from "../../selectors/patchers";
 import { unloadPatcherNodeOnRemote } from "../../actions/graph";
 import { getAppSetting } from "../../selectors/settings";
 import { AppSetting } from "../../models/settings";
@@ -40,6 +40,7 @@ export default function Instance() {
 		parameters,
 		messageInports,
 		messageOutports,
+		dataRefs,
 		appStatus,
 		instances,
 		datafiles,
@@ -49,12 +50,12 @@ export default function Instance() {
 		sortOrder
 	] = useAppSelector((state: RootStateType) => {
 		const currentInstance = getPatcherInstance(state, instanceId);
-
 		return [
 			currentInstance,
 			currentInstance ? getPatcherInstanceParametersByInstanceId(state, currentInstance.id) : undefined,
 			currentInstance ? getPatcherInstanceMessageInportsByInstanceId(state, currentInstance.id) : undefined,
 			currentInstance ? getPatcherInstanceMesssageOutportsByInstanceId(state, currentInstance.id) : undefined,
+			currentInstance ? getPatcherInstanceDataRefsByInstanceId(state, currentInstance.id) : undefined,
 			getAppStatus(state),
 			getPatcherInstances(state),
 			getDataFilesSortedByName(state, SortOrder.Asc),
@@ -157,6 +158,7 @@ export default function Instance() {
 				parameters={ parameters }
 				messageInports={ messageInports }
 				messageOutports={ messageOutports }
+				dataRefs={ dataRefs }
 				datafiles={ datafiles }
 				enabledMessageOuput={ enabledMessageOuput }
 				paramSortAttr={ sortAttr }

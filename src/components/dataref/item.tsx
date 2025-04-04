@@ -8,42 +8,42 @@ import { IconElement } from "../elements/icon";
 import { mdiCheck, mdiClose, mdiDotsVertical, mdiEraser, mdiPencil } from "@mdi/js";
 
 interface DataRefEntryProps {
-	dataref: DataRefRecord;
+	dataRef: DataRefRecord;
 	options: Seq.Indexed<DataFileRecord>;
 	onClear: (dataref: DataRefRecord) => any;
 	onUpdate: (dataref: DataRefRecord, file: DataFileRecord) => any;
 }
 
 const DataRefEntry: FunctionComponent<DataRefEntryProps> = memo(function WrappedDataRefEntry({
-	dataref,
+	dataRef,
 	options,
 	onClear,
 	onUpdate
 }: DataRefEntryProps) {
 
 	const [isEditing, setIsEditing] = useState<boolean>(false);
-	const [dataFile, setDataFile] = useState<DataFileRecord | undefined>(options.find(o => o.id === dataref.fileId));
+	const [dataFile, setDataFile] = useState<DataFileRecord | undefined>(options.find(o => o.id === dataRef.value));
 	const [showDropDown, setShowDropDown] = useState<boolean>(true);
 
 	const toggleEditing = useCallback(() => {
 		if (isEditing) { // reset name upon blur
-			setDataFile(options.find(o => o.id === dataref.fileId));
+			setDataFile(options.find(o => o.id === dataRef.value));
 		}
 		setIsEditing(!isEditing);
-	}, [setIsEditing, isEditing, dataref, setDataFile, options]);
+	}, [setIsEditing, isEditing, dataRef, setDataFile, options]);
 
 	const onSubmit = useCallback((e: FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
-		if (dataFile.id === dataref.fileId) {
+		if (dataFile.id === dataRef.value) {
 			setIsEditing(false);
 		} else {
-			onUpdate(dataref, dataFile);
+			onUpdate(dataRef, dataFile);
 		}
-	}, [dataFile, dataref, onUpdate, setIsEditing]);
+	}, [dataFile, dataRef, onUpdate, setIsEditing]);
 
 	const onClearDataRef = useCallback((e: MouseEvent<HTMLButtonElement>) => {
-		onClear(dataref);
-	}, [onClear, dataref]);
+		onClear(dataRef);
+	}, [onClear, dataRef]);
 
 	const onBlur = useCallback(() => setShowDropDown(false), [setShowDropDown]);
 	const onFocus = useCallback(() => setShowDropDown(true), [setShowDropDown]);
@@ -54,15 +54,15 @@ const DataRefEntry: FunctionComponent<DataRefEntryProps> = memo(function Wrapped
 	}, [options, setDataFile]);
 
 	useEffect(() => {
-		setDataFile(options.find(o => o.id === dataref.fileId));
+		setDataFile(options.find(o => o.id === dataRef.value));
 		setIsEditing(false);
-	}, [dataref, options, setDataFile, setIsEditing]);
+	}, [dataRef, options, setDataFile, setIsEditing]);
 
 	return (
 		<Table.Tr>
 			<Table.Td>
 				<Text fz="sm" truncate="end">
-					{ dataref.id }
+					{ dataRef.name }
 				</Text>
 			</Table.Td>
 			<Table.Td>

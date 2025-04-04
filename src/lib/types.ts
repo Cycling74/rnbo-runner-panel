@@ -48,6 +48,8 @@ export type ParameterMetaJsonMap = JsonMap & {
 	midi?: MIDIMetaMapping;
 };
 
+export type DataRefMetaJsonMap = JsonMap;
+
 export type OSCValue = string | number | null;
 
 export enum OSCAccess {
@@ -298,6 +300,17 @@ export type OSCQueryRNBOInstanceMessages = OSCQueryBaseNode & {
 	CONTENTS: Record<string, OSCQueryRNBOInstanceMessageInfo>;
 };
 
+
+export type OSCQueryRNBOInstanceDataRefInfo = OSCQueryStringValue & {
+	CONTENTS: {
+		meta: OSCQueryStringValue;
+	};
+};
+
+export type OSCQueryRNBOInstanceDataRefs = OSCQueryBaseNode & {
+	CONTENTS: Record<string, OSCQueryRNBOInstanceDataRefInfo>
+};
+
 export type OSCQueryRNBOInstancePresetEntries = OSCQueryListValue<string, string[]>;
 
 export type OSCQueryRNBOInstanceConnection = OSCQueryListValue<string, string[]>;
@@ -335,9 +348,7 @@ export type OSCQueryRNBOInstance = OSCQueryBaseNode & {
 			CONTENTS: Record<string, OSCQueryRNBOInstanceParameterInfo>;
 			VALUE: undefined
 		}
-		data_refs: OSCQueryBaseNode & {
-			CONTENTS: Record<string, OSCQueryStringValue>;
-		};
+		data_refs?: OSCQueryRNBOInstanceDataRefs;
 		presets: OSCQueryBaseNode & {
 			CONTENTS: {
 				entries: OSCQueryRNBOInstancePresetEntries;

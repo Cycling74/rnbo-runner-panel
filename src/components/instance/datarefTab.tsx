@@ -1,3 +1,4 @@
+import { Map as ImmuMap, Seq } from "immutable";
 import { Stack } from "@mantine/core";
 import { FunctionComponent, memo, useCallback } from "react";
 import { useAppDispatch } from "../../hooks/useAppDispatch";
@@ -7,16 +8,17 @@ import { PatcherInstanceRecord } from "../../models/instance";
 import { clearInstanceDataRefValueOnRemote, setInstanceDataRefValueOnRemote } from "../../actions/patchers";
 import { DataRefRecord } from "../../models/dataref";
 import { DataFileRecord } from "../../models/datafile";
-import { Seq } from "immutable";
 
 export type InstanceDataRefTabProps = {
 	instance: PatcherInstanceRecord;
 	datafiles: Seq.Indexed<DataFileRecord>;
+	dataRefs: ImmuMap<DataRefRecord["id"], DataRefRecord>;
 }
 
 const InstanceDataRefsTab: FunctionComponent<InstanceDataRefTabProps> = memo(function WrappedInstanceDataRefsTab({
 	instance,
-	datafiles
+	datafiles,
+	dataRefs
 }) {
 
 	const dispatch = useAppDispatch();
@@ -32,11 +34,11 @@ const InstanceDataRefsTab: FunctionComponent<InstanceDataRefTabProps> = memo(fun
 	return (
 		<Stack>
 			{
-				!instance.datarefs.size ? (
+				!dataRefs.size ? (
 					<div className={ classes.emptySection }>
 						This device has no buffers.
 					</div>
-				) : <DataRefList datarefs={ instance.datarefs } options={ datafiles } onSetDataRef={ onSetDataRef } onClearDataRef={ onClearDataRef } />
+				) : <DataRefList dataRefs={ dataRefs } options={ datafiles } onSetDataRef={ onSetDataRef } onClearDataRef={ onClearDataRef } />
 			}
 		</Stack>
 	);
