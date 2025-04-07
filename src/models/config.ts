@@ -1,5 +1,5 @@
 import { Record as ImmuRecord } from "immutable";
-import { OSCQueryRNBOState, OSCQueryRNBOInstanceConfig, OSCQueryRNBOJackConfig, OSCQueryStringValueRange, OSCQueryValueType, OSCQueryIntValue, OSCQueryStringValue, OSCQueryFloatValue, OSCQueryValueRange, OSCQueryBooleanValue, OSCQueryRNBOConfigState } from "../lib/types";
+import { OSCQueryRNBOState, OSCQueryRNBOInstancesConfig, OSCQueryRNBOJackConfig, OSCQueryStringValueRange, OSCQueryValueType, OSCQueryIntValue, OSCQueryStringValue, OSCQueryFloatValue, OSCQueryValueRange, OSCQueryBooleanValue, OSCQueryRNBOConfigState } from "../lib/types";
 import { getNumberValueOptions, getStringValueOptions } from "../lib/util";
 import { DEFAULT_MIDI_RANGE, DEFAULT_SAMPLE_RATES, SettingsTab } from "../lib/constants";
 
@@ -234,8 +234,8 @@ export class ConfigRecord extends ImmuRecord<ConfigRecordProps>({
 	public static arrayFromDescription(desc: OSCQueryRNBOState): Array<ConfigRecord> {
 		const result: Array<ConfigRecord> = [];
 
-		const instConfig: Partial<OSCQueryRNBOInstanceConfig["CONTENTS"]> = desc.CONTENTS.inst.CONTENTS.config?.CONTENTS || {};
-		for (const key of Object.keys(instanceConfigDetails) as Array<keyof OSCQueryRNBOInstanceConfig["CONTENTS"]>) {
+		const instConfig: Partial<OSCQueryRNBOInstancesConfig["CONTENTS"]> = desc.CONTENTS.inst.CONTENTS.config?.CONTENTS || {};
+		for (const key of Object.keys(instanceConfigDetails) as Array<keyof OSCQueryRNBOInstancesConfig["CONTENTS"]>) {
 
 			const value = instConfig[key];
 			if (!value) continue;

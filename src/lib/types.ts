@@ -160,7 +160,7 @@ export type OSCQueryRNBOConfigState = OSCQueryBaseNode & {
 	}
 };
 
-export type OSCQueryRNBOInstanceConfig = OSCQueryBaseNode & {
+export type OSCQueryRNBOInstancesConfig = OSCQueryBaseNode & {
 	CONTENTS: {
 		auto_connect_audio: OSCQueryBooleanValue;
 		auto_connect_audio_indexed: OSCQueryBooleanValue;
@@ -432,7 +432,7 @@ export type OSCQueryRNBOInstancesControlState = OSCQueryBaseNode & {
 export type OSCQueryRNBOInstancesState = OSCQueryBaseNode & {
 	CONTENTS: Record<number, OSCQueryRNBOInstance> & {
 		control: OSCQueryRNBOInstancesControlState;
-		config: OSCQueryRNBOInstanceConfig;
+		config: OSCQueryRNBOInstancesConfig;
 	}
 };
 
