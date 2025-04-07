@@ -235,11 +235,7 @@ export const saveCurrentGraphSetOnRemoteAs = (): AppThunk =>
 				actions: {
 					confirm: { label: "Save Graph" }
 				},
-				validate: (v: string) => {
-					const value = v.trim();
-					if (!value?.length) return "Please provide a valid, non empty name.";
-					return true;
-				}
+				validate: validateGraphSetName
 			});
 
 			if (dialogResult === DialogResult.Cancel) {
