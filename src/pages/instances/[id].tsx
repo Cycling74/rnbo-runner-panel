@@ -3,7 +3,7 @@ import { useAppDispatch, useAppSelector } from "../../hooks/useAppDispatch";
 import { RootStateType } from "../../lib/store";
 import InstanceComponent from "../../components/instance";
 import { useRouter } from "next/router";
-import { Button, Group, NativeSelect, Stack } from "@mantine/core";
+import { ActionIcon, Button, Group, Menu, NativeSelect, Stack } from "@mantine/core";
 import classes from "../../components/instance/instance.module.css";
 import { getAppStatus } from "../../selectors/appStatus";
 import { AppStatus, SortOrder } from "../../lib/constants";
@@ -14,12 +14,12 @@ import { getAppSetting } from "../../selectors/settings";
 import { AppSetting } from "../../models/settings";
 import PresetDrawer from "../../components/presets";
 import { PresetRecord } from "../../models/preset";
-import { destroyPresetOnRemoteInstance, renamePresetOnRemoteInstance, setInitialPresetOnRemoteInstance, loadPresetOnRemoteInstance, onOverwritePresetOnRemoteInstance, createPresetOnRemoteInstance } from "../../actions/patchers";
+import { destroyPresetOnRemoteInstance, renamePresetOnRemoteInstance, setInitialPresetOnRemoteInstance, loadPresetOnRemoteInstance, onOverwritePresetOnRemoteInstance, createPresetOnRemoteInstance, changeAliasOnRemoteInstance } from "../../actions/patchers";
 import { useDisclosure } from "@mantine/hooks";
 import { getDataFilesSortedByName } from "../../selectors/datafiles";
 import InstanceKeyboardModal from "../../components/keyroll/modal";
 import { IconElement } from "../../components/elements/icon";
-import { mdiCamera, mdiChartSankeyVariant, mdiPiano, mdiVectorSquare, mdiVectorSquareRemove } from "@mdi/js";
+import { mdiCamera, mdiChartSankeyVariant, mdiDotsVertical, mdiPencil, mdiPiano, mdiTrashCan, mdiVectorSquare } from "@mdi/js";
 import { ResponsiveButton } from "../../components/elements/responsiveButton";
 
 const collator = new Intl.Collator("en-US", { numeric: true });
@@ -98,6 +98,10 @@ export default function Instance() {
 		dispatch(setInitialPresetOnRemoteInstance(currentInstance, preset));
 	}, [dispatch, currentInstance]);
 
+	const onTriggerRenameInstance = useCallback(() => {
+		dispatch(changeAliasOnRemoteInstance(currentInstance));
+	}, [dispatch, currentInstance]);
+
 	if (!isReady || appStatus !== AppStatus.Ready) return null;
 
 	if (!currentInstance || !parameters || !messageInports || !messageOutports) {
@@ -132,25 +136,30 @@ export default function Instance() {
 				</div>
 				<Group style={{ flex: "0" }} wrap="nowrap" gap="xs" >
 					<ResponsiveButton
-						label="Delete"
-						tooltip="Delete Device"
-						icon={ mdiVectorSquareRemove }
-						onClick={ onUnloadInstance }
-						variant="outline"
-						color="red"
-					/>
-					<ResponsiveButton
-						label="Keyboard"
-						tooltip="Open Virtual Keyboard"
-						icon={ mdiPiano }
-						onClick={ toggleKeyboardModal }
-					/>
-					<ResponsiveButton
 						label="Presets"
 						tooltip="Open Device Preset Menu"
 						icon={ mdiCamera }
 						onClick={ togglePresetDrawer }
 					/>
+					<Menu position="bottom-end">
+						<Menu.Target>
+							<ActionIcon variant="default" size="lg">
+								<IconElement path={ mdiDotsVertical } />
+							</ActionIcon>
+						</Menu.Target>
+						<Menu.Dropdown>
+							<Menu.Item leftSection={ <IconElement path={ mdiPencil } /> } onClick={ onTriggerRenameInstance } >
+								Rename Device
+							</Menu.Item>
+							<Menu.Item leftSection={ <IconElement path={ mdiPiano } /> } onClick={ toggleKeyboardModal } >
+								Open Virtual Keyboard
+							</Menu.Item>
+							<Menu.Divider />
+							<Menu.Item leftSection={ <IconElement path={ mdiTrashCan } /> } onClick={ onUnloadInstance } color="red" >
+								Delete Device
+							</Menu.Item>
+						</Menu.Dropdown>
+					</Menu>
 				</Group>
 			</Group>
 			<InstanceComponent
