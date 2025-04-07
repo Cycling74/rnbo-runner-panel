@@ -1,6 +1,6 @@
 import { FunctionComponent, memo } from "react";
+import { Map as ImmuMap } from "immutable";
 import DataRefEntry from "./item";
-import { PatcherInstanceRecord } from "../../models/instance";
 import { DataRefRecord } from "../../models/dataref";
 import { Seq } from "immutable";
 import { Table } from "@mantine/core";
@@ -8,17 +8,21 @@ import classes from "./datarefs.module.css";
 import { DataFileRecord } from "../../models/datafile";
 
 export type DataRefListProps = {
-	onClearDataRef: (dataref: DataRefRecord) => any;
-	onSetDataRef: (dataref: DataRefRecord, file: DataFileRecord) => any;
-	datarefs: PatcherInstanceRecord["datarefs"];
+	onClearDataRef: (dataref: DataRefRecord) => void;
+	onSetDataRef: (dataref: DataRefRecord, file: DataFileRecord) => void;
+	onRestoreMetadata: (param: DataRefRecord) => void;
+	onSaveMetadata: (param: DataRefRecord, meta: string) => void;
+	dataRefs: ImmuMap<DataRefRecord["id"], DataRefRecord>;
 	options: Seq.Indexed<DataFileRecord>; // soundfile list
 }
 
 const DataRefList: FunctionComponent<DataRefListProps> = memo(function WrappedDataRefList({
 	onClearDataRef,
 	onSetDataRef,
-	datarefs,
-	options
+	dataRefs,
+	options,
+	onSaveMetadata,
+	onRestoreMetadata
 }) {
 	return (
 		<Table layout="fixed" className={ classes.dataRefTable } verticalSpacing="sm" maw="100%" highlightOnHover>
@@ -31,13 +35,15 @@ const DataRefList: FunctionComponent<DataRefListProps> = memo(function WrappedDa
 			</Table.Thead>
 			<Table.Tbody>
 				{
-					datarefs.valueSeq().map(ref => (
+					dataRefs.valueSeq().map(ref => (
 						<DataRefEntry
 							key={ ref.id }
-							dataref={ ref }
+							dataRef={ ref }
 							options={ options }
 							onClear={ onClearDataRef }
 							onUpdate={ onSetDataRef }
+							onRestoreMetadata={ onRestoreMetadata }
+							onSaveMetadata={ onSaveMetadata }
 						/>
 					))
 				}

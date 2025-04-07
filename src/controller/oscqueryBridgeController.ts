@@ -6,7 +6,7 @@ import { ReconnectingWebsocket } from "../lib/reconnectingWs";
 import { AppStatus, RunnerCmdMethod } from "../lib/constants";
 import { OSCQueryRNBOState, OSCQueryRNBOInstance, OSCQueryRNBOPatchersState, OSCValue, OSCQueryRNBOInstancesMetaState, OSCQuerySetMeta } from "../lib/types";
 import { deletePortAliases, initConnections, initPorts, setPortAliases, updateSetMetaFromRemote, updateSourcePortConnections, deletePortById, setPortProperties, addPort } from "../actions/graph";
-import { addInstance, deleteInstanceById, initInstances, initPatchers, updateInstanceParameterDisplayName } from "../actions/patchers";
+import { addInstance, deleteInstanceById, initInstances, initPatchers, removeInstanceDataRefByPath, updateInstanceDataRefMeta, updateInstanceDataRefs, updateInstanceParameterDisplayName } from "../actions/patchers";
 import { initRunnerConfig, updateRunnerConfig } from "../actions/settings";
 import { initSets, setCurrentGraphSet, initSetPresets, setGraphSetPresetLatest, initSetViews, updateSetViewName, updateSetViewParameterList, deleteSetView, addSetView, updateSetViewOrder, setCurrentGraphSetDirtyState } from "../actions/sets";
 import { initDataFiles } from "../actions/datafiles";
@@ -391,6 +391,12 @@ export class OSCQueryBridgeControllerPrivate {
 			// Add Message Inputs & Outputs
 			const messagesInfo = await this._requestState<OSCQueryRNBOInstance["CONTENTS"]["messages"]>(`/rnbo/inst/${instanceId}/messages`);
 			return void dispatch(updateInstanceMessages(instanceId, messagesInfo));
+		} else if (
+			instInfoMatch.groups.content === "data_refs"
+		) {
+			// Add DataRefs
+			const dataRefInfo = await this._requestState<OSCQueryRNBOInstance["CONTENTS"]["data_refs"]>(`/rnbo/inst/${instanceId}/data_refs`);
+			return void dispatch(updateInstanceDataRefs(instanceId, dataRefInfo));
 		}
 	}
 
@@ -470,6 +476,14 @@ export class OSCQueryBridgeControllerPrivate {
 			!instInfoMatch.groups.rest.endsWith("meta")
 		) {
 			return void dispatch(removeInstanceMessageOutportByPath(path));
+		}
+
+		// Removed DataRef
+		if (
+			instInfoMatch.groups.content === "data_refs" &&
+			!instInfoMatch.groups.rest.endsWith("meta")
+		) {
+			return void dispatch(removeInstanceDataRefByPath(path));
 		}
 	}
 
@@ -686,12 +700,14 @@ export class OSCQueryBridgeControllerPrivate {
 			return void dispatch(updateInstancePresetEntries(instanceId, presetInfo.CONTENTS.entries));
 		}
 
-		// Port meta
+		// Port / Data Ref meta
 		if (packetMatch.groups.rest.endsWith("/meta")) {
 			if (packetMatch.groups.content === "messages/out") {
 				return void dispatch(updateInstanceMessageOutportMeta(instanceId, packetMatch.groups.rest.replace(/\/meta$/, ""), packet.args[0] as unknown as string));
 			} else if (packetMatch.groups.content === "messages/in") {
 				return void dispatch(updateInstanceMessageInportMeta(instanceId, packetMatch.groups.rest.replace(/\/meta$/, ""), packet.args[0] as unknown as string));
+			} else if (packetMatch.groups.content === "data_refs") {
+				return void dispatch(updateInstanceDataRefMeta(instanceId, packetMatch.groups.rest.replace(/\/meta$/, ""), packet.args[0] as unknown as string));
 			}
 		}
 
@@ -704,16 +720,15 @@ export class OSCQueryBridgeControllerPrivate {
 			return void dispatch(updateInstanceMessageOutportValue(instanceId, packetMatch.groups.rest, packet.args as any as OSCValue | OSCValue[]));
 		}
 
+		// Data Refs
 		if (
 			packetMatch.groups.content === "data_refs" &&
-			packetMatch.groups.rest?.length
+			packetMatch.groups.rest?.length &&
+			!packetMatch.groups.rest?.includes("/") &&
+			packet.args.length >= 1 &&
+			typeof packet.args[0] === "string"
 		) {
-
-			if (packet.args.length >= 1 && typeof packet.args[0] === "string") {
-				return void dispatch(updateInstanceDataRefValue(instanceId, packetMatch.groups.rest, packet.args[0] as string));
-			}
-			console.log("unexpected dataref OSC packet format", { packet });
-
+			return void dispatch(updateInstanceDataRefValue(instanceId, packetMatch.groups.rest, packet.args[0] as string));
 		}
 
 		if (packetMatch.groups.content === "midi/last") {

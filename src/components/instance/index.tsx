@@ -13,6 +13,7 @@ import { IconElement } from "../elements/icon";
 import { mdiFileMusic, mdiSwapHorizontal, mdiTune } from "@mdi/js";
 import { ParameterRecord } from "../../models/parameter";
 import { MessagePortRecord } from "../../models/messageport";
+import { DataRefRecord } from "../../models/dataref";
 
 const tabs = [
 	{ icon: mdiTune, value: InstanceTab.Parameters, label: "Parameters" },
@@ -23,6 +24,7 @@ const tabs = [
 export type InstanceProps = {
 	instance: PatcherInstanceRecord;
 	datafiles: Seq.Indexed<DataFileRecord>
+	dataRefs: ImmuMap<DataRefRecord["id"], DataRefRecord>;
 	enabledMessageOuput: AppSettingRecord;
 	messageInports: ImmuMap<MessagePortRecord["id"], MessagePortRecord>;
 	messageOutports: ImmuMap<MessagePortRecord["id"], MessagePortRecord>;
@@ -34,6 +36,7 @@ export type InstanceProps = {
 const Instance: FunctionComponent<InstanceProps> = memo(function WrappedInstance({
 	instance,
 	datafiles,
+	dataRefs,
 	enabledMessageOuput,
 	messageInports,
 	messageOutports,
@@ -74,7 +77,7 @@ const Instance: FunctionComponent<InstanceProps> = memo(function WrappedInstance
 					<InstanceMessagesTab instance={ instance } messageInports={ messageInports } messageOutports={ messageOutports } outputEnabled={ enabledMessageOuput.value as boolean } />
 				</Tabs.Panel>
 				<Tabs.Panel value={ InstanceTab.DataRefs } >
-					<InstanceDataRefsTab instance={ instance } datafiles={ datafiles } />
+					<InstanceDataRefsTab instance={ instance } datafiles={ datafiles } dataRefs={ dataRefs } />
 				</Tabs.Panel>
 			</div>
 		</Tabs>

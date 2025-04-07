@@ -5,45 +5,56 @@ import { ActionIcon, Group, Menu, Select, Table, Text, TextInput, Tooltip } from
 import { Seq } from "immutable";
 import { DataFileRecord } from "../../models/datafile";
 import { IconElement } from "../elements/icon";
-import { mdiCheck, mdiClose, mdiDotsVertical, mdiEraser, mdiPencil } from "@mdi/js";
+import { mdiCheck, mdiClose, mdiCodeBraces, mdiDotsVertical, mdiEraser, mdiPencil } from "@mdi/js";
+import { useDisclosure } from "@mantine/hooks";
+import { MetadataScope } from "../../lib/constants";
+import { MetaEditorModal } from "../meta/metaEditorModal";
 
 interface DataRefEntryProps {
-	dataref: DataRefRecord;
+	dataRef: DataRefRecord;
 	options: Seq.Indexed<DataFileRecord>;
-	onClear: (dataref: DataRefRecord) => any;
-	onUpdate: (dataref: DataRefRecord, file: DataFileRecord) => any;
+	onClear: (dataref: DataRefRecord) => void;
+	onUpdate: (dataref: DataRefRecord, file: DataFileRecord) => void;
+	onRestoreMetadata: (param: DataRefRecord) => void;
+	onSaveMetadata: (param: DataRefRecord, meta: string) => void;
 }
 
 const DataRefEntry: FunctionComponent<DataRefEntryProps> = memo(function WrappedDataRefEntry({
-	dataref,
+	dataRef,
 	options,
 	onClear,
-	onUpdate
+	onUpdate,
+	onRestoreMetadata,
+	onSaveMetadata
 }: DataRefEntryProps) {
 
 	const [isEditing, setIsEditing] = useState<boolean>(false);
-	const [dataFile, setDataFile] = useState<DataFileRecord | undefined>(options.find(o => o.id === dataref.fileId));
+	const [dataFile, setDataFile] = useState<DataFileRecord | undefined>(options.find(o => o.id === dataRef.value));
 	const [showDropDown, setShowDropDown] = useState<boolean>(true);
+
+	const [showMetaEditor, { toggle: toggleMetaEditor, close: closeMetaEditor }] = useDisclosure();
+	const onSaveMeta = useCallback((meta: string) => onSaveMetadata(dataRef, meta), [dataRef, onSaveMetadata]);
+	const onRestoreMeta = useCallback(() => onRestoreMetadata(dataRef), [dataRef, onRestoreMetadata]);
 
 	const toggleEditing = useCallback(() => {
 		if (isEditing) { // reset name upon blur
-			setDataFile(options.find(o => o.id === dataref.fileId));
+			setDataFile(options.find(o => o.id === dataRef.value));
 		}
 		setIsEditing(!isEditing);
-	}, [setIsEditing, isEditing, dataref, setDataFile, options]);
+	}, [setIsEditing, isEditing, dataRef, setDataFile, options]);
 
 	const onSubmit = useCallback((e: FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
-		if (dataFile.id === dataref.fileId) {
+		if (dataFile.id === dataRef.value) {
 			setIsEditing(false);
 		} else {
-			onUpdate(dataref, dataFile);
+			onUpdate(dataRef, dataFile);
 		}
-	}, [dataFile, dataref, onUpdate, setIsEditing]);
+	}, [dataFile, dataRef, onUpdate, setIsEditing]);
 
 	const onClearDataRef = useCallback((e: MouseEvent<HTMLButtonElement>) => {
-		onClear(dataref);
-	}, [onClear, dataref]);
+		onClear(dataRef);
+	}, [onClear, dataRef]);
 
 	const onBlur = useCallback(() => setShowDropDown(false), [setShowDropDown]);
 	const onFocus = useCallback(() => setShowDropDown(true), [setShowDropDown]);
@@ -54,15 +65,27 @@ const DataRefEntry: FunctionComponent<DataRefEntryProps> = memo(function Wrapped
 	}, [options, setDataFile]);
 
 	useEffect(() => {
-		setDataFile(options.find(o => o.id === dataref.fileId));
+		setDataFile(options.find(o => o.id === dataRef.value));
 		setIsEditing(false);
-	}, [dataref, options, setDataFile, setIsEditing]);
+	}, [dataRef, options, setDataFile, setIsEditing]);
 
 	return (
 		<Table.Tr>
+			{
+				showMetaEditor ? (
+					<MetaEditorModal
+						onClose={ closeMetaEditor }
+						onRestore={ onRestoreMeta }
+						onSaveMeta={ onSaveMeta }
+						meta={ dataRef.metaString }
+						name={ dataRef.name }
+						scope={ MetadataScope.DataRef }
+					/>
+				) : null
+			}
 			<Table.Td>
 				<Text fz="sm" truncate="end">
-					{ dataref.id }
+					{ dataRef.name }
 				</Text>
 			</Table.Td>
 			<Table.Td>
@@ -120,6 +143,10 @@ const DataRefEntry: FunctionComponent<DataRefEntryProps> = memo(function Wrapped
 							<Menu.Item onClick={ toggleEditing } leftSection={ <IconElement path={ mdiPencil } /> } >
 								Change Source
 							</Menu.Item>
+							<Menu.Item leftSection={ <IconElement path={ mdiCodeBraces } /> } onClick={ toggleMetaEditor }>
+								Edit Metadata
+							</Menu.Item>
+							<Menu.Divider />
 							<Menu.Item color="red" leftSection={ <IconElement path={ mdiEraser } /> } onClick={ onClearDataRef } disabled={ !dataFile } >
 								Clear Buffer Content
 							</Menu.Item>

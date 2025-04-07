@@ -4,10 +4,12 @@ import { InstanceAction, PatcherActionType } from "../actions/patchers";
 import { ParameterRecord } from "../models/parameter";
 import { MessagePortRecord } from "../models/messageport";
 import { PatcherExportRecord } from "../models/patcher";
+import { DataRefRecord } from "../models/dataref";
 
 export interface PatcherState {
 	exports: ImmuMap<PatcherExportRecord["id"], PatcherExportRecord>;
 	instances: ImmuMap<PatcherInstanceRecord["id"], PatcherInstanceRecord>;
+	instanceDataRefs: ImmuMap<DataRefRecord["id"], DataRefRecord>;
 	instanceMessageInports: ImmuMap<MessagePortRecord["id"], MessagePortRecord>;
 	instanceMessageOutports: ImmuMap<MessagePortRecord["id"], MessagePortRecord>;
 	instanceParameters: ImmuMap<ParameterRecord["id"], ParameterRecord>;
@@ -17,6 +19,7 @@ export const patchers = (state: PatcherState = {
 
 	exports: ImmuMap<PatcherExportRecord["id"], PatcherExportRecord>(),
 	instances: ImmuMap<PatcherInstanceRecord["id"], PatcherInstanceRecord>(),
+	instanceDataRefs: ImmuMap<DataRefRecord["id"], DataRefRecord>(),
 	instanceMessageInports: ImmuMap<MessagePortRecord["id"], MessagePortRecord>(),
 	instanceMessageOutports: ImmuMap<MessagePortRecord["id"], MessagePortRecord>(),
 	instanceParameters: ImmuMap<ParameterRecord["id"], ParameterRecord>()
@@ -198,6 +201,46 @@ export const patchers = (state: PatcherState = {
 			return {
 				...state,
 				instanceMessageOutports: state.instanceMessageOutports.deleteAll(ports.map(d => d.id))
+			};
+		}
+
+		case PatcherActionType.SET_DATA_REF: {
+			const { ref } = action.payload;
+
+			return {
+				...state,
+				instanceDataRefs: state.instanceDataRefs.set(ref.id, ref)
+			};
+		}
+
+		case PatcherActionType.SET_DATA_REFS: {
+			const { refs } = action.payload;
+
+			return {
+				...state,
+				instanceDataRefs: state.instanceDataRefs.withMutations(map => {
+					for (const ref of refs) {
+						map.set(ref.id, ref);
+					}
+				})
+			};
+		}
+
+		case PatcherActionType.DELETE_DATA_REF: {
+			const { ref } = action.payload;
+
+			return {
+				...state,
+				instanceDataRefs: state.instanceDataRefs.delete(ref.id)
+			};
+		}
+
+		case PatcherActionType.DELETE_DATA_REFS: {
+			const { refs } = action.payload;
+
+			return {
+				...state,
+				instanceDataRefs: state.instanceDataRefs.deleteAll(refs.map(r => r.id))
 			};
 		}
 
