@@ -103,7 +103,8 @@ export enum RunnerCmdMethod {
 export enum MetadataScope {
 	Parameter,
 	Inport,
-	Outport
+	Outport,
+	DataRef
 }
 
 export enum KnownPortGroup {

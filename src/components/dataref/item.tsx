@@ -5,25 +5,36 @@ import { ActionIcon, Group, Menu, Select, Table, Text, TextInput, Tooltip } from
 import { Seq } from "immutable";
 import { DataFileRecord } from "../../models/datafile";
 import { IconElement } from "../elements/icon";
-import { mdiCheck, mdiClose, mdiDotsVertical, mdiEraser, mdiPencil } from "@mdi/js";
+import { mdiCheck, mdiClose, mdiCodeBraces, mdiDotsVertical, mdiEraser, mdiPencil } from "@mdi/js";
+import { useDisclosure } from "@mantine/hooks";
+import { MetadataScope } from "../../lib/constants";
+import { MetaEditorModal } from "../meta/metaEditorModal";
 
 interface DataRefEntryProps {
 	dataRef: DataRefRecord;
 	options: Seq.Indexed<DataFileRecord>;
-	onClear: (dataref: DataRefRecord) => any;
-	onUpdate: (dataref: DataRefRecord, file: DataFileRecord) => any;
+	onClear: (dataref: DataRefRecord) => void;
+	onUpdate: (dataref: DataRefRecord, file: DataFileRecord) => void;
+	onRestoreMetadata: (param: DataRefRecord) => void;
+	onSaveMetadata: (param: DataRefRecord, meta: string) => void;
 }
 
 const DataRefEntry: FunctionComponent<DataRefEntryProps> = memo(function WrappedDataRefEntry({
 	dataRef,
 	options,
 	onClear,
-	onUpdate
+	onUpdate,
+	onRestoreMetadata,
+	onSaveMetadata
 }: DataRefEntryProps) {
 
 	const [isEditing, setIsEditing] = useState<boolean>(false);
 	const [dataFile, setDataFile] = useState<DataFileRecord | undefined>(options.find(o => o.id === dataRef.value));
 	const [showDropDown, setShowDropDown] = useState<boolean>(true);
+
+	const [showMetaEditor, { toggle: toggleMetaEditor, close: closeMetaEditor }] = useDisclosure();
+	const onSaveMeta = useCallback((meta: string) => onSaveMetadata(dataRef, meta), [dataRef, onSaveMetadata]);
+	const onRestoreMeta = useCallback(() => onRestoreMetadata(dataRef), [dataRef, onRestoreMetadata]);
 
 	const toggleEditing = useCallback(() => {
 		if (isEditing) { // reset name upon blur
@@ -60,6 +71,18 @@ const DataRefEntry: FunctionComponent<DataRefEntryProps> = memo(function Wrapped
 
 	return (
 		<Table.Tr>
+			{
+				showMetaEditor ? (
+					<MetaEditorModal
+						onClose={ closeMetaEditor }
+						onRestore={ onRestoreMeta }
+						onSaveMeta={ onSaveMeta }
+						meta={ dataRef.metaString }
+						name={ dataRef.name }
+						scope={ MetadataScope.DataRef }
+					/>
+				) : null
+			}
 			<Table.Td>
 				<Text fz="sm" truncate="end">
 					{ dataRef.name }
@@ -120,6 +143,10 @@ const DataRefEntry: FunctionComponent<DataRefEntryProps> = memo(function Wrapped
 							<Menu.Item onClick={ toggleEditing } leftSection={ <IconElement path={ mdiPencil } /> } >
 								Change Source
 							</Menu.Item>
+							<Menu.Item leftSection={ <IconElement path={ mdiCodeBraces } /> } onClick={ toggleMetaEditor }>
+								Edit Metadata
+							</Menu.Item>
+							<Menu.Divider />
 							<Menu.Item color="red" leftSection={ <IconElement path={ mdiEraser } /> } onClick={ onClearDataRef } disabled={ !dataFile } >
 								Clear Buffer Content
 							</Menu.Item>

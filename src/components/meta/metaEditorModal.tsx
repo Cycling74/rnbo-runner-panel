@@ -42,6 +42,14 @@ const scopeLabels: Record<MetadataScope, { nameField: { name: string; label: str
 		},
 		restoreTooltip: "Restore the default value that has been set on the [param] object at export time",
 		title: "Edit Parameter Metadata"
+	},
+	[MetadataScope.DataRef]: {
+		nameField: {
+			name: "dataref_name",
+			label: "Buffer Name"
+		},
+		restoreTooltip: "Restore the default value that has been set on the object at export time",
+		title: "Edit Buffer Metadata"
 	}
 };
 

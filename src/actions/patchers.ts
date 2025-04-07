@@ -685,33 +685,6 @@ export const setInstanceParameterValueNormalizedOnRemote = throttle((param: Para
 		dispatch(setInstanceParameter(param.setNormalizedValue(value)));
 	}, 10);
 
-export const setInstanceDataRefValueOnRemote = (instance: PatcherInstanceRecord, dataref: DataRefRecord, file?: DataFileRecord): AppThunk =>
-	() => {
-
-		const message = {
-			address: dataref.path,
-			args: [
-				{ type: "s", value: file?.fileName || "" } // no files unsets
-			]
-		};
-
-		oscQueryBridge.sendPacket(writePacket(message));
-	};
-
-export const clearInstanceDataRefValueOnRemote = (instance: PatcherInstanceRecord, dataref: DataRefRecord): AppThunk =>
-	async (dispatch) => {
-		const dialogResult = await showConfirmDialog({
-			text: `Are you sure you want to clear the buffer mapping for ${dataref.name } on ${instance.displayName}?`,
-			actions: {
-				confirm: { label: "Clear", color: "red" }
-			}
-		});
-
-		if (dialogResult === DialogResult.Confirm) {
-			dispatch(setInstanceDataRefValueOnRemote(instance, dataref));
-		}
-	};
-
 export const setInstanceParameterMetaOnRemote = (param: ParameterRecord, value: string): AppThunk =>
 	() => {
 		const message = {
@@ -728,6 +701,61 @@ export const restoreDefaultParameterMetaOnRemote = (param: ParameterRecord): App
 	() => {
 		const message = {
 			address: `${param.path}/meta`,
+			args: [
+				{ type: "s", value: "" }
+			]
+		};
+
+		oscQueryBridge.sendPacket(writePacket(message));
+	};
+
+export const setInstanceDataRefValueOnRemote = (dataref: DataRefRecord, file?: DataFileRecord): AppThunk =>
+	() => {
+
+		const message = {
+			address: dataref.path,
+			args: [
+				{ type: "s", value: file?.fileName || "" } // no files unsets
+			]
+		};
+
+		oscQueryBridge.sendPacket(writePacket(message));
+	};
+
+export const clearInstanceDataRefValueOnRemote = (dataref: DataRefRecord): AppThunk =>
+	async (dispatch, getState) => {
+
+		const instance = getPatcherInstance(getState(), dataref.instanceId);
+		if (!instance) return;
+
+		const dialogResult = await showConfirmDialog({
+			text: `Are you sure you want to clear the buffer mapping for ${ dataref.name } on ${instance.displayName}?`,
+			actions: {
+				confirm: { label: "Clear", color: "red" }
+			}
+		});
+
+		if (dialogResult === DialogResult.Confirm) {
+			dispatch(setInstanceDataRefValueOnRemote(dataref));
+		}
+	};
+
+export const setInstanceDataRefMetaOnRemote = (dataref: DataRefRecord, value: string): AppThunk =>
+	() => {
+		const message = {
+			address: `${dataref.path}/meta`,
+			args: [
+				{ type: "s", value }
+			]
+		};
+
+		oscQueryBridge.sendPacket(writePacket(message));
+	};
+
+export const restoreDefaultDataRefMetaOnRemote = (dataref: DataRefRecord): AppThunk =>
+	() => {
+		const message = {
+			address: `${dataref.path}/meta`,
 			args: [
 				{ type: "s", value: "" }
 			]

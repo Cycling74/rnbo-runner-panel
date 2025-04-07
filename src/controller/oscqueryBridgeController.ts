@@ -6,7 +6,7 @@ import { ReconnectingWebsocket } from "../lib/reconnectingWs";
 import { AppStatus, RunnerCmdMethod } from "../lib/constants";
 import { OSCQueryRNBOState, OSCQueryRNBOInstance, OSCQueryRNBOPatchersState, OSCValue, OSCQueryRNBOInstancesMetaState, OSCQuerySetMeta } from "../lib/types";
 import { deletePortAliases, initConnections, initPorts, setPortAliases, updateSetMetaFromRemote, updateSourcePortConnections, deletePortById, setPortProperties, addPort } from "../actions/graph";
-import { addInstance, deleteInstanceById, initInstances, initPatchers, updateInstanceDataRefMeta, updateInstanceDataRefs, updateInstanceParameterDisplayName } from "../actions/patchers";
+import { addInstance, deleteInstanceById, initInstances, initPatchers, removeInstanceDataRefByPath, updateInstanceDataRefMeta, updateInstanceDataRefs, updateInstanceParameterDisplayName } from "../actions/patchers";
 import { initRunnerConfig, updateRunnerConfig } from "../actions/settings";
 import { initSets, setCurrentGraphSet, initSetPresets, setGraphSetPresetLatest, initSetViews, updateSetViewName, updateSetViewParameterList, deleteSetView, addSetView, updateSetViewOrder, setCurrentGraphSetDirtyState } from "../actions/sets";
 import { initDataFiles } from "../actions/datafiles";
@@ -723,13 +723,12 @@ export class OSCQueryBridgeControllerPrivate {
 		// Data Refs
 		if (
 			packetMatch.groups.content === "data_refs" &&
-			packetMatch.groups.rest?.length
+			packetMatch.groups.rest?.length &&
+			!packetMatch.groups.rest?.includes("/") &&
+			packet.args.length >= 1 &&
+			typeof packet.args[0] === "string"
 		) {
-
-			if (packet.args.length >= 1 && typeof packet.args[0] === "string") {
-				return void dispatch(updateInstanceDataRefValue(instanceId, packetMatch.groups.rest, packet.args[0] as string));
-			}
-			console.log("unexpected dataref OSC packet format", { packet });
+			return void dispatch(updateInstanceDataRefValue(instanceId, packetMatch.groups.rest, packet.args[0] as string));
 		}
 
 		if (packetMatch.groups.content === "midi/last") {
