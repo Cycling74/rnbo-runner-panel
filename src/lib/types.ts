@@ -331,6 +331,13 @@ export type OSCQueryRNBOInstanceConnections = OSCQueryBaseNode & {
 	};
 };
 
+export type OSCQueryRNBOInstanceConfig = OSCQueryBaseNode & {
+	CONTENTS: {
+		name_alias: OSCQueryStringValue;
+		set_preset_patcher_named: OSCQueryBooleanValue;
+	};
+};
+
 export type OSCQueryRNBOInstance = OSCQueryBaseNode & {
 	CONTENTS: {
 		jack: OSCQueryBaseNode & {
@@ -347,8 +354,9 @@ export type OSCQueryRNBOInstance = OSCQueryBaseNode & {
 		params: OSCQueryBaseNode & {
 			CONTENTS: Record<string, OSCQueryRNBOInstanceParameterInfo>;
 			VALUE: undefined
-		}
-		data_refs?: OSCQueryRNBOInstanceDataRefs;
+		};
+		config: OSCQueryRNBOInstanceConfig;
+		data_refs: OSCQueryRNBOInstanceDataRefs;
 		presets: OSCQueryBaseNode & {
 			CONTENTS: {
 				entries: OSCQueryRNBOInstancePresetEntries;

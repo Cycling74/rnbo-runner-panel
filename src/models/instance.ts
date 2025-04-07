@@ -6,6 +6,8 @@ export type PatcherInstanceProps = {
 	id: string;
 	patcher: string;
 	path: string;
+
+	alias: string;
 	name: string;
 
 	presetInitial: string;
@@ -30,8 +32,9 @@ function sortPresets(left: PresetRecord, right: PresetRecord) : number {
 
 export class PatcherInstanceRecord extends ImmuRecord<PatcherInstanceProps>({
 
+	alias: "", // user defined name overwrite
 	id: "0",
-	name: "",
+	name: "", // runner assigned name
 	patcher: "",
 	path: "",
 	presetInitial: "",
@@ -43,11 +46,15 @@ export class PatcherInstanceRecord extends ImmuRecord<PatcherInstanceProps>({
 }) {
 
 	public get displayName(): string {
-		return this.name;
+		return this.alias || this.name;
 	}
 
 	public setWaitingForMapping(value: boolean): PatcherInstanceRecord {
 		return this.set("waitingForMidiMapping", value);
+	}
+
+	public setAlias(alias: string): PatcherInstanceRecord {
+		return this.set("alias", alias);
 	}
 
 	public static presetsFromDescription(entries: OSCQueryRNBOInstancePresetEntries, latest: string, initial: string): ImmuMap<PresetRecord["id"], PresetRecord> {
@@ -78,6 +85,7 @@ export class PatcherInstanceRecord extends ImmuRecord<PatcherInstanceProps>({
 
 		return new PatcherInstanceRecord({
 			id: desc.FULL_PATH.split("/").pop(),
+			alias: desc.CONTENTS.config.CONTENTS.name_alias?.VALUE || "",
 			name: desc.CONTENTS.name.VALUE,
 			patcher: desc.CONTENTS.name.VALUE,
 			path: desc.FULL_PATH,
