@@ -343,7 +343,7 @@ export type OSCQueryRNBOInstance = OSCQueryBaseNode & {
 				midi_outs: OSCQueryListValue<string, string[]>;
 			};
 		};
-		name: OSCQueryStringValue & { VALUE: string; };
+		name: OSCQueryStringValue;
 		params: OSCQueryBaseNode & {
 			CONTENTS: Record<string, OSCQueryRNBOInstanceParameterInfo>;
 			VALUE: undefined

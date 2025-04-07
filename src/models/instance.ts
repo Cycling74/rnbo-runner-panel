@@ -71,10 +71,6 @@ export class PatcherInstanceRecord extends ImmuRecord<PatcherInstanceProps>({
 		return this.set("presets", PatcherInstanceRecord.presetsFromDescription(entries, this.presetLatest, this.presetInitial));
 	}
 
-	public static getJackName(desc: OSCQueryRNBOInstance["CONTENTS"]["jack"]): string {
-		return desc.CONTENTS.name.VALUE as string;
-	}
-
 	public static fromDescription(desc: OSCQueryRNBOInstance): PatcherInstanceRecord {
 
 		const initialPreset: string = desc.CONTENTS.presets.CONTENTS?.initial?.VALUE || "";
@@ -82,7 +78,7 @@ export class PatcherInstanceRecord extends ImmuRecord<PatcherInstanceProps>({
 
 		return new PatcherInstanceRecord({
 			id: desc.FULL_PATH.split("/").pop(),
-			name: this.getJackName(desc.CONTENTS.jack),
+			name: desc.CONTENTS.name.VALUE,
 			patcher: desc.CONTENTS.name.VALUE,
 			path: desc.FULL_PATH,
 			presets: this.presetsFromDescription(desc.CONTENTS.presets.CONTENTS.entries, latestPreset, initialPreset)
