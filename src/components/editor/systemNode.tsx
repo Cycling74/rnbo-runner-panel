@@ -7,7 +7,7 @@ import { Paper } from "@mantine/core";
 const EditorSystemNode: FunctionComponent<EditorNodeProps> = memo(function WrappedGraphPatcherNode({
 	data: {
 		contentHeight,
-		node,
+		displayName,
 		sinks,
 		sources,
 		width
@@ -20,7 +20,7 @@ const EditorSystemNode: FunctionComponent<EditorNodeProps> = memo(function Wrapp
 	return (
 		<Paper className={ classes.node }  shadow="md" withBorder data-selected={ selected } >
 			<div className={ classes.nodeHeader } >
-				{ node.displayName }
+				{ displayName }
 			</div>
 			<div className={ classes.nodeContent } style={{ height: `${contentHeight}px` }} >
 				{

@@ -1,7 +1,7 @@
 
 import { Record as ImmuRecord, Set as ImmuSet } from "immutable";
 import { RNBOJackPortProperties } from "../lib/types";
-import { KnownPortGroup, knownPortGroupDisplayNames, RNBOJackPortPropertyKey } from "../lib/constants";
+import { KnownPortGroup, RNBOJackPortPropertyKey } from "../lib/constants";
 
 export enum ConnectionType {
 	Audio = "audio",
@@ -154,10 +154,6 @@ export class GraphNodeRecord extends ImmuRecord<GraphNodeProps>({
 	selected: false
 
 }) implements GraphNode {
-
-	public get displayName(): string {
-		return knownPortGroupDisplayNames.get(this.id) || this.id;
-	}
 
 	public get isHidden(): boolean {
 		return this.id === KnownPortGroup.Hidden;

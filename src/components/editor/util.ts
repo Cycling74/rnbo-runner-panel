@@ -3,6 +3,7 @@ import { GraphConnectionRecord, GraphNodeRecord, GraphPortRecord } from "../../m
 
 export type NodeDataProps = {
 	contentHeight: number;
+	displayName: string;
 	node: GraphNodeRecord;
 	sinks: GraphPortRecord[];
 	sources: GraphPortRecord[];
