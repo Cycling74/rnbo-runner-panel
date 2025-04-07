@@ -70,7 +70,7 @@ const MIDIMappedParameter: FC<MIDIMappedParamProps> = memo(function WrappedMIDIM
 			<Table.Td className={ classes.parameterNameColumn } >{ param.name }</Table.Td>
 			<Table.Td className={ classes.patcherInstanceColumn } >
 				<span className={ classes.patcherInstanceIndex } >{ instance.id }</span>
-				<span className={ classes.patcherInstanceName } >: {instance.name}</span>
+				<span className={ classes.patcherInstanceName } >: {instance.displayName }</span>
 			</Table.Td>
 			<Table.Td className={ classes.parameterValueColumn } >{ formatParamValueForDisplay(param.value) }</Table.Td>
 			<Table.Td className={ classes.actionColumn } >

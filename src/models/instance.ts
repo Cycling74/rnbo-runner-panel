@@ -8,7 +8,7 @@ export type PatcherInstanceProps = {
 	path: string;
 
 	alias: string;
-	name: string;
+	jackName: string;
 
 	presetInitial: string;
 	presetLatest: string;
@@ -34,7 +34,7 @@ export class PatcherInstanceRecord extends ImmuRecord<PatcherInstanceProps>({
 
 	alias: "", // user defined name overwrite
 	id: "0",
-	name: "", // runner assigned name
+	jackName: "", // runner assigned name
 	patcher: "",
 	path: "",
 	presetInitial: "",
@@ -46,7 +46,7 @@ export class PatcherInstanceRecord extends ImmuRecord<PatcherInstanceProps>({
 }) {
 
 	public get displayName(): string {
-		return this.alias || this.name;
+		return this.alias || this.jackName;
 	}
 
 	public setWaitingForMapping(value: boolean): PatcherInstanceRecord {
@@ -86,7 +86,7 @@ export class PatcherInstanceRecord extends ImmuRecord<PatcherInstanceProps>({
 		return new PatcherInstanceRecord({
 			id: desc.FULL_PATH.split("/").pop(),
 			alias: desc.CONTENTS.config.CONTENTS.name_alias?.VALUE || "",
-			name: desc.CONTENTS.name.VALUE,
+			jackName: desc.CONTENTS.jack.CONTENTS.name.VALUE,
 			patcher: desc.CONTENTS.name.VALUE,
 			path: desc.FULL_PATH,
 			presets: this.presetsFromDescription(desc.CONTENTS.presets.CONTENTS.entries, latestPreset, initialPreset)
