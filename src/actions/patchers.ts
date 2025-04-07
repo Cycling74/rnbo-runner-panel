@@ -451,21 +451,22 @@ export const changeAliasOnRemoteInstance = (instance: PatcherInstanceRecord): Ap
 	async (dispatch) => {
 		try {
 
-			const alias = await showTextInputDialog({
+			const dialogResult = await showTextInputDialog({
 				actions: {
-					confirm: { label: "Rename" }
+					confirm: { label: "Rename" },
+					discard: { label: "Reset to Default" }
 				},
 				text: "Please name the device",
 				validate: validatePatcherInstanceAlias,
 				value: instance.displayName
 			});
 
-			if (alias === DialogResult.Cancel) return;
+			if (dialogResult === DialogResult.Cancel) return;
 
 			const message = {
 				address: `${instance.path}/config/name_alias`,
 				args: [
-					{ type: "s", value: alias }
+					{ type: "s", value: dialogResult === DialogResult.Discard ? "" : dialogResult }
 				]
 			};
 			oscQueryBridge.sendPacket(writePacket(message));
@@ -560,7 +561,7 @@ export const createPresetOnRemoteInstance = (instance: PatcherInstanceRecord): A
 				validate: validatePresetName
 			});
 
-			if (dialogResult === DialogResult.Cancel) {
+			if (dialogResult === DialogResult.Cancel || dialogResult === DialogResult.Discard) {
 				return;
 			}
 

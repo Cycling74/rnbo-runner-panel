@@ -186,7 +186,7 @@ export const saveCurrentGraphSetOnRemote = (): AppThunk =>
 						validate: validateGraphSetName
 					}));
 
-			if (name === DialogResult.Cancel) {
+			if (name === DialogResult.Cancel || name === DialogResult.Discard) {
 				return;
 			}
 			dispatch(saveGraphSetOnRemote(name, false));
@@ -238,7 +238,7 @@ export const saveCurrentGraphSetOnRemoteAs = (): AppThunk =>
 				validate: validateGraphSetName
 			});
 
-			if (dialogResult === DialogResult.Cancel) {
+			if (dialogResult === DialogResult.Cancel || dialogResult === DialogResult.Discard) {
 				return;
 			}
 
@@ -475,7 +475,7 @@ export const createSetPresetOnRemote = (): AppThunk =>
 				validate: validatePresetName
 			});
 
-			if (dialogResult === DialogResult.Cancel) {
+			if (dialogResult === DialogResult.Cancel || dialogResult === DialogResult.Discard) {
 				return;
 			}
 
@@ -609,7 +609,7 @@ export const createSetViewOnRemote = (): AppThunk =>
 				validate: validateSetViewName
 			});
 
-			if (dialogResult === DialogResult.Cancel) {
+			if (dialogResult === DialogResult.Cancel || dialogResult === DialogResult.Discard) {
 				return;
 			}
 

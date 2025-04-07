@@ -78,15 +78,17 @@ export type InputDialogDesc = {
 	value?: string;
 	actions: {
 		cancel?: DialogAction;
+		discard?: DialogAction;
 		confirm?: DialogAction;
 	};
 };
 
 
-const InputModal: FC<InputDialogDesc & { onCancel: () => void; onConfirm: (v: string) => void;}> = ({
+const InputModal: FC<InputDialogDesc & { onCancel: () => void; onConfirm: (v: string) => void; onDiscard?: () => void; }> = ({
 	actions,
 	onCancel,
 	onConfirm,
+	onDiscard,
 	text,
 	validate,
 	value: initialValue
@@ -100,6 +102,7 @@ const InputModal: FC<InputDialogDesc & { onCancel: () => void; onConfirm: (v: st
 		setValue(v);
 		if (errorMsg && v.length) setErrorMsg(undefined);
 	}, [setValue, errorMsg, setErrorMsg]);
+
 
 	const onTriggerConfirm = useCallback((e: FormEvent<HTMLFormElement>): void => {
 		e.preventDefault();
@@ -122,6 +125,7 @@ const InputModal: FC<InputDialogDesc & { onCancel: () => void; onConfirm: (v: st
 				/>
 				<Stack gap="xs">
 					<Button type="submit" variant="filled" color={ actions.confirm.color }>{ actions.confirm.label }</Button>
+					{ actions.discard ? <Button variant="default" color={ actions.discard.color } onClick={ onDiscard } mb="xs" >{ actions.discard.label }</Button> : null }
 					<Button variant="default" color={ actions.cancel.color } onClick={ onCancel } >{ actions.cancel.label }</Button>
 				</Stack>
 			</Stack>
@@ -134,12 +138,13 @@ export const showTextInputDialog = ({
 	text,
 	actions: {
 		cancel = { label: "Cancel" },
+		discard = undefined,
 		confirm = { label: "Confirm" }
 	},
 	validate,
 	value = ""
-}: InputDialogDesc): Promise<DialogResult.Cancel | string> => {
-	return new Promise<DialogResult.Cancel | string>(resolve => {
+}: InputDialogDesc): Promise<DialogResult.Cancel | DialogResult.Discard | string> => {
+	return new Promise<DialogResult.Cancel | DialogResult.Discard | string>(resolve => {
 
 		const modalId = v4();
 
@@ -153,14 +158,20 @@ export const showTextInputDialog = ({
 			resolve(v);
 		};
 
+		const onDiscard = () => {
+			modals.close(modalId);
+			resolve(DialogResult.Discard);
+		};
+
 		modals.open({
 			modalId,
 			centered: true,
 			children: (
 				<InputModal
-					actions={{ cancel, confirm }}
+					actions={{ cancel, confirm, discard }}
 					onCancel={ onCancel }
 					onConfirm={ onConfirm }
+					onDiscard={ discard ? onDiscard : undefined }
 					text={ text }
 					validate={ validate }
 					value={ value }
