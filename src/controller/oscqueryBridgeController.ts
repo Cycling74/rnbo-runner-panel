@@ -483,7 +483,7 @@ export class OSCQueryBridgeControllerPrivate {
 			instInfoMatch.groups.content === "data_refs" &&
 			!instInfoMatch.groups.rest.endsWith("meta")
 		) {
-			return void dispatch(removeInstanceMessageOutportByPath(path));
+			return void dispatch(removeInstanceDataRefByPath(path));
 		}
 	}
 
