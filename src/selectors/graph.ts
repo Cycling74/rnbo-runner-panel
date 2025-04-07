@@ -2,8 +2,9 @@ import { Map as ImmuMap, OrderedMap as ImmuOrderedMap, Seq } from "immutable";
 import { RootStateType } from "../lib/store";
 import { ConnectionType, GraphConnectionRecord, GraphNodeRecord, GraphPortRecord, NodePositionRecord, NodeType, PortDirection } from "../models/graph";
 import { createSelector } from "reselect";
-import { nodeDefaultWidth, nodeHeaderHeight } from "../lib/constants";
+import { knownPortGroupDisplayNames, nodeDefaultWidth, nodeHeaderHeight } from "../lib/constants";
 import { calculateNodeContentHeight } from "../lib/util";
+import { getPatcherInstances } from "./patchers";
 
 export const getNodes = (state: RootStateType): ImmuMap<GraphNodeRecord["id"], GraphNodeRecord> => state.graph.nodes;
 export const getPatcherNodeIdsByInstanceId = (state: RootStateType): ImmuMap<GraphNodeRecord["instanceId"], GraphNodeRecord["id"]> => state.graph.patcherNodeIdByInstanceId;
@@ -118,9 +119,13 @@ export type EditorNodeDimensions = {
 export type EditorNodePosition = {
 	x: number;
 	y: number;
-}
+};
 
-export type EditorNodeDesc = EditorNodePorts & EditorNodeDimensions & EditorNodePosition & {
+export type EditorNodeMeta = {
+	displayName: string;
+};
+
+export type EditorNodeDesc = EditorNodePorts & EditorNodeDimensions & EditorNodePosition & EditorNodeMeta & {
 	node: GraphNodeRecord;
 };
 
@@ -128,9 +133,10 @@ export const getEditorNodesAndPorts = createSelector(
 	[
 		getNodes,
 		getPorts,
-		getNodePositions
+		getNodePositions,
+		getPatcherInstances
 	],
-	(nodes, ports, positions): ImmuMap<GraphNodeRecord["id"], EditorNodeDesc> => {
+	(nodes, ports, positions, instances): ImmuMap<GraphNodeRecord["id"], EditorNodeDesc> => {
 		const portMap = new Map<GraphNodeRecord["id"], EditorNodePorts>();
 		ports.forEach((port) => {
 			if (port.isHidden) return;
@@ -148,6 +154,9 @@ export const getEditorNodesAndPorts = createSelector(
 
 				const desc: EditorNodeDesc = {
 					node,
+					displayName: node.type === NodeType.System
+						? knownPortGroupDisplayNames.get(node.id) || node.id
+						: instances.get(node.instanceId)?.displayName || node.id,
 					...ports,
 					contentHeight,
 					x: position?.x || 0,

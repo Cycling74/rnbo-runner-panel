@@ -160,7 +160,7 @@ export type OSCQueryRNBOConfigState = OSCQueryBaseNode & {
 	}
 };
 
-export type OSCQueryRNBOInstanceConfig = OSCQueryBaseNode & {
+export type OSCQueryRNBOInstancesConfig = OSCQueryBaseNode & {
 	CONTENTS: {
 		auto_connect_audio: OSCQueryBooleanValue;
 		auto_connect_audio_indexed: OSCQueryBooleanValue;
@@ -331,6 +331,13 @@ export type OSCQueryRNBOInstanceConnections = OSCQueryBaseNode & {
 	};
 };
 
+export type OSCQueryRNBOInstanceConfig = OSCQueryBaseNode & {
+	CONTENTS: {
+		name_alias: OSCQueryStringValue;
+		set_preset_patcher_named: OSCQueryBooleanValue;
+	};
+};
+
 export type OSCQueryRNBOInstance = OSCQueryBaseNode & {
 	CONTENTS: {
 		jack: OSCQueryBaseNode & {
@@ -343,12 +350,13 @@ export type OSCQueryRNBOInstance = OSCQueryBaseNode & {
 				midi_outs: OSCQueryListValue<string, string[]>;
 			};
 		};
-		name: OSCQueryStringValue & { VALUE: string; };
+		name: OSCQueryStringValue;
 		params: OSCQueryBaseNode & {
 			CONTENTS: Record<string, OSCQueryRNBOInstanceParameterInfo>;
 			VALUE: undefined
-		}
-		data_refs?: OSCQueryRNBOInstanceDataRefs;
+		};
+		config: OSCQueryRNBOInstanceConfig;
+		data_refs: OSCQueryRNBOInstanceDataRefs;
 		presets: OSCQueryBaseNode & {
 			CONTENTS: {
 				entries: OSCQueryRNBOInstancePresetEntries;
@@ -432,7 +440,7 @@ export type OSCQueryRNBOInstancesControlState = OSCQueryBaseNode & {
 export type OSCQueryRNBOInstancesState = OSCQueryBaseNode & {
 	CONTENTS: Record<number, OSCQueryRNBOInstance> & {
 		control: OSCQueryRNBOInstancesControlState;
-		config: OSCQueryRNBOInstanceConfig;
+		config: OSCQueryRNBOInstancesConfig;
 	}
 };
 

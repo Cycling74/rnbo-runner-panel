@@ -16,7 +16,7 @@ import { AppSetting } from "../models/settings";
 import { DataRefRecord } from "../models/dataref";
 import { DataFileRecord } from "../models/datafile";
 import { PatcherExportRecord } from "../models/patcher";
-import { cloneJSON, getUniqueName, InvalidMIDIFormatError, parseMIDIMappingDisplayValue, UnknownMIDIFormatError, validatePresetName } from "../lib/util";
+import { cloneJSON, getUniqueName, InvalidMIDIFormatError, parseMIDIMappingDisplayValue, UnknownMIDIFormatError, validatePatcherInstanceAlias, validatePresetName } from "../lib/util";
 import { MIDIMetaMappingType } from "../lib/constants";
 import { DialogResult, showConfirmDialog, showTextInputDialog } from "../lib/dialogs";
 
@@ -447,6 +447,39 @@ export const initInstances = (instanceInfo: OSCQueryRNBOInstancesState): AppThun
 	};
 
 // Trigger Events on Remote OSCQuery Runner
+export const changeAliasOnRemoteInstance = (instance: PatcherInstanceRecord): AppThunk =>
+	async (dispatch) => {
+		try {
+
+			const dialogResult = await showTextInputDialog({
+				actions: {
+					confirm: { label: "Rename" },
+					discard: { label: "Reset to Default" }
+				},
+				text: "Please name the device",
+				validate: validatePatcherInstanceAlias,
+				value: instance.displayName
+			});
+
+			if (dialogResult === DialogResult.Cancel) return;
+
+			const message = {
+				address: `${instance.path}/config/name_alias`,
+				args: [
+					{ type: "s", value: dialogResult === DialogResult.Discard ? "" : dialogResult }
+				]
+			};
+			oscQueryBridge.sendPacket(writePacket(message));
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: `Error while trying to set alias for ${instance.displayName}`,
+				message: "Please check the console for further details."
+			}));
+			console.log(err);
+		}
+	};
+
 export const loadPresetOnRemoteInstance = (instance: PatcherInstanceRecord, preset: PresetRecord): AppThunk =>
 	(dispatch) => {
 		try {
@@ -528,7 +561,7 @@ export const createPresetOnRemoteInstance = (instance: PatcherInstanceRecord): A
 				validate: validatePresetName
 			});
 
-			if (dialogResult === DialogResult.Cancel) {
+			if (dialogResult === DialogResult.Cancel || dialogResult === DialogResult.Discard) {
 				return;
 			}
 
@@ -887,6 +920,13 @@ export const addInstance = (desc: OSCQueryRNBOInstance): AppThunk =>
 		dispatch(setInstanceMessageInports(messageInports));
 		dispatch(setInstanceMessageOutports(messageOutports));
 		dispatch(setInstanceDataRefs(dataRefs));
+	};
+
+export const updateInstanceAlias = (instanceId: PatcherInstanceRecord["id"], alias: string): AppThunk =>
+	(dispatch, getState) => {
+		const instance = getPatcherInstance(getState(), instanceId);
+		if (!instance) return;
+		dispatch(setInstance(instance.setAlias(alias)));
 	};
 
 export const deleteInstanceById = (instanceId: PatcherInstanceRecord["id"]): AppThunk =>

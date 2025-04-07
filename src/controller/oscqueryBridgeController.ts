@@ -6,7 +6,7 @@ import { ReconnectingWebsocket } from "../lib/reconnectingWs";
 import { AppStatus, RunnerCmdMethod } from "../lib/constants";
 import { OSCQueryRNBOState, OSCQueryRNBOInstance, OSCQueryRNBOPatchersState, OSCValue, OSCQueryRNBOInstancesMetaState, OSCQuerySetMeta } from "../lib/types";
 import { deletePortAliases, initConnections, initPorts, setPortAliases, updateSetMetaFromRemote, updateSourcePortConnections, deletePortById, setPortProperties, addPort } from "../actions/graph";
-import { addInstance, deleteInstanceById, initInstances, initPatchers, removeInstanceDataRefByPath, updateInstanceDataRefMeta, updateInstanceDataRefs, updateInstanceParameterDisplayName } from "../actions/patchers";
+import { addInstance, deleteInstanceById, initInstances, initPatchers, removeInstanceDataRefByPath, updateInstanceDataRefMeta, updateInstanceDataRefs, updateInstanceParameterDisplayName, updateInstanceAlias } from "../actions/patchers";
 import { initRunnerConfig, updateRunnerConfig } from "../actions/settings";
 import { initSets, setCurrentGraphSet, initSetPresets, setGraphSetPresetLatest, initSetViews, updateSetViewName, updateSetViewParameterList, deleteSetView, addSetView, updateSetViewOrder, setCurrentGraphSetDirtyState } from "../actions/sets";
 import { initDataFiles } from "../actions/datafiles";
@@ -43,7 +43,7 @@ const portPropertiesPathMatcher = /^\/rnbo\/jack\/info\/ports\/properties\/(?<po
 const portAliasPathMatcher = /^\/rnbo\/jack\/info\/ports\/aliases\/(?<port>.+)$/;
 const patchersPathMatcher = /^\/rnbo\/patchers/;
 const instancePathMatcher = /^\/rnbo\/inst\/(?<id>\d+)$/;
-const instanceStatePathMatcher = /^\/rnbo\/inst\/(?<id>\d+)\/(?<content>params|messages\/in|messages\/out|presets|data_refs|midi\/last)\/(?<rest>\S+)/;
+const instanceStatePathMatcher = /^\/rnbo\/inst\/(?<id>\d+)\/(?<content>params|messages\/in|messages\/out|presets|data_refs|config|midi\/last)\/(?<rest>\S+)/;
 const instancePresetPathMatcher = /^\/rnbo\/inst\/(?<id>\d+)\/presets\/(?<property>loaded|initial)$/;
 const connectionsPathMatcher = /^\/rnbo\/jack\/connections\/(?<type>audio|midi)\/(?<id>.+)$/;
 const setMetaPathMatcher = /^\/rnbo\/inst\/control\/sets\/meta/;
@@ -737,6 +737,15 @@ export class OSCQueryBridgeControllerPrivate {
 					return void dispatch(updateInstanceMIDILastValue(instanceId, packet.args[0] as unknown as string));
 				case "report":
 					return void dispatch(updateInstanceMIDIReport(instanceId, packet.args[0] as unknown as boolean));
+				default:
+					return;
+			}
+		}
+
+		if (packetMatch.groups?.content === "config") {
+			switch (packetMatch.groups.rest) {
+				case "name_alias":
+					return void dispatch(updateInstanceAlias(instanceId, packet.args[0] as unknown as string));
 				default:
 					return;
 			}

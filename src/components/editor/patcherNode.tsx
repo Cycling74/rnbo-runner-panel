@@ -11,6 +11,7 @@ import { mdiCogs } from "@mdi/js";
 const EditorPatcherNode: FunctionComponent<EditorNodeProps> = memo(function WrappedGraphPatcherNode({
 	data: {
 		contentHeight,
+		displayName,
 		node,
 		sinks,
 		sources,
@@ -25,7 +26,7 @@ const EditorPatcherNode: FunctionComponent<EditorNodeProps> = memo(function Wrap
 	return (
 		<Paper className={ classes.node } shadow="md" withBorder data-selected={ selected } >
 			<div className={ classes.nodeHeader } >
-				<div>{ node.displayName }</div>
+				<div>{ displayName }</div>
 				<div>
 					<Tooltip label="Open Device Control">
 						<ActionIcon
