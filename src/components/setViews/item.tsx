@@ -86,23 +86,19 @@ export const GraphSetViewItem: FC<GraphSetViewItemProps> = memo(function Wrapped
 	}, [setIsEditing]);
 
 	useEffect(() => {
-		setName(setView.name);
-		setIsEditing(false);
-	}, [setView, setName, setIsEditing]);
-
-	useEffect(() => {
-		if (isEditing && inputRef.current) {
-			inputRef.current.focus();
-		}
 		if (!isEditing) {
 			setError(undefined);
+			setName(setView.name);
+		} else {
+			setName(setView.name);
 		}
-	}, [isEditing, inputRef, setError]);
+	}, [isEditing, setView, setName, setError]);
 
 	return isEditing ? (
 		<form onSubmit={ onSubmit } >
 			<Group align="flex-start">
 				<TextInput
+					autoFocus
 					className={ classes.setViewNameInput }
 					onBlur={ onBlur }
 					onChange={ onChange }
