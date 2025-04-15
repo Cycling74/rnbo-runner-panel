@@ -1,7 +1,9 @@
 import { ActionIcon, Menu, Tooltip } from "@mantine/core";
 import { FC, memo } from "react";
-import { mdiContentSave, mdiContentSaveMove, mdiDotsVertical, mdiGroup, mdiPencil, mdiPlus, mdiReload, mdiTrashCan } from "@mdi/js";
+import { mdiContentSave, mdiContentSaveMove, mdiDatabaseCog, mdiDotsVertical, mdiGroup, mdiPencil, mdiPlus, mdiReload, mdiTrashCan } from "@mdi/js";
 import { IconElement } from "../elements/icon";
+import Link from "next/link";
+import { useRouter } from "next/router";
 
 export type GraphSetMenuProps = {
 	hasLoadedGraph?: boolean;
@@ -28,6 +30,8 @@ export const GraphSetMenu: FC<GraphSetMenuProps> = memo(function WrapedSaveGraph
 	onSaveCurrentSetAs,
 	onTriggerRenameCurrentSet
 }) {
+
+	const { query } = useRouter();
 
 	return (
 		<Menu position="bottom-end" >
@@ -61,6 +65,13 @@ export const GraphSetMenu: FC<GraphSetMenuProps> = memo(function WrapedSaveGraph
 				</Menu.Item>
 				<Menu.Item onClick={ onSaveCurrentSetAs } leftSection={ <IconElement path={ mdiContentSaveMove } /> } >
 					Save Graph As...
+				</Menu.Item>
+				<Menu.Item
+					leftSection={ <IconElement path={ mdiDatabaseCog } /> }
+					component={ Link }
+					href={{ pathname: "/resources", query: { ...query } }}
+				>
+					Manage Graphs
 				</Menu.Item>
 				<Menu.Divider />
 				<Menu.Item onClick={ onDeleteCurrentSet } leftSection={ <IconElement path={ mdiTrashCan } /> } color="red" disabled={ !hasLoadedGraph } >
