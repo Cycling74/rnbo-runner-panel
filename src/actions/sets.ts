@@ -15,7 +15,6 @@ import { DialogResult, showConfirmDialog, showSelectInputDialog, showTextInputDi
 import { OnLoadGraphSetSetting, SortOrder, UnsavedSetName } from "../lib/constants";
 import { getRunnerConfig } from "../selectors/settings";
 import { ConfigKey } from "../models/config";
-import { init } from "next/dist/compiled/@vercel/og/satori";
 import { setRunnerConfig } from "./settings";
 
 export enum GraphSetActionType {
@@ -315,7 +314,7 @@ export const triggerStartupGraphSetDialog = (): AppThunk =>
 				case OnLoadGraphSetSetting.EmptySet:
 					dispatch(setRunnerConfig(ConfigKey.AutoStartLastSet, false));
 					return;
-				case OnLoadGraphSetSetting.LastSet:
+				case OnLoadGraphSetSetting.LastSet: {
 					dispatch(setRunnerConfig(ConfigKey.AutoStartLastSet, true));
 					const message = {
 						address: "/rnbo/inst/control/sets/initial",
@@ -323,7 +322,7 @@ export const triggerStartupGraphSetDialog = (): AppThunk =>
 					};
 					oscQueryBridge.sendPacket(writePacket(message));
 					return;
-					return;
+				}
 				default: {
 					// Specific Graph
 					dispatch(setRunnerConfig(ConfigKey.AutoStartLastSet, true));

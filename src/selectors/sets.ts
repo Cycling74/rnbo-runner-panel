@@ -32,12 +32,11 @@ export const getInitialGraphSet = createSelector(
 		(state: RootStateType): GraphSetRecord["name"] | undefined => state.sets.initialSet
 	],
 	(sets, config, initial): GraphSetRecord | undefined => {
-		if (config.oscType ===  OSCQueryValueType.False) return undefined;
-		return initial
-			? sets.get(initial) || undefined
-			: undefined
+		return config.oscType ===  OSCQueryValueType.False
+			? undefined
+			: sets.get(initial) || undefined;
 	}
-)
+);
 
 export const getGraphSet = createSelector(
 	[

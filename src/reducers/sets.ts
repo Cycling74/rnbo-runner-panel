@@ -87,7 +87,7 @@ export const sets = (state: SetState = {
 			return {
 				...state,
 				initialSet: name || undefined
-			}
+			};
 		}
 
 		case GraphSetActionType.INIT_SET_VIEWS: {
