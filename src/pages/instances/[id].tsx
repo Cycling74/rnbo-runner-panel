@@ -132,35 +132,33 @@ export default function Instance() {
 					/>
 				</div>
 				<Group style={{ flex: "0" }} wrap="nowrap" gap="xs" >
-					<ActionIcon.Group>
-						<Tooltip label="Open Preset Menu">
-							<ActionIcon size="lg" variant="default" onClick={ togglePresetDrawer } >
-								<IconElement path={ mdiCamera } />
-							</ActionIcon>
-						</Tooltip>
-						<Menu position="bottom-end">
-							<Menu.Target>
-								<Tooltip label="Open Device Menu">
-									<ActionIcon variant="default" size="lg">
-										<IconElement path={ mdiDotsVertical } />
-									</ActionIcon>
-								</Tooltip>
-							</Menu.Target>
-							<Menu.Dropdown>
-								<Menu.Label>Device</Menu.Label>
-								<Menu.Item leftSection={ <IconElement path={ mdiPencil } /> } onClick={ onTriggerRenameInstance } >
-									Rename Device
-								</Menu.Item>
-								<Menu.Item leftSection={ <IconElement path={ mdiPiano } /> } onClick={ toggleKeyboardModal } >
-									Open Virtual Keyboard
-								</Menu.Item>
-								<Menu.Divider />
-								<Menu.Item leftSection={ <IconElement path={ mdiTrashCan } /> } onClick={ onUnloadInstance } color="red" >
-									Delete Device
-								</Menu.Item>
-							</Menu.Dropdown>
-						</Menu>
-					</ActionIcon.Group>
+					<Tooltip label="Open Device Preset Menu">
+						<ActionIcon size="lg" variant="default" onClick={ togglePresetDrawer } >
+							<IconElement path={ mdiCamera } />
+						</ActionIcon>
+					</Tooltip>
+					<Menu position="bottom-end">
+						<Menu.Target>
+							<Tooltip label="Open Device Menu">
+								<ActionIcon variant="default" size="lg">
+									<IconElement path={ mdiDotsVertical } />
+								</ActionIcon>
+							</Tooltip>
+						</Menu.Target>
+						<Menu.Dropdown>
+							<Menu.Label>Device</Menu.Label>
+							<Menu.Item leftSection={ <IconElement path={ mdiPencil } /> } onClick={ onTriggerRenameInstance } >
+								Rename
+							</Menu.Item>
+							<Menu.Item leftSection={ <IconElement path={ mdiPiano } /> } onClick={ toggleKeyboardModal } >
+								Virtual Keyboard
+							</Menu.Item>
+							<Menu.Divider />
+							<Menu.Item leftSection={ <IconElement path={ mdiTrashCan } /> } onClick={ onUnloadInstance } color="red" >
+								Delete
+							</Menu.Item>
+						</Menu.Dropdown>
+					</Menu>
 				</Group>
 			</Group>
 			<InstanceComponent

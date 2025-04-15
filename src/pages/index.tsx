@@ -178,6 +178,11 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 							onAddPatcherInstance={ onAddPatcherInstance }
 							patchers={ patchers }
 						/>
+						<Tooltip label="Open Graph Preset Menu">
+							<ActionIcon onClick={ togglePresetDrawer } variant="default" size="lg" >
+								<IconElement path={ mdiCamera } />
+							</ActionIcon>
+						</Tooltip>
 						<ActionIcon.Group>
 							<Tooltip label="Save Graph">
 								<ActionIcon
@@ -189,12 +194,6 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 									<IconElement path={ mdiContentSave } />
 								</ActionIcon>
 							</Tooltip>
-							<Tooltip label="Open Preset Menu">
-								<ActionIcon onClick={ togglePresetDrawer } variant="default" size="lg" >
-									<IconElement path={ mdiCamera } />
-								</ActionIcon>
-							</Tooltip>
-
 							<GraphSetMenu
 
 								hasLoadedGraph={ currentGraphSetId && currentGraphSetId !== UnsavedSetName }

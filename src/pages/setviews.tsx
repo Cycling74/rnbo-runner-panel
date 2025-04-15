@@ -124,33 +124,31 @@ export default function SetViews() {
 								<IconElement path={ mdiMidiPort } />
 							</ActionIcon>
 						</Tooltip>
-						<ActionIcon.Group>
-							<Tooltip label="Open Parameter View Menu">
-								<ActionIcon onClick={ openSetViewDrawer } variant="default" size="lg">
-									<IconElement path={ mdiTableEye } />
+						<Tooltip label="Open Parameter View Menu">
+							<ActionIcon onClick={ openSetViewDrawer } variant="default" size="lg">
+								<IconElement path={ mdiTableEye } />
+							</ActionIcon>
+						</Tooltip>
+						<Menu position="bottom-end">
+							<Menu.Target>
+								<ActionIcon variant="default" size="lg">
+									<IconElement path={ mdiDotsVertical } />
 								</ActionIcon>
-							</Tooltip>
-							<Menu position="bottom-end">
-								<Menu.Target>
-									<ActionIcon variant="default" size="lg">
-										<IconElement path={ mdiDotsVertical } />
-									</ActionIcon>
-								</Menu.Target>
-								<Menu.Dropdown>
-									<Menu.Label>Parameter View</Menu.Label>
-									<Menu.Item leftSection={ <IconElement path={ mdiTune } /> } onClick={ openAddParametersView } >
-										Manage Parameters
-									</Menu.Item>
-									<Menu.Item leftSection={ <IconElement path={ mdiPencil } /> } >
-										Rename
-									</Menu.Item>
-									<Menu.Divider />
-									<Menu.Item leftSection={ <IconElement path={ mdiTrashCan } /> } color="red">
-										Delete
-									</Menu.Item>
-								</Menu.Dropdown>
-							</Menu>
-						</ActionIcon.Group>
+							</Menu.Target>
+							<Menu.Dropdown>
+								<Menu.Label>Parameter View</Menu.Label>
+								<Menu.Item leftSection={ <IconElement path={ mdiTune } /> } onClick={ openAddParametersView } >
+									Manage Parameters
+								</Menu.Item>
+								<Menu.Item leftSection={ <IconElement path={ mdiPencil } /> } >
+									Rename
+								</Menu.Item>
+								<Menu.Divider />
+								<Menu.Item leftSection={ <IconElement path={ mdiTrashCan } /> } color="red">
+									Delete
+								</Menu.Item>
+							</Menu.Dropdown>
+						</Menu>
 					</Group>
 				</Group>
 				<div>
