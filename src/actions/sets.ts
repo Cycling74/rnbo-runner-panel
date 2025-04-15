@@ -204,7 +204,7 @@ export const loadGraphSetOnRemote = (set: GraphSetRecord): AppThunk =>
 				} else if (dialogResult === DialogResult.Confirm) {
 					// Save before proceeding
 					dispatch(saveGraphSetOnRemote(currentSet.name, false));
-					await sleep(30);
+					await sleep(300);
 				}
 			}
 
