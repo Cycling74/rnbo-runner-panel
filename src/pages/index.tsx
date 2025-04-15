@@ -180,7 +180,12 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 						/>
 						<ActionIcon.Group>
 							<Tooltip label="Save Graph">
-								<ActionIcon variant="default" size="lg" onClick={ onSaveCurrentSet } disabled={ !currentGraphSet || !currentGraphSetIsDirty } >
+								<ActionIcon
+									variant="default"
+									size="lg"
+									onClick={ onSaveCurrentSet }
+									disabled={ !currentGraphSetIsDirty }
+								>
 									<IconElement path={ mdiContentSave } />
 								</ActionIcon>
 							</Tooltip>
