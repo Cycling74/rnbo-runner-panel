@@ -2,6 +2,11 @@
 	width: 1.3em;
 }
 
-.editableTableCellInput {
+.editableTableCellInputWrapper {
 	border-bottom: 1px solid var(--mantine-primary-color-filled);
+	flex: 1;
+}
+
+.editableTableCellInput {
+	border: none;
 }

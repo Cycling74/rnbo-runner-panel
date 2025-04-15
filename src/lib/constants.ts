@@ -24,6 +24,12 @@ export enum InstanceTab {
 	DataRefs = "datarefs",
 }
 
+export enum ResourceTab {
+	Graphs = "graphs",
+	Patchers = "patchers",
+	AudioFiles = "audiofiles"
+}
+
 export const bodyFontSize = 16;
 
 export const nodeDefaultWidth = 435;
@@ -86,6 +92,11 @@ export enum MIDIMetaMappingType {
 	Note = "note",
 	PitchBend = "pitch_bend",
 	ProgramChange = "progam_change"
+}
+
+export enum PatcherSortAttr {
+	Date = "date",
+	Name = "name"
 }
 
 export enum ParameterSortAttr {

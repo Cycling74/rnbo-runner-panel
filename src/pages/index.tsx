@@ -2,7 +2,7 @@ import { ActionIcon, Group, Stack, Tooltip } from "@mantine/core";
 import { FunctionComponent, useCallback, useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "../hooks/useAppDispatch";
 import { RootStateType } from "../lib/store";
-import { getPatchersSortedByName } from "../selectors/patchers";
+import { getSortedPatcherExports } from "../selectors/patchers";
 import { getConnections, getEditorNodesAndPorts, getPorts } from "../selectors/graph";
 import GraphEditor from "../components/editor";
 import PresetDrawer from "../components/presets";
@@ -45,7 +45,7 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 		graphPresets,
 		editorLocked
 	] = useAppSelector((state: RootStateType) => [
-		getPatchersSortedByName(state, SortOrder.Asc),
+		getSortedPatcherExports(state, PatcherSortAttr.Name, SortOrder.Asc),
 		getEditorNodesAndPorts(state),
 		getConnections(state),
 		getPorts(state),

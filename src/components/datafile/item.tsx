@@ -1,8 +1,8 @@
-import { ActionIcon, Group, Table, Text, Tooltip } from "@mantine/core";
+import { ActionIcon, Menu, Table, Text } from "@mantine/core";
 import { DataFileRecord } from "../../models/datafile";
 import { FC, memo, useCallback } from "react";
 import { IconElement } from "../elements/icon";
-import { mdiTrashCan } from "@mdi/js";
+import { mdiDotsVertical, mdiTrashCan } from "@mdi/js";
 
 export type DataFileListItemProps = {
 	dataFile: DataFileRecord;
@@ -22,14 +22,18 @@ export const DataFileListItem: FC<DataFileListItemProps> = memo(function Wrapped
 					{ dataFile.fileName }
 				</Text>
 			</Table.Td>
-			<Table.Td>
-				<Group justify="flex-end">
-					<Tooltip label="Delete File">
-						<ActionIcon color="red" variant="outline" onClick={ onTriggerDelete } >
-							<IconElement path={ mdiTrashCan } />
+			<Table.Td ta="center">
+				<Menu position="bottom-end" >
+					<Menu.Target>
+						<ActionIcon variant="subtle" color="gray" size="md">
+							<IconElement path={ mdiDotsVertical } />
 						</ActionIcon>
-					</Tooltip>
-				</Group>
+					</Menu.Target>
+					<Menu.Dropdown>
+						<Menu.Label>Audio File</Menu.Label>
+						<Menu.Item color="red" leftSection={ <IconElement path={ mdiTrashCan }/> } onClick={ onTriggerDelete } >Delete</Menu.Item>
+					</Menu.Dropdown>
+				</Menu>
 			</Table.Td>
 		</Table.Tr>
 	);

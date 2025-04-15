@@ -24,9 +24,15 @@ const collator = new Intl.Collator("en-US");
 export const getDataFilesSortedByName = createSelector(
 	[
 		getDataFiles,
-		(state: RootStateType, order: SortOrder): SortOrder => order
+		(state: RootStateType, order: SortOrder): SortOrder => order,
+		(state: RootStateType, order: SortOrder, query?: string): string => query?.toLowerCase() || ""
 	],
-	(files, order): Seq.Indexed<DataFileRecord> => files.valueSeq().sort((a, b) => {
-		return collator.compare(a.fileName.toLowerCase(), b.fileName.toLowerCase()) * (order === SortOrder.Asc ? 1 : -1);
-	})
+	(files, order, query): Seq.Indexed<DataFileRecord> => {
+		return files
+			.valueSeq()
+			.filter(df => df.matchesQuery(query))
+			.sort((a, b) => {
+				return collator.compare(a.fileName.toLowerCase(), b.fileName.toLowerCase()) * (order === SortOrder.Asc ? 1 : -1);
+			});
+	}
 );

@@ -9,7 +9,7 @@ import { getShowSettingsModal } from "../../selectors/settings";
 import { ExternalNavLink, NavLink } from "./link";
 import { useRouter } from "next/router";
 import { getFirstPatcherNodeInstanceId } from "../../selectors/graph";
-import { mdiChartSankeyVariant, mdiCog, mdiFileMusic, mdiHelpCircle, mdiMidiPort, mdiVectorSquare, mdiTableEye, mdiFileExport } from "@mdi/js";
+import { mdiChartSankeyVariant, mdiCog, mdiHelpCircle, mdiMidiPort, mdiVectorSquare, mdiTableEye, mdiDatabaseCog } from "@mdi/js";
 
 const AppNav: FunctionComponent = memo(function WrappedNav() {
 
@@ -41,21 +41,9 @@ const AppNav: FunctionComponent = memo(function WrappedNav() {
 					<NavLink
 						disabled={ instanceId === undefined }
 						icon={ mdiVectorSquare }
-						label="Device Control"
+						label="Devices"
 						href={{ pathname: "/instances/[id]", query: { ...restQuery, id: instanceId } }}
 						isActive={ pathname === "/instances/[id]" }
-					/>
-					<NavLink
-						icon={ mdiFileExport }
-						label="Patchers"
-						href={{ pathname: "/patchers", query: restQuery }}
-						isActive={ pathname === "/patchers" }
-					/>
-					<NavLink
-						icon={ mdiFileMusic }
-						label="Audio Files"
-						href={{ pathname: "/files", query: restQuery }}
-						isActive={ pathname === "/files" }
 					/>
 					<NavLink
 						icon={ mdiTableEye }
@@ -71,6 +59,12 @@ const AppNav: FunctionComponent = memo(function WrappedNav() {
 					/>
 				</Stack>
 				<Stack className={ classes.navMenu } >
+					<NavLink
+						icon={ mdiDatabaseCog }
+						label="Manage Resources"
+						href={{ pathname: "/resources", query: restQuery }}
+						isActive={ pathname === "/resources" }
+					/>
 					<ExternalNavLink
 						icon={ mdiHelpCircle }
 						label="Help & Documentation"
