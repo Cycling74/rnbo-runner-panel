@@ -46,4 +46,8 @@ export class PatcherExportRecord extends ImmuRecord<PatcherExportRecordProps>({
 	get id(): string {
 		return this.name;
 	}
+
+	public matchesQuery(query: string): boolean {
+		return !query.length || this.name.toLowerCase().includes(query);
+	}
 }

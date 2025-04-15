@@ -1,4 +1,4 @@
-import { Group, Stack } from "@mantine/core";
+import { ActionIcon, Group, Stack, Tooltip } from "@mantine/core";
 import { FunctionComponent, useCallback, useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "../hooks/useAppDispatch";
 import { RootStateType } from "../lib/store";
@@ -16,21 +16,19 @@ import {
 	toggleEditorLockedState,
 	triggerEditorFitView
 } from "../actions/editor";
-import SetsDrawer from "../components/sets";
-import { destroySetPresetOnRemote, loadSetPresetOnRemote, renameSetPresetOnRemote, loadNewEmptyGraphSetOnRemote, destroyGraphSetOnRemote, loadGraphSetOnRemote, renameGraphSetOnRemote, overwriteGraphSetOnRemote, overwriteSetPresetOnRemote, createSetPresetOnRemote, saveCurrentGraphSetOnRemote, saveCurrentGraphSetOnRemoteAs } from "../actions/sets";
+import { destroySetPresetOnRemote, loadSetPresetOnRemote, renameSetPresetOnRemote, loadNewEmptyGraphSetOnRemote, overwriteSetPresetOnRemote, createSetPresetOnRemote, saveCurrentGraphSetOnRemote, saveCurrentGraphSetOnRemoteAs, reloadCurrentGraphSetOnRemote, destroyCurrentGraphSetOnRemote, renameCurrentGraphSetOnRemote, triggerLoadGraphSetDialog } from "../actions/sets";
 import { PresetRecord } from "../models/preset";
-import { getCurrentGraphSet, getCurrentGraphSetId, getCurrentGraphSetIsDirty, getGraphSetPresetsSortedByName, getGraphSetsSortedByName } from "../selectors/sets";
+import { getCurrentGraphSet, getCurrentGraphSetId, getCurrentGraphSetIsDirty, getGraphSetPresetsSortedByName } from "../selectors/sets";
 import { useDisclosure } from "@mantine/hooks";
 import { PatcherExportRecord } from "../models/patcher";
-import { SortOrder } from "../lib/constants";
-import { GraphSetRecord } from "../models/set";
-import { mdiCamera, mdiGroup } from "@mdi/js";
-import { ResponsiveButton } from "../components/elements/responsiveButton";
+import { PatcherSortAttr, SortOrder, UnsavedSetName } from "../lib/constants";
+import { mdiCamera, mdiContentSave } from "@mdi/js";
 import { initEditor, unmountEditor } from "../actions/editor";
 import { getGraphEditorLockedState } from "../selectors/editor";
 import { AddNodeMenu } from "../components/editor/addNodeMenu";
-import { SaveGraphSplitButton } from "../components/editor/saveGraphSplitButton";
+import { GraphSetMenu } from "../components/editor/graphMenu";
 import { GraphSetTitle } from "../components/editor/setTitle";
+import { IconElement } from "../components/elements/icon";
 import { GraphNodeRecord } from "../models/graph";
 
 const Index: FunctionComponent<Record<string, never>> = () => {
@@ -41,7 +39,6 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 		nodeInfo,
 		connections,
 		ports,
-		graphSets,
 		currentGraphSet,
 		currentGraphSetId,
 		currentGraphSetIsDirty,
@@ -52,7 +49,6 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 		getEditorNodesAndPorts(state),
 		getConnections(state),
 		getPorts(state),
-		getGraphSetsSortedByName(state, SortOrder.Asc),
 		getCurrentGraphSet(state),
 		getCurrentGraphSetId(state),
 		getCurrentGraphSetIsDirty(state),
@@ -60,7 +56,6 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 		getGraphEditorLockedState(state)
 	]);
 
-	const [setDrawerIsOpen,  { close: closeSetDrawer, toggle: toggleSetDrawer }] = useDisclosure();
 	const [presetDrawerIsOpen, { close: closePresetDrawer, toggle: togglePresetDrawer }] = useDisclosure();
 
 	// Instances
@@ -111,25 +106,7 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 		dispatch(applyEditorEdgeChanges(changes));
 	}, [dispatch]);
 
-	// Sets
-	const onLoadEmptySet = useCallback(() => {
-		dispatch(loadNewEmptyGraphSetOnRemote());
-		closeSetDrawer();
-	}, [dispatch, closeSetDrawer]);
-
-	const onDeleteSet = useCallback((set: GraphSetRecord) => {
-		dispatch(destroyGraphSetOnRemote(set));
-	}, [dispatch]);
-
-	const onLoadSet = useCallback((set: GraphSetRecord) => {
-		dispatch(loadGraphSetOnRemote(set));
-		closeSetDrawer();
-	}, [dispatch, closeSetDrawer]);
-
-	const onRenameSet = useCallback((set: GraphSetRecord, name: string) => {
-		dispatch(renameGraphSetOnRemote(set, name));
-	}, [dispatch]);
-
+	// Current Set
 	const onSaveCurrentSet = useCallback(() => {
 		if (!currentGraphSetId) return;
 		dispatch(saveCurrentGraphSetOnRemote());
@@ -139,8 +116,28 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 		dispatch(saveCurrentGraphSetOnRemoteAs());
 	}, [dispatch]);
 
-	const onOverwriteSet = useCallback((set: GraphSetRecord) => {
-		dispatch(overwriteGraphSetOnRemote(set));
+	const onRenameCurrentSet = useCallback(() => {
+		if (!currentGraphSetId) return;
+		dispatch(renameCurrentGraphSetOnRemote());
+	}, [dispatch, currentGraphSetId]);
+
+	const onReloadCurrentSet = useCallback(() => {
+		if (!currentGraphSetId) return;
+		dispatch(reloadCurrentGraphSetOnRemote());
+	}, [dispatch, currentGraphSetId]);
+
+	const onDeleteCurrentSet = useCallback(() => {
+		if (!currentGraphSetId) return;
+		dispatch(destroyCurrentGraphSetOnRemote());
+	}, [dispatch, currentGraphSetId]);
+
+	// Sets
+	const onLoadEmptySet = useCallback(() => {
+		dispatch(loadNewEmptyGraphSetOnRemote());
+	}, [dispatch]);
+
+	const onTriggerLoadSet = useCallback(() => {
+		dispatch(triggerLoadGraphSetDialog());
 	}, [dispatch]);
 
 	// Presets
@@ -181,24 +178,32 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 							onAddPatcherInstance={ onAddPatcherInstance }
 							patchers={ patchers }
 						/>
-						<SaveGraphSplitButton
-							onSaveCurrentSet={ onSaveCurrentSet }
-							onSaveCurrentSetAs={ onSaveCurrentSetAs }
-							onLoadEmptySet={ onLoadEmptySet }
-							isDirty={ !currentGraphSet || currentGraphSetIsDirty }
-						/>
-						<ResponsiveButton
-							label="Graphs"
-							tooltip="Open Graphs Menu"
-							icon={ mdiGroup }
-							onClick={ toggleSetDrawer }
-						/>
-						<ResponsiveButton
-							label="Presets"
-							tooltip="Open Graph Presets Menu"
-							icon={ mdiCamera }
-							onClick={ togglePresetDrawer }
-						/>
+						<ActionIcon.Group>
+							<Tooltip label="Save Graph">
+								<ActionIcon variant="default" size="lg" onClick={ onSaveCurrentSet } disabled={ !currentGraphSet || !currentGraphSetIsDirty } >
+									<IconElement path={ mdiContentSave } />
+								</ActionIcon>
+							</Tooltip>
+							<Tooltip label="Open Preset Menu">
+								<ActionIcon onClick={ togglePresetDrawer } variant="default" size="lg" >
+									<IconElement path={ mdiCamera } />
+								</ActionIcon>
+							</Tooltip>
+
+							<GraphSetMenu
+
+								hasLoadedGraph={ currentGraphSetId && currentGraphSetId !== UnsavedSetName }
+
+								onLoadEmptySet={ onLoadEmptySet }
+								onTriggerLoadSet={ onTriggerLoadSet }
+
+								onDeleteCurrentSet={ onDeleteCurrentSet }
+								onReloadCurrentSet={ onReloadCurrentSet }
+								onSaveCurrentSet={ onSaveCurrentSet }
+								onSaveCurrentSetAs={ onSaveCurrentSetAs }
+								onTriggerRenameCurrentSet={ onRenameCurrentSet }
+							/>
+						</ActionIcon.Group>
 					</Group>
 				</Group>
 				<GraphEditor
@@ -221,16 +226,6 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 					onZoomOut={ onEditorZoomOut }
 				/>
 			</Stack>
-			<SetsDrawer
-				onClose={ closeSetDrawer }
-				onDeleteSet={ onDeleteSet }
-				onLoadSet={ onLoadSet }
-				onRenameSet={ onRenameSet }
-				onOverwriteSet={ onOverwriteSet }
-				open={ setDrawerIsOpen }
-				sets={ graphSets }
-				currentSetId={ currentGraphSetId }
-			/>
 			<PresetDrawer
 				open={ presetDrawerIsOpen }
 				onClose={ closePresetDrawer }

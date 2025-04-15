@@ -18,6 +18,10 @@ export class GraphSetRecord extends ImmuRecord<GraphSetRecordProps>({
 	get id(): string {
 		return this.name;
 	}
+
+	public matchesQuery(query: string): boolean {
+		return !query.length || this.name.toLowerCase().includes(query);
+	}
 }
 
 export type GraphSetViewParameterEntry = {
@@ -73,6 +77,10 @@ export class GraphSetViewRecord extends ImmuRecord<GraphSetViewRecordProps>({
 			.withMutations(set => {
 				this.params.forEach(p => set.add(p.instanceId));
 			});
+	}
+
+	public matchesQuery(query: string): boolean {
+		return !query.length || this.name.toLowerCase().includes(query);
 	}
 
 	public setName(name: string): GraphSetViewRecord {

@@ -1,6 +1,9 @@
 .title {
 	margin-top: 0;
 	margin-bottom: 0;
+	height: 34px;
+	font-size: var(--mantine-font-size-xl);
+	line-height: 34px;
 }
 
 .sectionTitle {

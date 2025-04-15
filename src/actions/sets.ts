@@ -8,11 +8,11 @@ import { NotificationLevel } from "../models/notification";
 import { ParameterRecord } from "../models/parameter";
 import { getPatcherInstance, getPatcherInstanceParametersSortedByInstanceIdAndIndex } from "../selectors/patchers";
 import { OSCQueryRNBOSetView, OSCQueryRNBOSetViewState } from "../lib/types";
-import { getCurrentGraphSet, getCurrentGraphSetId, getCurrentGraphSetIsDirty, getGraphPresets, getGraphSets, getGraphSetView, getGraphSetViews } from "../selectors/sets";
+import { getCurrentGraphSet, getCurrentGraphSetId, getCurrentGraphSetIsDirty, getGraphPresets, getGraphSet, getGraphSets, getGraphSetsSortedByName, getGraphSetView, getGraphSetViews } from "../selectors/sets";
 import { clamp, getUniqueName, instanceAndParamIndicesToSetViewEntry, sleep, validateGraphSetName, validatePresetName, validateSetViewName } from "../lib/util";
 import { setInstanceWaitingForMidiMappingOnRemote } from "./patchers";
-import { DialogResult, showConfirmDialog, showTextInputDialog } from "../lib/dialogs";
-import { UnsavedSetName } from "../lib/constants";
+import { DialogResult, showConfirmDialog, showSelectInputDialog, showTextInputDialog } from "../lib/dialogs";
+import { SortOrder, UnsavedSetName } from "../lib/constants";
 
 export enum GraphSetActionType {
 	INIT_SETS = "INIT_SETS",
@@ -166,93 +166,6 @@ export const saveGraphSetOnRemote = (givenName: string, ensureUniqueName: boolea
 		}
 	};
 
-
-export const saveCurrentGraphSetOnRemote = (): AppThunk =>
-	async (dispatch, getState) => {
-
-		try {
-			// id == name
-			const id = getCurrentGraphSetId(getState());
-			if (!id) return;
-
-			const name = id !== UnsavedSetName
-				? id
-				: (
-					await showTextInputDialog({
-						text: "Please name the graph",
-						actions: {
-							confirm: { label: "Save Graph" }
-						},
-						validate: validateGraphSetName
-					}));
-
-			if (name === DialogResult.Cancel || name === DialogResult.Discard) {
-				return;
-			}
-			dispatch(saveGraphSetOnRemote(name, false));
-		} catch (err) {
-			dispatch(showNotification({
-				level: NotificationLevel.error,
-				title: "Error while trying to save graph",
-				message: "Please check the console for further details."
-			}));
-			console.error(err);
-		}
-	};
-
-
-export const overwriteGraphSetOnRemote = (set: GraphSetRecord): AppThunk =>
-	async (dispatch) => {
-		try {
-			const dialogResult = await showConfirmDialog({
-				text: `Are you sure you want to overwrite the graph named ${set.name} with the currently loaded graph?`,
-				actions: {
-					confirm: { label: "Overwrite Graph" }
-				}
-			});
-
-			if (dialogResult === DialogResult.Cancel) {
-				return;
-			}
-
-			dispatch(saveGraphSetOnRemote(set.name, false));
-		} catch (err) {
-			dispatch(showNotification({
-				level: NotificationLevel.error,
-				title: `Error while trying to overwrite set ${set.name}`,
-				message: "Please check the console for further details."
-			}));
-			console.error(err);
-		}
-	};
-
-export const saveCurrentGraphSetOnRemoteAs = (): AppThunk =>
-	async (dispatch) => {
-		try {
-
-			const dialogResult = await showTextInputDialog({
-				text: "Please name the graph",
-				actions: {
-					confirm: { label: "Save Graph" }
-				},
-				validate: validateGraphSetName
-			});
-
-			if (dialogResult === DialogResult.Cancel || dialogResult === DialogResult.Discard) {
-				return;
-			}
-
-			dispatch(saveGraphSetOnRemote(dialogResult, true));
-		} catch (err) {
-			dispatch(showNotification({
-				level: NotificationLevel.error,
-				title: "Error while trying to save graph",
-				message: "Please check the console for further details."
-			}));
-			console.error(err);
-		}
-	};
-
 export const loadGraphSetOnRemote = (set: GraphSetRecord): AppThunk =>
 	async (dispatch, getState) => {
 		try {
@@ -305,6 +218,41 @@ export const loadGraphSetOnRemote = (set: GraphSetRecord): AppThunk =>
 			dispatch(showNotification({
 				level: NotificationLevel.error,
 				title: `Error while trying to load set ${set.name}`,
+				message: "Please check the console for further details."
+			}));
+			console.error(err);
+		}
+	};
+
+export const triggerLoadGraphSetDialog = (): AppThunk =>
+	async (dispatch, getState) => {
+		try {
+			const sets = getGraphSetsSortedByName(getState(), SortOrder.Asc);
+			if (!sets.size) return;
+
+			const currentSet = getCurrentGraphSet(getState());
+
+			const dialogResult = await showSelectInputDialog({
+				actions: {
+					confirm: { label: "Load" }
+				},
+				options: sets.valueSeq().map(s => ({ label: s.name, value: s.name, disabled: s.id === currentSet?.id })).toArray(),
+				placeholder: "Select Graph",
+				text: "Load Graph"
+			});
+
+			if (dialogResult === DialogResult.Cancel) {
+				return;
+			}
+
+			const setToLoad = getGraphSet(getState(), dialogResult);
+			if (!setToLoad) return;
+			dispatch(loadGraphSetOnRemote(setToLoad));
+
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: "Error while trying to load set",
 				message: "Please check the console for further details."
 			}));
 			console.error(err);
@@ -388,8 +336,23 @@ export const destroyGraphSetOnRemote = (set: GraphSetRecord): AppThunk =>
 	};
 
 export const renameGraphSetOnRemote = (set: GraphSetRecord, newName: string): AppThunk =>
-	(dispatch) => {
+	async (dispatch, getState) => {
 		try {
+
+			if (set.name === newName) return; // nothing to do
+
+			const existing = getGraphSet(getState(), newName);
+			if (existing) { // confirm override
+				const dialogResult = await showConfirmDialog({
+					text: `A graph named ${newName} already exists. Are you sure you want to overwrite it?`,
+					actions: {
+						confirm: { label: "Overwrite" }
+					}
+				});
+
+				if (dialogResult !== DialogResult.Confirm) return;
+			}
+
 			const message = {
 				address: "/rnbo/inst/control/sets/rename",
 				args: [
@@ -402,6 +365,166 @@ export const renameGraphSetOnRemote = (set: GraphSetRecord, newName: string): Ap
 			dispatch(showNotification({
 				level: NotificationLevel.error,
 				title: `Error while trying to rename set ${set.name} -> ${newName}`,
+				message: "Please check the console for further details."
+			}));
+			console.error(err);
+		}
+	};
+
+export const overwriteGraphSetOnRemote = (set: GraphSetRecord): AppThunk =>
+	async (dispatch) => {
+		try {
+			const dialogResult = await showConfirmDialog({
+				text: `Are you sure you want to overwrite the graph named ${set.name} with the currently loaded graph?`,
+				actions: {
+					confirm: { label: "Overwrite Graph" }
+				}
+			});
+
+			if (dialogResult === DialogResult.Cancel) {
+				return;
+			}
+
+			dispatch(saveGraphSetOnRemote(set.name, false));
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: `Error while trying to overwrite set ${set.name}`,
+				message: "Please check the console for further details."
+			}));
+			console.error(err);
+		}
+	};
+
+export const saveCurrentGraphSetOnRemote = (): AppThunk =>
+	async (dispatch, getState) => {
+
+		try {
+			// id == name
+			const id = getCurrentGraphSetId(getState());
+			if (!id) return;
+
+			const name = id !== UnsavedSetName
+				? id
+				: (
+					await showTextInputDialog({
+						text: "Please name the graph",
+						actions: {
+							confirm: { label: "Save Graph" }
+						},
+						validate: validateGraphSetName
+					}));
+
+			if (name === DialogResult.Cancel || name === DialogResult.Discard) {
+				return;
+			}
+			dispatch(saveGraphSetOnRemote(name, false));
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: "Error while trying to save graph",
+				message: "Please check the console for further details."
+			}));
+			console.error(err);
+		}
+	};
+
+export const reloadCurrentGraphSetOnRemote = (): AppThunk =>
+	async (dispatch, getState) => {
+
+		try {
+			// id == name
+			const set = getCurrentGraphSet(getState());
+			if (!set) return;
+
+			dispatch(loadGraphSetOnRemote(set));
+
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: "Error while trying to reload current graph",
+				message: "Please check the console for further details."
+			}));
+			console.error(err);
+		}
+	};
+
+export const destroyCurrentGraphSetOnRemote = (): AppThunk =>
+	async (dispatch, getState) => {
+
+		try {
+			// id == name
+			const set = getCurrentGraphSet(getState());
+			if (!set) return;
+
+			dispatch(destroyGraphSetOnRemote(set));
+
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: "Error while trying to delete current graph",
+				message: "Please check the console for further details."
+			}));
+			console.error(err);
+		}
+	};
+
+export const renameCurrentGraphSetOnRemote = (): AppThunk =>
+	async (dispatch, getState) => {
+		try {
+
+			const set = getCurrentGraphSet(getState());
+			if (!set) return;
+
+			const dialogResult = await showTextInputDialog({
+				text: "Please name the graph",
+				actions: {
+					confirm: { label: "Save Graph" }
+				},
+				validate: (v: string) => {
+					const value = v.trim();
+					if (!value?.length) return "Please provide a valid, non empty name.";
+					return true;
+				},
+				value: set.name
+			});
+
+			if (dialogResult === DialogResult.Cancel || dialogResult === DialogResult.Discard) {
+				return;
+			}
+
+			dispatch(renameGraphSetOnRemote(set, dialogResult));
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: "Error while trying to rename graph",
+				message: "Please check the console for further details."
+			}));
+			console.error(err);
+		}
+	};
+
+export const saveCurrentGraphSetOnRemoteAs = (): AppThunk =>
+	async (dispatch) => {
+		try {
+
+			const dialogResult = await showTextInputDialog({
+				text: "Please name the graph",
+				actions: {
+					confirm: { label: "Save Graph" }
+				},
+				validate: validateGraphSetName
+			});
+
+			if (dialogResult === DialogResult.Cancel || dialogResult === DialogResult.Discard) {
+				return;
+			}
+
+			dispatch(saveGraphSetOnRemote(dialogResult, true));
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: "Error while trying to save graph",
 				message: "Please check the console for further details."
 			}));
 			console.error(err);

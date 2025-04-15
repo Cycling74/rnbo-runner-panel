@@ -35,13 +35,17 @@ export const getGraphSet = createSelector(
 export const getGraphSetsSortedByName = createSelector(
 	[
 		getGraphSets,
-		(state: RootStateType, order: SortOrder): SortOrder => order
+		(state: RootStateType, order: SortOrder): SortOrder => order,
+		(state: RootStateType, order: SortOrder, query?: string): string => query?.toLowerCase() || ""
 	],
-	(sets, order) => {
+	(sets, order, query) => {
 		const collator = new Intl.Collator("en-US");
-		return sets.valueSeq().sort((left: GraphSetRecord, right: GraphSetRecord): number => {
-			return collator.compare(left.name, right.name) * (order === SortOrder.Asc ? 1 : -1);
-		});
+		return sets
+			.valueSeq()
+			.filter(s => s.matchesQuery(query))
+			.sort((left: GraphSetRecord, right: GraphSetRecord): number => {
+				return collator.compare(left.name, right.name) * (order === SortOrder.Asc ? 1 : -1);
+			});
 	}
 );
 
