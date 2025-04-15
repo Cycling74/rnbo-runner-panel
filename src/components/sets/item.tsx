@@ -2,7 +2,7 @@ import { FunctionComponent, MouseEvent, memo, useCallback, useState } from "reac
 import { GraphSetRecord } from "../../models/set";
 import { ActionIcon, Group, Menu, Table, Tooltip } from "@mantine/core";
 import { IconElement } from "../elements/icon";
-import { mdiCheck, mdiDotsVertical, mdiFileReplaceOutline, mdiGroup, mdiPencil, mdiStarBox, mdiTrashCan } from "@mdi/js";
+import { mdiCheck, mdiDotsVertical, mdiFileReplaceOutline, mdiGroup, mdiPencil, mdiStar, mdiTrashCan } from "@mdi/js";
 import { EditableTableTextCell } from "../elements/editableTableCell";
 
 export type GraphSetItemProps = {
@@ -52,16 +52,16 @@ export const GraphSetItem: FunctionComponent<GraphSetItemProps> = memo(function 
 			<Table.Td>
 				<Group gap={ 0 } wrap="nowrap" align="center">
 					{
-						isInitial ? (
-							<Tooltip label="This graph is loaded on startup">
-								<IconElement path={ mdiStarBox } color="yellow" />
+						isCurrent ? (
+							<Tooltip label="This graph is currently loaded">
+								<IconElement path={ mdiCheck } color="green" />
 							</Tooltip>
 						) : null
 					}
 					{
-						isCurrent ? (
-							<Tooltip label="This graph is currently loaded">
-								<IconElement path={ mdiCheck } color="green" />
+						isInitial ? (
+							<Tooltip label="This graph is loaded on startup">
+								<IconElement path={ mdiStar } color="yellow" />
 							</Tooltip>
 						) : null
 					}
