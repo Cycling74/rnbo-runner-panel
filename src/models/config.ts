@@ -13,7 +13,7 @@ export enum ConfigKey {
 	AutoConnectAudioIndexed = "auto_connect_audio_indexed",
 	AutoConnectMIDI = "auto_connect_midi",
 	AutoConnectMIDIHardware = "auto_connect_midi_hardware",
-	AutoStartLast = "auto_start_last",
+	AutoStartLastSet = "auto_start_last",
 	AudioFadeIn = "audio_fade_in",
 	AudioFadeOut = "audio_fade_out",
 	PortToOsc = "port_to_osc",
@@ -42,7 +42,7 @@ export type ConfigRecordProps = {
 	max?: number;
 	options?: ConfigOptions;
 	path: string;
-	tab: SettingsTab;
+	tab?: SettingsTab;
 	title: string;
 
 	oscValue: number | string | boolean | null;
@@ -50,9 +50,8 @@ export type ConfigRecordProps = {
 }
 
 const instanceConfigDetails: Partial<Record<ConfigKey, Omit<ConfigRecordProps, "id" | "oscValue" | "oscType" >>> = {
-	[ConfigKey.AutoStartLast]: {
-		path: `/rnbo/inst/config/${ConfigKey.AutoStartLast}`,
-		tab: SettingsTab.Instance,
+	[ConfigKey.AutoStartLastSet]: {
+		path: `/rnbo/inst/config/${ConfigKey.AutoStartLastSet}`,
 		title: "Auto Start Last Set"
 	},
 	[ConfigKey.AutoConnectAudio]: {
@@ -175,7 +174,7 @@ export class ConfigRecord extends ImmuRecord<ConfigRecordProps>({
 	max: undefined,
 	options: undefined,
 	path: "",
-	tab: SettingsTab.Instance,
+	tab: undefined,
 	title: "",
 
 	oscType: OSCQueryValueType.True,
