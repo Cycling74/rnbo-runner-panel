@@ -8,7 +8,7 @@ import { OSCQueryRNBOState, OSCQueryRNBOInstance, OSCQueryRNBOPatchersState, OSC
 import { deletePortAliases, initConnections, initPorts, setPortAliases, updateSetMetaFromRemote, updateSourcePortConnections, deletePortById, setPortProperties, addPort } from "../actions/graph";
 import { addInstance, deleteInstanceById, initInstances, initPatchers, removeInstanceDataRefByPath, updateInstanceDataRefMeta, updateInstanceDataRefs, updateInstanceParameterDisplayName, updateInstanceAlias } from "../actions/patchers";
 import { initRunnerConfig, updateRunnerConfig } from "../actions/settings";
-import { initSets, setCurrentGraphSet, initSetPresets, setGraphSetPresetLatest, initSetViews, updateSetViewName, updateSetViewParameterList, deleteSetView, addSetView, updateSetViewOrder, setCurrentGraphSetDirtyState } from "../actions/sets";
+import { initSets, setCurrentGraphSet, initSetPresets, setGraphSetPresetLatest, initSetViews, updateSetViewName, updateSetViewParameterList, deleteSetView, addSetView, updateSetViewOrder, setCurrentGraphSetDirtyState, setGraphSetInitialSet } from "../actions/sets";
 import { initDataFiles } from "../actions/datafiles";
 import { sleep } from "../lib/util";
 import { getPatcherInstance } from "../selectors/patchers";
@@ -240,6 +240,7 @@ export class OSCQueryBridgeControllerPrivate {
 
 		// Init Sets info
 		dispatch(initSets(state.CONTENTS.inst?.CONTENTS?.control?.CONTENTS?.sets?.CONTENTS?.load?.RANGE?.[0]?.VALS || []));
+		dispatch(setGraphSetInitialSet(state.CONTENTS.inst?.CONTENTS?.control?.CONTENTS?.sets?.CONTENTS?.initial?.VALUE));
 		dispatch(setCurrentGraphSet(state.CONTENTS.inst?.CONTENTS?.control?.CONTENTS?.sets?.CONTENTS?.current?.CONTENTS?.name?.VALUE || ""));
 		dispatch(setCurrentGraphSetDirtyState(state.CONTENTS.inst?.CONTENTS?.control?.CONTENTS?.sets?.CONTENTS?.current?.CONTENTS?.dirty?.TYPE === "T"));
 		dispatch(initSetPresets(state.CONTENTS.inst?.CONTENTS?.control?.CONTENTS?.sets?.CONTENTS?.presets?.CONTENTS?.load?.RANGE?.[0]?.VALS || []));
@@ -570,6 +571,10 @@ export class OSCQueryBridgeControllerPrivate {
 					level: NotificationLevel.error
 				}));
 			}
+		}
+
+		if (packet.address === "/rnbo/inst/control/sets/initial") {
+			return void dispatch(setGraphSetInitialSet((packet.args as unknown as [string])?.[0] || undefined));
 		}
 
 		if (packet.address === "/rnbo/inst/control/sets/presets/loaded") {

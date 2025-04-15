@@ -4,6 +4,9 @@ import { GraphSetRecord, GraphSetViewRecord } from "../models/set";
 import { PresetRecord } from "../models/preset";
 import { createSelector } from "reselect";
 import { SortOrder } from "../lib/constants";
+import { getRunnerConfig } from "./settings";
+import { ConfigKey, ConfigRecord } from "../models/config";
+import { OSCQueryValueType } from "../lib/types";
 
 export const getGraphSets = (state: RootStateType): ImmuMap<GraphSetRecord["id"], GraphSetRecord> => {
 	return state.sets.sets;
@@ -21,6 +24,20 @@ export const getCurrentGraphSet = createSelector(
 		return sets.get(currentId) || undefined;
 	}
 );
+
+export const getInitialGraphSet = createSelector(
+	[
+		getGraphSets,
+		(state: RootStateType): ConfigRecord => getRunnerConfig(state, ConfigKey.AutoStartLastSet),
+		(state: RootStateType): GraphSetRecord["name"] | undefined => state.sets.initialSet
+	],
+	(sets, config, initial): GraphSetRecord | undefined => {
+		if (config.oscType ===  OSCQueryValueType.False) return undefined;
+		return initial
+			? sets.get(initial) || undefined
+			: undefined
+	}
+)
 
 export const getGraphSet = createSelector(
 	[

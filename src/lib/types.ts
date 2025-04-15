@@ -411,6 +411,7 @@ export type OSCQueryRNBOInstancesControlState = OSCQueryBaseNode & {
 	CONTENTS: {
 		sets: OSCQueryBaseNode & {
 			CONTENTS: {
+				initial: OSCQueryStringValue;
 				meta: OSCQueryRNBOInstancesMetaState;
 				save: OSCQuerySingleValue<OSCQueryValueType.String, string>;
 				load: OSCQuerySingleValue<OSCQueryValueType.String, string> & {

@@ -16,8 +16,11 @@ import { SortOrder, UnsavedSetName } from "../lib/constants";
 
 export enum GraphSetActionType {
 	INIT_SETS = "INIT_SETS",
+
 	SET_SET_CURRENT = "SET_SET_CURRENT",
 	SET_SET_CURRENT_DIRTY = "SET_SET_CURRENT_DIRTY",
+
+	SET_SET_INITIAL = "SET_SET_INITIAL",
 
 	INIT_SET_PRESETS = "INIT_SET_PRESETS",
 	SET_SET_PRESET_LATEST = "SET_SET_PRESET_LATEST",
@@ -50,6 +53,12 @@ export interface ISetGraphSetCurrentDirty extends ActionBase {
 	}
 }
 
+export interface ISetGraphSetInitial extends ActionBase {
+	type: GraphSetActionType.SET_SET_INITIAL;
+	payload: {
+		name?: string;
+	}
+}
 
 export interface IInitGraphSetPresets extends ActionBase {
 	type: GraphSetActionType.INIT_SET_PRESETS;
@@ -102,7 +111,8 @@ export interface ISetGraphSetViewOrder extends ActionBase {
 }
 
 
-export type GraphSetAction = IInitGraphSets | ISetGraphSetCurrent | ISetGraphSetCurrentDirty | IInitGraphSetPresets | ISetGraphSetPresetsLatest |
+export type GraphSetAction = IInitGraphSets | ISetGraphSetCurrent | ISetGraphSetCurrentDirty | ISetGraphSetInitial |
+IInitGraphSetPresets | ISetGraphSetPresetsLatest |
 IInitGraphSetViews | ILoadGraphSetView | ISetGraphSetView | IDeleteGraphSetView | ISetGraphSetViewOrder;
 
 export const initSets = (names: string[]): GraphSetAction => {
@@ -128,6 +138,15 @@ export const setCurrentGraphSetDirtyState = (dirty: boolean): GraphSetAction => 
 		type: GraphSetActionType.SET_SET_CURRENT_DIRTY,
 		payload: {
 			dirty
+		}
+	};
+};
+
+export const setGraphSetInitialSet = (name?: string): GraphSetAction => {
+	return {
+		type: GraphSetActionType.SET_SET_INITIAL,
+		payload: {
+			name: name || undefined
 		}
 	};
 };

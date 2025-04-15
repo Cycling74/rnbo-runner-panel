@@ -4,9 +4,14 @@ import { PresetRecord } from "../models/preset";
 import { GraphSetAction, GraphSetActionType } from "../actions/sets";
 
 export type SetState = {
+
 	sets: ImmuMap<GraphSetRecord["id"], GraphSetRecord>;
+
 	currentId: GraphSetRecord["id"];
 	currentIsDirty: boolean;
+
+	initialSet: string | undefined;
+
 	presets: ImmuMap<PresetRecord["id"], PresetRecord>;
 	presetLatest: string;
 
@@ -17,13 +22,19 @@ export type SetState = {
 
 export const sets = (state: SetState = {
 	sets: ImmuMap<GraphSetRecord["id"], GraphSetRecord>(),
+
 	currentId: "",
 	currentIsDirty: false,
+
+	initialSet: undefined,
+
 	presets: ImmuMap<PresetRecord["id"], PresetRecord>(),
 	presetLatest: "",
+
 	selectedView: undefined,
 	views: ImmuMap<GraphSetViewRecord["id"], GraphSetViewRecord>(),
 	viewOrder: ImmuOrderedSet<GraphSetViewRecord["id"]>()
+
 }, action: GraphSetAction): SetState => {
 
 	switch (action.type) {
@@ -69,6 +80,14 @@ export const sets = (state: SetState = {
 				...state,
 				currentIsDirty: dirty
 			};
+		}
+
+		case GraphSetActionType.SET_SET_INITIAL: {
+			const { name } = action.payload;
+			return {
+				...state,
+				initialSet: name || undefined
+			}
 		}
 
 		case GraphSetActionType.INIT_SET_VIEWS: {
