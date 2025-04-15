@@ -1,7 +1,7 @@
 import { Connection, EdgeChange, NodeChange, ReactFlowInstance } from "reactflow";
 import { ActionBase, AppThunk } from "../lib/store";
 import { getConnection, getConnectionByPorts, getConnections, getEditorNodesAndPorts, getNode, getNodePosition, getNodes, getPort, getPorts } from "../selectors/graph";
-import { GraphConnectionRecord, GraphNode, NodeType } from "../models/graph";
+import { GraphConnectionRecord, GraphNode, GraphNodeRecord, NodeType } from "../models/graph";
 import { showNotification } from "./notifications";
 import { NotificationLevel } from "../models/notification";
 import { writePacket } from "osc";
@@ -11,6 +11,8 @@ import { setConnection, setNode, setNodePosition, setNodePositions, unloadPatche
 import { getGraphEditorInstance, getGraphEditorLockedState } from "../selectors/editor";
 import { triggerSetMetaUpdateOnRemote, updateSetMetaOnRemoteFromNodes } from "./meta";
 import { DialogResult, showConfirmDialog } from "../lib/dialogs";
+import { getPatcherInstance } from "../selectors/patchers";
+import { changeAliasOnRemoteInstance } from "./patchers";
 
 export enum EditorActionType {
 	INIT = "EDITOR_INIT",
@@ -209,6 +211,16 @@ export const applyEditorNodeChanges = (changes: NodeChange[]): AppThunk =>
 					// no-op
 			}
 		}
+	};
+
+export const changeNodeAlias = (node: GraphNodeRecord): AppThunk =>
+	(dispatch, getState) => {
+		if (node.type !== NodeType.Patcher) return;
+
+		const patcherInstance = getPatcherInstance(getState(), node.instanceId);
+		if (!patcherInstance) return;
+
+		dispatch(changeAliasOnRemoteInstance(patcherInstance));
 	};
 
 export const applyEditorEdgeChanges = (changes: EdgeChange[]): AppThunk =>

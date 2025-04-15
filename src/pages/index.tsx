@@ -9,7 +9,7 @@ import PresetDrawer from "../components/presets";
 import { Connection, EdgeChange, NodeChange, ReactFlowInstance } from "reactflow";
 import { loadPatcherNodeOnRemote } from "../actions/graph";
 import {
-	applyEditorEdgeChanges, applyEditorNodeChanges, createEditorConnection,
+	applyEditorEdgeChanges, applyEditorNodeChanges, changeNodeAlias, createEditorConnection,
 	editorZoomIn,
 	editorZoomOut,
 	generateEditorLayout,
@@ -31,6 +31,7 @@ import { getGraphEditorLockedState } from "../selectors/editor";
 import { AddNodeMenu } from "../components/editor/addNodeMenu";
 import { SaveGraphSplitButton } from "../components/editor/saveGraphSplitButton";
 import { GraphSetTitle } from "../components/editor/setTitle";
+import { GraphNodeRecord } from "../models/graph";
 
 const Index: FunctionComponent<Record<string, never>> = () => {
 
@@ -99,6 +100,10 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 
 	const onNodesChange = useCallback((changes: NodeChange[]) => {
 		dispatch(applyEditorNodeChanges(changes));
+	}, [dispatch]);
+
+	const onRenameNode = useCallback((node: GraphNodeRecord) => {
+		dispatch(changeNodeAlias(node));
 	}, [dispatch]);
 
 	// Edges
@@ -204,6 +209,7 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 					onConnect={ onConnectNodes }
 					onNodesChange={ onNodesChange }
 					onEdgesChange={ onEdgesChange }
+					onRenameNode={ onRenameNode }
 
 					onInit={ onEditorInit }
 					onAutoLayout={ onEditorAutoLayout }

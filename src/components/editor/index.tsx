@@ -27,6 +27,7 @@ export type GraphEditorProps = {
 	onConnect: (connection: Connection) => any;
 	onNodesChange: (changes: NodeChange[]) => void;
 	onEdgesChange: (changes: EdgeChange[]) => void;
+	onRenameNode: (node: GraphNodeRecord) => void;
 
 	zoom: number;
 	locked: boolean;
@@ -53,6 +54,7 @@ const GraphEditor: FunctionComponent<GraphEditorProps> = memo(function WrappedFl
 	onConnect,
 	onNodesChange,
 	onEdgesChange,
+	onRenameNode,
 
 	nodeInfo,
 	ports,
@@ -95,6 +97,11 @@ const GraphEditor: FunctionComponent<GraphEditorProps> = memo(function WrappedFl
 		push({ pathname: "/instances/[id]", query: { ...query, id: node.data.node.instanceId }});
 	}, [query, push]);
 
+	const onDeleteNode = useCallback((node: GraphNodeRecord) => {
+		if (node.type !== NodeType.Patcher) return;
+		onNodesChange([{ id: node.id, type: "remove" }]);
+	}, [onNodesChange]);
+
 	const flowNodes: Node<NodeDataProps>[] = nodeInfo.valueSeq().toArray().map(({
 		node,
 		x,
@@ -111,6 +118,8 @@ const GraphEditor: FunctionComponent<GraphEditorProps> = memo(function WrappedFl
 			selected: node.selected,
 			type: node?.type,
 			data: {
+				onDelete: onDeleteNode,
+				onRename: onRenameNode,
 				node,
 				x,
 				y,
