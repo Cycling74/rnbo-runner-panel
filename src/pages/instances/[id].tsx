@@ -1,9 +1,9 @@
-import { ChangeEvent, MouseEvent, useCallback } from "react";
+import { MouseEvent, useCallback } from "react";
 import { useAppDispatch, useAppSelector } from "../../hooks/useAppDispatch";
 import { RootStateType } from "../../lib/store";
 import InstanceComponent from "../../components/instance";
 import { useRouter } from "next/router";
-import { ActionIcon, Button, Group, Menu, NativeSelect, Stack } from "@mantine/core";
+import { ActionIcon, Button, Group, Menu, Stack, Tooltip } from "@mantine/core";
 import classes from "../../components/instance/instance.module.css";
 import { getAppStatus } from "../../selectors/appStatus";
 import { AppStatus, SortOrder } from "../../lib/constants";
@@ -19,10 +19,9 @@ import { useDisclosure } from "@mantine/hooks";
 import { getDataFilesSortedByName } from "../../selectors/datafiles";
 import InstanceKeyboardModal from "../../components/keyroll/modal";
 import { IconElement } from "../../components/elements/icon";
-import { mdiCamera, mdiChartSankeyVariant, mdiDotsVertical, mdiPencil, mdiPiano, mdiTrashCan, mdiVectorSquare } from "@mdi/js";
-import { ResponsiveButton } from "../../components/elements/responsiveButton";
-
-const collator = new Intl.Collator("en-US", { numeric: true });
+import { mdiCamera, mdiChartSankeyVariant, mdiDotsVertical, mdiPencil, mdiPiano, mdiTrashCan } from "@mdi/js";
+import { InstanceSelectTitle } from "../../components/instance/title";
+import { PatcherInstanceRecord } from "../../models/instance";
 
 export default function Instance() {
 
@@ -66,8 +65,8 @@ export default function Instance() {
 		];
 	});
 
-	const onChangeInstance = useCallback((e: ChangeEvent<HTMLSelectElement>) => {
-		push({ pathname, query: { ...query, id: e.currentTarget.value } });
+	const onChangeInstance = useCallback((instance: PatcherInstanceRecord) => {
+		push({ pathname, query: { ...query, id: instance.id } });
 	}, [push, pathname, query]);
 
 	const onUnloadInstance = useCallback((e: MouseEvent<HTMLButtonElement>) => {
@@ -126,40 +125,42 @@ export default function Instance() {
 		<Stack className={ classes.instanceWrap } >
 			<Group justify="space-between" wrap="nowrap">
 				<div style={{ flex: "1 2 50%" }} >
-					<NativeSelect
-						data={ instances.valueSeq().sort((a, b) => collator.compare(a.id, b.id)).toArray().map(d => ({ value: d.id, label: d.displayName })) }
-						leftSection={ <IconElement path={ mdiVectorSquare } /> }
-						onChange={ onChangeInstance }
-						value={ currentInstance.id }
-						style={{ maxWidth: 300, width: "100%" }}
+					<InstanceSelectTitle
+						currentInstanceId={ currentInstance.id }
+						instances={ instances }
+						onChangeInstance={ onChangeInstance }
 					/>
 				</div>
 				<Group style={{ flex: "0" }} wrap="nowrap" gap="xs" >
-					<ResponsiveButton
-						label="Presets"
-						tooltip="Open Device Preset Menu"
-						icon={ mdiCamera }
-						onClick={ togglePresetDrawer }
-					/>
-					<Menu position="bottom-end">
-						<Menu.Target>
-							<ActionIcon variant="default" size="lg">
-								<IconElement path={ mdiDotsVertical } />
+					<ActionIcon.Group>
+						<Tooltip label="Open Preset Menu">
+							<ActionIcon size="lg" variant="default" onClick={ togglePresetDrawer } >
+								<IconElement path={ mdiCamera } />
 							</ActionIcon>
-						</Menu.Target>
-						<Menu.Dropdown>
-							<Menu.Item leftSection={ <IconElement path={ mdiPencil } /> } onClick={ onTriggerRenameInstance } >
-								Rename Device
-							</Menu.Item>
-							<Menu.Item leftSection={ <IconElement path={ mdiPiano } /> } onClick={ toggleKeyboardModal } >
-								Open Virtual Keyboard
-							</Menu.Item>
-							<Menu.Divider />
-							<Menu.Item leftSection={ <IconElement path={ mdiTrashCan } /> } onClick={ onUnloadInstance } color="red" >
-								Delete Device
-							</Menu.Item>
-						</Menu.Dropdown>
-					</Menu>
+						</Tooltip>
+						<Menu position="bottom-end">
+							<Menu.Target>
+								<Tooltip label="Open Device Menu">
+									<ActionIcon variant="default" size="lg">
+										<IconElement path={ mdiDotsVertical } />
+									</ActionIcon>
+								</Tooltip>
+							</Menu.Target>
+							<Menu.Dropdown>
+								<Menu.Label>Device</Menu.Label>
+								<Menu.Item leftSection={ <IconElement path={ mdiPencil } /> } onClick={ onTriggerRenameInstance } >
+									Rename Device
+								</Menu.Item>
+								<Menu.Item leftSection={ <IconElement path={ mdiPiano } /> } onClick={ toggleKeyboardModal } >
+									Open Virtual Keyboard
+								</Menu.Item>
+								<Menu.Divider />
+								<Menu.Item leftSection={ <IconElement path={ mdiTrashCan } /> } onClick={ onUnloadInstance } color="red" >
+									Delete Device
+								</Menu.Item>
+							</Menu.Dropdown>
+						</Menu>
+					</ActionIcon.Group>
 				</Group>
 			</Group>
 			<InstanceComponent
