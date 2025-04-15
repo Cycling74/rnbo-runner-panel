@@ -34,7 +34,6 @@ const MIDIMappedParameterList: FC<MIDIMappedParameterListProps> = memo(function 
 				<Table.Tr>
 					<TableHeaderCell
 						className={ classes.midiSourceColumnHeader }
-						fz="xs"
 						onSort={ onSort }
 						sortKey={ MIDIMappedParameterSortAttr.MIDISource }
 						sortOrder={ sortOrder }
@@ -44,7 +43,6 @@ const MIDIMappedParameterList: FC<MIDIMappedParameterListProps> = memo(function 
 					</TableHeaderCell>
 					<TableHeaderCell
 						className={ classes.parameterNameColumnHeader }
-						fz="xs"
 						onSort={ onSort }
 						sortKey={ MIDIMappedParameterSortAttr.ParameterName }
 						sortOrder={ sortOrder }
@@ -54,7 +52,6 @@ const MIDIMappedParameterList: FC<MIDIMappedParameterListProps> = memo(function 
 					</TableHeaderCell>
 					<TableHeaderCell
 						className={ classes.patcherInstanceColumnHeader }
-						fz="xs"
 						onSort={ onSort }
 						sortKey={ MIDIMappedParameterSortAttr.InstanceId }
 						sortOrder={ sortOrder }
@@ -62,8 +59,8 @@ const MIDIMappedParameterList: FC<MIDIMappedParameterListProps> = memo(function 
 					>
 						Device
 					</TableHeaderCell>
-					<TableHeaderCell className={ classes.parameterValueColumnHeader } fz="xs" >
-						Current Value
+					<TableHeaderCell className={ classes.parameterValueColumnHeader } >
+						Value
 					</TableHeaderCell>
 					<TableHeaderCell className={ classes.actionColumnHeader } />
 				</Table.Tr>
