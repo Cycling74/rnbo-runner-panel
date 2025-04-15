@@ -188,6 +188,7 @@ export type SelectDialogDesc = {
 		cancel?: DialogAction;
 		confirm?: DialogAction;
 	};
+	initialValue?: string;
 };
 
 const SelectModal: FC<SelectDialogDesc & { onCancel: () => void; onConfirm: (v: string) => void; }> = ({
@@ -196,10 +197,11 @@ const SelectModal: FC<SelectDialogDesc & { onCancel: () => void; onConfirm: (v: 
 	onConfirm,
 	options,
 	placeholder = "Select",
-	text
+	text,
+	initialValue = ""
 }) => {
 
-	const [value, setValue] = useState<string>("");
+	const [value, setValue] = useState<string>(initialValue);
 	const [errorMsg, setErrorMsg] = useState<string | undefined>(undefined);
 
 	const onChange = useCallback((e: ChangeEvent<HTMLSelectElement>) => {
@@ -242,7 +244,8 @@ export const showSelectInputDialog = ({
 	},
 	placeholder,
 	options,
-	text
+	text,
+	initialValue
 }: SelectDialogDesc): Promise<DialogResult.Cancel | string> => {
 	return new Promise<DialogResult.Cancel | string>(resolve => {
 
@@ -264,6 +267,7 @@ export const showSelectInputDialog = ({
 			children: (
 				<SelectModal
 					actions={{ cancel, confirm }}
+					initialValue={ initialValue }
 					onCancel={ onCancel }
 					onConfirm={ onConfirm }
 					options={ options }
