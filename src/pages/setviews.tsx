@@ -2,9 +2,8 @@ import { useAppDispatch, useAppSelector } from "../hooks/useAppDispatch";
 import { RootStateType } from "../lib/store";
 import { getGraphSetViewsBySortOrder, getSelectedGraphSetView } from "../selectors/sets";
 import { MouseEvent, useCallback, useEffect } from "react";
-import { ResponsiveButton } from "../components/elements/responsiveButton";
-import { ActionIcon, Group, Stack, Title, Tooltip } from "@mantine/core";
-import { mdiMidiPort, mdiTableEye, mdiTune } from "@mdi/js";
+import { ActionIcon, Group, Menu, Stack, Tooltip } from "@mantine/core";
+import { mdiDotsVertical, mdiMidiPort, mdiPencil, mdiTableEye, mdiTrashCan, mdiTune } from "@mdi/js";
 import { useDisclosure } from "@mantine/hooks";
 import { createSetViewOnRemote, destroySetViewOnRemote, loadSetView, decreaseParameterIndexInSetView, increaseParameterIndexInSetView, removeParameterFromSetView, renameSetViewOnRemote, setViewContainedInstancesWaitingForMidiMappingOnRemote  } from "../actions/sets";
 import SetViewDrawer from "../components/setViews/drawer";
@@ -15,6 +14,7 @@ import { ParameterRecord } from "../models/parameter";
 import { activateParameterMIDIMappingFocus, clearParameterMIDIMappingOnRemote, restoreDefaultParameterMetaOnRemote, setInstanceParameterMetaOnRemote, setInstanceParameterValueNormalizedOnRemote } from "../actions/patchers";
 import { SetViewParameterModal } from "../components/setViews/paramModal";
 import { IconElement } from "../components/elements/icon";
+import { PageTitle } from "../components/page/title";
 
 export default function SetViews() {
 
@@ -107,13 +107,13 @@ export default function SetViews() {
 			<Stack>
 				<Group justify="space-between" wrap="nowrap">
 					<div style={{ flex: "1 2 50%" }} >
-						<Title size="md" my={ 0 } >
+						<PageTitle>
 							{
 								currentSetView?.name || "No Parameter View Loaded"
 							}
-						</Title>
+						</PageTitle>
 					</div>
-					<Group style={{ flex: "0" }} wrap="nowrap" gap="xs" >
+					<Group wrap="nowrap" gap="xs">
 						<Tooltip label={ currentSetViewIsMIDIMapping ? "Disable MIDI Mapping" : "Enable MIDI Mapping" } >
 							<ActionIcon
 								onClick={ onToggleMIDIMapping }
@@ -124,18 +124,33 @@ export default function SetViews() {
 								<IconElement path={ mdiMidiPort } />
 							</ActionIcon>
 						</Tooltip>
-						<ResponsiveButton
-							label="Parameters"
-							tooltip="Manage Parameters"
-							icon={ mdiTune }
-							onClick={ openAddParametersView }
-						/>
-						<ResponsiveButton
-							label="Parameter Views"
-							tooltip="Open Parameter Views Menu"
-							icon={ mdiTableEye }
-							onClick={ openSetViewDrawer }
-						/>
+						<ActionIcon.Group>
+							<Tooltip label="Open Parameter View Menu">
+								<ActionIcon onClick={ openSetViewDrawer } variant="default" size="lg">
+									<IconElement path={ mdiTableEye } />
+								</ActionIcon>
+							</Tooltip>
+							<Menu position="bottom-end">
+								<Menu.Target>
+									<ActionIcon variant="default" size="lg">
+										<IconElement path={ mdiDotsVertical } />
+									</ActionIcon>
+								</Menu.Target>
+								<Menu.Dropdown>
+									<Menu.Label>Parameter View</Menu.Label>
+									<Menu.Item leftSection={ <IconElement path={ mdiTune } /> } onClick={ openAddParametersView } >
+										Manage Parameters
+									</Menu.Item>
+									<Menu.Item leftSection={ <IconElement path={ mdiPencil } /> } >
+										Rename
+									</Menu.Item>
+									<Menu.Divider />
+									<Menu.Item leftSection={ <IconElement path={ mdiTrashCan } /> } color="red">
+										Delete
+									</Menu.Item>
+								</Menu.Dropdown>
+							</Menu>
+						</ActionIcon.Group>
 					</Group>
 				</Group>
 				<div>
