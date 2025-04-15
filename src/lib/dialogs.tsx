@@ -209,7 +209,6 @@ const SelectModal: FC<SelectDialogDesc & { onCancel: () => void; onConfirm: (v: 
 
 	const onTriggerConfirm = useCallback((e: FormEvent<HTMLFormElement>): void => {
 		e.preventDefault();
-		console.log(value);
 		if (value === "") return void setErrorMsg("Please select an option");
 		return void onConfirm(value);
 	}, [onConfirm, setErrorMsg, value]);
