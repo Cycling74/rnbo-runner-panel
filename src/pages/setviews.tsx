@@ -137,7 +137,7 @@ export default function SetViews() {
 							<Menu.Dropdown>
 								<Menu.Label>Parameter View</Menu.Label>
 								<Menu.Item leftSection={ <IconElement path={ mdiPlus } /> } onClick={ onCreateSetView } >
-									Create View
+									New View
 								</Menu.Item>
 								<Menu.Divider />
 								<Menu.Item leftSection={ <IconElement path={ mdiTune } /> } onClick={ openAddParametersView } disabled={ !currentSetView } >
