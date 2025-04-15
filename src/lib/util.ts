@@ -2,6 +2,14 @@ import { KeyboardEvent, memo } from "react";
 import { AnyJson, JsonMap, MIDIChannelPressureMetaMapping, MIDIControlChangeMetaMapping, MIDIKeypressMetaMapping, MIDIMetaMapping, MIDINoteMetaMapping, MIDIPitchBendMetaMapping, MIDIProgramChangeMetaMapping, OSCQueryStringValueRange, OSCQueryValueRange } from "./types";
 import { MIDIMetaMappingType, nodePortHeight, nodePortSpacing, UnsavedSetName } from "./constants";
 
+import dayjs from "dayjs";
+import customParseFormat from "dayjs/plugin/customParseFormat";
+import relativeTime from "dayjs/plugin/relativeTime";
+
+dayjs.extend(customParseFormat);
+dayjs.extend(relativeTime);
+export { dayjs };
+
 export const genericMemo: <P>(component: P) => P = memo;
 
 export const sleep = (t: number): Promise<void> => new Promise(resolve => setTimeout(resolve, t));
