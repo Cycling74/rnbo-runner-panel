@@ -7,12 +7,16 @@ import { showNotification } from "./notifications";
 import { NotificationLevel } from "../models/notification";
 import { ParameterRecord } from "../models/parameter";
 import { getPatcherInstance, getPatcherInstanceParametersSortedByInstanceIdAndIndex } from "../selectors/patchers";
-import { OSCQueryRNBOSetView, OSCQueryRNBOSetViewState } from "../lib/types";
-import { getCurrentGraphSet, getCurrentGraphSetId, getCurrentGraphSetIsDirty, getGraphPresets, getGraphSet, getGraphSets, getGraphSetsSortedByName, getGraphSetView, getGraphSetViews } from "../selectors/sets";
+import { OSCQueryRNBOSetView, OSCQueryRNBOSetViewState, OSCQueryValueType } from "../lib/types";
+import { getCurrentGraphSet, getCurrentGraphSetId, getCurrentGraphSetIsDirty, getGraphPresets, getGraphSet, getGraphSets, getGraphSetsSortedByName, getGraphSetView, getGraphSetViews, getInitialGraphSet } from "../selectors/sets";
 import { clamp, getUniqueName, instanceAndParamIndicesToSetViewEntry, sleep, validateGraphSetName, validatePresetName, validateSetViewName } from "../lib/util";
 import { setInstanceWaitingForMidiMappingOnRemote } from "./patchers";
 import { DialogResult, showConfirmDialog, showSelectInputDialog, showTextInputDialog } from "../lib/dialogs";
 import { SortOrder, UnsavedSetName } from "../lib/constants";
+import { getRunnerConfig } from "../selectors/settings";
+import { ConfigKey } from "../models/config";
+import { init } from "next/dist/compiled/@vercel/og/satori";
+import { setRunnerConfig } from "./settings";
 
 export enum GraphSetActionType {
 	INIT_SETS = "INIT_SETS",
@@ -271,7 +275,76 @@ export const triggerLoadGraphSetDialog = (): AppThunk =>
 		} catch (err) {
 			dispatch(showNotification({
 				level: NotificationLevel.error,
-				title: "Error while trying to load set",
+				title: "Error while trying to load graph",
+				message: "Please check the console for further details."
+			}));
+			console.error(err);
+		}
+	};
+
+export const triggerStartupGraphSetDialog = (): AppThunk =>
+	async (dispatch, getState) => {
+
+		try {
+			const state = getState();
+
+			const startupConfig = getRunnerConfig(state, ConfigKey.AutoStartLastSet);
+			const initSet = getInitialGraphSet(state);
+			const sets = getGraphSets(state);
+
+			enum OnLoadGraphSetSetting {
+				EmptySet = "___new_empty_set___",
+				LastSet = "___last__loaded_set___",
+			}
+
+			const dialogResult = await showSelectInputDialog({
+				actions: {
+					confirm: { label: "Save" }
+				},
+				options: [
+					{ value: OnLoadGraphSetSetting.LastSet, label: "Load last graph" },
+					{ value: OnLoadGraphSetSetting.EmptySet, label: "Load new, empty graph" },
+					{ value: "", disabled: true, label: "Load graph:" },
+					...sets.valueSeq().map(s => ({ label: s.name, value: s.id })).toArray()
+				],
+				placeholder: "Select",
+				text: "Configure startup behaviour",
+				initialValue: startupConfig.oscType === OSCQueryValueType.False
+					? OnLoadGraphSetSetting.EmptySet
+					: !initSet ? OnLoadGraphSetSetting.LastSet : initSet.id
+			});
+
+			switch (dialogResult) {
+				case DialogResult.Cancel:
+					return;
+				case OnLoadGraphSetSetting.EmptySet:
+					dispatch(setRunnerConfig(ConfigKey.AutoStartLastSet, false));
+					return;
+				case OnLoadGraphSetSetting.LastSet:
+					dispatch(setRunnerConfig(ConfigKey.AutoStartLastSet, true));
+					const message = {
+						address: "/rnbo/inst/control/sets/initial",
+						args: [{ type: "s", value: "" }]
+					};
+					oscQueryBridge.sendPacket(writePacket(message));
+					return;
+					return;
+				default: {
+					// Specific Graph
+					dispatch(setRunnerConfig(ConfigKey.AutoStartLastSet, true));
+					const message = {
+						address: "/rnbo/inst/control/sets/initial",
+						args: [{ type: "s", value: dialogResult }]
+					};
+					oscQueryBridge.sendPacket(writePacket(message));
+					return;
+				}
+			}
+
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: "Error while trying to confingure startup graph",
 				message: "Please check the console for further details."
 			}));
 			console.error(err);

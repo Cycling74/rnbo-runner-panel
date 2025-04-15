@@ -167,7 +167,7 @@ const Settings: FunctionComponent = memo(function WrappedSettings() {
 			title: "Control"
 		},
 		[SettingsTab.Instance]: {
-			title: "Graph"
+			title: "Devices"
 		},
 		[SettingsTab.Audio]: {
 			title: "Audio",
