@@ -259,7 +259,7 @@ export const triggerLoadGraphSetDialog = (): AppThunk =>
 				actions: {
 					confirm: { label: "Load" }
 				},
-				options: sets.valueSeq().map(s => ({ label: s.name, value: s.name, disabled: s.id === currentSet?.id })).toArray(),
+				options: sets.valueSeq().map(s => ({ label: s.name, value: s.id, disabled: s.id === currentSet?.id })).toArray(),
 				placeholder: "Select Graph",
 				text: "Load Graph"
 			});
