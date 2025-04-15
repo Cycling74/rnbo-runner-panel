@@ -64,7 +64,7 @@ export const uploadFileToRemote = (file: File, { resolve, reject, onProgress }: 
 	async (dispatch) => {
 		try {
 			const chunkSize = Math.pow(1024, 2);
-			const progressStepSize = (file.size / chunkSize) * 100;
+			const steps = (file.size / chunkSize);
 
 			// Send file in chunks
 			for (let i = 0; i < file.size; i += chunkSize) {
@@ -78,7 +78,7 @@ export const uploadFileToRemote = (file: File, { resolve, reject, onProgress }: 
 						append: i !== 0
 					})
 				);
-				onProgress(i * progressStepSize);
+				onProgress((i / chunkSize) / steps * 100);
 			}
 
 			// Send Complete Message
