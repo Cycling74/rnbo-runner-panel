@@ -3,7 +3,7 @@ import { RootStateType } from "../lib/store";
 import { getGraphSetViewsBySortOrder, getSelectedGraphSetView } from "../selectors/sets";
 import { MouseEvent, useCallback, useEffect } from "react";
 import { ActionIcon, Group, Menu, Stack, Tooltip } from "@mantine/core";
-import { mdiDotsVertical, mdiMidiPort, mdiPencil, mdiTableEye, mdiTrashCan, mdiTune } from "@mdi/js";
+import { mdiDotsVertical, mdiMidiPort, mdiPencil, mdiPlus, mdiTableEye, mdiTrashCan, mdiTune } from "@mdi/js";
 import { useDisclosure } from "@mantine/hooks";
 import { createSetViewOnRemote, destroySetViewOnRemote, loadSetView, decreaseParameterIndexInSetView, increaseParameterIndexInSetView, removeParameterFromSetView, renameSetViewOnRemote, setViewContainedInstancesWaitingForMidiMappingOnRemote  } from "../actions/sets";
 import SetViewDrawer from "../components/setViews/drawer";
@@ -86,7 +86,6 @@ export default function SetViews() {
 		dispatch(setViewContainedInstancesWaitingForMidiMappingOnRemote(currentSetView, !currentSetViewIsMIDIMapping));
 	}, [dispatch, currentSetView, currentSetViewIsMIDIMapping]);
 
-
 	const onActivateParameterMIDIMapping = useCallback((param: ParameterRecord) => {
 		dispatch(activateParameterMIDIMappingFocus(param));
 	}, [dispatch]);
@@ -137,14 +136,18 @@ export default function SetViews() {
 							</Menu.Target>
 							<Menu.Dropdown>
 								<Menu.Label>Parameter View</Menu.Label>
-								<Menu.Item leftSection={ <IconElement path={ mdiTune } /> } onClick={ openAddParametersView } >
+								<Menu.Item leftSection={ <IconElement path={ mdiPlus } /> } onClick={ onCreateSetView } >
+									Create View
+								</Menu.Item>
+								<Menu.Divider />
+								<Menu.Item leftSection={ <IconElement path={ mdiTune } /> } onClick={ openAddParametersView } disabled={ !currentSetView } >
 									Manage Parameters
 								</Menu.Item>
-								<Menu.Item leftSection={ <IconElement path={ mdiPencil } /> } >
+								<Menu.Item leftSection={ <IconElement path={ mdiPencil } /> } disabled={ !currentSetView } >
 									Rename
 								</Menu.Item>
 								<Menu.Divider />
-								<Menu.Item leftSection={ <IconElement path={ mdiTrashCan } /> } color="red">
+								<Menu.Item leftSection={ <IconElement path={ mdiTrashCan } /> } color="red" disabled={ !currentSetView } >
 									Delete
 								</Menu.Item>
 							</Menu.Dropdown>
