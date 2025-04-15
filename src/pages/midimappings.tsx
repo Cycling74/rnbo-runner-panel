@@ -10,6 +10,7 @@ import MIDIMappedParameterList from "../components/midi/mappedParameterList";
 import { ParameterRecord } from "../models/parameter";
 import { clearParameterMIDIMappingOnRemote, setParameterMIDIMappingOnRemoteFromDisplayValue } from "../actions/patchers";
 import { formatMIDIMappingToDisplay } from "../lib/util";
+import { PageTitle } from "../components/page/title";
 
 const collator = new Intl.Collator("en-US", { numeric: true });
 
@@ -94,6 +95,7 @@ const MIDIMappings = () => {
 
 	return (
 		<Stack className={ classes.midiMappingsWrap } >
+			<PageTitle>MIDI Mappings</PageTitle>
 			<MIDIMappedParameterList
 				patcherInstances={ patcherInstances }
 				parameters={ displayParameters }
