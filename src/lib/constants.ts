@@ -111,6 +111,11 @@ export enum RunnerCmdMethod {
 	WriteFileExtended = "file_write_extended"
 }
 
+export enum OnLoadGraphSetSetting {
+	EmptySet = "___new_empty_set___",
+	LastSet = "___last__loaded_set___",
+}
+
 export enum MetadataScope {
 	Parameter,
 	Inport,

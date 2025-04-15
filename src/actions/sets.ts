@@ -12,7 +12,7 @@ import { getCurrentGraphSet, getCurrentGraphSetId, getCurrentGraphSetIsDirty, ge
 import { clamp, getUniqueName, instanceAndParamIndicesToSetViewEntry, sleep, validateGraphSetName, validatePresetName, validateSetViewName } from "../lib/util";
 import { setInstanceWaitingForMidiMappingOnRemote } from "./patchers";
 import { DialogResult, showConfirmDialog, showSelectInputDialog, showTextInputDialog } from "../lib/dialogs";
-import { SortOrder, UnsavedSetName } from "../lib/constants";
+import { OnLoadGraphSetSetting, SortOrder, UnsavedSetName } from "../lib/constants";
 import { getRunnerConfig } from "../selectors/settings";
 import { ConfigKey } from "../models/config";
 import { init } from "next/dist/compiled/@vercel/og/satori";
@@ -291,11 +291,6 @@ export const triggerStartupGraphSetDialog = (): AppThunk =>
 			const startupConfig = getRunnerConfig(state, ConfigKey.AutoStartLastSet);
 			const initSet = getInitialGraphSet(state);
 			const sets = getGraphSets(state);
-
-			enum OnLoadGraphSetSetting {
-				EmptySet = "___new_empty_set___",
-				LastSet = "___last__loaded_set___",
-			}
 
 			const dialogResult = await showSelectInputDialog({
 				actions: {
