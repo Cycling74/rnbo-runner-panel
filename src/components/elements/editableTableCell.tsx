@@ -67,7 +67,7 @@ export const EditableTableTextCell: FC<EditableTableTextCellProps> = memo(functi
 		<Table.Td className={ className } onClick={ onTriggerEdit } py={ 0 } >
 			{
 				isEditing ? (
-					<form  onSubmit={ onSubmit }>
+					<form  onSubmit={ onSubmit } className={ classes.editableTableCellWrapper } >
 						<Group wrap="nowrap" gap="xs" >
 							<TextInput
 								autoFocus
@@ -94,7 +94,9 @@ export const EditableTableTextCell: FC<EditableTableTextCellProps> = memo(functi
 						</Group>
 					</form>
 				) : (
-					<Text truncate="end" fz="sm" >{ value }</Text>
+					<Text truncate="end" fz="sm" className={ classes.editableTableCellText } >
+						{ value }
+					</Text>
 				)
 			}
 
