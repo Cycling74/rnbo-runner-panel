@@ -7,17 +7,23 @@ import { showNotification } from "./notifications";
 import { NotificationLevel } from "../models/notification";
 import { ParameterRecord } from "../models/parameter";
 import { getPatcherInstance, getPatcherInstanceParametersSortedByInstanceIdAndIndex } from "../selectors/patchers";
-import { OSCQueryRNBOSetView, OSCQueryRNBOSetViewState } from "../lib/types";
-import { getCurrentGraphSet, getCurrentGraphSetId, getCurrentGraphSetIsDirty, getGraphPresets, getGraphSet, getGraphSets, getGraphSetsSortedByName, getGraphSetView, getGraphSetViews } from "../selectors/sets";
+import { OSCQueryRNBOSetView, OSCQueryRNBOSetViewState, OSCQueryValueType } from "../lib/types";
+import { getCurrentGraphSet, getCurrentGraphSetId, getCurrentGraphSetIsDirty, getGraphPresets, getGraphSet, getGraphSets, getGraphSetsSortedByName, getGraphSetView, getGraphSetViews, getInitialGraphSet } from "../selectors/sets";
 import { clamp, getUniqueName, instanceAndParamIndicesToSetViewEntry, sleep, validateGraphSetName, validatePresetName, validateSetViewName } from "../lib/util";
 import { setInstanceWaitingForMidiMappingOnRemote } from "./patchers";
 import { DialogResult, showConfirmDialog, showSelectInputDialog, showTextInputDialog } from "../lib/dialogs";
-import { SortOrder, UnsavedSetName } from "../lib/constants";
+import { OnLoadGraphSetSetting, SortOrder, UnsavedSetName } from "../lib/constants";
+import { getRunnerConfig } from "../selectors/settings";
+import { ConfigKey } from "../models/config";
+import { setRunnerConfig } from "./settings";
 
 export enum GraphSetActionType {
 	INIT_SETS = "INIT_SETS",
+
 	SET_SET_CURRENT = "SET_SET_CURRENT",
 	SET_SET_CURRENT_DIRTY = "SET_SET_CURRENT_DIRTY",
+
+	SET_SET_INITIAL = "SET_SET_INITIAL",
 
 	INIT_SET_PRESETS = "INIT_SET_PRESETS",
 	SET_SET_PRESET_LATEST = "SET_SET_PRESET_LATEST",
@@ -50,6 +56,12 @@ export interface ISetGraphSetCurrentDirty extends ActionBase {
 	}
 }
 
+export interface ISetGraphSetInitial extends ActionBase {
+	type: GraphSetActionType.SET_SET_INITIAL;
+	payload: {
+		name?: string;
+	}
+}
 
 export interface IInitGraphSetPresets extends ActionBase {
 	type: GraphSetActionType.INIT_SET_PRESETS;
@@ -102,7 +114,8 @@ export interface ISetGraphSetViewOrder extends ActionBase {
 }
 
 
-export type GraphSetAction = IInitGraphSets | ISetGraphSetCurrent | ISetGraphSetCurrentDirty | IInitGraphSetPresets | ISetGraphSetPresetsLatest |
+export type GraphSetAction = IInitGraphSets | ISetGraphSetCurrent | ISetGraphSetCurrentDirty | ISetGraphSetInitial |
+IInitGraphSetPresets | ISetGraphSetPresetsLatest |
 IInitGraphSetViews | ILoadGraphSetView | ISetGraphSetView | IDeleteGraphSetView | ISetGraphSetViewOrder;
 
 export const initSets = (names: string[]): GraphSetAction => {
@@ -128,6 +141,15 @@ export const setCurrentGraphSetDirtyState = (dirty: boolean): GraphSetAction => 
 		type: GraphSetActionType.SET_SET_CURRENT_DIRTY,
 		payload: {
 			dirty
+		}
+	};
+};
+
+export const setGraphSetInitialSet = (name?: string): GraphSetAction => {
+	return {
+		type: GraphSetActionType.SET_SET_INITIAL,
+		payload: {
+			name: name || undefined
 		}
 	};
 };
@@ -236,7 +258,7 @@ export const triggerLoadGraphSetDialog = (): AppThunk =>
 				actions: {
 					confirm: { label: "Load" }
 				},
-				options: sets.valueSeq().map(s => ({ label: s.name, value: s.name, disabled: s.id === currentSet?.id })).toArray(),
+				options: sets.valueSeq().map(s => ({ label: s.name, value: s.id, disabled: s.id === currentSet?.id })).toArray(),
 				placeholder: "Select Graph",
 				text: "Load Graph"
 			});
@@ -252,7 +274,71 @@ export const triggerLoadGraphSetDialog = (): AppThunk =>
 		} catch (err) {
 			dispatch(showNotification({
 				level: NotificationLevel.error,
-				title: "Error while trying to load set",
+				title: "Error while trying to load graph",
+				message: "Please check the console for further details."
+			}));
+			console.error(err);
+		}
+	};
+
+export const triggerStartupGraphSetDialog = (): AppThunk =>
+	async (dispatch, getState) => {
+
+		try {
+			const state = getState();
+
+			const startupConfig = getRunnerConfig(state, ConfigKey.AutoStartLastSet);
+			const initSet = getInitialGraphSet(state);
+			const sets = getGraphSets(state);
+
+			const dialogResult = await showSelectInputDialog({
+				actions: {
+					confirm: { label: "Save" }
+				},
+				options: [
+					{ value: OnLoadGraphSetSetting.LastSet, label: "Load last graph" },
+					{ value: OnLoadGraphSetSetting.EmptySet, label: "Load new, empty graph" },
+					{ value: "", disabled: true, label: "Load graph:" },
+					...sets.valueSeq().map(s => ({ label: s.name, value: s.id })).toArray()
+				],
+				placeholder: "Select",
+				text: "Configure startup behaviour",
+				initialValue: startupConfig.oscType === OSCQueryValueType.False
+					? OnLoadGraphSetSetting.EmptySet
+					: !initSet ? OnLoadGraphSetSetting.LastSet : initSet.id
+			});
+
+			switch (dialogResult) {
+				case DialogResult.Cancel:
+					return;
+				case OnLoadGraphSetSetting.EmptySet:
+					dispatch(setRunnerConfig(ConfigKey.AutoStartLastSet, false));
+					return;
+				case OnLoadGraphSetSetting.LastSet: {
+					dispatch(setRunnerConfig(ConfigKey.AutoStartLastSet, true));
+					const message = {
+						address: "/rnbo/inst/control/sets/initial",
+						args: [{ type: "s", value: "" }]
+					};
+					oscQueryBridge.sendPacket(writePacket(message));
+					return;
+				}
+				default: {
+					// Specific Graph
+					dispatch(setRunnerConfig(ConfigKey.AutoStartLastSet, true));
+					const message = {
+						address: "/rnbo/inst/control/sets/initial",
+						args: [{ type: "s", value: dialogResult }]
+					};
+					oscQueryBridge.sendPacket(writePacket(message));
+					return;
+				}
+			}
+
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: "Error while trying to confingure startup graph",
 				message: "Please check the console for further details."
 			}));
 			console.error(err);

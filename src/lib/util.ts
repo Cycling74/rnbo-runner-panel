@@ -1,6 +1,6 @@
 import { KeyboardEvent, memo } from "react";
 import { AnyJson, JsonMap, MIDIChannelPressureMetaMapping, MIDIControlChangeMetaMapping, MIDIKeypressMetaMapping, MIDIMetaMapping, MIDINoteMetaMapping, MIDIPitchBendMetaMapping, MIDIProgramChangeMetaMapping, OSCQueryStringValueRange, OSCQueryValueRange } from "./types";
-import { MIDIMetaMappingType, nodePortHeight, nodePortSpacing, UnsavedSetName } from "./constants";
+import { MIDIMetaMappingType, nodePortHeight, nodePortSpacing, OnLoadGraphSetSetting, UnsavedSetName } from "./constants";
 
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
@@ -229,6 +229,7 @@ export const validateGraphSetName = (v: string): true | string => {
 	const value = v.trim();
 	if (!value?.length) return "Please provide a valid, non empty name.";
 	if (value === UnsavedSetName) return `"${UnsavedSetName}" is a reserved name, please use a non-reserved name.`;
+	if (Object.values(OnLoadGraphSetSetting).includes(v as OnLoadGraphSetSetting)) return `"${v}" is a reserved name, please use a non-reserved name.`;
 	return true;
 };
 

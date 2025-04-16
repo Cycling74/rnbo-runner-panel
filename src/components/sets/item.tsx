@@ -2,12 +2,13 @@ import { FunctionComponent, MouseEvent, memo, useCallback, useState } from "reac
 import { GraphSetRecord } from "../../models/set";
 import { ActionIcon, Group, Menu, Table, Tooltip } from "@mantine/core";
 import { IconElement } from "../elements/icon";
-import { mdiCheck, mdiDotsVertical, mdiFileReplaceOutline, mdiGroup, mdiPencil, mdiTrashCan } from "@mdi/js";
+import { mdiCheck, mdiDotsVertical, mdiFileReplaceOutline, mdiGroup, mdiPencil, mdiStar, mdiTrashCan } from "@mdi/js";
 import { EditableTableTextCell } from "../elements/editableTableCell";
 
 export type GraphSetItemProps = {
 	set: GraphSetRecord;
 	isCurrent: boolean;
+	isInitial: boolean;
 	onDelete: (set: GraphSetRecord) => any;
 	onLoad: (set: GraphSetRecord) => any;
 	onRename: (set: GraphSetRecord, name: string) => any;
@@ -17,6 +18,7 @@ export type GraphSetItemProps = {
 export const GraphSetItem: FunctionComponent<GraphSetItemProps> = memo(function WrappedGraphSet({
 	set,
 	isCurrent,
+	isInitial,
 	onDelete,
 	onLoad,
 	onRename,
@@ -47,15 +49,8 @@ export const GraphSetItem: FunctionComponent<GraphSetItemProps> = memo(function 
 
 	return (
 		<Table.Tr>
-			<EditableTableTextCell
-				isEditing={ isEditingName }
-				onChangeEditingState={ setIsEditingName }
-				name="set_name"
-				onUpdate={ onUpdateName }
-				value={ set.name }
-			/>
 			<Table.Td>
-				<Group gap="xs" wrap="nowrap" align="center">
+				<Group gap={ 0 } wrap="nowrap" align="center">
 					{
 						isCurrent ? (
 							<Tooltip label="This graph is currently loaded">
@@ -63,8 +58,22 @@ export const GraphSetItem: FunctionComponent<GraphSetItemProps> = memo(function 
 							</Tooltip>
 						) : null
 					}
+					{
+						isInitial ? (
+							<Tooltip label="This graph is loaded on startup">
+								<IconElement path={ mdiStar } color="yellow" />
+							</Tooltip>
+						) : null
+					}
 				</Group>
 			</Table.Td>
+			<EditableTableTextCell
+				isEditing={ isEditingName }
+				onChangeEditingState={ setIsEditingName }
+				name="set_name"
+				onUpdate={ onUpdateName }
+				value={ set.name }
+			/>
 			<Table.Td ta="center">
 				<Menu position="bottom-end" >
 					<Menu.Target>

@@ -1,4 +1,4 @@
-import { Group, Stack, Table } from "@mantine/core";
+import { ActionIcon, Group, Stack, Table, Tooltip } from "@mantine/core";
 import { FC, memo, useCallback, useState } from "react";
 import { GraphSetItem } from "./item";
 import { GraphSetRecord } from "../../models/set";
@@ -6,9 +6,11 @@ import { TableHeaderCell } from "../elements/tableHeaderCell";
 import { useAppDispatch, useAppSelector } from "../../hooks/useAppDispatch";
 import { RootStateType } from "../../lib/store";
 import { SortOrder } from "../../lib/constants";
-import { getCurrentGraphSetId, getGraphSetsSortedByName } from "../../selectors/sets";
+import { getCurrentGraphSetId, getGraphSetsSortedByName, getInitialGraphSet } from "../../selectors/sets";
 import { SearchInput } from "../page/searchInput";
-import { destroyGraphSetOnRemote, loadGraphSetOnRemote, overwriteGraphSetOnRemote, renameGraphSetOnRemote } from "../../actions/sets";
+import { destroyGraphSetOnRemote, loadGraphSetOnRemote, overwriteGraphSetOnRemote, renameGraphSetOnRemote, triggerStartupGraphSetDialog } from "../../actions/sets";
+import { IconElement } from "../elements/icon";
+import { mdiStarCog } from "@mdi/js";
 
 const SetManagementView: FC = memo(function WrappedSetsView() {
 
@@ -18,10 +20,12 @@ const SetManagementView: FC = memo(function WrappedSetsView() {
 
 	const [
 		sets,
-		currentSetId
+		currentSetId,
+		initialGraphSet
 	] = useAppSelector((state: RootStateType) => [
 		getGraphSetsSortedByName(state, sortOrder, searchValue),
-		getCurrentGraphSetId(state)
+		getCurrentGraphSetId(state),
+		getInitialGraphSet(state)
 	]);
 
 	const onToggleSort = useCallback(() => {
@@ -44,18 +48,27 @@ const SetManagementView: FC = memo(function WrappedSetsView() {
 		dispatch(overwriteGraphSetOnRemote(set));
 	}, [dispatch]);
 
+	const onConfigureStartupSet = useCallback(() => {
+		dispatch(triggerStartupGraphSetDialog());
+	}, [dispatch]);
+
 	return (
 		<Stack gap={ 0 } >
 			<Group justify="flex-end" wrap="nowrap" gap="xs">
 				<SearchInput onSearch={ setSearchValue } />
+				<Tooltip label="Configure Startup Graph">
+					<ActionIcon onClick={ onConfigureStartupSet } variant="default" >
+						<IconElement path={ mdiStarCog } />
+					</ActionIcon>
+				</Tooltip>
 			</Group>
 			<Table verticalSpacing="sm" maw="100%" layout="fixed" highlightOnHover>
 				<Table.Thead>
 					<Table.Tr>
+						<Table.Th w={ 60 }></Table.Th>
 						<TableHeaderCell onSort={ onToggleSort } sortKey={ "filename" } sortOrder={ sortOrder } sorted >
 							Name
 						</TableHeaderCell>
-						<Table.Th w={ 40 }></Table.Th>
 						<Table.Th w={ 60 }></Table.Th>
 					</Table.Tr>
 				</Table.Thead>
@@ -66,6 +79,7 @@ const SetManagementView: FC = memo(function WrappedSetsView() {
 								key={ set.id }
 								set={ set }
 								isCurrent={ set.id === currentSetId }
+								isInitial={ initialGraphSet && initialGraphSet.id === set.id}
 								onRename={ onRenameSet }
 								onLoad={ onLoadSet }
 								onDelete={ onDeleteSet }
