@@ -302,7 +302,7 @@ export const triggerStartupGraphSetDialog = (): AppThunk =>
 					...sets.valueSeq().map(s => ({ label: s.name, value: s.id })).toArray()
 				],
 				placeholder: "Select",
-				text: "Configure startup behaviour",
+				text: "Configure Startup Settings",
 				initialValue: startupConfig.oscType === OSCQueryValueType.False
 					? OnLoadGraphSetSetting.EmptySet
 					: !initSet ? OnLoadGraphSetSetting.LastSet : initSet.id

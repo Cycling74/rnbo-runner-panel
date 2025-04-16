@@ -56,7 +56,7 @@ const SetManagementView: FC = memo(function WrappedSetsView() {
 		<Stack gap={ 0 } >
 			<Group justify="flex-end" wrap="nowrap" gap="xs">
 				<SearchInput onSearch={ setSearchValue } />
-				<Tooltip label="Configure Startup Graph">
+				<Tooltip label="Configure Startup Settings">
 					<ActionIcon onClick={ onConfigureStartupSet } variant="default" >
 						<IconElement path={ mdiStarCog } />
 					</ActionIcon>
