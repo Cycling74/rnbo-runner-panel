@@ -8,7 +8,7 @@ import { NotificationLevel } from "../models/notification";
 import { ParameterRecord } from "../models/parameter";
 import { getPatcherInstance, getPatcherInstanceParametersSortedByInstanceIdAndIndex } from "../selectors/patchers";
 import { OSCQueryRNBOSetView, OSCQueryRNBOSetViewState, OSCQueryValueType } from "../lib/types";
-import { getCurrentGraphSet, getCurrentGraphSetId, getCurrentGraphSetIsDirty, getGraphPresets, getGraphSet, getGraphSets, getGraphSetsSortedByName, getGraphSetView, getGraphSetViews, getInitialGraphSet } from "../selectors/sets";
+import { getCurrentGraphSet, getCurrentGraphSetId, getCurrentGraphSetIsDirty, getGraphPresets, getGraphSet, getGraphSets, getGraphSetsSortedByName, getGraphSetView, getGraphSetViewByName, getGraphSetViews, getInitialGraphSet, getSelectedGraphSetView } from "../selectors/sets";
 import { clamp, getUniqueName, instanceAndParamIndicesToSetViewEntry, sleep, validateGraphSetName, validatePresetName, validateSetViewName } from "../lib/util";
 import { setInstanceWaitingForMidiMappingOnRemote } from "./patchers";
 import { DialogResult, showConfirmDialog, showSelectInputDialog, showTextInputDialog } from "../lib/dialogs";
@@ -863,23 +863,61 @@ export const loadSetView = (setView: GraphSetViewRecord): ILoadGraphSetView => {
 	};
 };
 
-export const renameSetViewOnRemote = (setView: GraphSetViewRecord, newname: string): AppThunk =>
-	(dispatch) => {
+export const renameSetViewOnRemote = (setView: GraphSetViewRecord, newName: string): AppThunk =>
+	async (dispatch, getState) => {
 		try {
+
+			if (setView.name === newName) return; // nothing to do
+
+			const existingViews = getGraphSetViews(getState());
+			const uniqName = getUniqueName(newName, existingViews.valueSeq().map(v => v.name).toArray());
+
 			const message = {
 				address: `/rnbo/inst/control/sets/views/list/${setView.id}/name`,
 				args: [
-					{ type: "s", value: newname }
+					{ type: "s", value: uniqName }
 				]
 			};
+
 			oscQueryBridge.sendPacket(writePacket(message));
 		} catch (err) {
 			dispatch(showNotification({
 				level: NotificationLevel.error,
-				title: `Error while trying to rename SetView "${setView.name}" to "${newname}"`,
+				title: `Error while trying to rename SetView "${setView.name}" to "${newName}"`,
 				message: "Please check the console for further details."
 			}));
 			console.log(err);
+		}
+	};
+
+export const renameSelectedSetViewOnRemote = (): AppThunk =>
+	async (dispatch, getState) => {
+		try {
+
+			const setView = getSelectedGraphSetView(getState());
+			if (!setView) return;
+
+			const dialogResult = await showTextInputDialog({
+				text: "Please name the parameter view",
+				actions: {
+					confirm: { label: "Save Parameter View" }
+				},
+				validate: validateSetViewName,
+				value: setView.name
+			});
+
+			if (dialogResult === DialogResult.Cancel || dialogResult === DialogResult.Discard) {
+				return;
+			}
+
+			dispatch(renameSetViewOnRemote(setView, dialogResult));
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: "Error while trying to rename parameter view",
+				message: "Please check the console for further details."
+			}));
+			console.error(err);
 		}
 	};
 

@@ -138,6 +138,16 @@ export const getGraphSetView = createSelector(
 	}
 );
 
+export const getGraphSetViewByName = createSelector(
+	[
+		getGraphSetViews,
+		(state: RootStateType, name: GraphSetViewRecord["name"]): GraphSetViewRecord["name"] => name
+	],
+	(views, name): GraphSetViewRecord | undefined => {
+		return views.find(v => v.name === name) || undefined;
+	}
+);
+
 export const getSelectedGraphSetView = (state: RootStateType): GraphSetViewRecord | undefined => {
 	return state.sets.selectedView !== undefined ? state.sets.views.get(state.sets.selectedView) : undefined;
 };
