@@ -48,6 +48,7 @@ export const GraphSetViewItem: FC<GraphSetViewItemProps> = memo(function Wrapped
 			setError(`A parameter view with the name "${trimmedName}" already exists`);
 		} else {
 			onRename(setView, trimmedName);
+			setIsEditing(false);
 		}
 	}, [name, onRename, setView, setError, setIsEditing, validateUniqueName]);
 

@@ -58,6 +58,7 @@ export const PresetItem: FunctionComponent<PresetItemProps> = memo(function Wrap
 			setError(`A preset with the name "${trimmedName}" already exists`);
 		} else {
 			onRename(preset, trimmedName);
+			setIsEditing(false);
 		}
 	}, [name, onRename, preset, setError, inputRef, setIsEditing, validateUniqueName]);
 

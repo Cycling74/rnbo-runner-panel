@@ -5,7 +5,6 @@
 .presetNameForm {
 	border: 1px solid var(--mantine-primary-color-filled);
 	border-radius: var(--mantine-radius-default);
-	height: 36px;
 	padding: 0 calc(0.5 * var(--mantine-spacing-xs)) 0 var(--mantine-spacing-md);
 }
 
