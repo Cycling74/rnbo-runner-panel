@@ -2,7 +2,7 @@ import { FunctionComponent, MouseEvent, memo, useCallback, useState } from "reac
 import { GraphSetRecord } from "../../models/set";
 import { ActionIcon, Group, Menu, Table, Tooltip } from "@mantine/core";
 import { IconElement } from "../elements/icon";
-import { mdiCheck, mdiDotsVertical, mdiFileReplaceOutline, mdiGroup, mdiPencil, mdiStar, mdiTrashCan } from "@mdi/js";
+import { mdiArrowUpBoldBoxOutline, mdiDotsVertical, mdiFileReplaceOutline, mdiPencil, mdiStarBoxOutline, mdiTrashCan } from "@mdi/js";
 import { EditableTableTextCell } from "../elements/editableTableCell";
 
 export type GraphSetItemProps = {
@@ -54,14 +54,14 @@ export const GraphSetItem: FunctionComponent<GraphSetItemProps> = memo(function 
 					{
 						isCurrent ? (
 							<Tooltip label="This graph is currently loaded">
-								<IconElement path={ mdiCheck } color="green" />
+								<IconElement path={ mdiArrowUpBoldBoxOutline } color="green" />
 							</Tooltip>
 						) : null
 					}
 					{
 						isInitial ? (
 							<Tooltip label="This graph is loaded on startup">
-								<IconElement path={ mdiStar } color="yellow" />
+								<IconElement path={ mdiStarBoxOutline } color="yellow" />
 							</Tooltip>
 						) : null
 					}
@@ -83,7 +83,7 @@ export const GraphSetItem: FunctionComponent<GraphSetItemProps> = memo(function 
 					</Menu.Target>
 					<Menu.Dropdown>
 						<Menu.Label>Graph</Menu.Label>
-						<Menu.Item leftSection={ <IconElement path={ mdiGroup } />} onClick={ onLoadSet }>
+						<Menu.Item leftSection={ <IconElement path={ mdiArrowUpBoldBoxOutline } />} onClick={ onLoadSet }>
 							Load
 						</Menu.Item>
 						<Menu.Divider />

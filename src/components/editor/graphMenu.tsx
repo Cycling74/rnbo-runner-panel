@@ -1,6 +1,6 @@
 import { ActionIcon, Menu, Tooltip } from "@mantine/core";
 import { FC, memo } from "react";
-import { mdiContentSave, mdiContentSaveMove, mdiDatabaseCog, mdiDotsVertical, mdiGroup, mdiPencil, mdiPlus, mdiReload, mdiTrashCan } from "@mdi/js";
+import { mdiArrowUpBoldBoxOutline, mdiContentSave, mdiContentSaveMove, mdiDatabaseCog, mdiDotsVertical, mdiPencil, mdiPlus, mdiReload, mdiTrashCan } from "@mdi/js";
 import { IconElement } from "../elements/icon";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -49,7 +49,7 @@ export const GraphSetMenu: FC<GraphSetMenuProps> = memo(function WrapedSaveGraph
 				<Menu.Item onClick={ onLoadEmptySet } leftSection={ <IconElement path={ mdiPlus } /> } >
 					New Graph
 				</Menu.Item>
-				<Menu.Item onClick={ onTriggerLoadSet } leftSection={ <IconElement path={ mdiGroup } /> } >
+				<Menu.Item onClick={ onTriggerLoadSet } leftSection={ <IconElement path={ mdiArrowUpBoldBoxOutline } /> } >
 					Load Graph
 				</Menu.Item>
 				<Menu.Divider />
