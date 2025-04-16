@@ -95,8 +95,8 @@ export const GraphSetViewItem: FC<GraphSetViewItemProps> = memo(function Wrapped
 	}, [isEditing, setView, setName, setError]);
 
 	return isEditing ? (
-		<form onSubmit={ onSubmit } >
-			<Group align="flex-start">
+		<form onSubmit={ onSubmit } className={ classes.setViewNameForm } >
+			<Group align="center">
 				<TextInput
 					autoFocus
 					className={ classes.setViewNameInput }
@@ -107,7 +107,7 @@ export const GraphSetViewItem: FC<GraphSetViewItemProps> = memo(function Wrapped
 					size="sm"
 					value={ name }
 					error={ error }
-					variant="default"
+					variant="unstyled"
 				/>
 				<ActionIcon.Group>
 					<ActionIcon variant="subtle" size="md" color="gray">

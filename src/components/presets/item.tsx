@@ -105,8 +105,8 @@ export const PresetItem: FunctionComponent<PresetItemProps> = memo(function Wrap
 	}, [isEditing, setName, setError, preset]);
 
 	return isEditing ? (
-		<form onSubmit={ onSubmit } >
-			<Group align="flex-start">
+		<form onSubmit={ onSubmit } className={ classes.presetNameForm } >
+			<Group align="center">
 				<TextInput
 					autoFocus
 					className={ classes.presetNameInput }
@@ -117,7 +117,7 @@ export const PresetItem: FunctionComponent<PresetItemProps> = memo(function Wrap
 					size="sm"
 					value={ name }
 					error={ error }
-					variant="default"
+					variant="unstyled"
 				/>
 				<ActionIcon.Group>
 					<ActionIcon variant="subtle" size="md" color="gray" >
