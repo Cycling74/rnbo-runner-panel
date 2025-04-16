@@ -3,7 +3,7 @@ import { ActionIcon, Button, Group, Menu, TextInput, Tooltip } from "@mantine/co
 import classes from "./setviews.module.css";
 import { keyEventIsValidForName, replaceInvalidNameChars } from "../../lib/util";
 import { IconElement } from "../elements/icon";
-import { mdiCheck, mdiClose, mdiDotsVertical, mdiPencil, mdiTrashCan } from "@mdi/js";
+import { mdiArrowUpBoldBoxOutline, mdiCheck, mdiClose, mdiDotsVertical, mdiPencil, mdiTrashCan } from "@mdi/js";
 import { GraphSetViewRecord } from "../../models/set";
 import { v4 } from "uuid";
 
@@ -128,7 +128,7 @@ export const GraphSetViewItem: FC<GraphSetViewItemProps> = memo(function Wrapped
 				size="sm"
 				leftSection={ isActive ? (
 					<Tooltip label="This parameter view is currently active" >
-						<IconElement path={ mdiCheck } size="xs" color="green" />
+						<IconElement path={ mdiArrowUpBoldBoxOutline } size="xs" color="green" />
 					</Tooltip>
 				) : null }
 				variant="default"
