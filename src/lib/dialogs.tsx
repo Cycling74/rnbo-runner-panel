@@ -1,5 +1,5 @@
 import { modals } from "@mantine/modals";
-import { Button, MantineColor, Stack, Text, TextInput } from "@mantine/core";
+import { Button, MantineColor, NativeSelect, Stack, Text, TextInput } from "@mantine/core";
 import { v4 } from "uuid";
 import { ChangeEvent, FC, FormEvent, useCallback, useState } from "react";
 import { replaceInvalidNameChars } from "./util";
@@ -71,7 +71,6 @@ export const showConfirmDialog = ({
 	});
 };
 
-
 export type InputDialogDesc = {
 	text: string;
 	validate?: (value: string) => true | string;
@@ -82,7 +81,6 @@ export type InputDialogDesc = {
 		confirm?: DialogAction;
 	};
 };
-
 
 const InputModal: FC<InputDialogDesc & { onCancel: () => void; onConfirm: (v: string) => void; onDiscard?: () => void; }> = ({
 	actions,
@@ -133,7 +131,6 @@ const InputModal: FC<InputDialogDesc & { onCancel: () => void; onConfirm: (v: st
 	);
 };
 
-
 export const showTextInputDialog = ({
 	text,
 	actions: {
@@ -175,6 +172,107 @@ export const showTextInputDialog = ({
 					text={ text }
 					validate={ validate }
 					value={ value }
+				/>
+			),
+			closeOnClickOutside: false,
+			withCloseButton: false
+		});
+	});
+};
+
+export type SelectDialogDesc = {
+	options: Array<string | { value: string; label: string; disabled?: boolean; }>;
+	placeholder?: string;
+	text: string;
+	actions: {
+		cancel?: DialogAction;
+		confirm?: DialogAction;
+	};
+	initialValue?: string;
+};
+
+const SelectModal: FC<SelectDialogDesc & { onCancel: () => void; onConfirm: (v: string) => void; }> = ({
+	actions,
+	onCancel,
+	onConfirm,
+	options,
+	placeholder = "Select",
+	text,
+	initialValue = ""
+}) => {
+
+	const [value, setValue] = useState<string>(initialValue);
+	const [errorMsg, setErrorMsg] = useState<string | undefined>(undefined);
+
+	const onChange = useCallback((e: ChangeEvent<HTMLSelectElement>) => {
+		setValue(e.target.value);
+		if (errorMsg) setErrorMsg(undefined);
+	}, [setValue, errorMsg, setErrorMsg]);
+
+	const onTriggerConfirm = useCallback((e: FormEvent<HTMLFormElement>): void => {
+		e.preventDefault();
+		if (value === "") return void setErrorMsg("Please select an option");
+		return void onConfirm(value);
+	}, [onConfirm, setErrorMsg, value]);
+
+	return (
+		<form onSubmit={ onTriggerConfirm } >
+			<Stack gap="lg">
+				<Text fz="md" ta="center">{ text }</Text>
+				<NativeSelect
+					data={ placeholder
+						? [{ value: "", label: placeholder, disabled: true }, ...options]
+						: options
+					}
+					error={ errorMsg }
+					onChange={ onChange }
+					value={ value }
+				/>
+				<Stack gap="xs">
+					<Button type="submit" variant="filled" color={ actions.confirm.color }>{ actions.confirm.label }</Button>
+					<Button variant="default" color={ actions.cancel.color } onClick={ onCancel } >{ actions.cancel.label }</Button>
+				</Stack>
+			</Stack>
+		</form>
+	);
+};
+
+export const showSelectInputDialog = ({
+	actions: {
+		cancel = { label: "Cancel" },
+		confirm = { label: "Confirm" }
+	},
+	placeholder,
+	options,
+	text,
+	initialValue
+}: SelectDialogDesc): Promise<DialogResult.Cancel | string> => {
+	return new Promise<DialogResult.Cancel | string>(resolve => {
+
+		const modalId = v4();
+
+		const onCancel = () => {
+			modals.close(modalId);
+			resolve(DialogResult.Cancel);
+		};
+
+		const onConfirm = (v: string) => {
+			modals.close(modalId);
+			resolve(v);
+		};
+
+		modals.open({
+			modalId,
+			centered: true,
+			children: (
+				<SelectModal
+					actions={{ cancel, confirm }}
+					initialValue={ initialValue }
+					onCancel={ onCancel }
+					onConfirm={ onConfirm }
+					options={ options }
+					placeholder={ placeholder }
+					text={ text }
 				/>
 			),
 			closeOnClickOutside: false,

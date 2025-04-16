@@ -5,7 +5,7 @@ import { createSelector } from "reselect";
 import { ParameterRecord } from "../models/parameter";
 import { MessagePortRecord } from "../models/messageport";
 import { PatcherExportRecord } from "../models/patcher";
-import { SortOrder } from "../lib/constants";
+import { PatcherSortAttr, SortOrder } from "../lib/constants";
 import { GraphSetViewRecord } from "../models/set";
 import { DataRefRecord } from "../models/dataref";
 
@@ -23,19 +23,45 @@ export const getPatcherExport = createSelector(
 	}
 );
 
-export const getPatchersSortedByName = createSelector(
+export const getHasPatcherExports = createSelector(
 	[
-		getPatcherExports,
-		(state: RootStateType, order: SortOrder): SortOrder => order
+		getPatcherExports
 	],
-	(patchers, order): Seq.Indexed<PatcherExportRecord> => {
-		const collator = new Intl.Collator("en-US");
-		return patchers.valueSeq().sort((pA, pB) => {
-			return collator.compare(pA.name.toLowerCase(), pB.name.toLowerCase()) * (order === SortOrder.Asc ? 1 : -1);
-		});
-	}
+	(patchers): boolean => patchers.size > 0
 );
 
+const patcherCollator = new Intl.Collator("en-US");
+type PatcherSortFct = (pA: PatcherExportRecord, pb: PatcherExportRecord) => number;
+
+const patcherSortFctLookup: Record<PatcherSortAttr, PatcherSortFct> = {
+	[PatcherSortAttr.Date]: (pA: PatcherExportRecord, pB: PatcherExportRecord) => {
+		if (pA.createdAt.isBefore(pB.createdAt)) return -1;
+		if (pA.createdAt.isAfter(pB.createdAt)) return 1;
+		return 0;
+	},
+	[PatcherSortAttr.Name]: (pA: PatcherExportRecord, pB: PatcherExportRecord) => {
+		return patcherCollator.compare(pA.name.toLowerCase(), pB.name.toLowerCase());
+	}
+};
+
+export const getSortedPatcherExports = createSelector(
+	[
+		getPatcherExports,
+		(state: RootStateType, attr: PatcherSortAttr): PatcherSortAttr => attr,
+		(state: RootStateType, attr: PatcherSortAttr, order: SortOrder): SortOrder => order,
+		(state: RootStateType, attr: PatcherSortAttr, order: SortOrder, query?: string): string => query?.toLowerCase() || ""
+	],
+	(patchers, attr, order, query): Seq.Indexed<PatcherExportRecord> => {
+
+		const sortFct = patcherSortFctLookup[attr];
+		const sortMult = order === SortOrder.Desc ? -1 : 1;
+
+		return patchers
+			.valueSeq()
+			.filter(p => p.matchesQuery(query))
+			.sort((pA, pB) => sortFct(pA, pB) * sortMult);
+	}
+);
 
 export const getPatcherInstances = (state: RootStateType): ImmuMap<PatcherInstanceRecord["id"], PatcherInstanceRecord> => state.patchers.instances;
 

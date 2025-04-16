@@ -1,10 +1,11 @@
-import { FunctionComponent, ChangeEvent, KeyboardEvent, MouseEvent, FormEvent, memo, useCallback, useState, useRef, useEffect } from "react";
+import { FunctionComponent, ChangeEvent, KeyboardEvent, MouseEvent, FormEvent, memo, useCallback, useState, useRef, useEffect, FocusEvent } from "react";
 import { ActionIcon, Button, Group, Indicator, Menu, TextInput, Tooltip } from "@mantine/core";
 import classes from "./presets.module.css";
 import { PresetRecord } from "../../models/preset";
 import { keyEventIsValidForName, replaceInvalidNameChars } from "../../lib/util";
 import { IconElement } from "../elements/icon";
 import { mdiCheck, mdiClose, mdiDotsVertical, mdiFileReplaceOutline, mdiHistory, mdiPencil, mdiStar, mdiTrashCan } from "@mdi/js";
+import { v4 } from "uuid";
 
 export type PresetItemProps = {
 	preset: PresetRecord;
@@ -27,16 +28,12 @@ export const PresetItem: FunctionComponent<PresetItemProps> = memo(function Wrap
 }: PresetItemProps) {
 
 	const [isEditing, setIsEditing] = useState<boolean>(false);
+	const [submitId] = useState<string>(v4());
 	const [error, setError] = useState<string | undefined>(undefined);
 	const [name, setName] = useState<string>(preset.name);
 	const inputRef = useRef<HTMLInputElement>();
 
-	const toggleEditing = useCallback(() => {
-		if (isEditing) { // reset name upon blur
-			setName(preset.name);
-		}
-		setIsEditing(!isEditing);
-	}, [setIsEditing, isEditing, preset, setName]);
+	const enableEditing = useCallback(() => setIsEditing(true), [setIsEditing]);
 
 	const onSetInitialPreset = useCallback(() => {
 		onSetInitial(preset);
@@ -50,8 +47,7 @@ export const PresetItem: FunctionComponent<PresetItemProps> = memo(function Wrap
 		onLoad(preset);
 	}, [onLoad, preset]);
 
-	const onRenamePreset = useCallback((e: FormEvent<HTMLFormElement>) => {
-		e.preventDefault();
+	const onRenamePreset = useCallback(() => {
 		inputRef.current?.focus();
 		const trimmedName = name.trim();
 		if (preset.name === trimmedName) {
@@ -62,8 +58,22 @@ export const PresetItem: FunctionComponent<PresetItemProps> = memo(function Wrap
 			setError(`A preset with the name "${trimmedName}" already exists`);
 		} else {
 			onRename(preset, trimmedName);
+			setIsEditing(false);
 		}
 	}, [name, onRename, preset, setError, inputRef, setIsEditing, validateUniqueName]);
+
+	const onSubmit = useCallback((e: FormEvent<HTMLFormElement>) => {
+		e.preventDefault();
+		onRenamePreset();
+	}, [onRenamePreset]);
+
+	const onBlur = useCallback((e: FocusEvent<HTMLInputElement>) => {
+		if (e.relatedTarget?.id === submitId) {
+			onRenamePreset();
+		} else {
+			setIsEditing(false);
+		}
+	}, [submitId, setIsEditing, onRenamePreset]);
 
 	const onDeletePreset = useCallback((_e: MouseEvent<HTMLButtonElement>) => {
 		onDelete(preset);
@@ -78,46 +88,43 @@ export const PresetItem: FunctionComponent<PresetItemProps> = memo(function Wrap
 		if (e.key === "Escape") {
 			e.preventDefault();
 			e.stopPropagation();
-			return void toggleEditing();
+			return void setIsEditing(false);
 		}
 
 		if (!keyEventIsValidForName(e)) {
 			e.preventDefault();
 		}
-	}, [toggleEditing]);
+	}, [setIsEditing]);
 
 	useEffect(() => {
-		if (isEditing && inputRef.current) {
-			inputRef.current.focus();
-		}
 		if (!isEditing) {
 			setError(undefined);
+			setName(preset.name);
+		} else {
+			setName(preset.name);
 		}
-	}, [isEditing, inputRef, setError]);
-
-	useEffect(() => {
-		setName(preset.name);
-		setIsEditing(false);
-	}, [preset, setName, setIsEditing]);
+	}, [isEditing, setName, setError, preset]);
 
 	return isEditing ? (
-		<form onSubmit={ onRenamePreset } >
-			<Group align="flex-start">
+		<form onSubmit={ onSubmit } className={ classes.presetNameForm } >
+			<Group align="center">
 				<TextInput
+					autoFocus
 					className={ classes.presetNameInput }
+					onBlur={ onBlur }
 					onChange={ onChange }
 					onKeyDown={ onKeyDown }
 					ref={ inputRef }
 					size="sm"
 					value={ name }
 					error={ error }
-					variant="default"
+					variant="unstyled"
 				/>
 				<ActionIcon.Group>
-					<ActionIcon variant="subtle" size="md" color="gray" onClick={ toggleEditing } >
+					<ActionIcon variant="subtle" size="md" color="gray" >
 						<IconElement path={ mdiClose } />
 					</ActionIcon>
-					<ActionIcon variant="subtle" size="md" type="submit">
+					<ActionIcon variant="subtle" size="md" type="submit" id={ submitId }>
 						<IconElement path={ mdiCheck } />
 					</ActionIcon>
 				</ActionIcon.Group>
@@ -162,7 +169,7 @@ export const PresetItem: FunctionComponent<PresetItemProps> = memo(function Wrap
 				<Menu.Dropdown>
 					<Menu.Label>Preset Actions</Menu.Label>
 					<Menu.Item leftSection={ <IconElement path={ mdiFileReplaceOutline } /> } onClick={ onOverwritePreset } >Overwrite</Menu.Item>
-					<Menu.Item leftSection={ <IconElement path={ mdiPencil } /> } onClick={ toggleEditing } >Rename</Menu.Item>
+					<Menu.Item leftSection={ <IconElement path={ mdiPencil } /> } onClick={ enableEditing } >Rename</Menu.Item>
 					{ onSetInitial && <Menu.Item leftSection={ <IconElement path={ mdiStar } /> } onClick={ onSetInitialPreset } >Load on Startup</Menu.Item> }
 					<Menu.Divider />
 					<Menu.Item color="red" leftSection={ <IconElement path={ mdiTrashCan } /> } onClick={ onDeletePreset } >Delete</Menu.Item>

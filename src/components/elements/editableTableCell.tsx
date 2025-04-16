@@ -1,152 +1,103 @@
-import { NumberInput, Table, TextInput } from "@mantine/core";
-import { ChangeEvent, FC, KeyboardEvent, memo, useCallback, useEffect, useState } from "react";
+import { ActionIcon, Group, Table, Text, TextInput } from "@mantine/core";
+import { ChangeEvent, FC, FocusEvent, FormEvent, KeyboardEvent, memo, useCallback, useEffect, useState } from "react";
 import classes from "./elements.module.css";
-
-export type EditableTableNumberCellProps = {
-	className?: string;
-	min: number;
-	max: number;
-	name: string;
-	onUpdate: (val: number) => void;
-	prefix?: string;
-	value: number;
-};
-
-export const EditableTableNumberCell: FC<EditableTableNumberCellProps> = memo(function WrappedEditableNumberField({
-	className = "",
-	min,
-	max,
-	name,
-	onUpdate,
-	prefix,
-	value
-}) {
-	const [isEditing, setIsEditing] = useState<boolean>(false);
-	const [currentValue, setCurrentValue] = useState<number>(value);
-
-	const onTriggerEdit = useCallback(() => {
-		if (isEditing) return;
-		setIsEditing(true);
-		setCurrentValue(value);
-	}, [isEditing, setIsEditing, setCurrentValue, value]);
-
-	const onChange = useCallback((val: number) => {
-		setCurrentValue(val);
-	}, [setCurrentValue]);
-
-	const onBlur = useCallback(() => {
-		setIsEditing(false);
-		if (currentValue === value) return;
-		onUpdate(currentValue);
-	}, [setIsEditing, value, currentValue, onUpdate]);
-
-	const onKeyDown = useCallback((e: KeyboardEvent<HTMLInputElement>): void => {
-		if (e.key === "Escape") {
-			setIsEditing(false);
-			setCurrentValue(value);
-			return void e.preventDefault();
-		} else if (e.key === "Enter") {
-			setIsEditing(false);
-			if (currentValue === value) return;
-			onUpdate(currentValue);
-			return void e.preventDefault();
-		}
-	}, [setIsEditing, setCurrentValue, value, currentValue, onUpdate]);
-
-	useEffect(() => {
-		setCurrentValue(value);
-	}, [value, setCurrentValue]);
-
-	return (
-		<Table.Td className={ className } onClick={ onTriggerEdit } py={ 0 } >
-			{
-				isEditing ? (
-					<NumberInput
-						autoFocus
-						className={ classes.editableTableCellInput }
-						variant="unstyled"
-						onBlur={ onBlur }
-						onChange={ onChange }
-						onKeyDown={ onKeyDown }
-						name={ name }
-						min={ min }
-						max={ max }
-						prefix={ prefix }
-						size="xs"
-						value={ currentValue }
-					/>
-				) : `${prefix || ""}${value}`
-			}
-
-		</Table.Td>
-	);
-});
+import { IconElement } from "./icon";
+import { mdiCheck, mdiClose } from "@mdi/js";
+import { v4 } from "uuid";
 
 export type EditableTableTextCellProps = {
 	className?: string;
+	isEditing: boolean;
 	name: string;
+	onChangeEditingState: (open: boolean) => void;
 	onUpdate: (val: string) => void;
 	value: string;
 };
 
 export const EditableTableTextCell: FC<EditableTableTextCellProps> = memo(function WrappedEditableTextField({
 	className = "",
+	isEditing,
 	name,
+	onChangeEditingState,
 	onUpdate,
 	value
 }) {
-	const [isEditing, setIsEditing] = useState<boolean>(false);
+
 	const [currentValue, setCurrentValue] = useState<string>(value);
+	const [submitId] = useState<string>(v4());
 
 	const onTriggerEdit = useCallback(() => {
 		if (isEditing) return;
-		setIsEditing(true);
+		onChangeEditingState(true);
 		setCurrentValue(value);
-	}, [isEditing, setIsEditing, setCurrentValue, value]);
+	}, [isEditing, onChangeEditingState, setCurrentValue, value]);
 
 	const onChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
 		setCurrentValue(e.target.value);
 	}, [setCurrentValue]);
 
-	const onBlur = useCallback(() => {
-		setIsEditing(false);
-		if (currentValue === value) return;
-		onUpdate(currentValue);
-	}, [setIsEditing, value, currentValue, onUpdate]);
+	const onSubmit = useCallback((e: FormEvent<HTMLFormElement>): void => {
+		e.preventDefault();
+		if (currentValue !== value) onUpdate(currentValue);
+		onChangeEditingState(false);
+	}, [onChangeEditingState, currentValue, value, onUpdate]);
+
+	const onBlur = useCallback((e: FocusEvent<HTMLInputElement>) => {
+		if (e.relatedTarget?.id === submitId && currentValue !== value) {
+			onUpdate(currentValue);
+		} else {
+			setCurrentValue(value);
+		}
+		onChangeEditingState(false);
+	}, [submitId, setCurrentValue, currentValue, value, onChangeEditingState, onUpdate]);
 
 	const onKeyDown = useCallback((e: KeyboardEvent<HTMLInputElement>): void => {
 		if (e.key === "Escape") {
-			setIsEditing(false);
+			onChangeEditingState(false);
 			setCurrentValue(value);
 			return void e.preventDefault();
-		} else if (e.key === "Enter") {
-			setIsEditing(false);
-			if (currentValue === value) return;
-			onUpdate(currentValue);
-			return void e.preventDefault();
 		}
-	}, [setIsEditing, setCurrentValue, value, currentValue, onUpdate]);
+	}, [onChangeEditingState, setCurrentValue, value]);
 
 	useEffect(() => {
 		setCurrentValue(value);
-	}, [value, setCurrentValue]);
+	}, [isEditing, value, setCurrentValue]);
 
 	return (
 		<Table.Td className={ className } onClick={ onTriggerEdit } py={ 0 } >
 			{
 				isEditing ? (
-					<TextInput
-						autoFocus
-						className={ classes.editableTableCellInput }
-						variant="unstyled"
-						onBlur={ onBlur }
-						onChange={ onChange }
-						onKeyDown={ onKeyDown }
-						name={ name }
-						size="xs"
-						value={ currentValue }
-					/>
-				) : value
+					<form  onSubmit={ onSubmit } className={ classes.editableTableCellWrapper } >
+						<Group wrap="nowrap" gap="xs" >
+							<TextInput
+								autoFocus
+								classNames={{
+									root: classes.editableTableCellInputWrapper,
+									input: classes.editableTableCellInput
+								}}
+								variant="unstyled"
+								onBlur={ onBlur }
+								onChange={ onChange }
+								onKeyDown={ onKeyDown }
+								name={ name }
+								size="sm"
+								value={ currentValue }
+							/>
+							<ActionIcon.Group>
+								<ActionIcon variant="subtle" size="md" color="gray" >
+									<IconElement path={ mdiClose } />
+								</ActionIcon>
+								<ActionIcon variant="subtle" size="md" type="submit" id={ submitId } >
+									<IconElement path={ mdiCheck } />
+								</ActionIcon>
+							</ActionIcon.Group>
+						</Group>
+					</form>
+				) : (
+					<Text truncate="end" fz="sm" className={ classes.editableTableCellText } >
+						{ value }
+					</Text>
+				)
 			}
 
 		</Table.Td>

@@ -1,8 +1,8 @@
-import { FC, memo, useCallback } from "react";
+import { FC, memo, useCallback, useState } from "react";
 import { PatcherInstanceRecord } from "../../models/instance";
 import { ParameterRecord } from "../../models/parameter";
 import { ActionIcon, Group, Menu, Table, Tooltip } from "@mantine/core";
-import { mdiDotsVertical, mdiEraser, mdiVectorSquare } from "@mdi/js";
+import { mdiDotsVertical, mdiEraser, mdiPencil, mdiVectorSquare } from "@mdi/js";
 import { IconElement } from "../elements/icon";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -11,29 +11,6 @@ import { formatMIDIMappingToDisplay, formatParamValueForDisplay } from "../../li
 import { EditableTableTextCell } from "../elements/editableTableCell";
 import { MIDIMetaMappingType } from "../../lib/constants";
 import { MIDIMetaMapping } from "../../lib/types";
-
-export type MIDISourceProps = {
-	mappingType: MIDIMetaMappingType;
-	midiMapping: MIDIMetaMapping;
-	onUpdateMapping: (value: string) => void;
-};
-
-
-const MIDISource: FC<MIDISourceProps> = memo(function WrappedMIDISource({
-	mappingType,
-	midiMapping,
-	onUpdateMapping
-}) {
-
-	return (
-		<EditableTableTextCell
-			className={ classes.midiSourceColumn }
-			name="midi_source"
-			onUpdate={ onUpdateMapping }
-			value={ formatMIDIMappingToDisplay(mappingType, midiMapping) }
-		/>
-	);
-});
 
 export type MIDIMappedParamProps = {
 	instance: PatcherInstanceRecord;
@@ -51,6 +28,11 @@ const MIDIMappedParameter: FC<MIDIMappedParamProps> = memo(function WrappedMIDIM
 }) {
 
 	const { query: restQuery } = useRouter();
+	const [isEditingMapping, setIsEditingMapping] = useState<boolean>(false);
+
+	const onTriggerEditing = useCallback(() => {
+		setIsEditingMapping(true);
+	}, [setIsEditingMapping]);
 
 	const onClearMapping = useCallback(() => {
 		onClearMIDIMapping(param);
@@ -62,15 +44,18 @@ const MIDIMappedParameter: FC<MIDIMappedParamProps> = memo(function WrappedMIDIM
 
 	return (
 		<Table.Tr>
-			<MIDISource
-				mappingType={ param.midiMappingType as MIDIMetaMappingType }
-				midiMapping={ param.meta.midi as MIDIMetaMapping }
-				onUpdateMapping={ onUpdateMapping }
+			<EditableTableTextCell
+				className={ classes.midiSourceColumn }
+				isEditing={ isEditingMapping }
+				name="midi_source"
+				onChangeEditingState={ setIsEditingMapping }
+				onUpdate={ onUpdateMapping }
+				value={ formatMIDIMappingToDisplay(param.midiMappingType as MIDIMetaMappingType, param.meta.midi as MIDIMetaMapping) }
 			/>
 			<Table.Td className={ classes.parameterNameColumn } >{ param.name }</Table.Td>
 			<Table.Td className={ classes.patcherInstanceColumn } >
 				<span className={ classes.patcherInstanceIndex } >{ instance.id }</span>
-				<span className={ classes.patcherInstanceName } >: {instance.displayName }</span>
+				<span className={ classes.patcherInstanceName } >{ instance.displayName }</span>
 			</Table.Td>
 			<Table.Td className={ classes.parameterValueColumn } >{ formatParamValueForDisplay(param.value) }</Table.Td>
 			<Table.Td className={ classes.actionColumn } >
@@ -84,16 +69,23 @@ const MIDIMappedParameter: FC<MIDIMappedParamProps> = memo(function WrappedMIDIM
 							</Tooltip>
 						</Menu.Target>
 						<Menu.Dropdown>
-							<Menu.Label>MIDI Mapping Actions</Menu.Label>
+							<Menu.Label>MIDI Mapping</Menu.Label>
 							<Menu.Item
 								leftSection={ <IconElement path={ mdiVectorSquare } /> }
 								component={ Link }
 								href={{ pathname: "/instances/[id]", query: { ...restQuery, id: instance.id } }}
 							>
-								Show Instance
+								Open Device Control
 							</Menu.Item>
+							<Menu.Item
+								leftSection={ <IconElement path={ mdiPencil } /> }
+								onClick={ onTriggerEditing }
+							>
+								Edit Mapping
+							</Menu.Item>
+							<Menu.Divider />
 							<Menu.Item color="red" leftSection={ <IconElement path={ mdiEraser } /> } onClick={ onClearMapping } >
-								Remove MIDI Mapping
+								Remove
 							</Menu.Item>
 						</Menu.Dropdown>
 					</Menu>

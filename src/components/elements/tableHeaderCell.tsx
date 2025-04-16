@@ -1,4 +1,4 @@
-import { Group, MantineFontSize, Table, Text, UnstyledButton } from "@mantine/core";
+import { Group, MantineFontSize, MantineStyleProps, Table, Text, UnstyledButton } from "@mantine/core";
 import { FC, PropsWithChildren, useCallback } from "react";
 import { SortOrder } from "../../lib/constants";
 import { IconElement } from "./icon";
@@ -12,6 +12,7 @@ export type TableHeaderCellProps = PropsWithChildren<{
 	sorted?: boolean;
 	sortKey?: string;
 	sortOrder?: SortOrder;
+	width?: MantineStyleProps["w"];
 }>;
 
 export const TableHeaderCell: FC<TableHeaderCellProps> = ({
@@ -22,7 +23,9 @@ export const TableHeaderCell: FC<TableHeaderCellProps> = ({
 	onSort,
 	sorted = false,
 	sortKey,
-	sortOrder = SortOrder.Asc
+	sortOrder = SortOrder.Asc,
+
+	width = undefined
 
 }) => {
 
@@ -31,7 +34,7 @@ export const TableHeaderCell: FC<TableHeaderCellProps> = ({
 	}, [onSort, sortKey]);
 
 	return (
-		<Table.Th className={ className } >
+		<Table.Th className={ className } w={ width } >
 			{
 				onSort ? (
 					<UnstyledButton onClick={ onTriggerSort } >

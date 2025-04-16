@@ -557,7 +557,7 @@ export const unloadPatcherNodeOnRemote = (instanceId: string): AppThunk =>
 		} catch (err) {
 			dispatch(showNotification({
 				level: NotificationLevel.error,
-				title: "Error while trying to unload patcher",
+				title: "Error while trying to unload device",
 				message: "Please check the console for further details."
 			}));
 			console.error(err);
@@ -582,7 +582,7 @@ export const loadPatcherNodeOnRemote = (patcher: PatcherExportRecord): AppThunk 
 		} catch (err) {
 			dispatch(showNotification({
 				level: NotificationLevel.error,
-				title: `Error while trying to load patcher ${patcher.name}`,
+				title: `Error while trying to load device ${patcher.name}`,
 				message: "Please check the console for further details."
 			}));
 			console.error(err);

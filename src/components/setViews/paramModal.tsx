@@ -1,5 +1,5 @@
 import { Set as ImmuSet } from "immutable";
-import { Accordion, ActionIcon, Group, Modal, Stack, Title } from "@mantine/core";
+import { Accordion, ActionIcon, Button, Group, Modal, Stack, Title, Tooltip } from "@mantine/core";
 import { FC, memo, useCallback, useState } from "react";
 import { useIsMobileDevice } from "../../hooks/useIsMobileDevice";
 import { mdiMinusBox, mdiMinusBoxMultiple, mdiPlusBox, mdiPlusBoxMultiple, mdiTune } from "@mdi/js";
@@ -11,7 +11,6 @@ import { getPatcherInstancesAndParameters } from "../../selectors/patchers";
 import { PatcherInstanceRecord } from "../../models/instance";
 import { OrderedSet as ImmuOrderedSet, Seq } from "immutable";
 import { ParameterRecord } from "../../models/parameter";
-import { ResponsiveButton } from "../elements/responsiveButton";
 import { addAllParametersToSetView, addParameterToSetView, removeAllParametersFromSetView, removeParameterFromSetView } from "../../actions/sets";
 import classes from "./setviews.module.css";
 import { SearchInput } from "../page/searchInput";
@@ -143,23 +142,28 @@ export const SetViewParameterModal: FC<SetViewParameterModalProps> = memo(functi
 				<Modal.Body>
 					<Stack gap="md">
 						<Group justify="space-between" >
-							<Group>
-								<ResponsiveButton
-									label="Include All"
-									tooltip="Include all parameters"
-									icon={ mdiPlusBoxMultiple }
-									onClick={ onAddAllParametersToSetView }
-									size="xs"
-								/>
-								<ResponsiveButton
-									label="Remove All"
-									color="red"
-									variant="outline"
-									tooltip="Remove all parameters"
-									icon={ mdiMinusBoxMultiple }
-									onClick={ onRemoveAllParametersFromSetView }
-									size="xs"
-								/>
+							<Group gap="xs">
+								<Tooltip label="Include all parameters">
+									<Button
+										leftSection={ <IconElement path={ mdiPlusBoxMultiple } /> }
+										onClick={ onAddAllParametersToSetView }
+										size="xs"
+										variant="default"
+									>
+										Include All
+									</Button>
+								</Tooltip>
+								<Tooltip label="Remove all parameters">
+									<Button
+										leftSection={ <IconElement path={ mdiMinusBoxMultiple } /> }
+										onClick={ onRemoveAllParametersFromSetView }
+										color="red"
+										size="xs"
+										variant="outline"
+									>
+										Remove All
+									</Button>
+								</Tooltip>
 							</Group>
 							<SearchInput onSearch={ setSearchValue } />
 						</Group>

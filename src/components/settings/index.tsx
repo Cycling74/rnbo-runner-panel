@@ -161,7 +161,7 @@ const Settings: FunctionComponent = memo(function WrappedSettings() {
 	const tabConfigByTab: Record<SettingsTab, TabConfig> = {
 		[SettingsTab.UI]: {
 			title: "UI",
-			description: "UI settings are device scoped, saved to the local storage and restored on page load."
+			description: "UI settings are scoped to the device you are currently using the Web Interface on and restored on page load."
 		},
 		[SettingsTab.Control]: {
 			title: "Control"

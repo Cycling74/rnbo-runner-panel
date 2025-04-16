@@ -1,22 +1,29 @@
+.midiWrappingsMap {
+	height: 100%;
+	gap: var(--mantine-spacing-md);
+}
+
 .midiSourceColumnHeader {
-	width: 100px;
+	width: 120px;
+
+	@media (min-width: $mantine-breakpoint-md) {
+		width: 160px;
+	}
 }
 
 .midiSourceColumn {
 	cursor: text;
-	font-size: var(--mantine-font-size-xs);
 }
 
 .parameterValueColumnHeader,
 .parameterValueColumn {
 	cursor: default;
 	display: none;
-	font-size: var(--mantine-font-size-xs);
 	user-select: none;
 
 	@media (min-width: $mantine-breakpoint-md) {
 		display: table-cell;
-		width: 200px;
+		width: 150px;
   }
 }
 
@@ -30,7 +37,6 @@
 
 .patcherInstanceColumn {
 	cursor: default;
-	font-size: var(--mantine-font-size-xs);
 	overflow: hidden;
 	text-overflow: ellipsis;
 	user-select: none;
@@ -43,15 +49,26 @@
 			display: inline-block;
 		}
 	}
+
+	.patcherInstanceIndex {
+		display: inline-block;
+
+		@media (min-width: $mantine-breakpoint-md) {
+			display: none;
+		}
+	}
 }
 
 .parameterNameColumnHeader {
-	width: 150px;
+	width: 120px;
+
+	@media (min-width: $mantine-breakpoint-md) {
+		width: initial;
+	}
 }
 
 .parameterNameColumn {
 	cursor: default;
-	font-size: var(--mantine-font-size-xs);
 	overflow: hidden;
 	text-overflow: ellipsis;
 	user-select: none;

@@ -1,29 +1,30 @@
-import { Button, Group, Stack, Table } from "@mantine/core";
-import { DataFileListItem } from "../components/datafile/item";
-import { useAppDispatch, useAppSelector } from "../hooks/useAppDispatch";
-import { RootStateType } from "../lib/store";
-import { getDataFilesSortedByName } from "../selectors/datafiles";
-import classes from "../components/datafile/datafile.module.css";
-import { SortOrder } from "../lib/constants";
-import { useCallback, useState } from "react";
-import { DataFileUploadModal, UploadFile } from "../components/datafile/uploadModal";
+import { FC, memo, useCallback, useState } from "react";
+import { useAppDispatch, useAppSelector } from "../../hooks/useAppDispatch";
 import { useDisclosure } from "@mantine/hooks";
-import { deleteDataFileOnRemote } from "../actions/datafiles";
-import { DataFileRecord } from "../models/datafile";
-import { NotificationLevel } from "../models/notification";
-import { showNotification } from "../actions/notifications";
-import { IconElement } from "../components/elements/icon";
+import { SortOrder } from "../../lib/constants";
+import { RootStateType } from "../../lib/store";
+import { getDataFilesSortedByName } from "../../selectors/datafiles";
+import { DataFileRecord } from "../../models/datafile";
+import { deleteDataFileOnRemote } from "../../actions/datafiles";
+import { showNotification } from "../../actions/notifications";
+import { DataFileUploadModal, UploadFile } from "./uploadModal";
+import { NotificationLevel } from "../../models/notification";
+import { ActionIcon, Group, Stack, Table, Tooltip } from "@mantine/core";
+import { IconElement } from "../elements/icon";
 import { mdiUpload } from "@mdi/js";
-import { TableHeaderCell } from "../components/elements/tableHeaderCell";
+import { TableHeaderCell } from "../elements/tableHeaderCell";
+import { DataFileListItem } from "./item";
+import { SearchInput } from "../page/searchInput";
 
-const SampleDependencies = () => {
+export const DataFileManagementView: FC = memo(function WrappedDataFileView() {
 
 	const [showUploadModal, uploadModalHandlers] = useDisclosure(false);
 	const [sortOrder, setSortOrder] = useState<SortOrder>(SortOrder.Asc);
+	const [searchValue, setSearchValue] = useState<string>("");
 
 	const dispatch = useAppDispatch();
 	const [files] = useAppSelector((state: RootStateType) => [
-		getDataFilesSortedByName(state, sortOrder)
+		getDataFilesSortedByName(state, sortOrder, searchValue)
 	]);
 
 	const onToggleSort = useCallback(() => {
@@ -40,11 +41,14 @@ const SampleDependencies = () => {
 	}, [uploadModalHandlers, dispatch]);
 
 	return (
-		<Stack className={ classes.dataFileWrap } >
-			<Group justify="space-between" wrap="nowrap">
-				<Button variant="default" leftSection={ <IconElement path={ mdiUpload } /> } onClick={ uploadModalHandlers.open } >
-					Upload Files
-				</Button>
+		<Stack gap={ 0 } >
+			<Group justify="flex-end" wrap="nowrap" gap="xs">
+				<SearchInput onSearch={ setSearchValue } />
+				<Tooltip label="Upload Files">
+					<ActionIcon variant="default" onClick={ uploadModalHandlers.open } >
+						<IconElement path={ mdiUpload } />
+					</ActionIcon>
+				</Tooltip>
 			</Group>
 			{ showUploadModal ? <DataFileUploadModal maxFileCount={ 10 } onClose={ uploadModalHandlers.close } onUploadSuccess={ onFileUploadSuccess } /> : null }
 			<Table verticalSpacing="sm" maw="100%" layout="fixed" highlightOnHover>
@@ -67,10 +71,7 @@ const SampleDependencies = () => {
 						))
 					}
 				</Table.Tbody>
-
 			</Table>
 		</Stack>
 	);
-};
-
-export default SampleDependencies;
+});

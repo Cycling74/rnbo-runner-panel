@@ -24,6 +24,12 @@ export enum InstanceTab {
 	DataRefs = "datarefs",
 }
 
+export enum ResourceTab {
+	Graphs = "graphs",
+	Patchers = "patchers",
+	AudioFiles = "audiofiles"
+}
+
 export const bodyFontSize = 16;
 
 export const nodeDefaultWidth = 435;
@@ -88,6 +94,11 @@ export enum MIDIMetaMappingType {
 	ProgramChange = "progam_change"
 }
 
+export enum PatcherSortAttr {
+	Date = "date",
+	Name = "name"
+}
+
 export enum ParameterSortAttr {
 	Index = "displayorder",
 	Name = "name"
@@ -98,6 +109,11 @@ export enum RunnerCmdMethod {
 	DeleteFile = "file_delete",
 	WriteFile = "file_write",
 	WriteFileExtended = "file_write_extended"
+}
+
+export enum OnLoadGraphSetSetting {
+	EmptySet = "___new_empty_set___",
+	LastSet = "___last__loaded_set___",
 }
 
 export enum MetadataScope {

@@ -4,6 +4,9 @@ import { GraphSetRecord, GraphSetViewRecord } from "../models/set";
 import { PresetRecord } from "../models/preset";
 import { createSelector } from "reselect";
 import { SortOrder } from "../lib/constants";
+import { getRunnerConfig } from "./settings";
+import { ConfigKey, ConfigRecord } from "../models/config";
+import { OSCQueryValueType } from "../lib/types";
 
 export const getGraphSets = (state: RootStateType): ImmuMap<GraphSetRecord["id"], GraphSetRecord> => {
 	return state.sets.sets;
@@ -22,6 +25,19 @@ export const getCurrentGraphSet = createSelector(
 	}
 );
 
+export const getInitialGraphSet = createSelector(
+	[
+		getGraphSets,
+		(state: RootStateType): ConfigRecord => getRunnerConfig(state, ConfigKey.AutoStartLastSet),
+		(state: RootStateType): GraphSetRecord["name"] | undefined => state.sets.initialSet
+	],
+	(sets, config, initial): GraphSetRecord | undefined => {
+		return config.oscType ===  OSCQueryValueType.False
+			? undefined
+			: sets.get(initial) || undefined;
+	}
+);
+
 export const getGraphSet = createSelector(
 	[
 		getGraphSets,
@@ -35,13 +51,17 @@ export const getGraphSet = createSelector(
 export const getGraphSetsSortedByName = createSelector(
 	[
 		getGraphSets,
-		(state: RootStateType, order: SortOrder): SortOrder => order
+		(state: RootStateType, order: SortOrder): SortOrder => order,
+		(state: RootStateType, order: SortOrder, query?: string): string => query?.toLowerCase() || ""
 	],
-	(sets, order) => {
+	(sets, order, query) => {
 		const collator = new Intl.Collator("en-US");
-		return sets.valueSeq().sort((left: GraphSetRecord, right: GraphSetRecord): number => {
-			return collator.compare(left.name, right.name) * (order === SortOrder.Asc ? 1 : -1);
-		});
+		return sets
+			.valueSeq()
+			.filter(s => s.matchesQuery(query))
+			.sort((left: GraphSetRecord, right: GraphSetRecord): number => {
+				return collator.compare(left.name, right.name) * (order === SortOrder.Asc ? 1 : -1);
+			});
 	}
 );
 
@@ -115,6 +135,16 @@ export const getGraphSetView = createSelector(
 	],
 	(views, id): GraphSetViewRecord | undefined => {
 		return views.get(id);
+	}
+);
+
+export const getGraphSetViewByName = createSelector(
+	[
+		getGraphSetViews,
+		(state: RootStateType, name: GraphSetViewRecord["name"]): GraphSetViewRecord["name"] => name
+	],
+	(views, name): GraphSetViewRecord | undefined => {
+		return views.find(v => v.name === name) || undefined;
 	}
 );
 

@@ -7,17 +7,23 @@ import { showNotification } from "./notifications";
 import { NotificationLevel } from "../models/notification";
 import { ParameterRecord } from "../models/parameter";
 import { getPatcherInstance, getPatcherInstanceParametersSortedByInstanceIdAndIndex } from "../selectors/patchers";
-import { OSCQueryRNBOSetView, OSCQueryRNBOSetViewState } from "../lib/types";
-import { getCurrentGraphSet, getCurrentGraphSetId, getCurrentGraphSetIsDirty, getGraphPresets, getGraphSets, getGraphSetView, getGraphSetViews } from "../selectors/sets";
+import { OSCQueryRNBOSetView, OSCQueryRNBOSetViewState, OSCQueryValueType } from "../lib/types";
+import { getCurrentGraphSet, getCurrentGraphSetId, getCurrentGraphSetIsDirty, getGraphPresets, getGraphSet, getGraphSets, getGraphSetsSortedByName, getGraphSetView, getGraphSetViews, getInitialGraphSet, getSelectedGraphSetView } from "../selectors/sets";
 import { clamp, getUniqueName, instanceAndParamIndicesToSetViewEntry, sleep, validateGraphSetName, validatePresetName, validateSetViewName } from "../lib/util";
 import { setInstanceWaitingForMidiMappingOnRemote } from "./patchers";
-import { DialogResult, showConfirmDialog, showTextInputDialog } from "../lib/dialogs";
-import { UnsavedSetName } from "../lib/constants";
+import { DialogResult, showConfirmDialog, showSelectInputDialog, showTextInputDialog } from "../lib/dialogs";
+import { OnLoadGraphSetSetting, SortOrder, UnsavedSetName } from "../lib/constants";
+import { getRunnerConfig } from "../selectors/settings";
+import { ConfigKey } from "../models/config";
+import { setRunnerConfig } from "./settings";
 
 export enum GraphSetActionType {
 	INIT_SETS = "INIT_SETS",
+
 	SET_SET_CURRENT = "SET_SET_CURRENT",
 	SET_SET_CURRENT_DIRTY = "SET_SET_CURRENT_DIRTY",
+
+	SET_SET_INITIAL = "SET_SET_INITIAL",
 
 	INIT_SET_PRESETS = "INIT_SET_PRESETS",
 	SET_SET_PRESET_LATEST = "SET_SET_PRESET_LATEST",
@@ -50,6 +56,12 @@ export interface ISetGraphSetCurrentDirty extends ActionBase {
 	}
 }
 
+export interface ISetGraphSetInitial extends ActionBase {
+	type: GraphSetActionType.SET_SET_INITIAL;
+	payload: {
+		name?: string;
+	}
+}
 
 export interface IInitGraphSetPresets extends ActionBase {
 	type: GraphSetActionType.INIT_SET_PRESETS;
@@ -102,7 +114,8 @@ export interface ISetGraphSetViewOrder extends ActionBase {
 }
 
 
-export type GraphSetAction = IInitGraphSets | ISetGraphSetCurrent | ISetGraphSetCurrentDirty | IInitGraphSetPresets | ISetGraphSetPresetsLatest |
+export type GraphSetAction = IInitGraphSets | ISetGraphSetCurrent | ISetGraphSetCurrentDirty | ISetGraphSetInitial |
+IInitGraphSetPresets | ISetGraphSetPresetsLatest |
 IInitGraphSetViews | ILoadGraphSetView | ISetGraphSetView | IDeleteGraphSetView | ISetGraphSetViewOrder;
 
 export const initSets = (names: string[]): GraphSetAction => {
@@ -128,6 +141,15 @@ export const setCurrentGraphSetDirtyState = (dirty: boolean): GraphSetAction => 
 		type: GraphSetActionType.SET_SET_CURRENT_DIRTY,
 		payload: {
 			dirty
+		}
+	};
+};
+
+export const setGraphSetInitialSet = (name?: string): GraphSetAction => {
+	return {
+		type: GraphSetActionType.SET_SET_INITIAL,
+		payload: {
+			name: name || undefined
 		}
 	};
 };
@@ -160,93 +182,6 @@ export const saveGraphSetOnRemote = (givenName: string, ensureUniqueName: boolea
 			dispatch(showNotification({
 				level: NotificationLevel.error,
 				title: `Error while trying to save set ${givenName}`,
-				message: "Please check the console for further details."
-			}));
-			console.error(err);
-		}
-	};
-
-
-export const saveCurrentGraphSetOnRemote = (): AppThunk =>
-	async (dispatch, getState) => {
-
-		try {
-			// id == name
-			const id = getCurrentGraphSetId(getState());
-			if (!id) return;
-
-			const name = id !== UnsavedSetName
-				? id
-				: (
-					await showTextInputDialog({
-						text: "Please name the graph",
-						actions: {
-							confirm: { label: "Save Graph" }
-						},
-						validate: validateGraphSetName
-					}));
-
-			if (name === DialogResult.Cancel || name === DialogResult.Discard) {
-				return;
-			}
-			dispatch(saveGraphSetOnRemote(name, false));
-		} catch (err) {
-			dispatch(showNotification({
-				level: NotificationLevel.error,
-				title: "Error while trying to save graph",
-				message: "Please check the console for further details."
-			}));
-			console.error(err);
-		}
-	};
-
-
-export const overwriteGraphSetOnRemote = (set: GraphSetRecord): AppThunk =>
-	async (dispatch) => {
-		try {
-			const dialogResult = await showConfirmDialog({
-				text: `Are you sure you want to overwrite the graph named ${set.name} with the currently loaded graph?`,
-				actions: {
-					confirm: { label: "Overwrite Graph" }
-				}
-			});
-
-			if (dialogResult === DialogResult.Cancel) {
-				return;
-			}
-
-			dispatch(saveGraphSetOnRemote(set.name, false));
-		} catch (err) {
-			dispatch(showNotification({
-				level: NotificationLevel.error,
-				title: `Error while trying to overwrite set ${set.name}`,
-				message: "Please check the console for further details."
-			}));
-			console.error(err);
-		}
-	};
-
-export const saveCurrentGraphSetOnRemoteAs = (): AppThunk =>
-	async (dispatch) => {
-		try {
-
-			const dialogResult = await showTextInputDialog({
-				text: "Please name the graph",
-				actions: {
-					confirm: { label: "Save Graph" }
-				},
-				validate: validateGraphSetName
-			});
-
-			if (dialogResult === DialogResult.Cancel || dialogResult === DialogResult.Discard) {
-				return;
-			}
-
-			dispatch(saveGraphSetOnRemote(dialogResult, true));
-		} catch (err) {
-			dispatch(showNotification({
-				level: NotificationLevel.error,
-				title: "Error while trying to save graph",
 				message: "Please check the console for further details."
 			}));
 			console.error(err);
@@ -291,7 +226,7 @@ export const loadGraphSetOnRemote = (set: GraphSetRecord): AppThunk =>
 				} else if (dialogResult === DialogResult.Confirm) {
 					// Save before proceeding
 					dispatch(saveGraphSetOnRemote(currentSet.name, false));
-					await sleep(30);
+					await sleep(300);
 				}
 			}
 
@@ -305,6 +240,105 @@ export const loadGraphSetOnRemote = (set: GraphSetRecord): AppThunk =>
 			dispatch(showNotification({
 				level: NotificationLevel.error,
 				title: `Error while trying to load set ${set.name}`,
+				message: "Please check the console for further details."
+			}));
+			console.error(err);
+		}
+	};
+
+export const triggerLoadGraphSetDialog = (): AppThunk =>
+	async (dispatch, getState) => {
+		try {
+			const sets = getGraphSetsSortedByName(getState(), SortOrder.Asc);
+			if (!sets.size) return;
+
+			const currentSet = getCurrentGraphSet(getState());
+
+			const dialogResult = await showSelectInputDialog({
+				actions: {
+					confirm: { label: "Load" }
+				},
+				options: sets.valueSeq().map(s => ({ label: s.name, value: s.id, disabled: s.id === currentSet?.id })).toArray(),
+				placeholder: "Select Graph",
+				text: "Load Graph"
+			});
+
+			if (dialogResult === DialogResult.Cancel) {
+				return;
+			}
+
+			const setToLoad = getGraphSet(getState(), dialogResult);
+			if (!setToLoad) return;
+			dispatch(loadGraphSetOnRemote(setToLoad));
+
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: "Error while trying to load graph",
+				message: "Please check the console for further details."
+			}));
+			console.error(err);
+		}
+	};
+
+export const triggerStartupGraphSetDialog = (): AppThunk =>
+	async (dispatch, getState) => {
+
+		try {
+			const state = getState();
+
+			const startupConfig = getRunnerConfig(state, ConfigKey.AutoStartLastSet);
+			const initSet = getInitialGraphSet(state);
+			const sets = getGraphSets(state);
+
+			const dialogResult = await showSelectInputDialog({
+				actions: {
+					confirm: { label: "Save" }
+				},
+				options: [
+					{ value: OnLoadGraphSetSetting.LastSet, label: "Load last graph" },
+					{ value: OnLoadGraphSetSetting.EmptySet, label: "Load new, empty graph" },
+					{ value: "", disabled: true, label: "Load graph:" },
+					...sets.valueSeq().map(s => ({ label: s.name, value: s.id })).toArray()
+				],
+				placeholder: "Select",
+				text: "Configure Startup Settings",
+				initialValue: startupConfig.oscType === OSCQueryValueType.False
+					? OnLoadGraphSetSetting.EmptySet
+					: !initSet ? OnLoadGraphSetSetting.LastSet : initSet.id
+			});
+
+			switch (dialogResult) {
+				case DialogResult.Cancel:
+					return;
+				case OnLoadGraphSetSetting.EmptySet:
+					dispatch(setRunnerConfig(ConfigKey.AutoStartLastSet, false));
+					return;
+				case OnLoadGraphSetSetting.LastSet: {
+					dispatch(setRunnerConfig(ConfigKey.AutoStartLastSet, true));
+					const message = {
+						address: "/rnbo/inst/control/sets/initial",
+						args: [{ type: "s", value: "" }]
+					};
+					oscQueryBridge.sendPacket(writePacket(message));
+					return;
+				}
+				default: {
+					// Specific Graph
+					dispatch(setRunnerConfig(ConfigKey.AutoStartLastSet, true));
+					const message = {
+						address: "/rnbo/inst/control/sets/initial",
+						args: [{ type: "s", value: dialogResult }]
+					};
+					oscQueryBridge.sendPacket(writePacket(message));
+					return;
+				}
+			}
+
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: "Error while trying to confingure startup graph",
 				message: "Please check the console for further details."
 			}));
 			console.error(err);
@@ -388,8 +422,23 @@ export const destroyGraphSetOnRemote = (set: GraphSetRecord): AppThunk =>
 	};
 
 export const renameGraphSetOnRemote = (set: GraphSetRecord, newName: string): AppThunk =>
-	(dispatch) => {
+	async (dispatch, getState) => {
 		try {
+
+			if (set.name === newName) return; // nothing to do
+
+			const existing = getGraphSet(getState(), newName);
+			if (existing) { // confirm override
+				const dialogResult = await showConfirmDialog({
+					text: `A graph named ${newName} already exists. Are you sure you want to overwrite it?`,
+					actions: {
+						confirm: { label: "Overwrite" }
+					}
+				});
+
+				if (dialogResult !== DialogResult.Confirm) return;
+			}
+
 			const message = {
 				address: "/rnbo/inst/control/sets/rename",
 				args: [
@@ -402,6 +451,162 @@ export const renameGraphSetOnRemote = (set: GraphSetRecord, newName: string): Ap
 			dispatch(showNotification({
 				level: NotificationLevel.error,
 				title: `Error while trying to rename set ${set.name} -> ${newName}`,
+				message: "Please check the console for further details."
+			}));
+			console.error(err);
+		}
+	};
+
+export const overwriteGraphSetOnRemote = (set: GraphSetRecord): AppThunk =>
+	async (dispatch) => {
+		try {
+			const dialogResult = await showConfirmDialog({
+				text: `Are you sure you want to overwrite the graph named ${set.name} with the currently loaded graph?`,
+				actions: {
+					confirm: { label: "Overwrite Graph" }
+				}
+			});
+
+			if (dialogResult === DialogResult.Cancel) {
+				return;
+			}
+
+			dispatch(saveGraphSetOnRemote(set.name, false));
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: `Error while trying to overwrite set ${set.name}`,
+				message: "Please check the console for further details."
+			}));
+			console.error(err);
+		}
+	};
+
+export const saveCurrentGraphSetOnRemote = (): AppThunk =>
+	async (dispatch, getState) => {
+
+		try {
+			// id == name
+			const id = getCurrentGraphSetId(getState());
+			if (!id) return;
+
+			const name = id !== UnsavedSetName
+				? id
+				: (
+					await showTextInputDialog({
+						text: "Please name the graph",
+						actions: {
+							confirm: { label: "Save Graph" }
+						},
+						validate: validateGraphSetName
+					}));
+
+			if (name === DialogResult.Cancel || name === DialogResult.Discard) {
+				return;
+			}
+			dispatch(saveGraphSetOnRemote(name, false));
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: "Error while trying to save graph",
+				message: "Please check the console for further details."
+			}));
+			console.error(err);
+		}
+	};
+
+export const reloadCurrentGraphSetOnRemote = (): AppThunk =>
+	async (dispatch, getState) => {
+
+		try {
+			// id == name
+			const set = getCurrentGraphSet(getState());
+			if (!set) return;
+
+			dispatch(loadGraphSetOnRemote(set));
+
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: "Error while trying to reload current graph",
+				message: "Please check the console for further details."
+			}));
+			console.error(err);
+		}
+	};
+
+export const destroyCurrentGraphSetOnRemote = (): AppThunk =>
+	async (dispatch, getState) => {
+
+		try {
+			// id == name
+			const set = getCurrentGraphSet(getState());
+			if (!set) return;
+
+			dispatch(destroyGraphSetOnRemote(set));
+
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: "Error while trying to delete current graph",
+				message: "Please check the console for further details."
+			}));
+			console.error(err);
+		}
+	};
+
+export const renameCurrentGraphSetOnRemote = (): AppThunk =>
+	async (dispatch, getState) => {
+		try {
+
+			const set = getCurrentGraphSet(getState());
+			if (!set) return;
+
+			const dialogResult = await showTextInputDialog({
+				text: "Please name the graph",
+				actions: {
+					confirm: { label: "Save Graph" }
+				},
+				validate: validateGraphSetName,
+				value: set.name
+			});
+
+			if (dialogResult === DialogResult.Cancel || dialogResult === DialogResult.Discard) {
+				return;
+			}
+
+			dispatch(renameGraphSetOnRemote(set, dialogResult));
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: "Error while trying to rename graph",
+				message: "Please check the console for further details."
+			}));
+			console.error(err);
+		}
+	};
+
+export const saveCurrentGraphSetOnRemoteAs = (): AppThunk =>
+	async (dispatch) => {
+		try {
+
+			const dialogResult = await showTextInputDialog({
+				text: "Please name the graph",
+				actions: {
+					confirm: { label: "Save Graph" }
+				},
+				validate: validateGraphSetName
+			});
+
+			if (dialogResult === DialogResult.Cancel || dialogResult === DialogResult.Discard) {
+				return;
+			}
+
+			dispatch(saveGraphSetOnRemote(dialogResult, true));
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: "Error while trying to save graph",
 				message: "Please check the console for further details."
 			}));
 			console.error(err);
@@ -654,23 +859,61 @@ export const loadSetView = (setView: GraphSetViewRecord): ILoadGraphSetView => {
 	};
 };
 
-export const renameSetViewOnRemote = (setView: GraphSetViewRecord, newname: string): AppThunk =>
-	(dispatch) => {
+export const renameSetViewOnRemote = (setView: GraphSetViewRecord, newName: string): AppThunk =>
+	async (dispatch, getState) => {
 		try {
+
+			if (setView.name === newName) return; // nothing to do
+
+			const existingViews = getGraphSetViews(getState());
+			const uniqName = getUniqueName(newName, existingViews.valueSeq().map(v => v.name).toArray());
+
 			const message = {
 				address: `/rnbo/inst/control/sets/views/list/${setView.id}/name`,
 				args: [
-					{ type: "s", value: newname }
+					{ type: "s", value: uniqName }
 				]
 			};
+
 			oscQueryBridge.sendPacket(writePacket(message));
 		} catch (err) {
 			dispatch(showNotification({
 				level: NotificationLevel.error,
-				title: `Error while trying to rename SetView "${setView.name}" to "${newname}"`,
+				title: `Error while trying to rename parameter view "${setView.name}" to "${newName}"`,
 				message: "Please check the console for further details."
 			}));
 			console.log(err);
+		}
+	};
+
+export const renameSelectedSetViewOnRemote = (): AppThunk =>
+	async (dispatch, getState) => {
+		try {
+
+			const setView = getSelectedGraphSetView(getState());
+			if (!setView) return;
+
+			const dialogResult = await showTextInputDialog({
+				text: "Please name the parameter view",
+				actions: {
+					confirm: { label: "Save Parameter View" }
+				},
+				validate: validateSetViewName,
+				value: setView.name
+			});
+
+			if (dialogResult === DialogResult.Cancel || dialogResult === DialogResult.Discard) {
+				return;
+			}
+
+			dispatch(renameSetViewOnRemote(setView, dialogResult));
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: "Error while trying to rename parameter view",
+				message: "Please check the console for further details."
+			}));
+			console.error(err);
 		}
 	};
 
@@ -706,7 +949,7 @@ export const destroySetViewOnRemote = (setView: GraphSetViewRecord): AppThunk =>
 		} catch (err) {
 			dispatch(showNotification({
 				level: NotificationLevel.error,
-				title: `Error while trying to destroy SetView "${setView.name}"`,
+				title: `Error while trying to destroy parameter view "${setView.name}"`,
 				message: "Please check the console for further details."
 			}));
 			console.log(err);
@@ -737,7 +980,7 @@ export const destroyAllSetViewsOnRemote = (): AppThunk =>
 		} catch (err) {
 			dispatch(showNotification({
 				level: NotificationLevel.error,
-				title: "Error while trying to destroy all SetViews",
+				title: "Error while trying to destroy all parameter views",
 				message: "Please check the console for further details."
 			}));
 			console.log(err);
@@ -756,7 +999,7 @@ export const updateSetViewParameterListOnRemote = (setView: GraphSetViewRecord, 
 		} catch (err) {
 			dispatch(showNotification({
 				level: NotificationLevel.error,
-				title: `Error while trying to update parameter list of SetView "${setView.name}"`,
+				title: `Error while trying to update parameter list of parameter view "${setView.name}"`,
 				message: "Please check the console for further details."
 			}));
 			console.log(err);
@@ -780,7 +1023,7 @@ export const offsetParameterIndexInSetView = (setView: GraphSetViewRecord, param
 		} catch (err) {
 			dispatch(showNotification({
 				level: NotificationLevel.error,
-				title: `Error while trying to update parameter list of SetView "${setView.name}"`,
+				title: `Error while trying to update parameter list of parameter view "${setView.name}"`,
 				message: "Please check the console for further details."
 			}));
 			console.log(err);
@@ -813,7 +1056,7 @@ export const removeParameterFromSetView = (setView: GraphSetViewRecord, param: P
 		} catch (err) {
 			dispatch(showNotification({
 				level: NotificationLevel.error,
-				title: `Error while trying to update parameter list of SetView "${setView.name}"`,
+				title: `Error while trying to update parameter list of parameter view "${setView.name}"`,
 				message: "Please check the console for further details."
 			}));
 			console.log(err);
@@ -843,7 +1086,7 @@ export const removeAllParametersFromSetView = (setView: GraphSetViewRecord): App
 		} catch (err) {
 			dispatch(showNotification({
 				level: NotificationLevel.error,
-				title: `Error while trying to update parameter list of SetView "${setView.name}"`,
+				title: `Error while trying to update parameter list of parameter view "${setView.name}"`,
 				message: "Please check the console for further details."
 			}));
 			console.log(err);
@@ -865,7 +1108,7 @@ export const addParameterToSetView = (setView: GraphSetViewRecord, param: Parame
 		} catch (err) {
 			dispatch(showNotification({
 				level: NotificationLevel.error,
-				title: `Error while trying to update parameter list of SetView "${setView.name}"`,
+				title: `Error while trying to update parameter list of parameter view "${setView.name}"`,
 				message: "Please check the console for further details."
 			}));
 			console.log(err);
@@ -904,7 +1147,7 @@ export const addAllParametersToSetView = (setView: GraphSetViewRecord): AppThunk
 		} catch (err) {
 			dispatch(showNotification({
 				level: NotificationLevel.error,
-				title: `Error while trying to update parameter list of SetView "${setView.name}"`,
+				title: `Error while trying to update parameter list of parameter view "${setView.name}"`,
 				message: "Please check the console for further details."
 			}));
 			console.log(err);

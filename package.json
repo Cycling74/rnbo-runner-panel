@@ -27,6 +27,7 @@
     "@mdi/js": "^7.4.47",
     "@mdi/react": "^1.6.1",
     "@types/websocket": "^1.0.2",
+    "dayjs": "^1.11.13",
     "immutable": "^4.0.0-rc.12",
     "js-base64": "^3.7.7",
     "lodash.debounce": "^4.0.8",
