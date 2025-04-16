@@ -12,7 +12,7 @@ export type TableHeaderCellProps = PropsWithChildren<{
 	sorted?: boolean;
 	sortKey?: string;
 	sortOrder?: SortOrder;
-	w?: MantineStyleProps["w"];
+	width?: MantineStyleProps["w"];
 }>;
 
 export const TableHeaderCell: FC<TableHeaderCellProps> = ({
@@ -25,7 +25,7 @@ export const TableHeaderCell: FC<TableHeaderCellProps> = ({
 	sortKey,
 	sortOrder = SortOrder.Asc,
 
-	w
+	width = undefined
 
 }) => {
 
@@ -34,7 +34,7 @@ export const TableHeaderCell: FC<TableHeaderCellProps> = ({
 	}, [onSort, sortKey]);
 
 	return (
-		<Table.Th className={ className } w={ w } >
+		<Table.Th className={ className } w={ width } >
 			{
 				onSort ? (
 					<UnstyledButton onClick={ onTriggerSort } >

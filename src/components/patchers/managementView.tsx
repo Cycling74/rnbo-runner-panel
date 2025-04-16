@@ -60,7 +60,7 @@ export const PatcherManagementView: FC = memo(function WrappedPatcherView() {
 						<TableHeaderCell onSort={ onSort } sortKey={ PatcherSortAttr.Name } sortOrder={ sortOrder } sorted={ sortAttr === PatcherSortAttr.Name } >
 							Name
 						</TableHeaderCell>
-						<TableHeaderCell onSort={ onSort } sortKey={ PatcherSortAttr.Date } sortOrder={ sortOrder } sorted={ sortAttr === PatcherSortAttr.Date } w={ 100 } >
+						<TableHeaderCell onSort={ onSort } sortKey={ PatcherSortAttr.Date } sortOrder={ sortOrder } sorted={ sortAttr === PatcherSortAttr.Date } width={ 100 } >
 							Export
 						</TableHeaderCell>
 						<Table.Th w={ 60 } ></Table.Th>
