@@ -473,7 +473,7 @@ export const changeAliasOnRemoteInstance = (instance: PatcherInstanceRecord): Ap
 		} catch (err) {
 			dispatch(showNotification({
 				level: NotificationLevel.error,
-				title: `Error while trying to set alias for ${instance.displayName}`,
+				title: `Error while trying to set alias for device ${instance.displayName}`,
 				message: "Please check the console for further details."
 			}));
 			console.log(err);

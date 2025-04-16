@@ -879,7 +879,7 @@ export const renameSetViewOnRemote = (setView: GraphSetViewRecord, newName: stri
 		} catch (err) {
 			dispatch(showNotification({
 				level: NotificationLevel.error,
-				title: `Error while trying to rename SetView "${setView.name}" to "${newName}"`,
+				title: `Error while trying to rename parameter view "${setView.name}" to "${newName}"`,
 				message: "Please check the console for further details."
 			}));
 			console.log(err);
@@ -949,7 +949,7 @@ export const destroySetViewOnRemote = (setView: GraphSetViewRecord): AppThunk =>
 		} catch (err) {
 			dispatch(showNotification({
 				level: NotificationLevel.error,
-				title: `Error while trying to destroy SetView "${setView.name}"`,
+				title: `Error while trying to destroy parameter view "${setView.name}"`,
 				message: "Please check the console for further details."
 			}));
 			console.log(err);
@@ -980,7 +980,7 @@ export const destroyAllSetViewsOnRemote = (): AppThunk =>
 		} catch (err) {
 			dispatch(showNotification({
 				level: NotificationLevel.error,
-				title: "Error while trying to destroy all SetViews",
+				title: "Error while trying to destroy all parameter views",
 				message: "Please check the console for further details."
 			}));
 			console.log(err);
@@ -999,7 +999,7 @@ export const updateSetViewParameterListOnRemote = (setView: GraphSetViewRecord, 
 		} catch (err) {
 			dispatch(showNotification({
 				level: NotificationLevel.error,
-				title: `Error while trying to update parameter list of SetView "${setView.name}"`,
+				title: `Error while trying to update parameter list of parameter view "${setView.name}"`,
 				message: "Please check the console for further details."
 			}));
 			console.log(err);
@@ -1023,7 +1023,7 @@ export const offsetParameterIndexInSetView = (setView: GraphSetViewRecord, param
 		} catch (err) {
 			dispatch(showNotification({
 				level: NotificationLevel.error,
-				title: `Error while trying to update parameter list of SetView "${setView.name}"`,
+				title: `Error while trying to update parameter list of parameter view "${setView.name}"`,
 				message: "Please check the console for further details."
 			}));
 			console.log(err);
@@ -1056,7 +1056,7 @@ export const removeParameterFromSetView = (setView: GraphSetViewRecord, param: P
 		} catch (err) {
 			dispatch(showNotification({
 				level: NotificationLevel.error,
-				title: `Error while trying to update parameter list of SetView "${setView.name}"`,
+				title: `Error while trying to update parameter list of parameter view "${setView.name}"`,
 				message: "Please check the console for further details."
 			}));
 			console.log(err);
@@ -1086,7 +1086,7 @@ export const removeAllParametersFromSetView = (setView: GraphSetViewRecord): App
 		} catch (err) {
 			dispatch(showNotification({
 				level: NotificationLevel.error,
-				title: `Error while trying to update parameter list of SetView "${setView.name}"`,
+				title: `Error while trying to update parameter list of parameter view "${setView.name}"`,
 				message: "Please check the console for further details."
 			}));
 			console.log(err);
@@ -1108,7 +1108,7 @@ export const addParameterToSetView = (setView: GraphSetViewRecord, param: Parame
 		} catch (err) {
 			dispatch(showNotification({
 				level: NotificationLevel.error,
-				title: `Error while trying to update parameter list of SetView "${setView.name}"`,
+				title: `Error while trying to update parameter list of parameter view "${setView.name}"`,
 				message: "Please check the console for further details."
 			}));
 			console.log(err);
@@ -1147,7 +1147,7 @@ export const addAllParametersToSetView = (setView: GraphSetViewRecord): AppThunk
 		} catch (err) {
 			dispatch(showNotification({
 				level: NotificationLevel.error,
-				title: `Error while trying to update parameter list of SetView "${setView.name}"`,
+				title: `Error while trying to update parameter list of parameter view "${setView.name}"`,
 				message: "Please check the console for further details."
 			}));
 			console.log(err);
