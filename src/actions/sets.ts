@@ -567,11 +567,7 @@ export const renameCurrentGraphSetOnRemote = (): AppThunk =>
 				actions: {
 					confirm: { label: "Save Graph" }
 				},
-				validate: (v: string) => {
-					const value = v.trim();
-					if (!value?.length) return "Please provide a valid, non empty name.";
-					return true;
-				},
+				validate: validateGraphSetName,
 				value: set.name
 			});
 
