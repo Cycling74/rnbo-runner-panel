@@ -694,7 +694,7 @@ export const sendInstanceInportBang = (instance: PatcherInstanceRecord, port: Me
 		try {
 			const message = {
 				address: port.path,
-				args: [{ type: "f", value: "" }]
+				args: []
 			};
 			oscQueryBridge.sendPacket(writePacket(message));
 		} catch (err) {
