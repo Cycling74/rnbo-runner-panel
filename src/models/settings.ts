@@ -38,21 +38,21 @@ export const appSettingDefaults: Record<AppSetting, Omit<AppSettingRecordProps, 
 		value: "light"
 	},
 	[AppSetting.keyboardMIDIInput]: {
-		description: "Activate this Setting to play MIDI notes into an instance using your computer's keyboard, when displaying the Virtual MIDI Keyboard",
+		description: "Activate this setting to play MIDI notes into a device using your computer's keyboard, when displaying the Virtual MIDI Keyboard",
 		tab: SettingsTab.UI,
 		title: "Computer MIDI Keyboard",
 		type: AppSettingType.Boolean,
 		value: true
 	},
 	[AppSetting.debugMessageOutput]: {
-		description: "Activate this setting to monitor data sent out of [outport] objects on the port control tab of an instance.",
+		description: "Activate this setting to monitor data sent out of [outport] objects on the outport tab of a device.",
 		tab: SettingsTab.UI,
-		title: "Monitor Output Ports",
+		title: "Monitor Outports",
 		type: AppSettingType.Boolean,
 		value: true
 	},
 	[AppSetting.paramSortAttribute]: {
-		description: "Configure whether to sort instance parameters by name or 'displayorder'",
+		description: "Configure whether to sort device parameters by name or 'displayorder'",
 		tab: SettingsTab.UI,
 		options: [{ label: "Displayorder", value: ParameterSortAttr.Index }, { label: "Name", value: ParameterSortAttr.Name }],
 		title: "Parameter List: Sort Attribute",
@@ -60,7 +60,7 @@ export const appSettingDefaults: Record<AppSetting, Omit<AppSettingRecordProps, 
 		value: ParameterSortAttr.Name
 	},
 	[AppSetting.paramSortOrder]: {
-		description: "Configure in which order to sort instance parameters",
+		description: "Configure in which order to sort device parameters",
 		tab: SettingsTab.UI,
 		options: [{ label: "Ascending", value: SortOrder.Asc }, { label: "Descending", value: SortOrder.Desc }],
 		title: "Parameter List: Sort Order",
