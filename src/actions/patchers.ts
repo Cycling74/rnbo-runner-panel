@@ -692,7 +692,7 @@ export const triggerSendInstanceInportMessage = (instance: PatcherInstanceRecord
 export const sendInstanceInportBang = (instance: PatcherInstanceRecord, port: MessagePortRecord): AppThunk =>
 	(dispatch) => {
 		try {
-			const message = {
+			const message: OSCMessage = {
 				address: port.path,
 				args: []
 			};
