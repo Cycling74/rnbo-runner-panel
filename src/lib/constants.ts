@@ -19,7 +19,8 @@ export enum AppStatus {
 }
 
 export enum InstanceTab {
-	MessagePorts = "msg",
+	Inports = "inports",
+	Outports = "outports",
 	Parameters = "params",
 	DataRefs = "datarefs",
 }

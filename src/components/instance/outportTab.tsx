@@ -1,34 +1,30 @@
-import { Stack } from "@mantine/core";
 import { Map as ImmuMap } from "immutable";
 import { FunctionComponent, memo, useCallback } from "react";
 import { useAppDispatch } from "../../hooks/useAppDispatch";
-import MessageInportList from "../messages/inportList";
-import { SectionTitle } from "../page/sectionTitle";
 import MessageOutportList from "../messages/outportList";
 import classes from "./instance.module.css";
 import { PatcherInstanceRecord } from "../../models/instance";
-import { sendInstanceMessageToRemote } from "../../actions/patchers";
 import { MessagePortRecord } from "../../models/messageport";
 import { restoreDefaultMessagePortMetaOnRemote, setInstanceMessagePortMetaOnRemote } from "../../actions/patchers";
+import { Center, Group, SegmentedControl, Stack, Tooltip } from "@mantine/core";
+import { IconElement } from "../elements/icon";
+import { mdiEye, mdiEyeOff } from "@mdi/js";
+import { setAppSetting } from "../../actions/settings";
+import { AppSetting } from "../../models/settings";
 
-export type InstanceMessageTabProps = {
+export type InstanceOutportTabProps = {
 	instance: PatcherInstanceRecord;
-	messageInports: ImmuMap<MessagePortRecord["id"], MessagePortRecord>;
 	messageOutports: ImmuMap<MessagePortRecord["id"], MessagePortRecord>;
 	outputEnabled: boolean;
 }
 
-const InstanceMessagesTab: FunctionComponent<InstanceMessageTabProps> = memo(function WrappedInstanceMessagesTab({
+const InstanceOutportTab: FunctionComponent<InstanceOutportTabProps> = memo(function WrappedInstanceMessagesTab({
 	instance,
-	messageInports,
 	messageOutports,
 	outputEnabled
 }) {
 
 	const dispatch = useAppDispatch();
-	const onSendInportMessage = useCallback((port: MessagePortRecord, value: string) => {
-		dispatch(sendInstanceMessageToRemote(instance, port.id, value));
-	}, [dispatch, instance]);
 
 	const onSavePortMetadata = useCallback((port: MessagePortRecord, meta: string) => {
 		dispatch(setInstanceMessagePortMetaOnRemote(instance, port, meta));
@@ -38,27 +34,42 @@ const InstanceMessagesTab: FunctionComponent<InstanceMessageTabProps> = memo(fun
 		dispatch(restoreDefaultMessagePortMetaOnRemote(instance, port));
 	}, [dispatch, instance]);
 
+	const onSetOutportMonitoring = useCallback((v: string) => {
+		dispatch(setAppSetting(AppSetting.debugMessageOutput, v === "true"));
+	}, [dispatch]);
+
 	return (
-		<Stack>
-			<SectionTitle>Input Ports</SectionTitle>
-			{
-				!messageInports.size ? (
-					<div className={ classes.emptySection }>
-						This device has no message input ports.
-					</div>
-				) :
-					<MessageInportList
-						inports={ messageInports.valueSeq() }
-						onSendMessage={ onSendInportMessage }
-						onRestoreMetadata={ onRestoreDefaultPortMetadata }
-						onSaveMetadata={ onSavePortMetadata }
-					/>
-			}
-			<SectionTitle>Output Ports</SectionTitle>
+		<Stack gap="xs">
+			<Group justify="flex-end">
+				<SegmentedControl
+					size="xs"
+					color="blue"
+					data={[
+						{
+							value: "false",
+							label: (
+								<Tooltip label="Disable Outport Monitoring" disabled={ !outputEnabled }>
+									<Center><IconElement path={ mdiEyeOff } /></Center>
+								</Tooltip>
+							)
+						},
+						{
+							value: "true",
+							label: (
+								<Tooltip label="Enable Outport Monitoring" disabled={ outputEnabled }>
+									<Center><IconElement path={ mdiEye } /></Center>
+								</Tooltip>
+							)
+						}
+					]}
+					onChange={ onSetOutportMonitoring }
+					value={ `${outputEnabled}` }
+				/>
+			</Group>
 			{
 				!messageOutports.size ? (
 					<div className={ classes.emptySection }>
-						This device has no output ports.
+						This device has no outports.
 					</div>
 				) :
 					<MessageOutportList
@@ -72,4 +83,4 @@ const InstanceMessagesTab: FunctionComponent<InstanceMessageTabProps> = memo(fun
 	);
 });
 
-export default InstanceMessagesTab;
+export default InstanceOutportTab;

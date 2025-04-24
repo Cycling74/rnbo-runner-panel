@@ -1,6 +1,6 @@
 import { FunctionComponent, memo, useCallback } from "react";
 import classes from "./ports.module.css";
-import { ActionIcon, Group, Menu, TextInput, Tooltip } from "@mantine/core";
+import { ActionIcon, Group, Menu, Table, Text } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { MessagePortRecord } from "../../models/messageport";
 import { MetaEditorModal } from "../meta/metaEditorModal";
@@ -32,10 +32,8 @@ const MessageOutportEntry: FunctionComponent<MessageOutportEntryProps> = memo(fu
 		onRestoreMetadata(port);
 	}, [port, onRestoreMetadata]);
 
-	// TODO should there be some sort of tooltip or some indication if output isn't enabled?
-
 	return (
-		<div className={ classes.outport } >
+		<Table.Tr className={ classes.outport } >
 			{
 				showMetaEditor ? (
 					<MetaEditorModal
@@ -48,34 +46,40 @@ const MessageOutportEntry: FunctionComponent<MessageOutportEntryProps> = memo(fu
 					/>
 				) : null
 			}
-			<Group justify="space-between">
-				<label htmlFor={ port.name } className={ classes.portItemLabel } >{ port.name }</label>
-			</Group>
-			<Group>
-				<TextInput
-					size="sm"
-					placeholder="No value received"
-					disabled={ !outputEnabled }
-					readOnly
-					value={ port.value }
-				/>
-				<Menu position="bottom-end">
-					<Menu.Target>
-						<Tooltip label="Open Outport Action Menu">
-							<ActionIcon variant="subtle" color="gray" size="md">
+			<Table.Td>
+				<label htmlFor={ port.name } className={ classes.portItemLabel } >
+					<Text fz="sm" truncate="end">
+						{ port.name }
+					</Text>
+				</label>
+			</Table.Td>
+			{
+				outputEnabled ? (
+					<Table.Td>
+						<Text fz="sm" truncate="end" c="dimmed">
+							{ port.value === "" ? "No Value Received" : port.value }
+						</Text>
+					</Table.Td>
+				) : null
+			}
+			<Table.Td>
+				<Group justify="flex-end">
+					<Menu position="bottom-end">
+						<Menu.Target>
+							<ActionIcon variant="subtle" color="gray" >
 								<IconElement path={ mdiDotsVertical } />
 							</ActionIcon>
-						</Tooltip>
-					</Menu.Target>
-					<Menu.Dropdown>
-						<Menu.Label>Outport Actions</Menu.Label>
-						<Menu.Item leftSection={ <IconElement path={ mdiCodeBraces } /> } onClick={ toggleMetaEditor }>
-							Edit Metadata
-						</Menu.Item>
-					</Menu.Dropdown>
-				</Menu>
-			</Group>
-		</div>
+						</Menu.Target>
+						<Menu.Dropdown>
+							<Menu.Label>Outport</Menu.Label>
+							<Menu.Item leftSection={ <IconElement path={ mdiCodeBraces } /> } onClick={ toggleMetaEditor }>
+								Edit Metadata
+							</Menu.Item>
+						</Menu.Dropdown>
+					</Menu>
+				</Group>
+			</Table.Td>
+		</Table.Tr>
 	);
 });
 

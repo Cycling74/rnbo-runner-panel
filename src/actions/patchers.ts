@@ -649,28 +649,62 @@ export const setInitialPresetOnRemoteInstance = (instance: PatcherInstanceRecord
 		}
 	};
 
-export const sendInstanceMessageToRemote = (instance: PatcherInstanceRecord, inportId: string, value: string): AppThunk =>
-	(dispatch) => {
-		const values = value.split(" ").reduce((values, v) => {
-			const fv = parseFloat(v.replaceAll(",", ".").trim());
-			if (!isNaN(fv)) values.push({ type: "f", value: fv });
-			return values;
-		}, [] as OSCArgument[]);
+export const triggerSendInstanceInportMessage = (instance: PatcherInstanceRecord, port: MessagePortRecord): AppThunk =>
+	async (dispatch) => {
+		try {
 
-		if (!values.length) {
+			const dialogResult = await showTextInputDialog({
+				text: `Send Inport message to ${port.name}`,
+				actions: {
+					confirm: { label: "Send" }
+				},
+				validate: (value: string) => {
+					if (!value.length) return "Please provide a value";
+					const values = value.trim().replaceAll(",", ".").split(" ");
+					if (values.find(v => isNaN(parseFloat(v)))) return "Please provide a single or multiple numbers separated by a space";
+					return true;
+				}
+			});
+
+			if (dialogResult === DialogResult.Cancel || dialogResult === DialogResult.Discard) return;
+
+			const values = dialogResult.split(" ").reduce((values, v) => {
+				const fv = parseFloat(v.replaceAll(",", ".").trim());
+				if (!isNaN(fv)) values.push({ type: "f", value: fv });
+				return values;
+			}, [] as OSCArgument[]);
+
+			const message = {
+				address: port.path,
+				args: values
+			};
+			oscQueryBridge.sendPacket(writePacket(message));
+		} catch (err) {
 			dispatch(showNotification({
-				title: "Invalid Message Input",
-				level: NotificationLevel.warn,
-				message: `Could not send message input "${value}" as it appears to contain non-valid number input. Please provide a single or multiple numbers separated by a space.`
+				level: NotificationLevel.error,
+				title: `Error while trying to send values to inport ${port.name} on device ${instance.displayName}`,
+				message: "Please check the console for further details."
 			}));
-			return;
+			console.log(err);
 		}
+	};
 
-		const message = {
-			address: `/rnbo/inst/${instance.id}/messages/in/${inportId}`,
-			args: values
-		};
-		oscQueryBridge.sendPacket(writePacket(message));
+export const sendInstanceInportBang = (instance: PatcherInstanceRecord, port: MessagePortRecord): AppThunk =>
+	(dispatch) => {
+		try {
+			const message = {
+				address: port.path,
+				args: [{ type: "f", value: "" }]
+			};
+			oscQueryBridge.sendPacket(writePacket(message));
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: `Error while trying to send bang to inport ${port.name} on device ${instance.displayName}`,
+				message: "Please check the console for further details."
+			}));
+			console.log(err);
+		}
 	};
 
 export const triggerInstanceMidiNoteOnEventOnRemote = (instance: PatcherInstanceRecord, note: number): AppThunk =>
