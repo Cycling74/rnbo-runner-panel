@@ -3,21 +3,23 @@ import { FunctionComponent, memo, useEffect, useState } from "react";
 import classes from "./instance.module.css";
 import { InstanceTab } from "../../lib/constants";
 import InstanceParameterTab from "./paramTab";
-import InstanceMessagesTab from "./messageTab";
+import InstanceInportTab from "./inportTab";
+import InstanceOutportTab from "./outportTab";
 import InstanceDataRefsTab from "./datarefTab";
 import { PatcherInstanceRecord } from "../../models/instance";
 import { AppSettingRecord } from "../../models/settings";
 import { DataFileRecord } from "../../models/datafile";
 import { Map as ImmuMap, Seq } from "immutable";
 import { IconElement } from "../elements/icon";
-import { mdiFileMusic, mdiSwapHorizontal, mdiTune } from "@mdi/js";
+import { mdiExport, mdiFileMusic, mdiImport, mdiTune } from "@mdi/js";
 import { ParameterRecord } from "../../models/parameter";
 import { MessagePortRecord } from "../../models/messageport";
 import { DataRefRecord } from "../../models/dataref";
 
 const tabs = [
 	{ icon: mdiTune, value: InstanceTab.Parameters, label: "Parameters" },
-	{ icon: mdiSwapHorizontal, value: InstanceTab.MessagePorts, label: "Ports" },
+	{ icon: mdiImport, value: InstanceTab.Inports, label: "Inports" },
+	{ icon: mdiExport, value: InstanceTab.Outports, label: "Outports" },
 	{ icon: mdiFileMusic, value: InstanceTab.DataRefs, label: "Buffers" }
 ];
 
@@ -73,8 +75,11 @@ const Instance: FunctionComponent<InstanceProps> = memo(function WrappedInstance
 				<Tabs.Panel value={ InstanceTab.Parameters } >
 					<InstanceParameterTab instance={ instance } parameters={ parameters } sortAttr={ paramSortAttr } sortOrder={ paramSortOrder } />
 				</Tabs.Panel>
-				<Tabs.Panel value={ InstanceTab.MessagePorts } >
-					<InstanceMessagesTab instance={ instance } messageInports={ messageInports } messageOutports={ messageOutports } outputEnabled={ enabledMessageOuput.value as boolean } />
+				<Tabs.Panel value={ InstanceTab.Inports } >
+					<InstanceInportTab instance={ instance } messageInports={ messageInports } />
+				</Tabs.Panel>
+				<Tabs.Panel value={ InstanceTab.Outports } >
+					<InstanceOutportTab instance={ instance } messageOutports={ messageOutports } outputEnabled={ enabledMessageOuput.value as boolean } />
 				</Tabs.Panel>
 				<Tabs.Panel value={ InstanceTab.DataRefs } >
 					<InstanceDataRefsTab instance={ instance } datafiles={ datafiles } dataRefs={ dataRefs } />
