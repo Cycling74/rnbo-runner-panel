@@ -95,11 +95,11 @@ const TransportControl: FunctionComponent = memo(function WrappedTransport() {
 		<Modal
 			onClose={ onClose }
 			opened={ doShow }
-			withCloseButton={ false }
+			title="Transport Control"
 		>
 			<Group gap="md" align="center">
-				<Tooltip label={ controlState.rolling ? "Click to pause the transport" : "Click to resume the transport" } >
-					<ActionIcon onClick={ onRollToggle } size="lg" variant="transparent" color={ controlState.rolling ? undefined : "gray" } >
+				<Tooltip label={ controlState.rolling ? "Click to stop the transport" : "Click to resume the transport" } >
+					<ActionIcon onClick={ onRollToggle } size="lg" variant={ controlState.rolling ? "light" : "default" } >
 						<IconElement path={ mdiPlay } />
 					</ActionIcon>
 				</Tooltip>
