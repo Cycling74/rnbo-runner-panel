@@ -13,6 +13,9 @@ import { AppStatus } from "../../lib/constants";
 import { IconElement } from "../elements/icon";
 import { mdiMetronome, mdiSatelliteUplink } from "@mdi/js";
 import { CPUStatus } from "./cpu";
+import { toggleStreamRecording } from "../../actions/recording";
+import { getStreamRecordingState } from "../../selectors/recording";
+import { RecordStatus } from "./record";
 
 export type HeaderProps = {
 	navOpen: boolean;
@@ -28,19 +31,21 @@ export const Header: FunctionComponent<HeaderProps> = memo(function WrappedHeade
 	const dispatch = useAppDispatch();
 
 	const [
-		isRolling,
+		recordingState,
+		transportIsRolling,
 		cpuLoad
 	] = useAppSelector((state: RootStateType) => {
 		const status = getAppStatus(state);
 		return [
+			getStreamRecordingState(state),
 			getTransportControlState(state).rolling,
 			status === AppStatus.Ready ? getRunnerInfoRecord(state, RunnerInfoKey.CPULoad) : null
 		];
 	});
 
-
 	const onToggleEndpointInfo = useCallback(() => dispatch(toggleEndpointInfo()), [dispatch]);
 	const onToggleTransportControl = useCallback(() => dispatch(toggleTransportControl()), [dispatch]);
+	const onToggleRecording = useCallback(() => dispatch(toggleStreamRecording()), [dispatch]);
 
 	return (
 		<AppShell.Header>
@@ -50,8 +55,11 @@ export const Header: FunctionComponent<HeaderProps> = memo(function WrappedHeade
 					<img src={ scheme === "light" ? "/c74-dark.svg" : "/c74-light.svg" } alt="Cycling '74 Logo" />
 				</Group>
 				<Group justify="end" align="center" gap="md">
+					<Tooltip label={ recordingState.active ? "Stop Recording" : "Start Recording" } >
+						<RecordStatus { ...recordingState } onToggleRecording={ onToggleRecording } />
+					</Tooltip>
 					<Tooltip label="Open Transport Control" >
-						<ActionIcon variant="transparent" color={ isRolling ? undefined : "gray" } onClick={ onToggleTransportControl } >
+						<ActionIcon variant="transparent" color={ transportIsRolling ? undefined : "gray" } onClick={ onToggleTransportControl } >
 							<IconElement path={ mdiMetronome } />
 						</ActionIcon>
 					</Tooltip>
