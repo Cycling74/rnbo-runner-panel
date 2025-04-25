@@ -169,7 +169,7 @@ const controlConfigDetails: Partial<Record<ConfigKey, Omit<ConfigRecordProps, "i
 
 const recordingConfigDetails: Partial<Record<ConfigKey, Omit<ConfigRecordProps, "id" | "oscValue" | "oscType" >>> = {
 	[ConfigKey.RecordingChannelCount]: {
-		min: 0,
+		min: 1,
 		max: 128,
 		path: "/rnbo/jack/record/channels",
 		tab: SettingsTab.Recording,
@@ -177,7 +177,7 @@ const recordingConfigDetails: Partial<Record<ConfigKey, Omit<ConfigRecordProps, 
 	},
 	[ConfigKey.RecordingTimeout]: {
 		min: 0,
-		path: `/rnbo/jack/record/timeout`,
+		path: "/rnbo/jack/record/timeout",
 		tab: SettingsTab.Recording,
 		title: "Timeout"
 	}
@@ -232,7 +232,7 @@ export class ConfigRecord extends ImmuRecord<ConfigRecordProps>({
 	protected static getConfigNumberRange(
 		desc: ConfigOSCDescType & ConfigOscDescRangeType,
 		defaultMin: ConfigRecordProps["min"],
-		defaultMax: ConfigRecordProps["max"],
+		defaultMax: ConfigRecordProps["max"]
 	): Pick<ConfigRecordProps, "min" | "max"> {
 		if (
 			(desc.TYPE !== OSCQueryValueType.Int32 && desc.TYPE !== OSCQueryValueType.Float32) ||

@@ -1,3 +1,4 @@
+import { Duration } from "dayjs/plugin/duration";
 import { RootStateType } from "../lib/store";
 import { StreamRecordingState } from "../reducers/recording";
 
@@ -10,6 +11,6 @@ export const getIsStreamRecording = (state: RootStateType): boolean => {
 	return state.recording.active;
 };
 
-export const getStreamRecordingCapturedTime = (state: RootStateType): number => {
+export const getStreamRecordingCapturedTime = (state: RootStateType): Duration => {
 	return state.recording.capturedTime;
 };

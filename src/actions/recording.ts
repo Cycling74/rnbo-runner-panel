@@ -1,4 +1,4 @@
-import { OSCMessage, writePacket } from "osc";
+import { writePacket } from "osc";
 import { ActionBase, AppThunk } from "../lib/store";
 import { NotificationLevel } from "../models/notification";
 import { getIsStreamRecording } from "../selectors/recording";
@@ -11,7 +11,7 @@ export enum StreamRecordingActionType {
 
 	SET_ACTIVE = "SET_STREAM_RECORDING_ACTIVE",
 	SET_CAPTURED = "SET_STREAM_RECORDING_CAPTURED_TIME"
-};
+}
 
 export interface IInitStreamRecording extends ActionBase {
 	type: StreamRecordingActionType.INIT;
@@ -79,7 +79,7 @@ export const updateStreamRecordingActiveState = (active: boolean): ISetStreamRec
 	};
 };
 
-export const updateStreamRecordingCapturedTime= (capturedTime: number): ISetStreamRecordingCapturedTime => {
+export const updateStreamRecordingCapturedTime = (capturedTime: number): ISetStreamRecordingCapturedTime => {
 	return {
 		type: StreamRecordingActionType.SET_CAPTURED,
 		payload: { capturedTime }
