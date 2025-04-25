@@ -30,10 +30,8 @@ export class DataRefRecord extends ImmuRecord<DataRefRecordProps>({
 	}
 
 	public setMeta(value: string): DataRefRecord {
-		// detect midi mapping
 		let parsed: DataRefMetaJsonMap = {};
 		try {
-			// detection simply looks for a 'midi' entry in the meta
 			parsed = parseMetaJSONString(value);
 		} catch {
 			// ignore
