@@ -57,6 +57,10 @@ export class MessagePortRecord extends ImmuRecord<MessagePortRecordProps>({
 		return this.tag;
 	}
 
+	public matchesQuery(query: string): boolean {
+		return !query.length || this.tag.toLowerCase().includes(query);
+	}
+
 	public setMeta(value: string): MessagePortRecord {
 		// detect midi mapping
 		let parsed: JsonMap = {};

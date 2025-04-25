@@ -25,6 +25,10 @@ export class DataRefRecord extends ImmuRecord<DataRefRecordProps>({
 		return this.path;
 	}
 
+	public matchesQuery(query: string): boolean {
+		return !query.length || this.name.toLowerCase().includes(query);
+	}
+
 	public setValue(v: string) : DataRefRecord {
 		return this.set("value", v);
 	}
