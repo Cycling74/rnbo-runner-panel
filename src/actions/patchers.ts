@@ -659,9 +659,9 @@ export const triggerSendInstanceInportMessage = (instance: PatcherInstanceRecord
 					confirm: { label: "Send" }
 				},
 				validate: (value: string) => {
-					if (!value.length) return "Please provide a value";
+					if (!value.length) return "Empty input. Please provide a number or multiple numbers separated by spaces";
 					const values = value.trim().replaceAll(",", ".").split(" ");
-					if (values.find(v => isNaN(parseFloat(v)))) return "Please provide a single or multiple numbers separated by a space";
+					if (values.find(v => isNaN(parseFloat(v)))) return "Please provide a number or multiple numbers separated by spaces";
 					return true;
 				}
 			});
