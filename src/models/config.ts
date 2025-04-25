@@ -1,6 +1,6 @@
 import { Record as ImmuRecord } from "immutable";
-import { OSCQueryRNBOState, OSCQueryRNBOInstancesConfig, OSCQueryRNBOJackConfig, OSCQueryStringValueRange, OSCQueryValueType, OSCQueryIntValue, OSCQueryStringValue, OSCQueryFloatValue, OSCQueryValueRange, OSCQueryBooleanValue, OSCQueryRNBOConfigState } from "../lib/types";
-import { getNumberValueOptions, getStringValueOptions } from "../lib/util";
+import { OSCQueryRNBOState, OSCQueryRNBOInstancesConfig, OSCQueryRNBOJackConfig, OSCQueryStringValueRange, OSCQueryValueType, OSCQueryIntValue, OSCQueryStringValue, OSCQueryFloatValue, OSCQueryValueRange, OSCQueryBooleanValue, OSCQueryRNBOConfigState, OSCQueryRNBOJackRecord } from "../lib/types";
+import { getNumberValueMax, getNumberValueMin, getNumberValueOptions, getStringValueOptions } from "../lib/util";
 import { DEFAULT_MIDI_RANGE, DEFAULT_SAMPLE_RATES, SettingsTab } from "../lib/constants";
 
 export type ConfigValue = number | string | boolean;
@@ -31,8 +31,11 @@ export enum ConfigKey {
 	PatcherMIDIProgramChangeChannel = "patcher_midi_program_change_channel",
 	SetMIDIProgramChangeChannel = "set_midi_program_change_channel",
 	SetPresetMIDIProgramChangeChannel = "set_preset_midi_program_change_channel",
-	ControlAutoConnectMIDI = "control_auto_connect_midi"
+	ControlAutoConnectMIDI = "control_auto_connect_midi",
 
+	// Recording
+	RecordingChannelCount = "channels",
+	RecordingTimeout = "timeout"
 }
 
 export type ConfigRecordProps = {
@@ -161,6 +164,22 @@ const controlConfigDetails: Partial<Record<ConfigKey, Omit<ConfigRecordProps, "i
 		path: `/rnbo/config/${ConfigKey.ControlAutoConnectMIDI}`,
 		tab: SettingsTab.Control,
 		title: "Auto Connect MIDI"
+	}
+};
+
+const recordingConfigDetails: Partial<Record<ConfigKey, Omit<ConfigRecordProps, "id" | "oscValue" | "oscType" >>> = {
+	[ConfigKey.RecordingChannelCount]: {
+		min: 0,
+		max: 128,
+		path: "/rnbo/jack/record/channels",
+		tab: SettingsTab.Recording,
+		title: "Channel Count"
+	},
+	[ConfigKey.RecordingTimeout]: {
+		min: 0,
+		path: `/rnbo/jack/record/timeout`,
+		tab: SettingsTab.Recording,
+		title: "Timeout"
 	}
 };
 
@@ -303,6 +322,22 @@ export class ConfigRecord extends ImmuRecord<ConfigRecordProps>({
 					oscType: value.TYPE
 				}));
 			}
+		}
+
+		const recordingConfig: Partial<OSCQueryRNBOJackRecord["CONTENTS"]> = desc.CONTENTS.jack.CONTENTS.record?.CONTENTS || {};
+		for (const key of Object.keys(recordingConfigDetails) as Array<keyof OSCQueryRNBOJackRecord["CONTENTS"]>) {
+			const value = recordingConfig[key];
+			if (!value) continue;
+
+			result.push(new ConfigRecord({
+				id: key as ConfigKey,
+				...recordingConfigDetails[key as ConfigKey],
+				description: value.DESCRIPTION || "",
+				...this.getConfigNumberRange(value, recordingConfigDetails[key as ConfigKey].min, recordingConfigDetails[key as ConfigKey].max),
+				options: this.getConfigOptions(value, recordingConfigDetails[key as ConfigKey].options),
+				oscValue: value.VALUE,
+				oscType: value.TYPE
+			}));
 		}
 
 		return result;

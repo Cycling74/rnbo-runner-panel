@@ -61,7 +61,7 @@ const SettingsTabPanel: FunctionComponent<SettingsTabPanelProps> = memo(function
 }) {
 
 	const dispatch = useAppDispatch();
-	const onChangeSetting = useCallback(( target: SettingTarget, id: AppSetting | ConfigKey, value: SettingsItemValue) => {
+	const onChangeSetting = useCallback(( target: SettingTarget, id: AppSetting | ConfigKey, value: SettingsItemValue): void => {
 
 		if (target === SettingTarget.App) {
 			return void dispatch(setAppSetting(id as AppSetting, value));
@@ -169,6 +169,9 @@ const Settings: FunctionComponent = memo(function WrappedSettings() {
 		[SettingsTab.Instance]: {
 			title: "Devices"
 		},
+		[SettingsTab.Recording]: {
+			title: "Record"
+		},
 		[SettingsTab.Audio]: {
 			title: "Audio",
 			actions: [
@@ -236,6 +239,11 @@ const Settings: FunctionComponent = memo(function WrappedSettings() {
 									id={ SettingsTab.UI}
 									items={ activeTab === SettingsTab.UI ? settingsItems : [] }
 									{ ...tabConfigByTab[SettingsTab.UI] }
+								/>
+								<SettingsTabPanel
+									id={ SettingsTab.Recording}
+									items={ activeTab === SettingsTab.Recording ? settingsItems : [] }
+									{ ...tabConfigByTab[SettingsTab.Recording] }
 								/>
 							</Stack>
 						</Tabs>

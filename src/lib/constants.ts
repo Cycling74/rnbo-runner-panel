@@ -59,6 +59,7 @@ export enum SettingsTab {
 	UI = "ui",
 	Control = "control",
 	Instance = "instance",
+	Recording = "recording",
 	Audio = "audio"
 }
 
