@@ -39,6 +39,14 @@ export const getNumberValueOptions = (range?: OSCQueryValueRange): number[] => {
 	return range?.RANGE?.[0]?.VALS || [];
 };
 
+export const getNumberValueMin = (range?: OSCQueryValueRange): number | undefined => {
+	return range?.RANGE?.[0]?.MIN;
+};
+
+export const getNumberValueMax = (range?: OSCQueryValueRange): number | undefined => {
+	return range?.RANGE?.[0]?.MAX;
+};
+
 export const keyEventIsValidForName = (event: KeyboardEvent): boolean => {
 	// Allow Meta and Functional Keys
 	if (event.ctrlKey || event.altKey || event.metaKey || event.shiftKey || event.key.length > 1) {

@@ -210,6 +210,24 @@ export class ConfigRecord extends ImmuRecord<ConfigRecordProps>({
 		}
 	}
 
+	protected static getConfigNumberRange(
+		desc: ConfigOSCDescType & ConfigOscDescRangeType,
+		defaultMin: ConfigRecordProps["min"],
+		defaultMax: ConfigRecordProps["max"],
+	): Pick<ConfigRecordProps, "min" | "max"> {
+		if (
+			(desc.TYPE !== OSCQueryValueType.Int32 && desc.TYPE !== OSCQueryValueType.Float32) ||
+			!desc.RANGE
+		) {
+			return { min: defaultMin, max: defaultMax };
+		}
+
+		return {
+			min: getNumberValueMin(desc as OSCQueryValueRange) || defaultMin,
+			max: getNumberValueMax(desc as OSCQueryValueRange) || defaultMax
+		};
+	}
+
 	protected static getConfigOptions(
 		desc: ConfigOSCDescType & ConfigOscDescRangeType,
 		defaultOptions?: ConfigRecordProps["options"]
@@ -243,6 +261,7 @@ export class ConfigRecord extends ImmuRecord<ConfigRecordProps>({
 				id: key as ConfigKey,
 				...instanceConfigDetails[key as ConfigKey],
 				description: value.DESCRIPTION || "",
+				...this.getConfigNumberRange(value, instanceConfigDetails[key as ConfigKey].min, instanceConfigDetails[key as ConfigKey].max),
 				options: this.getConfigOptions(value, instanceConfigDetails[key as ConfigKey].options),
 				oscValue: value.VALUE,
 				oscType: value.TYPE
@@ -258,6 +277,7 @@ export class ConfigRecord extends ImmuRecord<ConfigRecordProps>({
 				id: key as ConfigKey,
 				...controlConfigDetails[key as ConfigKey],
 				description: value.DESCRIPTION || "",
+				...this.getConfigNumberRange(value, controlConfigDetails[key as ConfigKey].min, controlConfigDetails[key as ConfigKey].max),
 				options: this.getConfigOptions(value, controlConfigDetails[key as ConfigKey].options),
 				oscValue: value.VALUE,
 				oscType: value.TYPE
@@ -277,6 +297,7 @@ export class ConfigRecord extends ImmuRecord<ConfigRecordProps>({
 					id: key as ConfigKey,
 					...jackConfigDetails[key as ConfigKey],
 					description: value.DESCRIPTION || "",
+					...this.getConfigNumberRange(value, jackConfigDetails[key as ConfigKey].min, jackConfigDetails[key as ConfigKey].max),
 					options: this.getConfigOptions(value, jackConfigDetails[key as ConfigKey].options),
 					oscValue: value.VALUE,
 					oscType: value.TYPE
