@@ -57,7 +57,7 @@ export const keyEventIsValidForName = (event: KeyboardEvent): boolean => {
 	return /^[a-z0-9.,_-\s]$/i.test(event.key);
 };
 
-export const replaceInvalidNameChars = (text: string) => text.replaceAll(/[^a-z0-9.,_-\s]/ig, "");
+export const replaceInvalidNameChars = (text: string) => text.replaceAll(/[^a-z0-9.,_-\s%]/ig, "");
 
 const fileSizeUnits = ["Bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
 
