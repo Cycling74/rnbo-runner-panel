@@ -4,30 +4,74 @@ import { showNotification } from "./notifications";
 import { NotificationLevel } from "../models/notification";
 import { RunnerCmd, oscQueryBridge } from "../controller/oscqueryBridgeController";
 import { RunnerCmdMethod } from "../lib/constants";
+import { dayjs } from "../lib/util";
 import * as Base64 from "js-base64";
 import { DialogResult, showConfirmDialog } from "../lib/dialogs";
+import { getDataFiles } from "../selectors/datafiles";
 
 export enum DataFilesActionType {
-	INIT = "INIT_DATAFILES",
+	SET_ALL = "SET_DATAFILES",
 }
 
-export interface IInitDataFiles extends ActionBase {
-	type: DataFilesActionType.INIT;
+export interface ISetDataFiles extends ActionBase {
+	type: DataFilesActionType.SET_ALL;
 	payload: {
 		files: Array<DataFileRecord>;
 	}
 }
 
-export type DataFileAction = IInitDataFiles;
+export type DataFileAction = ISetDataFiles;
 
-export const initDataFiles = (paths: string[]): DataFileAction => {
+export const initDataFiles = (paths: string[]): ISetDataFiles => {
 	return {
-		type: DataFilesActionType.INIT,
+		type: DataFilesActionType.SET_ALL,
 		payload: {
 			files: paths.map(p => DataFileRecord.fromDescription(p))
 		}
 	};
 };
+
+
+export const updateDataFiles = (paths: string[]): AppThunk =>
+	(dispatch, getState) => {
+		try {
+
+			const files = paths.map(p => DataFileRecord.fromDescription(p));
+			const currentFiles = getDataFiles(getState());
+
+			const newFiles: Array<DataFileRecord> = [];
+
+			for (const file of files) {
+				if (!currentFiles.has(file.id)) {
+					newFiles.push(file);
+				}
+			}
+
+			if (
+				newFiles.length === 1 &&
+				/^\d{6}T\d{6}-captured\.wav$/.test(newFiles[0].fileName) &&
+				newFiles[0].fileName.startsWith(dayjs().format("YYMMDDT"))
+			) {
+				dispatch(showNotification({
+					level: NotificationLevel.success,
+					title: "Saved Recording",
+					message: `Recording has been saved successfully to ${newFiles[0].fileName}`
+				}));
+			}
+
+			dispatch({
+				type: DataFilesActionType.SET_ALL,
+				payload: { files }
+			} as ISetDataFiles);
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: "Error while trying to update list of audio files",
+				message: "Please check the console for further details."
+			}));
+			console.log(err);
+		}
+	};
 
 export const deleteDataFileOnRemote = (file: DataFileRecord): AppThunk =>
 	async (dispatch) => {

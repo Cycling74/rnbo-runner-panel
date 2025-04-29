@@ -9,7 +9,7 @@ import { deletePortAliases, initConnections, initPorts, setPortAliases, updateSe
 import { addInstance, deleteInstanceById, initInstances, initPatchers, removeInstanceDataRefByPath, updateInstanceDataRefMeta, updateInstanceDataRefs, updateInstanceParameterDisplayName, updateInstanceAlias } from "../actions/patchers";
 import { initRunnerConfig, updateRunnerConfig } from "../actions/settings";
 import { initSets, setCurrentGraphSet, initSetPresets, setGraphSetPresetLatest, initSetViews, updateSetViewName, updateSetViewParameterList, deleteSetView, addSetView, updateSetViewOrder, setCurrentGraphSetDirtyState, setGraphSetInitialSet } from "../actions/sets";
-import { initDataFiles } from "../actions/datafiles";
+import { initDataFiles, updateDataFiles } from "../actions/datafiles";
 import { sleep } from "../lib/util";
 import { getPatcherInstance } from "../selectors/patchers";
 import {
@@ -567,7 +567,7 @@ export class OSCQueryBridgeControllerPrivate {
 		// only sent when it changes so we don't care what the value, just read the list again
 		if (packet.address === "/rnbo/info/datafile_dir_mtime") {
 			try {
-				return void dispatch(initDataFiles(await this._getDataFileList()));
+				return void dispatch(updateDataFiles(await this._getDataFileList()));
 			} catch (err) {
 				console.error(err);
 				dispatch(showNotification({
