@@ -1,4 +1,4 @@
-import { ActionIcon, Group, NativeSelect, Select, Table, Text, TextInput } from "@mantine/core";
+import { ActionIcon, Group, NativeSelect, Table, Text, TextInput } from "@mantine/core";
 import { ChangeEvent, FC, FocusEvent, FormEvent, KeyboardEvent, memo, MouseEvent, useCallback, useEffect, useState } from "react";
 import classes from "./elements.module.css";
 import { IconElement } from "./icon";
@@ -94,8 +94,6 @@ export const EditableTableSelectCell: FC<EditableTableSelectCellProps> = memo(fu
 		</Table.Td>
 	);
 });
-
-
 
 export type EditableTableTextCellProps = {
 	className?: string;
