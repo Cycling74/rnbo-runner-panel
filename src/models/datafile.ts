@@ -26,3 +26,22 @@ export class DataFileRecord extends ImmuRecord<DateFileRecordProps>({
 		});
 	}
 }
+
+export type PendingDataFileRecordProps = {
+	fileName: string;
+};
+
+export class PendingDataFileRecord extends ImmuRecord<PendingDataFileRecordProps>({
+	fileName: ""
+}) {
+
+	public get id(): string {
+		return this.fileName;
+	}
+
+	public static fromDescription(path: string): PendingDataFileRecord {
+		return new PendingDataFileRecord({
+			fileName: basename(path).trim()
+		});
+	}
+}

@@ -1,5 +1,5 @@
 import { ActionBase, AppThunk } from "../lib/store";
-import { DataFileRecord } from "../models/datafile";
+import { DataFileRecord, PendingDataFileRecord } from "../models/datafile";
 import { showNotification } from "./notifications";
 import { NotificationLevel } from "../models/notification";
 import { RunnerCmd, oscQueryBridge } from "../controller/oscqueryBridgeController";
@@ -11,6 +11,9 @@ import { getDataFiles } from "../selectors/datafiles";
 
 export enum DataFilesActionType {
 	SET_ALL = "SET_DATAFILES",
+
+	SET_PENDING = "SET_PENDING",
+	DELETE_PENDING = "REMOVE_PENDING_DATAFILE"
 }
 
 export interface ISetDataFiles extends ActionBase {
@@ -19,8 +22,23 @@ export interface ISetDataFiles extends ActionBase {
 		files: Array<DataFileRecord>;
 	}
 }
+export interface ISetPendingDataFile extends ActionBase {
+	type: DataFilesActionType.SET_PENDING;
+	payload: {
+		file: PendingDataFileRecord;
+	}
+}
 
-export type DataFileAction = ISetDataFiles;
+export interface IDeletePendingDataFile extends ActionBase {
+	type: DataFilesActionType.DELETE_PENDING;
+	payload: {
+		file: PendingDataFileRecord;
+	}
+}
+
+export type DataFileAction = ISetDataFiles |
+ISetPendingDataFile | IDeletePendingDataFile;
+
 
 export const initDataFiles = (paths: string[]): ISetDataFiles => {
 	return {
@@ -142,3 +160,21 @@ export const uploadFileToRemote = (file: File, { resolve, reject, onProgress }: 
 			return void reject(err);
 		}
 	};
+
+export const addPendingDataFile = (filename: string): DataFileAction => {
+	return {
+		type: DataFilesActionType.SET_PENDING,
+		payload: {
+			file: PendingDataFileRecord.fromDescription(filename)
+		}
+	};
+};
+
+export const deletePendingDataFile = (file: PendingDataFileRecord): DataFileAction => {
+	return {
+		type: DataFilesActionType.DELETE_PENDING,
+		payload: {
+			file
+		}
+	};
+};
