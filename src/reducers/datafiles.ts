@@ -10,7 +10,7 @@ export const datafiles = (state: DataFileState = {
 	files: ImmuMap<DataFileRecord["id"], DataFileRecord>()
 }, action: DataFileAction): DataFileState => {
 	switch (action.type) {
-		case DataFilesActionType.INIT: {
+		case DataFilesActionType.SET_ALL: {
 			const { files } = action.payload;
 			return {
 				...state,

@@ -9,7 +9,7 @@ import { deletePortAliases, initConnections, initPorts, setPortAliases, updateSe
 import { addInstance, deleteInstanceById, initInstances, initPatchers, removeInstanceDataRefByPath, updateInstanceDataRefMeta, updateInstanceDataRefs, updateInstanceParameterDisplayName, updateInstanceAlias } from "../actions/patchers";
 import { initRunnerConfig, updateRunnerConfig } from "../actions/settings";
 import { initSets, setCurrentGraphSet, initSetPresets, setGraphSetPresetLatest, initSetViews, updateSetViewName, updateSetViewParameterList, deleteSetView, addSetView, updateSetViewOrder, setCurrentGraphSetDirtyState, setGraphSetInitialSet } from "../actions/sets";
-import { initDataFiles } from "../actions/datafiles";
+import { initDataFiles, updateDataFiles } from "../actions/datafiles";
 import { sleep } from "../lib/util";
 import { getPatcherInstance } from "../selectors/patchers";
 import {
@@ -28,6 +28,7 @@ import { initTransport, updateTransportStatus } from "../actions/transport";
 import { v4 as uuidv4 } from "uuid";
 import { JackInfoKeys } from "../models/runnerInfo";
 import { deserializeSetMeta } from "../lib/meta";
+import { initStreamRecording, updateStreamRecordingActiveState, updateStreamRecordingCapturedTime } from "../actions/recording";
 
 const dispatch = store.dispatch as AppDispatch;
 
@@ -55,6 +56,7 @@ const setsPresetsLoadPath = "/rnbo/inst/control/sets/presets/load";
 const configPathMatcher = /^\/rnbo\/config\/(?<name>.+)$/;
 const jackConfigPathMatcher = /^\/rnbo\/jack\/config\/(?<name>.+)$/;
 const instanceConfigPathMatcher = /^\/rnbo\/inst\/config\/(?<name>.+)$/;
+const recordPathMatcher = /^\/rnbo\/jack\/record\/(?<name>.+)$/;
 
 export class RunnerCmd {
 
@@ -211,6 +213,9 @@ export class OSCQueryBridgeControllerPrivate {
 
 		// Init Transport
 		dispatch(initTransport(state.CONTENTS.jack?.CONTENTS?.transport));
+
+		// Init Recording
+		dispatch(initStreamRecording(state.CONTENTS.jack?.CONTENTS?.record));
 
 		// Init RunnerInfo
 		dispatch(initRunnerInfo(state));
@@ -562,7 +567,7 @@ export class OSCQueryBridgeControllerPrivate {
 		// only sent when it changes so we don't care what the value, just read the list again
 		if (packet.address === "/rnbo/info/datafile_dir_mtime") {
 			try {
-				return void dispatch(initDataFiles(await this._getDataFileList()));
+				return void dispatch(updateDataFiles(await this._getDataFileList()));
 			} catch (err) {
 				console.error(err);
 				dispatch(showNotification({
@@ -651,7 +656,7 @@ export class OSCQueryBridgeControllerPrivate {
 			return void dispatch(updateSourcePortConnections(connectionMatch.groups.id, packet.args as unknown as string[]));
 		}
 
-		// update configs
+		// Update configs
 		if (
 			configPathMatcher.test(packet.address) ||
 			jackConfigPathMatcher.test(packet.address) ||
@@ -660,6 +665,16 @@ export class OSCQueryBridgeControllerPrivate {
 			if (packet.args.length) {
 				return void dispatch(updateRunnerConfig(packet.address, packet.args[0] as unknown as string | number | boolean));
 			}
+		}
+
+		// Recording
+		const recordMatch = packet.address.match(recordPathMatcher);
+		if (recordMatch?.groups?.name === "active") {
+			return void dispatch(updateStreamRecordingActiveState(packet.args[0] as unknown as boolean));
+		} else if (recordMatch?.groups?.name === "captured") {
+			return void dispatch(updateStreamRecordingCapturedTime(packet.args[0] as unknown as number));
+		} else if (recordMatch && packet.args.length) {
+			return void dispatch(updateRunnerConfig(packet.address, packet.args[0] as unknown as string | number | boolean));
 		}
 
 		const packetMatch = packet.address.match(instanceStatePathMatcher);

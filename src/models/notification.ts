@@ -1,7 +1,7 @@
 import { v4 } from "uuid";
 import { Record as ImmuRecord } from "immutable";
 
-export const NotificationTimeout = 3000;
+export const NotificationTimeout = 5000;
 
 export enum NotificationLevel {
 	error = -1,

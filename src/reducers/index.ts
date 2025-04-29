@@ -6,6 +6,7 @@ import { editor } from "./editor";
 import { patchers } from "./patchers";
 import { graph } from "./graph";
 import { nofitications } from "./notifications";
+import { recording } from "./recording";
 import { settings } from "./settings";
 import { sets } from "./sets";
 import { transport } from "./transport";
@@ -17,6 +18,7 @@ export const rootReducer = combineReducers({
 	graph,
 	nofitications,
 	patchers,
+	recording,
 	settings,
 	sets,
 	transport

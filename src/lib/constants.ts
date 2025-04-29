@@ -59,6 +59,7 @@ export enum SettingsTab {
 	UI = "ui",
 	Control = "control",
 	Instance = "instance",
+	Recording = "recording",
 	Audio = "audio"
 }
 
@@ -125,12 +126,14 @@ export enum MetadataScope {
 }
 
 export enum KnownPortGroup {
+	SystemRecordSink = "rnbo-graph-record-sink",
 	UserGraphSrc = "rnbo-graph-user-src",
 	UserGraphSink = "rnbo-graph-user-sink",
 	Hidden = "rnbo-graph-hidden"
 }
 
 export const knownPortGroupDisplayNames: ImmuMap<string, string> = ImmuMap({
+	[KnownPortGroup.SystemRecordSink]: "System Record Output",
 	[KnownPortGroup.UserGraphSrc]: "System Input",
 	[KnownPortGroup.UserGraphSink]: "System Output",
 	[KnownPortGroup.Hidden]: "Hidden"

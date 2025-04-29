@@ -4,10 +4,12 @@ import { MIDIMetaMappingType, nodePortHeight, nodePortSpacing, OnLoadGraphSetSet
 
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
+import duration from "dayjs/plugin/duration";
 import relativeTime from "dayjs/plugin/relativeTime";
 
 dayjs.extend(customParseFormat);
 dayjs.extend(relativeTime);
+dayjs.extend(duration);
 export { dayjs };
 
 export const genericMemo: <P>(component: P) => P = memo;
@@ -37,6 +39,14 @@ export const getStringValueOptions = (range?: OSCQueryStringValueRange): string[
 
 export const getNumberValueOptions = (range?: OSCQueryValueRange): number[] => {
 	return range?.RANGE?.[0]?.VALS || [];
+};
+
+export const getNumberValueMin = (range?: OSCQueryValueRange): number | undefined => {
+	return range?.RANGE?.[0]?.MIN;
+};
+
+export const getNumberValueMax = (range?: OSCQueryValueRange): number | undefined => {
+	return range?.RANGE?.[0]?.MAX;
 };
 
 export const keyEventIsValidForName = (event: KeyboardEvent): boolean => {
