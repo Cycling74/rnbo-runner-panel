@@ -874,13 +874,13 @@ export const exportInstanceDataRef = (dataref: DataRefRecord): AppThunk =>
 				});
 			}
 
-
 			const message = {
 				address: `${dataref.path}/save`,
 				args: [
 					{ type: "s", value: filenameResult }
 				]
 			};
+
 			oscQueryBridge.sendPacket(writePacket(message));
 			dispatch(addPendingDataFile(filenameResult));
 
