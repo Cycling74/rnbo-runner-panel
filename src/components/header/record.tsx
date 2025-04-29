@@ -7,13 +7,21 @@ import { Duration } from "dayjs/plugin/duration";
 export type RecordStatusProps = {
 	active: boolean;
 	capturedTime: Duration;
+	timeout: Duration | null;
 	onToggleRecording: () => void;
 };
 
-const formatDuration = (d: Duration) => d.format(d.hours() > 0 ? "hh:mm:ss" : "mm:ss");
+const formatDuration = (current: Duration, timeout: Duration): string => {
+	if (!timeout) {
+		return current.format(current.hours() > 0 ? "hh:mm:ss" : "mm:ss");
+	}
+
+	const d = timeout.subtract(current);
+	return `- ${d.format(d.hours() > 0 ? "hh:mm:ss" : "mm:ss")}`;
+};
 
 export const RecordStatus: FunctionComponent<RecordStatusProps> = memo(forwardRef<HTMLButtonElement, RecordStatusProps>(
-	function WrappedRecordComponent({ active, capturedTime, onToggleRecording }, ref) {
+	function WrappedRecordComponent({ active, capturedTime, onToggleRecording, timeout }, ref) {
 		return (
 			<Button
 				color="gray"
@@ -23,7 +31,7 @@ export const RecordStatus: FunctionComponent<RecordStatusProps> = memo(forwardRe
 				variant="light"
 				ref={ ref }
 			>
-				{ active  && capturedTime ? formatDuration(capturedTime) : "--:--" }
+				{ active && capturedTime ? formatDuration(capturedTime, timeout) : "--:--" }
 			</Button>
 		);
 	}
