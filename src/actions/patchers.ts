@@ -457,6 +457,7 @@ export const changeAliasOnRemoteInstance = (instance: PatcherInstanceRecord): Ap
 					discard: { label: "Reset to Default" }
 				},
 				text: "Please name the device",
+				label: "Device Name",
 				validate: validatePatcherInstanceAlias,
 				value: instance.displayName
 			});
@@ -555,6 +556,7 @@ export const createPresetOnRemoteInstance = (instance: PatcherInstanceRecord): A
 		try {
 			const dialogResult = await showTextInputDialog({
 				text: `Please name the new preset for ${instance.displayName}`,
+				label: "Preset Name",
 				actions: {
 					confirm: { label: "Create Preset" }
 				},
@@ -655,6 +657,7 @@ export const triggerSendInstanceInportMessage = (instance: PatcherInstanceRecord
 
 			const dialogResult = await showTextInputDialog({
 				text: `Send Inport message to ${port.name}`,
+				label: "Message",
 				actions: {
 					confirm: { label: "Send" }
 				},

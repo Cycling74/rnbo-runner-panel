@@ -57,7 +57,7 @@ export const showConfirmDialog = ({
 			centered: true,
 			children: (
 				<Stack gap="lg">
-					<Text fz="md" ta="center">{ text }</Text>
+					<Text fz="md">{ text }</Text>
 					<Stack gap="xs">
 						<Button variant="filled" color={ confirm.color } onClick={ onConfirm } >{ confirm.label }</Button>
 						{ discard ? <Button variant="default" color={ discard.color } onClick={ onDiscard } mb="xs" >{ discard?.label }</Button> : null }
@@ -72,6 +72,8 @@ export const showConfirmDialog = ({
 };
 
 export type InputDialogDesc = {
+	description?: string;
+	label: string;
 	text: string;
 	validate?: (value: string) => true | string;
 	value?: string;
@@ -84,6 +86,8 @@ export type InputDialogDesc = {
 
 const InputModal: FC<InputDialogDesc & { onCancel: () => void; onConfirm: (v: string) => void; onDiscard?: () => void; }> = ({
 	actions,
+	description,
+	label,
 	onCancel,
 	onConfirm,
 	onDiscard,
@@ -115,8 +119,10 @@ const InputModal: FC<InputDialogDesc & { onCancel: () => void; onConfirm: (v: st
 	return (
 		<form onSubmit={ onTriggerConfirm } >
 			<Stack gap="lg">
-				<Text fz="md" ta="center">{ text }</Text>
+				<Text fz="md">{ text }</Text>
 				<TextInput
+					description={ description }
+					label={ label }
 					error={ errorMsg }
 					onChange={ onChange }
 					value={ value }
@@ -132,6 +138,8 @@ const InputModal: FC<InputDialogDesc & { onCancel: () => void; onConfirm: (v: st
 };
 
 export const showTextInputDialog = ({
+	description,
+	label,
 	text,
 	actions: {
 		cancel = { label: "Cancel" },
@@ -166,6 +174,8 @@ export const showTextInputDialog = ({
 			children: (
 				<InputModal
 					actions={{ cancel, confirm, discard }}
+					description={ description }
+					label={ label }
 					onCancel={ onCancel }
 					onConfirm={ onConfirm }
 					onDiscard={ discard ? onDiscard : undefined }
