@@ -16,9 +16,11 @@ import { AppSetting } from "../models/settings";
 import { DataRefRecord } from "../models/dataref";
 import { DataFileRecord } from "../models/datafile";
 import { PatcherExportRecord } from "../models/patcher";
-import { cloneJSON, getUniqueName, InvalidMIDIFormatError, parseMIDIMappingDisplayValue, UnknownMIDIFormatError, validatePatcherInstanceAlias, validatePresetName } from "../lib/util";
+import { cloneJSON, dayjs, getUniqueName, InvalidMIDIFormatError, parseMIDIMappingDisplayValue, UnknownMIDIFormatError, validateDataRefExportFilename, validatePatcherInstanceAlias, validatePresetName } from "../lib/util";
 import { MIDIMetaMappingType } from "../lib/constants";
 import { DialogResult, showConfirmDialog, showTextInputDialog } from "../lib/dialogs";
+import { addPendingDataFile } from "./datafiles";
+import { getDataFileByFilename, getPendingDataFileByFilename } from "../selectors/datafiles";
 
 export enum PatcherActionType {
 	INIT_PATCHERS = "INIT_PATCHERS",
@@ -832,6 +834,64 @@ export const restoreDefaultDataRefMetaOnRemote = (dataref: DataRefRecord): AppTh
 		};
 
 		oscQueryBridge.sendPacket(writePacket(message));
+	};
+
+export const exportInstanceDataRef = (dataref: DataRefRecord): AppThunk =>
+	async (dispatch, getState) => {
+
+		try {
+
+			let filenameResult = await showTextInputDialog({
+				text: `Please provide a filename to save the contents of ${dataref.name} to.`,
+				label: "Filename",
+				description: "Basename of the file without the .wav extension",
+				actions: {
+					confirm: { label: "Save" }
+				},
+				value: `${dayjs().format("YYMMDDTHHmmss")}-${dataref.name}`,
+				validate: validateDataRefExportFilename
+			});
+
+			if (filenameResult === DialogResult.Cancel || filenameResult === DialogResult.Discard) return;
+			filenameResult = filenameResult.replace(/\.wav$/, "");
+
+			if (getDataFileByFilename(getState(), `${filenameResult}.wav`)) { // Already exists?!
+				const overwriteResult = await showConfirmDialog({
+					text: `A file with the name ${filenameResult}.wav already exists, are you sure you want to overwrite it?`,
+					actions: {
+						confirm: { label: "Overwrite"}
+					}
+				});
+				if (overwriteResult !== DialogResult.Confirm) return;
+			}
+
+			if (getPendingDataFileByFilename(getState(), `${filenameResult}.wav`)) {
+				return void await showConfirmDialog({
+					text: `A file with the name ${filenameResult}.wav is currently being exported. Please provide a different filename.`,
+					actions: {
+						confirm: { label: "OK" }
+					}
+				});
+			}
+
+
+			const message = {
+				address: `${dataref.path}/save`,
+				args: [
+					{ type: "s", value: filenameResult }
+				]
+			};
+			oscQueryBridge.sendPacket(writePacket(message));
+			dispatch(addPendingDataFile(filenameResult));
+
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: `Error while trying to save contents of buffer ${dataref.name}`,
+				message: "Please check the console for further details."
+			}));
+			console.error(err);
+		}
 	};
 
 export const activateParameterMIDIMappingFocus = (param: ParameterRecord): AppThunk =>

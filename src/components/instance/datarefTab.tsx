@@ -5,7 +5,7 @@ import { useAppDispatch } from "../../hooks/useAppDispatch";
 import DataRefList from "../dataref/list";
 import classes from "./instance.module.css";
 import { PatcherInstanceRecord } from "../../models/instance";
-import { clearInstanceDataRefValueOnRemote, restoreDefaultDataRefMetaOnRemote, setInstanceDataRefMetaOnRemote, setInstanceDataRefValueOnRemote } from "../../actions/patchers";
+import { clearInstanceDataRefValueOnRemote, exportInstanceDataRef, restoreDefaultDataRefMetaOnRemote, setInstanceDataRefMetaOnRemote, setInstanceDataRefValueOnRemote } from "../../actions/patchers";
 import { DataRefRecord } from "../../models/dataref";
 import { DataFileRecord } from "../../models/datafile";
 import { SearchInput } from "../page/searchInput";
@@ -41,6 +41,10 @@ const InstanceDataRefsTab: FunctionComponent<InstanceDataRefTabProps> = memo(fun
 		dispatch(restoreDefaultDataRefMetaOnRemote(dataref));
 	}, [dispatch]);
 
+	const onExportDataRef = useCallback((dataref: DataRefRecord) => {
+		dispatch(exportInstanceDataRef(dataref));
+	}, [dispatch]);
+
 	return (
 		<Stack gap="xs">
 			<Group justify="flex-end">
@@ -59,6 +63,7 @@ const InstanceDataRefsTab: FunctionComponent<InstanceDataRefTabProps> = memo(fun
 						onClearDataRef={ onClearDataRef }
 						onRestoreMetadata={ onRestoreMetadata }
 						onSaveMetadata={ onSaveMetadata }
+						onExportDataRef={ onExportDataRef }
 					/>
 				)
 			}

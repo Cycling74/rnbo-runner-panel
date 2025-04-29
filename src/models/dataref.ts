@@ -25,6 +25,10 @@ export class DataRefRecord extends ImmuRecord<DataRefRecordProps>({
 		return this.path;
 	}
 
+	public get canBeCaptured(): boolean {
+		return true;
+	}
+
 	public matchesQuery(query: string): boolean {
 		return !query.length || this.name.toLowerCase().includes(query);
 	}

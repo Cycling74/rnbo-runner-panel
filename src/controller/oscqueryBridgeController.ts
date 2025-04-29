@@ -743,12 +743,22 @@ export class OSCQueryBridgeControllerPrivate {
 		// Data Refs
 		if (
 			packetMatch.groups.content === "data_refs" &&
-			packetMatch.groups.rest?.length &&
-			!packetMatch.groups.rest?.includes("/") &&
-			packet.args.length >= 1 &&
-			typeof packet.args[0] === "string"
+			packetMatch.groups.rest?.length
 		) {
-			return void dispatch(updateInstanceDataRefValue(instanceId, packetMatch.groups.rest, packet.args[0] as string));
+			if (packetMatch.groups.rest.endsWith("/save")) {
+				return void dispatch(showNotification({
+					level: NotificationLevel.success,
+					title: "Saved Buffer Contents",
+					message: `Successfully saved the contents of ${packetMatch.groups.rest.split("/").shift()}`
+				}));
+			} else if (
+				!packetMatch.groups.rest.includes("/") &&
+				packet.args.length >= 1 &&
+				typeof packet.args[0] === "string"
+			) {
+				// File mapping update
+				return void dispatch(updateInstanceDataRefValue(instanceId, packetMatch.groups.rest, packet.args[0] as string));
+			}
 		}
 
 		if (packetMatch.groups.content === "midi/last") {

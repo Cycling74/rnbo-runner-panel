@@ -260,3 +260,9 @@ export const validatePatcherInstanceAlias = (v: string): true | string => {
 	if (!value?.length) return "Please provide a valid, non empty name.";
 	return true;
 };
+
+export const validateDataRefExportFilename = (v: string): true | string => {
+	const value = v.trim();
+	if (!value?.length) return "Please provide a valid, non empty filename.";
+	return true;
+};

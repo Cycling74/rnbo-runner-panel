@@ -15,8 +15,9 @@ interface DataRefEntryProps {
 	options: Seq.Indexed<DataFileRecord>;
 	onClear: (dataref: DataRefRecord) => void;
 	onUpdate: (dataref: DataRefRecord, file: DataFileRecord) => void;
-	onRestoreMetadata: (param: DataRefRecord) => void;
-	onSaveMetadata: (param: DataRefRecord, meta: string) => void;
+	onRestoreMetadata: (dataref: DataRefRecord) => void;
+	onSaveMetadata: (dataref: DataRefRecord, meta: string) => void;
+	onExport: (dataref: DataRefRecord) => void;
 }
 
 const DataRefEntry: FunctionComponent<DataRefEntryProps> = memo(function WrappedDataRefEntry({
@@ -25,7 +26,8 @@ const DataRefEntry: FunctionComponent<DataRefEntryProps> = memo(function Wrapped
 	onClear,
 	onUpdate,
 	onRestoreMetadata,
-	onSaveMetadata
+	onSaveMetadata,
+	onExport
 }: DataRefEntryProps) {
 
 	const [isEditingFile, setIsEditingFile] = useState<boolean>(false);
@@ -46,12 +48,15 @@ const DataRefEntry: FunctionComponent<DataRefEntryProps> = memo(function Wrapped
 		const dataFile = options.find(df => df.id === fileId);
 		if (!dataFile || dataFile.id === dataRef.value) return;
 		onUpdate(dataRef, dataFile);
-	}, [dataFile, dataRef, onUpdate, setIsEditingFile]);
+	}, [dataRef, onUpdate, options]);
 
 	const onClearDataRef = useCallback((e: MouseEvent<HTMLButtonElement>) => {
 		onClear(dataRef);
 	}, [onClear, dataRef]);
 
+	const onTriggerExport = useCallback(() => {
+		onExport(dataRef);
+	}, [dataRef, onExport]);
 
 	useEffect(() => {
 		setDataFile(options.find(o => o.id === dataRef.value));
@@ -90,23 +95,25 @@ const DataRefEntry: FunctionComponent<DataRefEntryProps> = memo(function Wrapped
 				<Group justify="flex-end">
 					<Menu position="bottom-end">
 						<Menu.Target>
-							<Tooltip label="Open Buffer Action Menu">
-								<ActionIcon variant="subtle" color="gray" >
-									<IconElement path={ mdiDotsVertical } />
-								</ActionIcon>
-							</Tooltip>
+							<ActionIcon variant="subtle" color="gray" >
+								<IconElement path={ mdiDotsVertical } />
+							</ActionIcon>
 						</Menu.Target>
 						<Menu.Dropdown>
-							<Menu.Label>Buffer Actions</Menu.Label>
+							<Menu.Label>Buffer</Menu.Label>
 							<Menu.Item onClick={ toggleEditing } leftSection={ <IconElement path={ mdiPencil } /> } >
 								Change Source
 							</Menu.Item>
 							<Menu.Item leftSection={ <IconElement path={ mdiCodeBraces } /> } onClick={ toggleMetaEditor }>
 								Edit Metadata
 							</Menu.Item>
+							<Menu.Divider/>
+							<Menu.Item onClick={ onTriggerExport } disabled={ !dataRef.canBeCaptured } leftSection={ <IconElement path={ mdiContentSaveMove } /> } >
+								Save Contents
+							</Menu.Item>
 							<Menu.Divider />
 							<Menu.Item color="red" leftSection={ <IconElement path={ mdiEraser } /> } onClick={ onClearDataRef } disabled={ !dataFile } >
-								Clear Buffer Content
+								Clear Contents
 							</Menu.Item>
 						</Menu.Dropdown>
 					</Menu>
