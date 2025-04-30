@@ -16,9 +16,11 @@ import { AppSetting } from "../models/settings";
 import { DataRefRecord } from "../models/dataref";
 import { DataFileRecord } from "../models/datafile";
 import { PatcherExportRecord } from "../models/patcher";
-import { cloneJSON, getUniqueName, InvalidMIDIFormatError, parseMIDIMappingDisplayValue, UnknownMIDIFormatError, validatePatcherInstanceAlias, validatePresetName } from "../lib/util";
+import { cloneJSON, dayjs, getUniqueName, InvalidMIDIFormatError, parseMIDIMappingDisplayValue, UnknownMIDIFormatError, validateDataRefExportFilename, validatePatcherInstanceAlias, validatePresetName } from "../lib/util";
 import { MIDIMetaMappingType } from "../lib/constants";
 import { DialogResult, showConfirmDialog, showTextInputDialog } from "../lib/dialogs";
+import { addPendingDataFile } from "./datafiles";
+import { getDataFileByFilename, getPendingDataFileByFilename } from "../selectors/datafiles";
 
 export enum PatcherActionType {
 	INIT_PATCHERS = "INIT_PATCHERS",
@@ -457,6 +459,7 @@ export const changeAliasOnRemoteInstance = (instance: PatcherInstanceRecord): Ap
 					discard: { label: "Reset to Default" }
 				},
 				text: "Please name the device",
+				label: "Device Name",
 				validate: validatePatcherInstanceAlias,
 				value: instance.displayName
 			});
@@ -555,6 +558,7 @@ export const createPresetOnRemoteInstance = (instance: PatcherInstanceRecord): A
 		try {
 			const dialogResult = await showTextInputDialog({
 				text: `Please name the new preset for ${instance.displayName}`,
+				label: "Preset Name",
 				actions: {
 					confirm: { label: "Create Preset" }
 				},
@@ -655,6 +659,7 @@ export const triggerSendInstanceInportMessage = (instance: PatcherInstanceRecord
 
 			const dialogResult = await showTextInputDialog({
 				text: `Send Inport message to ${port.name}`,
+				label: "Message",
 				actions: {
 					confirm: { label: "Send" }
 				},
@@ -829,6 +834,64 @@ export const restoreDefaultDataRefMetaOnRemote = (dataref: DataRefRecord): AppTh
 		};
 
 		oscQueryBridge.sendPacket(writePacket(message));
+	};
+
+export const exportInstanceDataRef = (dataref: DataRefRecord): AppThunk =>
+	async (dispatch, getState) => {
+
+		try {
+
+			const filenameResult = await showTextInputDialog({
+				text: `Please provide a filename to save the contents of ${dataref.name} to.`,
+				label: "Filename",
+				description: "Basename of the file without the .wav extension",
+				actions: {
+					confirm: { label: "Save" }
+				},
+				value: `${dayjs().format("YYMMDDTHHmmss")}-${dataref.name}`,
+				validate: validateDataRefExportFilename
+			});
+
+			if (filenameResult === DialogResult.Cancel || filenameResult === DialogResult.Discard) return;
+			const filenameWithExtension = !filenameResult.endsWith(".wav") ? `${filenameResult}.wav` : filenameResult;
+
+			if (getDataFileByFilename(getState(), filenameWithExtension)) { // Already exists?!
+				const overwriteResult = await showConfirmDialog({
+					text: `A file with the name ${filenameWithExtension} already exists, are you sure you want to overwrite it?`,
+					actions: {
+						confirm: { label: "Overwrite"}
+					}
+				});
+				if (overwriteResult !== DialogResult.Confirm) return;
+			}
+
+			if (getPendingDataFileByFilename(getState(), filenameWithExtension)) {
+				return void await showConfirmDialog({
+					text: `A file with the name ${filenameWithExtension} is currently being exported. Please provide a different filename.`,
+					actions: {
+						confirm: { label: "OK" }
+					}
+				});
+			}
+
+			const message = {
+				address: `${dataref.path}/save`,
+				args: [
+					{ type: "s", value: filenameResult.replace(/\.wav$/, "") } // Runner adds .wav itself
+				]
+			};
+
+			dispatch(addPendingDataFile(filenameWithExtension, dataref));
+			oscQueryBridge.sendPacket(writePacket(message));
+
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: `Error while trying to save contents of buffer ${dataref.name}`,
+				message: "Please check the console for further details."
+			}));
+			console.error(err);
+		}
 	};
 
 export const activateParameterMIDIMappingFocus = (param: ParameterRecord): AppThunk =>

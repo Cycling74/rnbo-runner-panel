@@ -1,22 +1,23 @@
-import { FormEvent, FunctionComponent, MouseEvent, memo, useCallback, useEffect, useState } from "react";
+import { FunctionComponent, MouseEvent, memo, useCallback, useEffect, useState } from "react";
 import { DataRefRecord } from "../../models/dataref";
-import classes from "./datarefs.module.css";
-import { ActionIcon, Group, Menu, Select, Table, Text, TextInput, Tooltip } from "@mantine/core";
+import { ActionIcon, Group, Menu, Table, Text } from "@mantine/core";
 import { Seq } from "immutable";
 import { DataFileRecord } from "../../models/datafile";
 import { IconElement } from "../elements/icon";
-import { mdiCheck, mdiClose, mdiCodeBraces, mdiDotsVertical, mdiEraser, mdiPencil } from "@mdi/js";
+import { mdiCodeBraces, mdiContentSaveMove, mdiDotsVertical, mdiEraser, mdiPencil } from "@mdi/js";
 import { useDisclosure } from "@mantine/hooks";
 import { MetadataScope } from "../../lib/constants";
 import { MetaEditorModal } from "../meta/metaEditorModal";
+import { EditableTableSelectCell } from "../elements/editableTableCell";
 
 interface DataRefEntryProps {
 	dataRef: DataRefRecord;
 	options: Seq.Indexed<DataFileRecord>;
 	onClear: (dataref: DataRefRecord) => void;
 	onUpdate: (dataref: DataRefRecord, file: DataFileRecord) => void;
-	onRestoreMetadata: (param: DataRefRecord) => void;
-	onSaveMetadata: (param: DataRefRecord, meta: string) => void;
+	onRestoreMetadata: (dataref: DataRefRecord) => void;
+	onSaveMetadata: (dataref: DataRefRecord, meta: string) => void;
+	onExport: (dataref: DataRefRecord) => void;
 }
 
 const DataRefEntry: FunctionComponent<DataRefEntryProps> = memo(function WrappedDataRefEntry({
@@ -25,49 +26,42 @@ const DataRefEntry: FunctionComponent<DataRefEntryProps> = memo(function Wrapped
 	onClear,
 	onUpdate,
 	onRestoreMetadata,
-	onSaveMetadata
+	onSaveMetadata,
+	onExport
 }: DataRefEntryProps) {
 
-	const [isEditing, setIsEditing] = useState<boolean>(false);
+	const [isEditingFile, setIsEditingFile] = useState<boolean>(false);
 	const [dataFile, setDataFile] = useState<DataFileRecord | undefined>(options.find(o => o.id === dataRef.value));
-	const [showDropDown, setShowDropDown] = useState<boolean>(true);
 
 	const [showMetaEditor, { toggle: toggleMetaEditor, close: closeMetaEditor }] = useDisclosure();
 	const onSaveMeta = useCallback((meta: string) => onSaveMetadata(dataRef, meta), [dataRef, onSaveMetadata]);
 	const onRestoreMeta = useCallback(() => onRestoreMetadata(dataRef), [dataRef, onRestoreMetadata]);
 
 	const toggleEditing = useCallback(() => {
-		if (isEditing) { // reset name upon blur
+		if (isEditingFile) { // reset name upon blur
 			setDataFile(options.find(o => o.id === dataRef.value));
 		}
-		setIsEditing(!isEditing);
-	}, [setIsEditing, isEditing, dataRef, setDataFile, options]);
+		setIsEditingFile(!isEditingFile);
+	}, [setIsEditingFile, isEditingFile, dataRef, setDataFile, options]);
 
-	const onSubmit = useCallback((e: FormEvent<HTMLFormElement>) => {
-		e.preventDefault();
-		if (dataFile.id === dataRef.value) {
-			setIsEditing(false);
-		} else {
-			onUpdate(dataRef, dataFile);
-		}
-	}, [dataFile, dataRef, onUpdate, setIsEditing]);
+	const onUpdateFile = useCallback((fileId: DataFileRecord["id"]) => {
+		const dataFile = options.find(df => df.id === fileId);
+		if (!dataFile || dataFile.id === dataRef.value) return;
+		onUpdate(dataRef, dataFile);
+	}, [dataRef, onUpdate, options]);
 
 	const onClearDataRef = useCallback((e: MouseEvent<HTMLButtonElement>) => {
 		onClear(dataRef);
 	}, [onClear, dataRef]);
 
-	const onBlur = useCallback(() => setShowDropDown(false), [setShowDropDown]);
-	const onFocus = useCallback(() => setShowDropDown(true), [setShowDropDown]);
-	const onKeyDown = useCallback(() => setIsEditing(false), [setIsEditing]);
-
-	const onChange = useCallback((value: string) => {
-		setDataFile(options.find(o => o.id === value));
-	}, [options, setDataFile]);
+	const onTriggerExport = useCallback(() => {
+		onExport(dataRef);
+	}, [dataRef, onExport]);
 
 	useEffect(() => {
 		setDataFile(options.find(o => o.id === dataRef.value));
-		setIsEditing(false);
-	}, [dataRef, options, setDataFile, setIsEditing]);
+		setIsEditingFile(false);
+	}, [dataRef, options, setDataFile, setIsEditingFile]);
 
 	return (
 		<Table.Tr>
@@ -88,67 +82,38 @@ const DataRefEntry: FunctionComponent<DataRefEntryProps> = memo(function Wrapped
 					{ dataRef.name }
 				</Text>
 			</Table.Td>
-			<Table.Td>
-				{
-					isEditing ? (
-						<form onSubmit={ onSubmit } >
-							<Group gap="xs" wrap="nowrap" >
-								<Select
-									comboboxProps={{ width: "max-content", position: "bottom-start" }}
-									allowDeselect={ false }
-									flex={ 1 }
-									autoFocus
-									onBlur={ onBlur }
-									onFocus={ onFocus}
-									onChange={ onChange }
-									data={ options.toArray().map(f => ({ value: f.id, label: f.fileName })) }
-									placeholder="No file selected"
-									size="sm"
-									value={ dataFile?.id }
-									dropdownOpened={ showDropDown }
-									onKeyDown={ onKeyDown }
-								/>
-								<ActionIcon.Group>
-									<ActionIcon variant="subtle" size="md" color="gray" onClick={ toggleEditing } >
-										<IconElement path={ mdiClose } />
-									</ActionIcon>
-									<ActionIcon variant="subtle" size="md" type="submit">
-										<IconElement path={ mdiCheck } />
-									</ActionIcon>
-								</ActionIcon.Group>
-							</Group>
-						</form>
-					) : (
-						<Group className={ classes.datarefFileLabel } wrap="nowrap" >
-							<TextInput flex={ 1 } pointer variant="unstyled" size="sm" readOnly value={ dataFile?.fileName || "<none>" } onClick={ toggleEditing } />
-							<ActionIcon onClick={ toggleEditing } variant="transparent" size="xs">
-								<IconElement path={ mdiPencil } />
-							</ActionIcon>
-						</Group>
-					)
-				}
-			</Table.Td>
+			<EditableTableSelectCell
+				isEditing={ isEditingFile }
+				name={ `${dataRef.name}.file` }
+				onChangeEditingState={ setIsEditingFile }
+				onUpdate={ onUpdateFile }
+				options={ options.toArray().map(f => ({ value: f.id, label: f.fileName })) }
+				placeholder="No File Selected"
+				value={ dataFile?.id }
+			/>
 			<Table.Td>
 				<Group justify="flex-end">
 					<Menu position="bottom-end">
 						<Menu.Target>
-							<Tooltip label="Open Buffer Action Menu">
-								<ActionIcon variant="subtle" color="gray" >
-									<IconElement path={ mdiDotsVertical } />
-								</ActionIcon>
-							</Tooltip>
+							<ActionIcon variant="subtle" color="gray" >
+								<IconElement path={ mdiDotsVertical } />
+							</ActionIcon>
 						</Menu.Target>
 						<Menu.Dropdown>
-							<Menu.Label>Buffer Actions</Menu.Label>
+							<Menu.Label>Buffer</Menu.Label>
 							<Menu.Item onClick={ toggleEditing } leftSection={ <IconElement path={ mdiPencil } /> } >
 								Change Source
 							</Menu.Item>
 							<Menu.Item leftSection={ <IconElement path={ mdiCodeBraces } /> } onClick={ toggleMetaEditor }>
 								Edit Metadata
 							</Menu.Item>
+							<Menu.Divider/>
+							<Menu.Item onClick={ onTriggerExport } disabled={ !dataRef.canBeCaptured } leftSection={ <IconElement path={ mdiContentSaveMove } /> } >
+								Save Contents
+							</Menu.Item>
 							<Menu.Divider />
 							<Menu.Item color="red" leftSection={ <IconElement path={ mdiEraser } /> } onClick={ onClearDataRef } disabled={ !dataFile } >
-								Clear Buffer Content
+								Clear Contents
 							</Menu.Item>
 						</Menu.Dropdown>
 					</Menu>

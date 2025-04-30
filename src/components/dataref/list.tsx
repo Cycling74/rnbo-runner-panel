@@ -10,8 +10,9 @@ import { DataFileRecord } from "../../models/datafile";
 export type DataRefListProps = {
 	onClearDataRef: (dataref: DataRefRecord) => void;
 	onSetDataRef: (dataref: DataRefRecord, file: DataFileRecord) => void;
-	onRestoreMetadata: (param: DataRefRecord) => void;
-	onSaveMetadata: (param: DataRefRecord, meta: string) => void;
+	onRestoreMetadata: (dataref: DataRefRecord) => void;
+	onSaveMetadata: (dataref: DataRefRecord, meta: string) => void;
+	onExportDataRef: (dataref: DataRefRecord) => void;
 	dataRefs: ImmuMap<DataRefRecord["id"], DataRefRecord>;
 	options: Seq.Indexed<DataFileRecord>; // soundfile list
 }
@@ -22,8 +23,10 @@ const DataRefList: FunctionComponent<DataRefListProps> = memo(function WrappedDa
 	dataRefs,
 	options,
 	onSaveMetadata,
-	onRestoreMetadata
+	onRestoreMetadata,
+	onExportDataRef
 }) {
+
 	return (
 		<Table layout="fixed" className={ classes.dataRefTable } verticalSpacing="sm" maw="100%" highlightOnHover>
 			<Table.Thead>
@@ -44,6 +47,7 @@ const DataRefList: FunctionComponent<DataRefListProps> = memo(function WrappedDa
 							onUpdate={ onSetDataRef }
 							onRestoreMetadata={ onRestoreMetadata }
 							onSaveMetadata={ onSaveMetadata }
+							onExport={ onExportDataRef }
 						/>
 					))
 				}

@@ -1,13 +1,14 @@
 import { Map as ImmuMap, Seq } from "immutable";
-import { Stack } from "@mantine/core";
-import { FunctionComponent, memo, useCallback } from "react";
+import { Group, Stack } from "@mantine/core";
+import { FunctionComponent, memo, useCallback, useState } from "react";
 import { useAppDispatch } from "../../hooks/useAppDispatch";
 import DataRefList from "../dataref/list";
 import classes from "./instance.module.css";
 import { PatcherInstanceRecord } from "../../models/instance";
-import { clearInstanceDataRefValueOnRemote, restoreDefaultDataRefMetaOnRemote, setInstanceDataRefMetaOnRemote, setInstanceDataRefValueOnRemote } from "../../actions/patchers";
+import { clearInstanceDataRefValueOnRemote, exportInstanceDataRef, restoreDefaultDataRefMetaOnRemote, setInstanceDataRefMetaOnRemote, setInstanceDataRefValueOnRemote } from "../../actions/patchers";
 import { DataRefRecord } from "../../models/dataref";
 import { DataFileRecord } from "../../models/datafile";
+import { SearchInput } from "../page/searchInput";
 
 export type InstanceDataRefTabProps = {
 	instance: PatcherInstanceRecord;
@@ -22,6 +23,7 @@ const InstanceDataRefsTab: FunctionComponent<InstanceDataRefTabProps> = memo(fun
 }) {
 
 	const dispatch = useAppDispatch();
+	const [searchValue, setSearchValue] = useState<string>("");
 
 	const onSetDataRef = useCallback((dataref: DataRefRecord, file: DataFileRecord) => {
 		dispatch(setInstanceDataRefValueOnRemote(dataref, file));
@@ -39,8 +41,15 @@ const InstanceDataRefsTab: FunctionComponent<InstanceDataRefTabProps> = memo(fun
 		dispatch(restoreDefaultDataRefMetaOnRemote(dataref));
 	}, [dispatch]);
 
+	const onExportDataRef = useCallback((dataref: DataRefRecord) => {
+		dispatch(exportInstanceDataRef(dataref));
+	}, [dispatch]);
+
 	return (
-		<Stack>
+		<Stack gap="xs">
+			<Group justify="flex-end">
+				<SearchInput onSearch={ setSearchValue } />
+			</Group>
 			{
 				!dataRefs.size ? (
 					<div className={ classes.emptySection }>
@@ -48,12 +57,13 @@ const InstanceDataRefsTab: FunctionComponent<InstanceDataRefTabProps> = memo(fun
 					</div>
 				) : (
 					<DataRefList
-						dataRefs={ dataRefs }
+						dataRefs={ dataRefs.filter(ref => ref.matchesQuery(searchValue)) }
 						options={ datafiles }
 						onSetDataRef={ onSetDataRef }
 						onClearDataRef={ onClearDataRef }
 						onRestoreMetadata={ onRestoreMetadata }
 						onSaveMetadata={ onSaveMetadata }
+						onExportDataRef={ onExportDataRef }
 					/>
 				)
 			}

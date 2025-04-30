@@ -1,5 +1,5 @@
 import { Map as ImmuMap } from "immutable";
-import { FunctionComponent, memo, useCallback } from "react";
+import { FunctionComponent, memo, useCallback, useState } from "react";
 import { useAppDispatch } from "../../hooks/useAppDispatch";
 import MessageOutportList from "../messages/outportList";
 import classes from "./instance.module.css";
@@ -11,6 +11,7 @@ import { IconElement } from "../elements/icon";
 import { mdiEye, mdiEyeOff } from "@mdi/js";
 import { setAppSetting } from "../../actions/settings";
 import { AppSetting } from "../../models/settings";
+import { SearchInput } from "../page/searchInput";
 
 export type InstanceOutportTabProps = {
 	instance: PatcherInstanceRecord;
@@ -25,6 +26,7 @@ const InstanceOutportTab: FunctionComponent<InstanceOutportTabProps> = memo(func
 }) {
 
 	const dispatch = useAppDispatch();
+	const [searchValue, setSearchValue] = useState<string>("");
 
 	const onSavePortMetadata = useCallback((port: MessagePortRecord, meta: string) => {
 		dispatch(setInstanceMessagePortMetaOnRemote(instance, port, meta));
@@ -40,7 +42,8 @@ const InstanceOutportTab: FunctionComponent<InstanceOutportTabProps> = memo(func
 
 	return (
 		<Stack gap="xs">
-			<Group justify="flex-end">
+			<Group justify="flex-end" gap="xs">
+				<SearchInput onSearch={ setSearchValue } />
 				<SegmentedControl
 					size="xs"
 					color="blue"
@@ -73,7 +76,7 @@ const InstanceOutportTab: FunctionComponent<InstanceOutportTabProps> = memo(func
 					</div>
 				) :
 					<MessageOutportList
-						outports={ messageOutports.valueSeq() }
+						outports={ messageOutports.valueSeq().filter(p => p.matchesQuery(searchValue)) }
 						outputEnabled={ outputEnabled }
 						onRestoreMetadata={ onRestoreDefaultPortMetadata }
 						onSaveMetadata={ onSavePortMetadata }

@@ -495,6 +495,7 @@ export const saveCurrentGraphSetOnRemote = (): AppThunk =>
 				: (
 					await showTextInputDialog({
 						text: "Please name the graph",
+						label: "Graph Name",
 						actions: {
 							confirm: { label: "Save Graph" }
 						},
@@ -564,6 +565,7 @@ export const renameCurrentGraphSetOnRemote = (): AppThunk =>
 
 			const dialogResult = await showTextInputDialog({
 				text: "Please name the graph",
+				label: "Graph Name",
 				actions: {
 					confirm: { label: "Save Graph" }
 				},
@@ -592,6 +594,7 @@ export const saveCurrentGraphSetOnRemoteAs = (): AppThunk =>
 
 			const dialogResult = await showTextInputDialog({
 				text: "Please name the graph",
+				label: "Graph Name",
 				actions: {
 					confirm: { label: "Save Graph" }
 				},
@@ -674,6 +677,7 @@ export const createSetPresetOnRemote = (): AppThunk =>
 		try {
 			const dialogResult = await showTextInputDialog({
 				text: "Please name the new graph preset",
+				label: "Preset Name",
 				actions: {
 					confirm: { label: "Create Preset" }
 				},
@@ -808,6 +812,7 @@ export const createSetViewOnRemote = (): AppThunk =>
 
 			const dialogResult = await showTextInputDialog({
 				text: "Please name the new parameter view",
+				label: "Parameter View Name",
 				actions: {
 					confirm: { label: "Create Parameter View" }
 				},
@@ -895,6 +900,7 @@ export const renameSelectedSetViewOnRemote = (): AppThunk =>
 
 			const dialogResult = await showTextInputDialog({
 				text: "Please name the parameter view",
+				label: "Parameter View Name",
 				actions: {
 					confirm: { label: "Save Parameter View" }
 				},

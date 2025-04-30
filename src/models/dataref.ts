@@ -25,15 +25,21 @@ export class DataRefRecord extends ImmuRecord<DataRefRecordProps>({
 		return this.path;
 	}
 
+	public get canBeCaptured(): boolean {
+		return true;
+	}
+
+	public matchesQuery(query: string): boolean {
+		return !query.length || this.name.toLowerCase().includes(query);
+	}
+
 	public setValue(v: string) : DataRefRecord {
 		return this.set("value", v);
 	}
 
 	public setMeta(value: string): DataRefRecord {
-		// detect midi mapping
 		let parsed: DataRefMetaJsonMap = {};
 		try {
-			// detection simply looks for a 'midi' entry in the meta
 			parsed = parseMetaJSONString(value);
 		} catch {
 			// ignore

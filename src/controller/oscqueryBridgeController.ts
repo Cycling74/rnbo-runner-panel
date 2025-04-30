@@ -744,10 +744,11 @@ export class OSCQueryBridgeControllerPrivate {
 		if (
 			packetMatch.groups.content === "data_refs" &&
 			packetMatch.groups.rest?.length &&
-			!packetMatch.groups.rest?.includes("/") &&
+			!packetMatch.groups.rest.includes("/") &&
 			packet.args.length >= 1 &&
 			typeof packet.args[0] === "string"
 		) {
+			// File mapping update
 			return void dispatch(updateInstanceDataRefValue(instanceId, packetMatch.groups.rest, packet.args[0] as string));
 		}
 
