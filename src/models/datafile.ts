@@ -1,5 +1,6 @@
 import { Record as ImmuRecord } from "immutable";
 import { basename } from "path";
+import { DataRefRecord } from "./dataref";
 
 export type DateFileRecordProps = {
 	fileName: string;
@@ -29,19 +30,22 @@ export class DataFileRecord extends ImmuRecord<DateFileRecordProps>({
 
 export type PendingDataFileRecordProps = {
 	fileName: string;
+	dataRefId: DataRefRecord["id"];
 };
 
 export class PendingDataFileRecord extends ImmuRecord<PendingDataFileRecordProps>({
-	fileName: ""
+	fileName: "",
+	dataRefId: ""
 }) {
 
 	public get id(): string {
 		return this.fileName;
 	}
 
-	public static fromDescription(path: string): PendingDataFileRecord {
+	public static fromDescription(path: string, dataRefId: DataRefRecord["id"]): PendingDataFileRecord {
 		return new PendingDataFileRecord({
-			fileName: basename(path).trim()
+			fileName: basename(path).trim(),
+			dataRefId
 		});
 	}
 }

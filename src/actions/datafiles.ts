@@ -7,7 +7,9 @@ import { RunnerCmdMethod } from "../lib/constants";
 import { dayjs } from "../lib/util";
 import * as Base64 from "js-base64";
 import { DialogResult, showConfirmDialog } from "../lib/dialogs";
-import { getDataFiles } from "../selectors/datafiles";
+import { getDataFiles, getPendingDataFileByFilename } from "../selectors/datafiles";
+import { DataRefRecord } from "../models/dataref";
+import { getPatcherInstanceDataRef } from "../selectors/patchers";
 
 export enum DataFilesActionType {
 	SET_ALL = "SET_DATAFILES",
@@ -49,13 +51,31 @@ export const initDataFiles = (paths: string[]): ISetDataFiles => {
 	};
 };
 
+export const addPendingDataFile = (filename: string, dataRef: DataRefRecord): DataFileAction => {
+	return {
+		type: DataFilesActionType.SET_PENDING,
+		payload: {
+			file: PendingDataFileRecord.fromDescription(filename, dataRef.id)
+		}
+	};
+};
+
+export const deletePendingDataFile = (file: PendingDataFileRecord): DataFileAction => {
+	return {
+		type: DataFilesActionType.DELETE_PENDING,
+		payload: {
+			file
+		}
+	};
+};
 
 export const updateDataFiles = (paths: string[]): AppThunk =>
 	(dispatch, getState) => {
 		try {
 
+			const state = getState();
 			const files = paths.map(p => DataFileRecord.fromDescription(p));
-			const currentFiles = getDataFiles(getState());
+			const currentFiles = getDataFiles(state);
 
 			const newFiles: Array<DataFileRecord> = [];
 
@@ -75,6 +95,18 @@ export const updateDataFiles = (paths: string[]): AppThunk =>
 					title: "Saved Recording",
 					message: `Recording has been saved successfully to ${newFiles[0].fileName}`
 				}));
+			}
+
+			for (const fulfilledFile of newFiles.map(f => getPendingDataFileByFilename(state, f.fileName)).filter(pf => !!pf)) {
+				const dataRef = getPatcherInstanceDataRef(state, fulfilledFile.dataRefId);
+				if (dataRef) {
+					dispatch(showNotification({
+						level: NotificationLevel.success,
+						title: "Saved Buffer",
+						message: `The contents of ${dataRef.name} have been saved to ${fulfilledFile.fileName}`
+					}));
+				}
+				dispatch(deletePendingDataFile(fulfilledFile));
 			}
 
 			dispatch({
@@ -160,21 +192,3 @@ export const uploadFileToRemote = (file: File, { resolve, reject, onProgress }: 
 			return void reject(err);
 		}
 	};
-
-export const addPendingDataFile = (filename: string): DataFileAction => {
-	return {
-		type: DataFilesActionType.SET_PENDING,
-		payload: {
-			file: PendingDataFileRecord.fromDescription(filename)
-		}
-	};
-};
-
-export const deletePendingDataFile = (file: PendingDataFileRecord): DataFileAction => {
-	return {
-		type: DataFilesActionType.DELETE_PENDING,
-		payload: {
-			file
-		}
-	};
-};

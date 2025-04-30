@@ -841,7 +841,7 @@ export const exportInstanceDataRef = (dataref: DataRefRecord): AppThunk =>
 
 		try {
 
-			let filenameResult = await showTextInputDialog({
+			const filenameResult = await showTextInputDialog({
 				text: `Please provide a filename to save the contents of ${dataref.name} to.`,
 				label: "Filename",
 				description: "Basename of the file without the .wav extension",
@@ -853,11 +853,11 @@ export const exportInstanceDataRef = (dataref: DataRefRecord): AppThunk =>
 			});
 
 			if (filenameResult === DialogResult.Cancel || filenameResult === DialogResult.Discard) return;
-			filenameResult = filenameResult.replace(/\.wav$/, "");
+			const filenameWithExtension = !filenameResult.endsWith(".wav") ? `${filenameResult}.wav` : filenameResult;
 
-			if (getDataFileByFilename(getState(), `${filenameResult}.wav`)) { // Already exists?!
+			if (getDataFileByFilename(getState(), filenameWithExtension)) { // Already exists?!
 				const overwriteResult = await showConfirmDialog({
-					text: `A file with the name ${filenameResult}.wav already exists, are you sure you want to overwrite it?`,
+					text: `A file with the name ${filenameWithExtension} already exists, are you sure you want to overwrite it?`,
 					actions: {
 						confirm: { label: "Overwrite"}
 					}
@@ -865,9 +865,9 @@ export const exportInstanceDataRef = (dataref: DataRefRecord): AppThunk =>
 				if (overwriteResult !== DialogResult.Confirm) return;
 			}
 
-			if (getPendingDataFileByFilename(getState(), `${filenameResult}.wav`)) {
+			if (getPendingDataFileByFilename(getState(), filenameWithExtension)) {
 				return void await showConfirmDialog({
-					text: `A file with the name ${filenameResult}.wav is currently being exported. Please provide a different filename.`,
+					text: `A file with the name ${filenameWithExtension} is currently being exported. Please provide a different filename.`,
 					actions: {
 						confirm: { label: "OK" }
 					}
@@ -877,12 +877,12 @@ export const exportInstanceDataRef = (dataref: DataRefRecord): AppThunk =>
 			const message = {
 				address: `${dataref.path}/save`,
 				args: [
-					{ type: "s", value: filenameResult }
+					{ type: "s", value: filenameResult.replace(/\.wav$/, "") } // Runner adds .wav itself
 				]
 			};
 
+			dispatch(addPendingDataFile(filenameWithExtension, dataref));
 			oscQueryBridge.sendPacket(writePacket(message));
-			dispatch(addPendingDataFile(filenameResult));
 
 		} catch (err) {
 			dispatch(showNotification({
