@@ -18,6 +18,23 @@ export enum AppStatus {
 	Error
 }
 
+export enum SystemInfoKey {
+	CompilerId = "compiler_id",
+	CompilerVersion = "compiler_version",
+	DiskBytesAvailable = "disk_bytes_available",
+	SystemId = "system_id",
+	SystemName = "system_name",
+	SystemOS = "system_os_name",
+	SystemProcessor = "system_processor",
+	TargetId = "target_id",
+	Version = "version",
+}
+
+export enum JackInfoKey {
+	CPULoad = "cpu_load",
+	XRunCount = "xrun_count",
+}
+
 export enum InstanceTab {
 	Inports = "inports",
 	Outports = "outports",

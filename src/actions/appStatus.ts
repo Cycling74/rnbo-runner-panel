@@ -1,7 +1,7 @@
-import { AppStatus } from "../lib/constants";
+import { AppStatus, JackInfoKey, SystemInfoKey } from "../lib/constants";
 import { ActionBase, AppThunk } from "../lib/store";
-import { OSCQueryRNBOState } from "../lib/types";
-import { RunnerInfoKey, RunnerInfoRecord, JackInfoKeys } from "../models/runnerInfo";
+import { OSCQueryRNBOState, RunnerInfoKey } from "../lib/types";
+import { RunnerInfoRecord } from "../models/runnerInfo";
 import { getShowEndpointInfoModal } from "../selectors/appStatus";
 
 export enum StatusActionType {
@@ -101,12 +101,13 @@ export const toggleEndpointInfo = () : AppThunk =>
 export const initRunnerInfo = (desc: OSCQueryRNBOState): StatusAction => {
 	const records: RunnerInfoRecord[] = [];
 
-	const versionInfo = desc?.CONTENTS?.info?.CONTENTS?.version;
-	if (versionInfo) {
-		records.push(RunnerInfoRecord.fromDescription(RunnerInfoKey.RunnerVersion, versionInfo));
+	for (const key of Object.values(SystemInfoKey)) {
+		const systemInfo = desc?.CONTENTS?.info?.CONTENTS?.[key];
+		if (!systemInfo) continue;
+		records.push(RunnerInfoRecord.fromDescription(key, systemInfo));
 	}
 
-	for (const key of JackInfoKeys) {
+	for (const key of Object.values(JackInfoKey)) {
 		const jackInfo = desc?.CONTENTS?.jack?.CONTENTS?.info?.CONTENTS?.[key];
 		if (!jackInfo) continue;
 		records.push(RunnerInfoRecord.fromDescription(key, jackInfo));

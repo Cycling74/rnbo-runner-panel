@@ -3,13 +3,15 @@ import { ChangeEvent, FormEvent, FunctionComponent, MouseEvent, memo, useCallbac
 import { useAppDispatch, useAppSelector } from "../../hooks/useAppDispatch";
 import { RootStateType } from "../../lib/store";
 import { useIsMobileDevice } from "../../hooks/useIsMobileDevice";
-import { getAppStatus, getRunnerInfoRecord, getRunnerEndpoint, getShowEndpointInfoModal } from "../../selectors/appStatus";
+import { getAppStatus, getRunnerEndpoint, getShowEndpointInfoModal, getRunnerInfoRecords } from "../../selectors/appStatus";
 import { hideEndpointInfo } from "../../actions/appStatus";
-import { AppStatus } from "../../lib/constants";
+import { AppStatus, JackInfoKey, SystemInfoKey } from "../../lib/constants";
 import { showSettings } from "../../actions/settings";
-import { RunnerInfoKey, RunnerInfoRecord } from "../../models/runnerInfo";
 import { IconElement } from "../elements/icon";
 import { mdiClose, mdiConnection, mdiInformation } from "@mdi/js";
+import { RunnerInfoKey } from "../../lib/types";
+import { formatFileSize } from "../../lib/util";
+import { RunnerInfoRecord } from "../../models/runnerInfo";
 
 type InfoCardProps = {
 	title: string;
@@ -62,11 +64,23 @@ const InfoCardSkeleton: FunctionComponent<Pick<InfoCardProps, "title">> = ({ tit
 	</Paper>
 );
 
-const infoKeyOrder: Partial<Record<RunnerInfoKey, { title: string; }>> = {
-	[RunnerInfoKey.RunnerVersion]: {
+const infoKeyOrder: Partial<Record<RunnerInfoKey, { title: string; format?: (v: RunnerInfoRecord["oscValue"]) => string }>> = {
+	[SystemInfoKey.Version]: {
 		title: "Runner Version"
 	},
-	[RunnerInfoKey.XRunCount]: {
+	[SystemInfoKey.TargetId]: {
+		title: "Target Identifier"
+	},
+	[SystemInfoKey.DiskBytesAvailable]: {
+		title: "Available Disk Space",
+		format: (value: RunnerInfoRecord["oscValue"]): string => {
+			if (typeof value !== "string") return `${value}`;
+			const num = parseInt(value, 10);
+			if (isNaN(num)) return `${value}`;
+			return formatFileSize(parseInt(value, 10));
+		}
+	},
+	[JackInfoKey.XRunCount]: {
 		title: "xrun Count"
 	}
 };
@@ -83,10 +97,7 @@ const EndpointInfo: FunctionComponent = memo(function WrappedSettings() {
 		getShowEndpointInfoModal(state),
 		getRunnerEndpoint(state),
 		getAppStatus(state),
-		new Map<RunnerInfoKey, RunnerInfoRecord>([
-			[RunnerInfoKey.XRunCount, getRunnerInfoRecord(state, RunnerInfoKey.XRunCount)],
-			[RunnerInfoKey.RunnerVersion, getRunnerInfoRecord(state, RunnerInfoKey.RunnerVersion)]
-		])
+		getRunnerInfoRecords(state)
 	]);
 
 	const [{ hostname, port }, setEndpoint] = useState<{ hostname: string; port: string; }>({ ...appEndpoint });
@@ -181,13 +192,13 @@ const EndpointInfo: FunctionComponent = memo(function WrappedSettings() {
 							) : null
 						}
 						{
-							Object.entries(infoKeyOrder).map(([key, props]) => {
+							Object.entries(infoKeyOrder).map(([key, { format, ...props }]) => {
 								const rec = runnerInfoRecords.get(key as RunnerInfoKey);
 								return (
 									<Grid.Col span={ 6 } key={ key } >
 										{
 											rec ? (
-												<InfoCard { ...props } value={ `${rec.oscValue}` } description={ rec.description } />
+												<InfoCard { ...props } value={ format ? format(rec.oscValue) : `${rec.oscValue}` } description={ rec.description } />
 											) : (
 												<InfoCardSkeleton { ...props } />
 											)

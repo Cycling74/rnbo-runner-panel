@@ -8,8 +8,7 @@ import { toggleTransportControl } from "../../actions/transport";
 import { getTransportControlState } from "../../selectors/transport";
 import { RootStateType } from "../../lib/store";
 import { getAppStatus, getRunnerInfoRecord } from "../../selectors/appStatus";
-import { RunnerInfoKey } from "../../models/runnerInfo";
-import { AppStatus } from "../../lib/constants";
+import { AppStatus, JackInfoKey } from "../../lib/constants";
 import { IconElement } from "../elements/icon";
 import { mdiMetronome, mdiSatelliteUplink } from "@mdi/js";
 import { CPUStatus } from "./cpu";
@@ -41,7 +40,7 @@ export const Header: FunctionComponent<HeaderProps> = memo(function WrappedHeade
 			getStreamRecordingState(state),
 			getStreamRecordingTimeout(state),
 			getTransportControlState(state).rolling,
-			status === AppStatus.Ready ? getRunnerInfoRecord(state, RunnerInfoKey.CPULoad) : null
+			status === AppStatus.Ready ? getRunnerInfoRecord(state, JackInfoKey.CPULoad) : null
 		];
 	});
 
