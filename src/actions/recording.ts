@@ -37,12 +37,12 @@ export interface ISetStreamRecordingCapturedTime extends ActionBase {
 
 export type StreamRecordingAction = IInitStreamRecording | ISetStreamRecordingActive | ISetStreamRecordingCapturedTime;
 
-export const initStreamRecording = (state: OSCQueryRNBOJackRecord): IInitStreamRecording => {
+export const initStreamRecording = (state?: OSCQueryRNBOJackRecord): IInitStreamRecording => {
 	return {
 		type: StreamRecordingActionType.INIT,
 		payload: {
-			active: state.CONTENTS?.active?.TYPE === OSCQueryValueType.True,
-			capturedTime: state.CONTENTS.captured?.VALUE || 0
+			active: state?.CONTENTS?.active?.TYPE === OSCQueryValueType.True,
+			capturedTime: state?.CONTENTS.captured?.VALUE || 0
 		}
 	};
 };
