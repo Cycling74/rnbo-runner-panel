@@ -3,7 +3,7 @@ import { OSCBundle, OSCMessage, readPacket, writePacket } from "osc";
 import { initRunnerInfo, setRunnerInfoValue, setAppStatus, setConnectionEndpoint } from "../actions/appStatus";
 import { AppDispatch, store } from "../lib/store";
 import { ReconnectingWebsocket } from "../lib/reconnectingWs";
-import { AppStatus, RunnerCmdMethod } from "../lib/constants";
+import { AppStatus, JackInfoKey, RunnerCmdMethod, SystemInfoKey } from "../lib/constants";
 import { OSCQueryRNBOState, OSCQueryRNBOInstance, OSCQueryRNBOPatchersState, OSCValue, OSCQueryRNBOInstancesMetaState, OSCQuerySetMeta } from "../lib/types";
 import { deletePortAliases, initConnections, initPorts, setPortAliases, updateSetMetaFromRemote, updateSourcePortConnections, deletePortById, setPortProperties, addPort } from "../actions/graph";
 import { addInstance, deleteInstanceById, initInstances, initPatchers, removeInstanceDataRefByPath, updateInstanceDataRefMeta, updateInstanceDataRefs, updateInstanceParameterDisplayName, updateInstanceAlias } from "../actions/patchers";
@@ -26,7 +26,6 @@ import { showNotification } from "../actions/notifications";
 import { NotificationLevel } from "../models/notification";
 import { initTransport, updateTransportStatus } from "../actions/transport";
 import { v4 as uuidv4 } from "uuid";
-import { JackInfoKeys } from "../models/runnerInfo";
 import { deserializeSetMeta } from "../lib/meta";
 import { initStreamRecording, updateStreamRecordingActiveState, updateStreamRecordingCapturedTime } from "../actions/recording";
 
@@ -55,8 +54,11 @@ const setsPresetsLoadPath = "/rnbo/inst/control/sets/presets/load";
 
 const configPathMatcher = /^\/rnbo\/config\/(?<name>.+)$/;
 const jackConfigPathMatcher = /^\/rnbo\/jack\/config\/(?<name>.+)$/;
+const jackInfoPathMatcher = /^\/rnbo\/jack\/info\/(?<name>.+)$/;
 const instanceConfigPathMatcher = /^\/rnbo\/inst\/config\/(?<name>.+)$/;
 const recordPathMatcher = /^\/rnbo\/jack\/record\/(?<name>.+)$/;
+const runnerInfoMatcher = /^\/rnbo\/info\/(?<name>.+)$/;
+
 
 export class RunnerCmd {
 
@@ -545,10 +547,9 @@ export class OSCQueryBridgeControllerPrivate {
 			return;
 		}
 
-		for (const key of JackInfoKeys) {
-			if (packet.address === `/rnbo/jack/info/${key}`) {
-				return void dispatch(setRunnerInfoValue(key, (packet.args as unknown as [number])?.[0] || 0.0));
-			}
+		const jackInfoMatch = packet.address.match(jackInfoPathMatcher);
+		if (jackInfoMatch?.groups?.name?.length) {
+			return void dispatch(setRunnerInfoValue(jackInfoMatch?.groups?.name as JackInfoKey, (packet.args as unknown as [number])?.[0] || 0.0));
 		}
 
 		// Transport Control Control
@@ -565,17 +566,20 @@ export class OSCQueryBridgeControllerPrivate {
 		}
 
 		// only sent when it changes so we don't care what the value, just read the list again
-		if (packet.address === "/rnbo/info/datafile_dir_mtime") {
+		const runnerInfoMatch = packet.address.match(runnerInfoMatcher);
+		if (runnerInfoMatch?.groups?.name === "datafile_dir_mtime") {
 			try {
 				return void dispatch(updateDataFiles(await this._getDataFileList()));
 			} catch (err) {
 				console.error(err);
 				dispatch(showNotification({
-					title: "Error while requesting sample data",
+					title: "Error while requesting audio file info",
 					message: `${err.message} - Please check the console for more details`,
 					level: NotificationLevel.error
 				}));
 			}
+		} else if (runnerInfoMatch?.groups?.name?.length) {
+			return void dispatch(setRunnerInfoValue(runnerInfoMatch?.groups?.name as SystemInfoKey, (packet.args as unknown as [string])?.[0] || ""));
 		}
 
 		if (packet.address === "/rnbo/inst/control/sets/initial") {

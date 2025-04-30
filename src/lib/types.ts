@@ -1,5 +1,5 @@
 import { ConnectionType } from "../models/graph";
-import { KnownPortGroup, RNBOJackPortPropertyKey } from "./constants";
+import { JackInfoKey, KnownPortGroup, RNBOJackPortPropertyKey, SystemInfoKey } from "./constants";
 
 // See https://github.com/Microsoft/TypeScript/issues/1897
 export type AnyJson =
@@ -49,6 +49,8 @@ export type ParameterMetaJsonMap = JsonMap & {
 };
 
 export type DataRefMetaJsonMap = JsonMap;
+
+export type RunnerInfoKey = SystemInfoKey | JackInfoKey;
 
 export type OSCValue = string | number | null;
 
@@ -136,20 +138,22 @@ export type OSCQueryStringValueRange = {
 
 export type OSCQueryRNBOInfoState = OSCQueryBaseNode & {
 	CONTENTS: {
-		compiler_id: OSCQueryStringValue;
-		compiler_version: OSCQueryStringValue;
-		disk_bytes_available: OSCQueryStringValue;
+		[SystemInfoKey.CompilerId]: OSCQueryStringValue;
+		[SystemInfoKey.CompilerVersion]: OSCQueryStringValue;
+		[SystemInfoKey.DiskBytesAvailable]: OSCQueryStringValue;
+		[SystemInfoKey.SystemId]: OSCQueryStringValue;
+		[SystemInfoKey.SystemName]: OSCQueryStringValue;
+		[SystemInfoKey.SystemOS]: OSCQueryStringValue;
+		[SystemInfoKey.SystemProcessor]: OSCQueryStringValue;
+		[SystemInfoKey.TargetId]: OSCQueryStringValue;
+		[SystemInfoKey.Version]: OSCQueryStringValue;
 		supported_cmds: OSCQueryListValue;
-		system_id: OSCQueryListValue;
-		system_name: OSCQueryListValue;
-		system_processor: OSCQueryListValue;
 		unpported_cmds: OSCQueryListValue;
 		update: OSCQueryBaseNode & {
 			CONTENTS: {
 				supported: OSCQueryBooleanValue;
 			};
 		}
-		version: OSCQueryStringValue;
 	};
 };
 
@@ -250,8 +254,8 @@ export type OSCQueryRNBOJackInfoState =  OSCQueryBaseNode & {
 		owns_server?: OSCQueryBooleanValue;
 		ports?: OSCQueryRNBOJackPortInfo;
 		is_active?: OSCQueryBooleanValue;
-		xrun_count?: OSCQueryIntValue;
-		cpu_load?: OSCQueryFloatValue;
+		[JackInfoKey.CPULoad]?: OSCQueryFloatValue;
+		[JackInfoKey.XRunCount]?: OSCQueryIntValue;
 	};
 };
 
