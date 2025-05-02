@@ -54,10 +54,10 @@ const setsPresetsLoadPath = "/rnbo/inst/control/sets/presets/load";
 
 const configPathMatcher = /^\/rnbo\/config\/(?<name>.+)$/;
 const jackConfigPathMatcher = /^\/rnbo\/jack\/config\/(?<name>.+)$/;
-const jackInfoPathMatcher = /^\/rnbo\/jack\/info\/(?<name>.+)$/;
+const jackInfoPathMatcher = /^\/rnbo\/jack\/info\/(?<name>[^/]+)$/;
 const instanceConfigPathMatcher = /^\/rnbo\/inst\/config\/(?<name>.+)$/;
 const recordPathMatcher = /^\/rnbo\/jack\/record\/(?<name>.+)$/;
-const runnerInfoMatcher = /^\/rnbo\/info\/(?<name>.+)$/;
+const runnerInfoMatcher = /^\/rnbo\/info\/(?<name>[^/]+)$/;
 
 
 export class RunnerCmd {
@@ -546,12 +546,6 @@ export class OSCQueryBridgeControllerPrivate {
 			await this._handleActive((packet.args as unknown as [boolean])?.[0], true);
 			return;
 		}
-
-		const jackInfoMatch = packet.address.match(jackInfoPathMatcher);
-		if (jackInfoMatch?.groups?.name?.length) {
-			return void dispatch(setRunnerInfoValue(jackInfoMatch?.groups?.name as JackInfoKey, (packet.args as unknown as [number])?.[0] || 0.0));
-		}
-
 		// Transport Control Control
 		if (packet.address === "/rnbo/jack/transport/bpm") {
 			if (packet.args?.length) return void dispatch(updateTransportStatus({ bpm: (packet.args as unknown as [number])?.[0] }));
@@ -563,23 +557,6 @@ export class OSCQueryBridgeControllerPrivate {
 
 		if (packet.address === "/rnbo/jack/transport/sync") {
 			if (packet.args?.length) return void dispatch(updateTransportStatus({ sync: (packet.args as unknown as [boolean])?.[0] }));
-		}
-
-		// only sent when it changes so we don't care what the value, just read the list again
-		const runnerInfoMatch = packet.address.match(runnerInfoMatcher);
-		if (runnerInfoMatch?.groups?.name === "datafile_dir_mtime") {
-			try {
-				return void dispatch(updateDataFiles(await this._getDataFileList()));
-			} catch (err) {
-				console.error(err);
-				dispatch(showNotification({
-					title: "Error while requesting audio file info",
-					message: `${err.message} - Please check the console for more details`,
-					level: NotificationLevel.error
-				}));
-			}
-		} else if (runnerInfoMatch?.groups?.name?.length) {
-			return void dispatch(setRunnerInfoValue(runnerInfoMatch?.groups?.name as SystemInfoKey, (packet.args as unknown as [string])?.[0] || ""));
 		}
 
 		if (packet.address === "/rnbo/inst/control/sets/initial") {
@@ -660,6 +637,35 @@ export class OSCQueryBridgeControllerPrivate {
 			return void dispatch(updateSourcePortConnections(connectionMatch.groups.id, packet.args as unknown as string[]));
 		}
 
+		// Runner Info Changes
+		const runnerInfoMatch = packet.address.match(runnerInfoMatcher);
+		if (runnerInfoMatch?.groups?.name === "datafile_dir_mtime") {
+		// only sent when it changes so we don't care what the value, just read the list again
+			try {
+				return void dispatch(updateDataFiles(await this._getDataFileList()));
+			} catch (err) {
+				console.error(err);
+				dispatch(showNotification({
+					title: "Error while requesting audio file info",
+					message: `${err.message} - Please check the console for more details`,
+					level: NotificationLevel.error
+				}));
+			}
+		} else if (runnerInfoMatch?.groups?.name?.length) {
+			return void dispatch(setRunnerInfoValue(runnerInfoMatch?.groups?.name as SystemInfoKey, (packet.args as unknown as [string])?.[0] || ""));
+		}
+
+		// Jack Info Changes
+		const jackInfoMatch = packet.address.match(jackInfoPathMatcher);
+		if (
+			jackInfoMatch?.groups?.name?.length &&
+			Array.isArray(packet.args) &&
+			packet.args.length >= 1 &&
+			typeof packet.args[0] === "number"
+		) {
+			return void dispatch(setRunnerInfoValue(jackInfoMatch.groups.name as JackInfoKey, (packet.args as unknown as [number])?.[0] || 0.0));
+		}
+
 		// Update configs
 		if (
 			configPathMatcher.test(packet.address) ||
@@ -681,6 +687,8 @@ export class OSCQueryBridgeControllerPrivate {
 			return void dispatch(updateRunnerConfig(packet.address, packet.args[0] as unknown as string | number | boolean));
 		}
 
+
+		// Instance Scoped Messages
 		const packetMatch = packet.address.match(instanceStatePathMatcher);
 		if (!packetMatch?.groups?.id) return;
 

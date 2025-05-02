@@ -42,7 +42,7 @@ export const initStreamRecording = (state?: OSCQueryRNBOJackRecord): IInitStream
 		type: StreamRecordingActionType.INIT,
 		payload: {
 			active: state?.CONTENTS?.active?.TYPE === OSCQueryValueType.True,
-			capturedTime: state?.CONTENTS.captured?.VALUE || 0
+			capturedTime: state?.CONTENTS?.captured?.VALUE || 0
 		}
 	};
 };
