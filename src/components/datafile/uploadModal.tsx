@@ -9,6 +9,7 @@ import { v4 } from "uuid";
 import { IconElement } from "../elements/icon";
 import { mdiAlertCircleOutline, mdiCheckCircleOutline, mdiClose, mdiFileMusic, mdiLoading, mdiProgressClock, mdiUpload, mdiUploadOff } from "@mdi/js";
 import { writeFileToRunnerCmd } from "../../controller/cmd";
+import { RunnerFileType } from "../../lib/constants";
 
 const AUDIO_MIME_TYPE: string[] = [
 	"audio/aiff", "audio/x-aiff",
@@ -185,6 +186,7 @@ export const DataFileUploadModal: FC<DataFileUploadModalProps> = memo(function W
 			try {
 				await writeFileToRunnerCmd(
 					upload.file,
+					RunnerFileType.DataFile,
 					(progress: number) => {
 						setUploads(up => up.set(upload.id, { ...upload, progress }));
 					}
