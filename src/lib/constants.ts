@@ -135,6 +135,10 @@ export enum RunnerFileType {
 	Package = "package"
 };
 
+export enum RunnerCmdResultCode {
+	Success = 1
+};
+
 export enum RunnerCmdReadMethod {
 	ReadFileList = "file_read",
 	DeleteFile = "file_delete",

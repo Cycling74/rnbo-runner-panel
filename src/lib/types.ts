@@ -1,5 +1,5 @@
 import { ConnectionType } from "../models/graph";
-import { JackInfoKey, KnownPortGroup, RNBOJackPortPropertyKey, SystemInfoKey } from "./constants";
+import { JackInfoKey, KnownPortGroup, RNBOJackPortPropertyKey, RunnerCmdResultCode, SystemInfoKey } from "./constants";
 
 // See https://github.com/Microsoft/TypeScript/issues/1897
 export type AnyJson =
@@ -55,7 +55,7 @@ export type RunnerInfoKey = SystemInfoKey | JackInfoKey;
 export type RunnerCmdResultPayload = Record<string, any> & { message: string };
 
 export type RunnerCmdResult<R extends RunnerCmdResultPayload> = R & {
-	code: number;
+	code: number | RunnerCmdResultCode;
 	message: R["message"];
 	progress: number;
 };
