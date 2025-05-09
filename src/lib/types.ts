@@ -49,9 +49,41 @@ export type ParameterMetaJsonMap = JsonMap & {
 };
 
 export type DataRefMetaJsonMap = JsonMap;
-
 export type RunnerInfoKey = SystemInfoKey | JackInfoKey;
 
+// Runner CMD Types
+export type RunnerCmdResultPayload = Record<string, any> & { message: string };
+
+export type RunnerCmdResult<R extends RunnerCmdResultPayload> = R & {
+	code: number;
+	message: R["message"];
+	progress: number;
+};
+
+export type RunnerCmdResponse<R extends RunnerCmdResult<{ message: string; }> = RunnerCmdResult<{ message: string; }>> = {
+	id: string;
+	error?: string;
+	jsonrpc: "2.0";
+	result: RunnerCmdResult<R>;
+};
+
+export type RunnerReadFileResult = RunnerCmdResult<{
+	content: string;
+	message: "read";
+	remaining: number;
+	seq: number;
+}>;
+
+export type RunnerReadFileResponse = RunnerCmdResponse<RunnerReadFileResult>;
+
+export type RunnerDeleteFileResult = RunnerCmdResult<{
+	message: "received" | "deleted";
+}>;
+
+export type RunnerDeleteFileResponse = RunnerCmdResponse<RunnerDeleteFileResult>;
+
+
+// OSC Types
 export type OSCValue = string | number | null;
 
 export enum OSCAccess {
@@ -480,4 +512,4 @@ export type OSCQuerySetNodeMeta = { position: { x: number; y: number; }; };
 
 export type OSCQuerySetMeta = {
 	nodes: Record<string, OSCQuerySetNodeMeta>;
-}
+};

@@ -2,14 +2,12 @@ import { ActionBase, AppThunk } from "../lib/store";
 import { DataFileRecord, PendingDataFileRecord } from "../models/datafile";
 import { showNotification } from "./notifications";
 import { NotificationLevel } from "../models/notification";
-import { RunnerCmd, oscQueryBridge } from "../controller/oscqueryBridgeController";
-import { RunnerCmdMethod } from "../lib/constants";
 import { dayjs } from "../lib/util";
-import * as Base64 from "js-base64";
 import { DialogResult, showConfirmDialog } from "../lib/dialogs";
 import { getDataFiles, getPendingDataFileByFilename } from "../selectors/datafiles";
 import { DataRefRecord } from "../models/dataref";
 import { getPatcherInstanceDataRef } from "../selectors/patchers";
+import { deleteDataFileFromRunnerCmd, getDataFileListFromRunnerCmd } from "../controller/cmd";
 
 export enum DataFilesActionType {
 	SET_ALL = "SET_DATAFILES",
@@ -123,12 +121,32 @@ export const updateDataFiles = (paths: string[]): AppThunk =>
 		}
 	};
 
+
+export const triggerDataFileListRefresh = (init: boolean = false): AppThunk =>
+	async (dispatch) => {
+		try {
+			const files = await getDataFileListFromRunnerCmd();
+			dispatch(
+				init
+					? initDataFiles(files)
+					: updateDataFiles(files)
+			);
+		} catch (err) {
+			dispatch(showNotification({
+				title: "Error while requesting audio file list",
+				message: `${err.message} - Please check the console for more details`,
+				level: NotificationLevel.error
+			}));
+			console.error(err);
+		}
+	};
+
 export const deleteDataFileOnRemote = (file: DataFileRecord): AppThunk =>
 	async (dispatch) => {
 		try {
 
 			const dialogResult = await showConfirmDialog({
-				text: `Are you sure you want to delete the file ${file.id} from the device?`,
+				text: `Are you sure you want to delete the file ${file.fileName} from the device?`,
 				actions: {
 					confirm: { label: "Delete File", color: "red"}
 				}
@@ -138,57 +156,20 @@ export const deleteDataFileOnRemote = (file: DataFileRecord): AppThunk =>
 				return;
 			}
 
-			await oscQueryBridge.sendCmd(
-				new RunnerCmd(RunnerCmdMethod.DeleteFile, {
-					filename: file.fileName,
-					filetype: "datafile"
-				})
-			);
+			await deleteDataFileFromRunnerCmd(file);
+
+			dispatch(showNotification({
+				level: NotificationLevel.success,
+				title: "File Deleted",
+				message: `Successfully deleted ${file.fileName} from the device`
+			}));
+
 		} catch (err) {
 			dispatch(showNotification({
 				level: NotificationLevel.error,
-				title: `Error while trying to delete sample file ${file.id}`,
+				title: `Error while trying to delete audio file ${file.id}`,
 				message: "Please check the console for further details."
 			}));
 			console.log(err);
-		}
-	};
-
-export const uploadFileToRemote = (file: File, { resolve, reject, onProgress }: { resolve: () => any; reject: (error: Error) => any; onProgress: (p: number) => any; }): AppThunk =>
-	async (dispatch) => {
-		try {
-			const chunkSize = Math.pow(1024, 2);
-			const steps = (file.size / chunkSize);
-
-			// Send file in chunks
-			for (let i = 0; i < file.size; i += chunkSize) {
-				const chunk = await file.slice(i, i + chunkSize).arrayBuffer();
-				const encoded = Base64.fromUint8Array(new Uint8Array(chunk), false);
-				await oscQueryBridge.sendCmd(
-					new RunnerCmd(RunnerCmdMethod.WriteFile, {
-						filename: file.name,
-						filetype: "datafile",
-						data: encoded,
-						append: i !== 0
-					})
-				);
-				onProgress((i / chunkSize) / steps * 100);
-			}
-
-			// Send Complete Message
-			await oscQueryBridge.sendCmd(
-				new RunnerCmd(RunnerCmdMethod.WriteFile, {
-					filename: file.name,
-					filetype: "datafile",
-					data: "",
-					append: true,
-					complete: true
-				})
-			);
-			onProgress(100);
-			return void resolve();
-		} catch (err) {
-			console.log(err);
-			return void reject(err);
 		}
 	};

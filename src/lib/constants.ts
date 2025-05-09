@@ -130,12 +130,19 @@ export enum ParameterSortAttr {
 	Name = "name"
 }
 
-export enum RunnerCmdMethod {
+export enum RunnerCmdReadMethod {
 	ReadFile = "file_read",
 	DeleteFile = "file_delete",
 	WriteFile = "file_write",
 	WriteFileExtended = "file_write_extended"
 }
+
+export enum RunnerCmdWriteMethod {
+	WriteFile = "file_write",
+	WriteFileExtended = "file_write_extended"
+}
+
+export type RunnerCmdMethod = RunnerCmdReadMethod | RunnerCmdWriteMethod;
 
 export enum OnLoadGraphSetSetting {
 	EmptySet = "___new_empty_set___",
