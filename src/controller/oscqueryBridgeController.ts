@@ -4,7 +4,7 @@ import { OSCBundle, OSCMessage, readPacket, writePacket } from "osc";
 import { initRunnerInfo, setRunnerInfoValue, setAppStatus, setConnectionEndpoint } from "../actions/appStatus";
 import { AppDispatch, store } from "../lib/store";
 import { ReconnectingWebsocket } from "../lib/reconnectingWs";
-import { AppStatus, JackInfoKey, RunnerCmdMethod, RunnerCmdWriteMethod, SystemInfoKey, WebSocketState } from "../lib/constants";
+import { AppStatus, JackInfoKey, RunnerCmdMethod, RunnerCmdResultCode, RunnerCmdWriteMethod, SystemInfoKey, WebSocketState } from "../lib/constants";
 import { OSCQueryRNBOState, OSCQueryRNBOInstance, OSCQueryRNBOPatchersState, OSCValue, OSCQueryRNBOInstancesMetaState, OSCQuerySetMeta, RunnerCmdResponse } from "../lib/types";
 import { deletePortAliases, initConnections, initPorts, setPortAliases, updateSetMetaFromRemote, updateSourcePortConnections, deletePortById, setPortProperties, addPort } from "../actions/graph";
 import { addInstance, deleteInstanceById, initInstances, initPatchers, removeInstanceDataRefByPath, updateInstanceDataRefMeta, updateInstanceDataRefs, updateInstanceParameterDisplayName, updateInstanceAlias } from "../actions/patchers";
@@ -184,7 +184,7 @@ export class OSCQueryBridgeControllerPrivate {
 							controller.enqueue(resp.result);
 						}
 
-						if (resp.result?.progress === 100) { // Complete?
+						if (resp.result?.code === RunnerCmdResultCode.Success) { // Complete?
 							cleanup();
 							controller.close();
 							return;
