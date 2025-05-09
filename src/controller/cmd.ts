@@ -1,7 +1,17 @@
 import * as Base64 from "js-base64";
 import { RunnerCmdReadMethod, RunnerCmdWriteMethod, RunnerFileType } from "../lib/constants";
 import { oscQueryBridge, RunnerCmd } from "./oscqueryBridgeController";
-import { RunnerDeleteFileResponse, RunnerReadFileResponse, RunnerReadFileResult } from "../lib/types";
+import { RunnerDeleteFileResponse, RunnerReadFileContentResponse, RunnerReadFileResponse, RunnerReadFileResult, RunnerReadFileContentResult } from "../lib/types";
+
+const getSupportsFileSystemAccess = () => {
+	return "showSaveFilePicker" in window && (() => {
+		try {
+			return window.self === window.top;
+		} catch {
+			return false;
+		}
+	})();
+};
 
 const FILE_READ_CHUNK_SIZE = 1024;
 
@@ -55,6 +65,66 @@ export const deleteFileFromRunnerCmd = async (filename: string, filetype: Runner
 	}
 
 	return success;
+};
+
+const readFileCmdTransform = (
+	onProgress?: (p: number) => void
+) => {
+
+	let extra = "";
+	return new TransformStream<RunnerReadFileContentResult, ArrayBufferLike>(
+		{
+			transform(result: RunnerReadFileContentResult, controller) {
+				if (result?.content64 === undefined) {
+					controller.error(new Error("Missing content64 data"));
+					return;
+				}
+
+				const chunk = extra + result.content64;
+				extra = "";
+
+				const bytes = Math.floor(chunk.length / 4);
+				const overflow = chunk.length % 4;
+
+				const data = Base64.toUint8Array(chunk.slice(0, bytes * 4));
+				if (overflow !== 0) extra = chunk.slice(overflow * -1);
+
+				controller.enqueue(data.buffer);
+				onProgress?.(result.progress);
+			}
+		},
+		new CountQueuingStrategy({ highWaterMark: 1 }),
+		new CountQueuingStrategy({ highWaterMark: 1 })
+	);
+};
+
+export const readFileFromRunnerCmd = async (filename: string, filetype: RunnerFileType): Promise<void> => {
+
+	if (!getSupportsFileSystemAccess()) throw new Error("FileSystem Access API is not supported");
+
+	try {
+		const handle = await window.showSaveFilePicker({
+			id: "saveFile",
+			startIn: "downloads",
+			suggestedName: filename
+		});
+
+		const cmd = new RunnerCmd(RunnerCmdReadMethod.ReadFileContent, {
+			filename,
+			filetype,
+			size: FILE_READ_CHUNK_SIZE
+		});
+
+		await oscQueryBridge.getCmdReadableStream<RunnerReadFileContentResponse>(cmd)
+			.pipeThrough(readFileCmdTransform())
+			.pipeTo(await handle.createWritable({ keepExistingData: false }));
+
+		return;
+
+	} catch (err) {
+		if (err.name === "AbortError") return; // User Aborted the Dialog
+		throw err;
+	}
 };
 
 // Write CMDs

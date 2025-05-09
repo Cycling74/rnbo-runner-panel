@@ -133,6 +133,7 @@ export enum RunnerCmdResultCode {
 };
 
 export enum RunnerCmdReadMethod {
+	ReadFileContent = "file_read64",
 	ReadFileList = "file_read",
 	DeleteFile = "file_delete",
 	WriteFile = "file_write",
