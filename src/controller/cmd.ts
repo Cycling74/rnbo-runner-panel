@@ -2,16 +2,15 @@ import * as Base64 from "js-base64";
 import { RunnerCmdReadMethod, RunnerCmdWriteMethod, RunnerFileType } from "../lib/constants";
 import { oscQueryBridge, RunnerCmd } from "./oscqueryBridgeController";
 import { RunnerDeleteFileResponse, RunnerReadFileResponse, RunnerReadFileResult } from "../lib/types";
-import { DataFileRecord } from "../models/datafile";
 
 const FILE_READ_CHUNK_SIZE = 1024;
 
 // Read CMDs
-export const getDataFileListFromRunnerCmd = async (): Promise<string[]> => {
+export const getFileListFromRunnerCmd = async (filetype: RunnerFileType): Promise<string[]> => {
 	const cmd = new RunnerCmd(
-		RunnerCmdReadMethod.ReadFile,
+		RunnerCmdReadMethod.ReadFileList,
 		{
-			filetype: RunnerFileType.DataFile,
+			filetype,
 			size: FILE_READ_CHUNK_SIZE
 		}
 	);
@@ -39,10 +38,10 @@ export const getDataFileListFromRunnerCmd = async (): Promise<string[]> => {
 	return JSON.parse(filePaths);
 };
 
-export const deleteDataFileFromRunnerCmd = async (file: DataFileRecord): Promise<boolean> => {
+export const deleteFileFromRunnerCmd = async (filename: string, filetype: RunnerFileType): Promise<boolean> => {
 	const cmd = new RunnerCmd(RunnerCmdReadMethod.DeleteFile, {
-		filename: file.fileName,
-		filetype: "datafile"
+		filename,
+		filetype
 	});
 
 	const stream = oscQueryBridge.getCmdReadableStream<RunnerDeleteFileResponse>(cmd);
