@@ -6,11 +6,9 @@ import { Dropzone, FileWithPath } from "@mantine/dropzone";
 import classes from "./datafile.module.css";
 import { formatFileSize } from "../../lib/util";
 import { v4 } from "uuid";
-import { useAppDispatch } from "../../hooks/useAppDispatch";
-import { uploadFileToRemote } from "../../actions/datafiles";
-import { AppDispatch } from "../../lib/store";
 import { IconElement } from "../elements/icon";
 import { mdiAlertCircleOutline, mdiCheckCircleOutline, mdiClose, mdiFileMusic, mdiLoading, mdiProgressClock, mdiUpload, mdiUploadOff } from "@mdi/js";
+import { writeFileToRunnerCmd } from "../../controller/cmd";
 
 const AUDIO_MIME_TYPE: string[] = [
 	"audio/aiff", "audio/x-aiff",
@@ -146,10 +144,6 @@ enum UploadStep {
 	Error
 }
 
-const doUpload = async (dispatch: AppDispatch, file: File, onProgress: (progress: number) => any) => new Promise<void>((resolve, reject) => {
-	dispatch(uploadFileToRemote(file, { resolve, reject, onProgress }));
-});
-
 export type DataFileUploadModalProps = {
 	maxFileCount?: number;
 	onClose: () => any;
@@ -162,7 +156,6 @@ export const DataFileUploadModal: FC<DataFileUploadModalProps> = memo(function W
 	onUploadSuccess,
 	maxFileCount = 1
 }) {
-	const dispatch = useAppDispatch();
 	const [uploads, setUploads] = useState<ImmuMap<UploadFile["id"], UploadFile>>(ImmuMap<UploadFile["id"], UploadFile>());
 	const [step, setStep] = useState<UploadStep>(UploadStep.Select);
 
@@ -190,9 +183,12 @@ export const DataFileUploadModal: FC<DataFileUploadModalProps> = memo(function W
 		let errored = false;
 		for (const upload of uploads.valueSeq().toArray()) {
 			try {
-				await doUpload(dispatch, upload.file, (progress: number) => {
-					setUploads(up => up.set(upload.id, { ...upload, progress }));
-				});
+				await writeFileToRunnerCmd(
+					upload.file,
+					(progress: number) => {
+						setUploads(up => up.set(upload.id, { ...upload, progress }));
+					}
+				);
 			} catch (err) {
 				errored = true;
 				setUploads(up => up.set(upload.id, { ...upload, progress: 0, error: err }));
@@ -205,7 +201,7 @@ export const DataFileUploadModal: FC<DataFileUploadModalProps> = memo(function W
 			setUploads(ImmuMap<UploadFile["id"], UploadFile>());
 			setStep(UploadStep.Select);
 		}
-	}, [setStep, uploads, setUploads, dispatch, onUploadSuccess]);
+	}, [setStep, uploads, setUploads, onUploadSuccess]);
 
 	const onTriggerClose = useCallback(() => {
 		if (step === UploadStep.Uploading) return;

@@ -1,15 +1,16 @@
+import { v4 as uuidv4 } from "uuid";
 import { parse as parseQuery } from "querystring";
 import { OSCBundle, OSCMessage, readPacket, writePacket } from "osc";
 import { initRunnerInfo, setRunnerInfoValue, setAppStatus, setConnectionEndpoint } from "../actions/appStatus";
 import { AppDispatch, store } from "../lib/store";
 import { ReconnectingWebsocket } from "../lib/reconnectingWs";
-import { AppStatus, JackInfoKey, RunnerCmdMethod, SystemInfoKey } from "../lib/constants";
-import { OSCQueryRNBOState, OSCQueryRNBOInstance, OSCQueryRNBOPatchersState, OSCValue, OSCQueryRNBOInstancesMetaState, OSCQuerySetMeta } from "../lib/types";
+import { AppStatus, JackInfoKey, RunnerCmdMethod, RunnerCmdWriteMethod, SystemInfoKey, WebSocketState } from "../lib/constants";
+import { OSCQueryRNBOState, OSCQueryRNBOInstance, OSCQueryRNBOPatchersState, OSCValue, OSCQueryRNBOInstancesMetaState, OSCQuerySetMeta, RunnerCmdResponse } from "../lib/types";
 import { deletePortAliases, initConnections, initPorts, setPortAliases, updateSetMetaFromRemote, updateSourcePortConnections, deletePortById, setPortProperties, addPort } from "../actions/graph";
 import { addInstance, deleteInstanceById, initInstances, initPatchers, removeInstanceDataRefByPath, updateInstanceDataRefMeta, updateInstanceDataRefs, updateInstanceParameterDisplayName, updateInstanceAlias } from "../actions/patchers";
 import { initRunnerConfig, updateRunnerConfig } from "../actions/settings";
 import { initSets, setCurrentGraphSet, initSetPresets, setGraphSetPresetLatest, initSetViews, updateSetViewName, updateSetViewParameterList, deleteSetView, addSetView, updateSetViewOrder, setCurrentGraphSetDirtyState, setGraphSetInitialSet } from "../actions/sets";
-import { initDataFiles, updateDataFiles } from "../actions/datafiles";
+import { triggerDataFileListRefresh } from "../actions/datafiles";
 import { sleep } from "../lib/util";
 import { getPatcherInstance } from "../selectors/patchers";
 import {
@@ -25,40 +26,10 @@ import {
 import { showNotification } from "../actions/notifications";
 import { NotificationLevel } from "../models/notification";
 import { initTransport, updateTransportStatus } from "../actions/transport";
-import { v4 as uuidv4 } from "uuid";
 import { deserializeSetMeta } from "../lib/meta";
 import { initStreamRecording, updateStreamRecordingActiveState, updateStreamRecordingCapturedTime } from "../actions/recording";
 
 const dispatch = store.dispatch as AppDispatch;
-
-const FILE_READ_CHUNK_SIZE = 1024;
-
-enum OSCQueryCommand {
-	PATH_ADDED = "PATH_ADDED",
-	PATH_REMOVED = "PATH_REMOVED",
-	ATTRIBUTES_CHANGED = "ATTRIBUTES_CHANGED"
-}
-
-const portPropertiesPathMatcher = /^\/rnbo\/jack\/info\/ports\/properties\/(?<port>.+)$/;
-const portAliasPathMatcher = /^\/rnbo\/jack\/info\/ports\/aliases\/(?<port>.+)$/;
-const patchersPathMatcher = /^\/rnbo\/patchers/;
-const instancePathMatcher = /^\/rnbo\/inst\/(?<id>\d+)$/;
-const instanceStatePathMatcher = /^\/rnbo\/inst\/(?<id>\d+)\/(?<content>params|messages\/in|messages\/out|presets|data_refs|config|midi\/last)\/(?<rest>\S+)/;
-const instancePresetPathMatcher = /^\/rnbo\/inst\/(?<id>\d+)\/presets\/(?<property>loaded|initial)$/;
-const connectionsPathMatcher = /^\/rnbo\/jack\/connections\/(?<type>audio|midi)\/(?<id>.+)$/;
-const setMetaPathMatcher = /^\/rnbo\/inst\/control\/sets\/meta/;
-const setViewPathMatcher = /^\/rnbo\/inst\/control\/sets\/views\/list\/(?<id>\d+)(?<rest>\/\S+)?/;
-
-// TODO const setsPresetsCurrentNamePath = "/rnbo/inst/control/sets/current/name";
-const setsPresetsLoadPath = "/rnbo/inst/control/sets/presets/load";
-
-const configPathMatcher = /^\/rnbo\/config\/(?<name>.+)$/;
-const jackConfigPathMatcher = /^\/rnbo\/jack\/config\/(?<name>.+)$/;
-const jackInfoPathMatcher = /^\/rnbo\/jack\/info\/(?<name>[^/]+)$/;
-const instanceConfigPathMatcher = /^\/rnbo\/inst\/config\/(?<name>.+)$/;
-const recordPathMatcher = /^\/rnbo\/jack\/record\/(?<name>.+)$/;
-const runnerInfoMatcher = /^\/rnbo\/info\/(?<name>[^/]+)$/;
-
 
 export class RunnerCmd {
 
@@ -94,9 +65,69 @@ export class RunnerCmd {
 	}
 }
 
+// Readable Runner CMD Utilities
+type RunnerCmdResponseListener = (resp: RunnerCmdResponse) => void;
+class RunnerCmdResponseProcessor {
+
+	private readonly processStreams: Map<RunnerCmd["id"], RunnerCmdResponseListener> = new Map();
+
+	public registerProcessor(id: RunnerCmd["id"], listener: RunnerCmdResponseListener): void {
+		this.processStreams.set(id, listener);
+	}
+
+	public unregisterProcess(id: RunnerCmd["id"]): void {
+		this.processStreams.delete(id);
+	}
+
+	public processMessage(msg: OSCMessage): Promise<void> {
+		const resp: RunnerCmdResponse = JSON.parse((msg as OSCMessage).args[0].value as string);
+
+		if (resp.error) throw new Error(resp.error); // TODO: dicuss how to handle errors here
+		if (!resp.result) throw new Error(`Unknown cmd response packet:\n${msg.args[0].value}`);
+
+		const processor = this.processStreams.get(resp.id);
+		if (!processor) {
+			console.warn(`Received cmd response for ${resp.id} without registered processor:\n${msg.args[0].value}`);
+			return;
+		}
+
+		processor(resp);
+	}
+}
+
+
+enum OSCQueryCommand {
+	PATH_ADDED = "PATH_ADDED",
+	PATH_REMOVED = "PATH_REMOVED",
+	ATTRIBUTES_CHANGED = "ATTRIBUTES_CHANGED"
+}
+
+const portPropertiesPathMatcher = /^\/rnbo\/jack\/info\/ports\/properties\/(?<port>.+)$/;
+const portAliasPathMatcher = /^\/rnbo\/jack\/info\/ports\/aliases\/(?<port>.+)$/;
+const patchersPathMatcher = /^\/rnbo\/patchers/;
+const instancePathMatcher = /^\/rnbo\/inst\/(?<id>\d+)$/;
+const instanceStatePathMatcher = /^\/rnbo\/inst\/(?<id>\d+)\/(?<content>params|messages\/in|messages\/out|presets|data_refs|config|midi\/last)\/(?<rest>\S+)/;
+const instancePresetPathMatcher = /^\/rnbo\/inst\/(?<id>\d+)\/presets\/(?<property>loaded|initial)$/;
+const connectionsPathMatcher = /^\/rnbo\/jack\/connections\/(?<type>audio|midi)\/(?<id>.+)$/;
+const setMetaPathMatcher = /^\/rnbo\/inst\/control\/sets\/meta/;
+const setViewPathMatcher = /^\/rnbo\/inst\/control\/sets\/views\/list\/(?<id>\d+)(?<rest>\/\S+)?/;
+
+// TODO const setsPresetsCurrentNamePath = "/rnbo/inst/control/sets/current/name";
+const setsPresetsLoadPath = "/rnbo/inst/control/sets/presets/load";
+
+const configPathMatcher = /^\/rnbo\/config\/(?<name>.+)$/;
+const jackConfigPathMatcher = /^\/rnbo\/jack\/config\/(?<name>.+)$/;
+const jackInfoPathMatcher = /^\/rnbo\/jack\/info\/(?<name>[^/]+)$/;
+const instanceConfigPathMatcher = /^\/rnbo\/inst\/config\/(?<name>.+)$/;
+const recordPathMatcher = /^\/rnbo\/jack\/record\/(?<name>.+)$/;
+const runnerInfoMatcher = /^\/rnbo\/info\/(?<name>[^/]+)$/;
+
 export class OSCQueryBridgeControllerPrivate {
 
 	private _hasIsActive: boolean = false;
+
+	private readonly cmdResponseChunkProcessor: RunnerCmdResponseProcessor = new RunnerCmdResponseProcessor();
+	private readonly cmdWriteStreamLock: Map<RunnerCmdWriteMethod, string> = new Map();
 
 	private static instanceExists(instanceId: string): boolean {
 		return !!getPatcherInstance(store.getState(), instanceId);
@@ -129,86 +160,87 @@ export class OSCQueryBridgeControllerPrivate {
 		});
 	}
 
-	public sendCmd(cmd: RunnerCmd): Promise<any[]> {
-		return new Promise<any[]>((resolve, reject) => {
+	public getCmdReadableStream<R extends RunnerCmdResponse>(cmd: RunnerCmd): ReadableStream<R["result"]> {
 
-			const responses: any[] = [];
-			let resolved = false;
-			let timeout: NodeJS.Timeout;
+		let timeout: ReturnType<typeof setTimeout> | undefined;
 
-			// Reassigning cleanup later in order to allow access to both, cleanup and callback
-			// eslint-disable-next-line prefer-const
-			let cleanup: () => void | undefined;
+		const cleanup = (): void => {
+			if (timeout) clearTimeout(timeout);
+			this.cmdResponseChunkProcessor.unregisterProcess(cmd.id);
+		};
 
-			const callback = async (evt: MessageEvent): Promise<void> => {
-				try {
-					if (resolved) return;
-					if (typeof evt !== "string") {
-						let msg = readPacket(await evt.data.arrayBuffer(), { metadata: true });
-						if (!msg.hasOwnProperty("address")) return;
+		const stream = new ReadableStream<R["result"]>(
+			{
+				start: (controller: ReadableStreamDefaultController<R["result"]>): void => {
 
-						msg = msg as OSCMessage;
-						if (msg.hasOwnProperty("address") && msg.address === "/rnbo/resp") {
-							const resp = JSON.parse((msg as OSCMessage).args[0].value as string);
-							if (resp.error) {
-								throw new Error(resp.error);
-							} else if (resp.result) {
-								if (resp.id !== cmd.id) return;
-
-								responses.push(resp.result);
-								const p = parseInt(resp.result.progress, 10);
-
-								if (p === 100) {
-									cleanup?.();
-									return void resolve(responses);
-								}
-							} else {
-								throw new Error("unknown response packet: " + msg.args[0].value);
-							}
+					// Set up message enqueuing
+					this.cmdResponseChunkProcessor.registerProcessor(cmd.id, (resp: R): void => {
+						controller.enqueue(resp.result);
+						if (resp.result?.progress === 100) { // Complete?
+							cleanup();
+							controller.close();
+							return;
 						}
+					});
+
+					// Set up Timeout handling
+					if (cmd.hasTimeout) {
+						timeout = setTimeout(() => {
+							cleanup();
+							controller.error(new Error(`Command ${cmd.id} timed out`));
+						}, cmd.timeout);
 					}
-				} catch (err) {
-					cleanup?.();
-					return void reject(err);
+				},
+				pull: (): void => {
+					// no op
+				},
+				cancel: (reason?: any): void => {
+					if (reason) console.log(reason);
+					cleanup();
 				}
-			};
+			},
+			new CountQueuingStrategy({ highWaterMark: 1 })
+		);
 
-			if (cmd.hasTimeout) {
-				timeout = setTimeout(() => {
-					cleanup?.();
-					return void reject(new Error(`Command timed out after ${cmd.timeout}ms`));
-				}, cmd.timeout);
-			}
+		this._ws.sendPacket(Buffer.from(cmd.packet));
+		return stream;
+	}
 
-			cleanup = () => {
-				resolved = true;
-				if (timeout !== undefined) clearTimeout(timeout);
-				this._ws.off("message", callback);
-			};
+	public getCmdWritableStream(method: RunnerCmdWriteMethod): WritableStream<RunnerCmd> {
 
-			this._ws.on("message", callback);
-			this._ws.sendPacket(Buffer.from(cmd.packet));
-		});
+		if (!this.isConnected) throw new Error("Failed to get Runner cmd writer as there is no active connection.");
+		if (this.cmdWriteStreamLock.has(method)) throw new Error(`Failed to get Runner cmd writer as there is already a stream in use to for cmd ${method}`);
+
+		const streamId = uuidv4();
+		return new WritableStream<RunnerCmd>(
+			{
+				start: () => {
+					this.cmdWriteStreamLock.set(method, streamId);
+				},
+				write: async (cmd: RunnerCmd, controller: WritableStreamDefaultController): Promise<void> =>  {
+					if (!this.isConnected) {
+						controller.error(new Error("WebSocket connection closed"));
+						return;
+					}
+					this._ws.sendPacket(Buffer.from(cmd.packet));
+					await sleep(0);
+				},
+
+				close: (): void => {
+					this.cmdWriteStreamLock.delete(method);
+				},
+
+				abort: (reason?: any): void => {
+					this.cmdWriteStreamLock.delete(method);
+				}
+			},
+			new CountQueuingStrategy({ highWaterMark: 1 })
+		);
 	}
 
 	public async getMetaState(): Promise<OSCQueryRNBOInstancesMetaState> {
 		const state = await this._requestState<OSCQueryRNBOInstancesMetaState>("/rnbo/inst/control/sets/meta");
 		return state;
-	}
-
-	private async _getDataFileList(): Promise<string[]> {
-		let seq = 0;
-		const filePaths: string[] = JSON.parse((await this.sendCmd(new RunnerCmd(RunnerCmdMethod.ReadFile, {
-			filetype: "datafile",
-			size: FILE_READ_CHUNK_SIZE
-		}))).sort((a, b) => parseInt(a.seq, 10) - parseInt(b.seq, 10)).map(v => {
-			if (v.seq === undefined || parseInt(v.seq, 10) !== seq) {
-				throw new Error(`unexpected sequence number ${v.seq}`);
-			}
-			seq++;
-			return v.content;
-		}).join(""));
-		return filePaths;
 	}
 
 	private async _initAudio(state: OSCQueryRNBOState) {
@@ -254,17 +286,7 @@ export class OSCQueryBridgeControllerPrivate {
 		dispatch(setGraphSetPresetLatest(state.CONTENTS.inst?.CONTENTS?.control?.CONTENTS?.sets?.CONTENTS?.presets?.CONTENTS?.loaded?.VALUE || ""));
 		dispatch(initSetViews(state.CONTENTS.inst?.CONTENTS?.control?.CONTENTS?.sets?.CONTENTS?.views));
 
-		// TODO could take a bit?
-		try {
-			dispatch(initDataFiles(await this._getDataFileList()));
-		} catch (err) {
-			console.error(err);
-			dispatch(showNotification({
-				title: "Error while requesting sample data",
-				message: `${err.message} - Please check the console for more details`,
-				level: NotificationLevel.error
-			}));
-		}
+		dispatch(triggerDataFileListRefresh(true));
 
 		this._hasIsActive  = state.CONTENTS.jack?.CONTENTS?.info?.CONTENTS?.is_active !== undefined;
 
@@ -315,14 +337,20 @@ export class OSCQueryBridgeControllerPrivate {
 				}
 			} else {
 				const buf: Uint8Array = await evt.data.arrayBuffer();
-				const data = readPacket(buf, {});
+				const data = readPacket(buf, { metadata: true });
 
 				if (data.hasOwnProperty("address")) {
-					await this._processOSCMessage(data as OSCMessage);
+
+					const msg = data as OSCMessage;
+					if (msg.address === "/rnbo/resp") {
+						// Command response
+						await this.cmdResponseChunkProcessor.processMessage(msg);
+					} else {
+						await this._processOSCMessage(msg);
+					}
 				} else {
 					await this._processOSCBundle(data as OSCBundle);
 				}
-
 			}
 		} catch (e) {
 			console.error(e);
@@ -640,17 +668,8 @@ export class OSCQueryBridgeControllerPrivate {
 		// Runner Info Changes
 		const runnerInfoMatch = packet.address.match(runnerInfoMatcher);
 		if (runnerInfoMatch?.groups?.name === "datafile_dir_mtime") {
-		// only sent when it changes so we don't care what the value, just read the list again
-			try {
-				return void dispatch(updateDataFiles(await this._getDataFileList()));
-			} catch (err) {
-				console.error(err);
-				dispatch(showNotification({
-					title: "Error while requesting audio file info",
-					message: `${err.message} - Please check the console for more details`,
-					level: NotificationLevel.error
-				}));
-			}
+			// only sent when it changes so we don't care what the value, just read the list again
+			return void dispatch(triggerDataFileListRefresh());
 		} else if (runnerInfoMatch?.groups?.name?.length) {
 			return void dispatch(setRunnerInfoValue(runnerInfoMatch?.groups?.name as SystemInfoKey, (packet.args as unknown as [string])?.[0] || ""));
 		}
@@ -686,7 +705,6 @@ export class OSCQueryBridgeControllerPrivate {
 		} else if (recordMatch && packet.args.length) {
 			return void dispatch(updateRunnerConfig(packet.address, packet.args[0] as unknown as string | number | boolean));
 		}
-
 
 		// Instance Scoped Messages
 		const packetMatch = packet.address.match(instanceStatePathMatcher);
@@ -794,12 +812,19 @@ export class OSCQueryBridgeControllerPrivate {
 		return this._ws.port;
 	}
 
+	public get isConnected(): boolean {
+		return this._ws?.readyState === WebSocketState.OPEN;
+	}
+
 	public async connect({ hostname, port }: { hostname: string; port: string }): Promise<void> {
 
 		this._ws = new ReconnectingWebsocket({ hostname, port });
+
 		try {
 			dispatch(setConnectionEndpoint(hostname, port));
 			await this._ws.connect();
+
+			this.cmdWriteStreamLock.clear();
 			dispatch(setAppStatus(AppStatus.InitializingState));
 
 			this._ws.on("close", this._onClose);
