@@ -76,6 +76,16 @@ export type RunnerReadFileResult = RunnerCmdResult<{
 
 export type RunnerReadFileResponse = RunnerCmdResponse<RunnerReadFileResult>;
 
+export type RunnerReadFileContentResult = RunnerCmdResult<{
+	content64: string;
+	message: "read";
+	md5?: string;
+	remaining: number;
+	seq: number;
+}>;
+
+export type RunnerReadFileContentResponse = RunnerCmdResponse<RunnerReadFileContentResult>;
+
 export type RunnerDeleteFileResult = RunnerCmdResult<{
 	message: "received" | "deleted";
 }>;
