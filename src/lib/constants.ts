@@ -123,6 +123,11 @@ export enum ParameterSortAttr {
 	Name = "name"
 }
 
+export enum RunnerFileType {
+	DataFile = "datafile",
+	Package = "package"
+};
+
 export enum RunnerCmdReadMethod {
 	ReadFile = "file_read",
 	DeleteFile = "file_delete",

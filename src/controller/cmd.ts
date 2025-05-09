@@ -1,5 +1,5 @@
 import * as Base64 from "js-base64";
-import { RunnerCmdReadMethod, RunnerCmdWriteMethod } from "../lib/constants";
+import { RunnerCmdReadMethod, RunnerCmdWriteMethod, RunnerFileType } from "../lib/constants";
 import { oscQueryBridge, RunnerCmd } from "./oscqueryBridgeController";
 import { RunnerDeleteFileResponse, RunnerReadFileResponse, RunnerReadFileResult } from "../lib/types";
 import { DataFileRecord } from "../models/datafile";
@@ -11,7 +11,7 @@ export const getDataFileListFromRunnerCmd = async (): Promise<string[]> => {
 	const cmd = new RunnerCmd(
 		RunnerCmdReadMethod.ReadFile,
 		{
-			filetype: "datafile",
+			filetype: RunnerFileType.DataFile,
 			size: FILE_READ_CHUNK_SIZE
 		}
 	);
@@ -59,7 +59,17 @@ export const deleteDataFileFromRunnerCmd = async (file: DataFileRecord): Promise
 };
 
 // Write CMDs
-const writeFileCmdTransform = (fileSize: number, filename: string, onProgress?: (p: number) => void) => {
+
+type WriteFileInfo = {
+	name: string;
+	size: number;
+	type: RunnerFileType;
+};
+
+const writeFileCmdTransform = (
+	fileInfo: WriteFileInfo,
+	onProgress?: (p: number) => void
+) => {
 	let current = 0;
 
 	return new TransformStream<Uint8Array, RunnerCmd>(
@@ -67,21 +77,21 @@ const writeFileCmdTransform = (fileSize: number, filename: string, onProgress?: 
 			transform(chunk, controller) {
 				controller.enqueue(
 					new RunnerCmd(RunnerCmdWriteMethod.WriteFile, {
-						filename,
-						filetype: "datafile",
+						filename: fileInfo.name,
+						filetype: fileInfo.type,
 						data: Base64.fromUint8Array(chunk, false),
 						append: current !== 0
 					})
 				);
 				current += chunk.byteLength;
-				onProgress?.((current / fileSize) * 100);
+				onProgress?.((current / fileInfo.size) * 100);
 			},
 
 			flush(controller) {
 				controller.enqueue(
 					new RunnerCmd(RunnerCmdWriteMethod.WriteFile, {
-						filename,
-						filetype: "datafile",
+						filename: fileInfo.name,
+						filetype: fileInfo.type,
 						data: "",
 						append: true,
 						complete: true
@@ -94,11 +104,11 @@ const writeFileCmdTransform = (fileSize: number, filename: string, onProgress?: 
 	);
 };
 
-export const writeFileToRunnerCmd = async (file: File, onProgress?: (progress: number) => void): Promise<void> => {
+export const writeFileToRunnerCmd = async (file: File, type: RunnerFileType, onProgress?: (progress: number) => void): Promise<void> => {
 	const writeStream = oscQueryBridge.getCmdWritableStream(RunnerCmdWriteMethod.WriteFile);
 	if (writeStream.locked) throw new Error("Can't write cmd to stream as it's already locked");
 
 	await file.stream()
-		.pipeThrough(writeFileCmdTransform(file.size, file.name, onProgress))
+		.pipeThrough(writeFileCmdTransform({ name: file.name, size: file.size, type }, onProgress))
 		.pipeTo(writeStream);
 };
