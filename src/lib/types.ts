@@ -62,9 +62,9 @@ export type RunnerCmdResult<R extends RunnerCmdResultPayload> = R & {
 
 export type RunnerCmdResponse<R extends RunnerCmdResult<{ message: string; }> = RunnerCmdResult<{ message: string; }>> = {
 	id: string;
-	error?: string;
+	error?: { code: number; message: string; };
 	jsonrpc: "2.0";
-	result: RunnerCmdResult<R>;
+	result?: RunnerCmdResult<R>;
 };
 
 export type RunnerReadFileResult = RunnerCmdResult<{

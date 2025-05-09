@@ -82,8 +82,7 @@ class RunnerCmdResponseProcessor {
 	public processMessage(msg: OSCMessage): Promise<void> {
 		const resp: RunnerCmdResponse = JSON.parse((msg as OSCMessage).args[0].value as string);
 
-		if (resp.error) throw new Error(resp.error); // TODO: dicuss how to handle errors here
-		if (!resp.result) throw new Error(`Unknown cmd response packet:\n${msg.args[0].value}`);
+		if (!resp.id) throw new Error(`Missing cmd response id in packet:\n${msg.args[0].value}`);
 
 		const processor = this.processStreams.get(resp.id);
 		if (!processor) {
@@ -175,7 +174,16 @@ export class OSCQueryBridgeControllerPrivate {
 
 					// Set up message enqueuing
 					this.cmdResponseChunkProcessor.registerProcessor(cmd.id, (resp: R): void => {
-						controller.enqueue(resp.result);
+
+						if (resp.error) {
+							controller.error(new Error(`${resp.error.message || "Unexpected Error"} (Code: ${resp.error.code || "unknown"})`));
+							return;
+						}
+
+						if (resp.result) {
+							controller.enqueue(resp.result);
+						}
+
 						if (resp.result?.progress === 100) { // Complete?
 							cleanup();
 							controller.close();
