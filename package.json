@@ -52,6 +52,7 @@
     "@types/react-fontawesome": "^1.6.5",
     "@types/styled-components": "^5.1.14",
     "@types/uuid": "^9.0.5",
+    "@types/wicg-file-system-access": "^2023.10.6",
     "eslint": "^8.50.0",
     "eslint-config-c74-ts": "^3.0.0",
     "eslint-config-next": "^13.5.3",
