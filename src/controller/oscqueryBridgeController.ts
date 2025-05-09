@@ -86,7 +86,7 @@ class RunnerCmdResponseProcessor {
 
 		const processor = this.processStreams.get(resp.id);
 		if (!processor) {
-			console.warn(`Received cmd response for ${resp.id} without registered processor:\n${msg.args[0].value}`);
+			process.env.NODE_ENV === "development" && console.warn(`Received cmd response for ${resp.id} without registered processor:\n${msg.args[0].value}`);
 			return;
 		}
 
