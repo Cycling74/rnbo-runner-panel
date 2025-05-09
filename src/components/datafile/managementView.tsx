@@ -1,11 +1,11 @@
 import { FC, memo, useCallback, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../../hooks/useAppDispatch";
 import { useDisclosure } from "@mantine/hooks";
-import { SortOrder } from "../../lib/constants";
+import { RunnerFileType, SortOrder } from "../../lib/constants";
 import { RootStateType } from "../../lib/store";
 import { getDataFilesSortedByName } from "../../selectors/datafiles";
 import { DataFileRecord } from "../../models/datafile";
-import { deleteDataFileOnRemote } from "../../actions/datafiles";
+import { deleteDataFileOnRemote, downloadDataFileFromRunner } from "../../actions/datafiles";
 import { showNotification } from "../../actions/notifications";
 import { DataFileUploadModal, UploadFile } from "./uploadModal";
 import { NotificationLevel } from "../../models/notification";
@@ -15,6 +15,7 @@ import { mdiUpload } from "@mdi/js";
 import { TableHeaderCell } from "../elements/tableHeaderCell";
 import { DataFileListItem } from "./item";
 import { SearchInput } from "../page/searchInput";
+import { readFileFromRunnerCmd } from "../../controller/cmd";
 
 export const DataFileManagementView: FC = memo(function WrappedDataFileView() {
 
@@ -33,6 +34,10 @@ export const DataFileManagementView: FC = memo(function WrappedDataFileView() {
 
 	const onDeleteFile = useCallback((file: DataFileRecord) => {
 		dispatch(deleteDataFileOnRemote(file));
+	}, [dispatch]);
+
+	const onDownloadFile = useCallback((file: DataFileRecord) => {
+		dispatch(downloadDataFileFromRunner(file));
 	}, [dispatch]);
 
 	const onFileUploadSuccess = useCallback((files: UploadFile[]) => {
@@ -67,6 +72,7 @@ export const DataFileManagementView: FC = memo(function WrappedDataFileView() {
 								key={ f.id }
 								dataFile={ f }
 								onDelete={ onDeleteFile }
+								onDownload={ onDownloadFile }
 							/>
 						))
 					}

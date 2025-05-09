@@ -7,7 +7,7 @@ import { DialogResult, showConfirmDialog } from "../lib/dialogs";
 import { getDataFiles, getPendingDataFileByFilename } from "../selectors/datafiles";
 import { DataRefRecord } from "../models/dataref";
 import { getPatcherInstanceDataRef } from "../selectors/patchers";
-import { deleteFileFromRunnerCmd, getFileListFromRunnerCmd } from "../controller/cmd";
+import { deleteFileFromRunnerCmd, getFileListFromRunnerCmd, readFileFromRunnerCmd } from "../controller/cmd";
 import { RunnerFileType } from "../lib/constants";
 
 export enum DataFilesActionType {
@@ -122,7 +122,6 @@ export const updateDataFiles = (paths: string[]): AppThunk =>
 		}
 	};
 
-
 export const triggerDataFileListRefresh = (init: boolean = false): AppThunk =>
 	async (dispatch) => {
 		try {
@@ -174,3 +173,22 @@ export const deleteDataFileOnRemote = (file: DataFileRecord): AppThunk =>
 			console.log(err);
 		}
 	};
+
+export const downloadDataFileFromRunner = (file: DataFileRecord): AppThunk =>
+	async (dispatch) => {
+		try {
+			await readFileFromRunnerCmd(file.fileName, RunnerFileType.DataFile);
+			dispatch(showNotification({
+				level: NotificationLevel.success,
+				title: "Finished Download",
+				message: `${file.fileName} has been downloaded successfully`
+			}));
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: `Error while trying to download audio file ${file.fileName}`,
+				message: "Please check the console for further details."
+			}));
+			console.log(err);
+		}
+	}
