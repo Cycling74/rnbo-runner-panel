@@ -7,7 +7,8 @@ import { DialogResult, showConfirmDialog } from "../lib/dialogs";
 import { getDataFiles, getPendingDataFileByFilename } from "../selectors/datafiles";
 import { DataRefRecord } from "../models/dataref";
 import { getPatcherInstanceDataRef } from "../selectors/patchers";
-import { deleteDataFileFromRunnerCmd, getDataFileListFromRunnerCmd } from "../controller/cmd";
+import { deleteFileFromRunnerCmd, getFileListFromRunnerCmd } from "../controller/cmd";
+import { RunnerFileType } from "../lib/constants";
 
 export enum DataFilesActionType {
 	SET_ALL = "SET_DATAFILES",
@@ -125,7 +126,7 @@ export const updateDataFiles = (paths: string[]): AppThunk =>
 export const triggerDataFileListRefresh = (init: boolean = false): AppThunk =>
 	async (dispatch) => {
 		try {
-			const files = await getDataFileListFromRunnerCmd();
+			const files = await getFileListFromRunnerCmd(RunnerFileType.DataFile);
 			dispatch(
 				init
 					? initDataFiles(files)
@@ -156,7 +157,7 @@ export const deleteDataFileOnRemote = (file: DataFileRecord): AppThunk =>
 				return;
 			}
 
-			await deleteDataFileFromRunnerCmd(file);
+			await deleteFileFromRunnerCmd(file.fileName, RunnerFileType.DataFile);
 
 			dispatch(showNotification({
 				level: NotificationLevel.success,

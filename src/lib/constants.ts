@@ -136,7 +136,7 @@ export enum RunnerFileType {
 };
 
 export enum RunnerCmdReadMethod {
-	ReadFile = "file_read",
+	ReadFileList = "file_read",
 	DeleteFile = "file_delete",
 	WriteFile = "file_write",
 	WriteFileExtended = "file_write_extended"
