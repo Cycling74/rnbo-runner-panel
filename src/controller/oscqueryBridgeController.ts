@@ -209,7 +209,7 @@ export class OSCQueryBridgeControllerPrivate {
 	public getCmdWritableStream(method: RunnerCmdWriteMethod): WritableStream<RunnerCmd> {
 
 		if (!this.isConnected) throw new Error("Failed to get Runner cmd writer as there is no active connection.");
-		if (this.cmdWriteStreamLock.has(method)) throw new Error(`Failed to get Runner cmd writer as there is already a stream in use to for cmd ${method}`);
+		if (this.cmdWriteStreamLock.has(method)) throw new Error(`Failed to get Runner cmd writer as there is already a stream in use for cmd ${method}`);
 
 		const streamId = uuidv4();
 		return new WritableStream<RunnerCmd>(
