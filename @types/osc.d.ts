@@ -5,9 +5,9 @@ declare module "osc" {
 		native: number;
 	};
 
-	export type OSCArgument = {
+	export type OSCArgument = Array<number | string> | {
 		type: string;
-		value: string | number;
+		value: string | number;
 	};
 
 	export type OSCMessage = {
