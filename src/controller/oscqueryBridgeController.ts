@@ -80,13 +80,14 @@ class RunnerCmdResponseProcessor {
 	}
 
 	public processMessage(msg: OSCMessage): Promise<void> {
-		const resp: RunnerCmdResponse = JSON.parse((msg as OSCMessage).args[0].value as string);
+		if (!msg.args?.length || typeof msg.args[0] !== "string") throw new Error(`Missing response payload in packet:\n${msg.address} ${msg.args[0]}`);
 
-		if (!resp.id) throw new Error(`Missing cmd response id in packet:\n${msg.args[0].value}`);
+		const resp: RunnerCmdResponse = JSON.parse(msg.args[0]);
+		if (!resp.id) throw new Error(`Missing cmd response id in packet:\n${msg.address} ${msg.args[0]}`);
 
 		const processor = this.processStreams.get(resp.id);
 		if (!processor) {
-			process.env.NODE_ENV === "development" && console.warn(`Received cmd response for ${resp.id} without registered processor:\n${msg.args[0].value}`);
+			process.env.NODE_ENV === "development" && console.warn(`Received cmd response for ${resp.id} without registered processor:\n${msg.address} ${msg.args[0]}`);
 			return;
 		}
 
@@ -345,7 +346,7 @@ export class OSCQueryBridgeControllerPrivate {
 				}
 			} else {
 				const buf: Uint8Array = await evt.data.arrayBuffer();
-				const data = readPacket(buf, { metadata: true });
+				const data = readPacket(buf, {});
 
 				if (data.hasOwnProperty("address")) {
 
