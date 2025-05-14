@@ -150,6 +150,7 @@ export enum RunnerCmdHighWaterMarkCount {
 }
 
 export enum RunnerCmdReadMethod {
+	CreatePackage = "package_create",
 	ReadFileContent = "file_read64",
 	ReadFileList = "file_read",
 	DeleteFile = "file_delete",

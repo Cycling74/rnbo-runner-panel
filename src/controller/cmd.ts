@@ -1,7 +1,9 @@
 import * as Base64 from "js-base64";
-import { RunnerChunkSize, RunnerCmdReadMethod, RunnerCmdWriteMethod, RunnerFileType } from "../lib/constants";
+import { RunnerChunkSize, RunnerCmdReadMethod, RunnerCmdResultCode, RunnerCmdWriteMethod, RunnerFileType } from "../lib/constants";
 import { oscQueryBridge, RunnerCmd } from "./oscqueryBridgeController";
-import { RunnerDeleteFileResponse, RunnerReadFileContentResponse, RunnerReadFileListResponse, RunnerReadFileListResult, RunnerReadFileContentResult } from "../lib/types";
+import { RunnerDeleteFileResponse, RunnerReadFileContentResponse, RunnerReadFileListResponse, RunnerReadFileListResult, RunnerReadFileContentResult, RunnerCreatePackageResult, RunnerCreatePackageResponse } from "../lib/types";
+import { PatcherExportRecord } from "../models/patcher";
+import { GraphSetRecord } from "../models/set";
 
 const getSupportsFileSystemAccess = () => {
 	return "showSaveFilePicker" in window && (() => {
@@ -63,6 +65,40 @@ export const deleteFileFromRunnerCmd = async (filename: string, filetype: Runner
 	}
 
 	return success;
+};
+
+export async function createPackageOnRunner(patcher: PatcherExportRecord): Promise<RunnerCreatePackageResult>;
+export async function createPackageOnRunner(set: GraphSetRecord): Promise<RunnerCreatePackageResult>;
+export async function createPackageOnRunner(item: PatcherExportRecord | GraphSetRecord): Promise<RunnerCreatePackageResult> {
+
+	try {
+
+		const params = item instanceof PatcherExportRecord
+			? { patcher: item.name }
+			: { set: item.name };
+
+		const cmd = new RunnerCmd(RunnerCmdReadMethod.CreatePackage, params);
+
+
+		const stream = oscQueryBridge.getCmdReadableStream<RunnerCreatePackageResponse>(cmd);
+		const reader = stream.getReader();
+		let result: RunnerCreatePackageResult | undefined = undefined;
+
+		while (true) {
+			const { done, value } = await reader.read();
+			if (done) break;
+			if (value.code === RunnerCmdResultCode.Success) {
+				result = value;
+			}
+		}
+
+		if (!result) throw new Error(`Missing success response when attempting to create package.`);
+		return result;
+
+	} catch (err) {
+		if (err.name === "AbortError") return; // User Aborted the Dialog
+		throw err;
+	}
 };
 
 const readFileCmdTransform = (

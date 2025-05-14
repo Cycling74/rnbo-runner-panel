@@ -12,10 +12,11 @@ import { getCurrentGraphSet, getCurrentGraphSetId, getCurrentGraphSetIsDirty, ge
 import { clamp, getUniqueName, instanceAndParamIndicesToSetViewEntry, sleep, validateGraphSetName, validatePresetName, validateSetViewName } from "../lib/util";
 import { setInstanceWaitingForMidiMappingOnRemote } from "./patchers";
 import { DialogResult, showConfirmDialog, showSelectInputDialog, showTextInputDialog } from "../lib/dialogs";
-import { OnLoadGraphSetSetting, SortOrder, UnsavedSetName } from "../lib/constants";
+import { OnLoadGraphSetSetting, RunnerFileType, SortOrder, UnsavedSetName } from "../lib/constants";
 import { getRunnerConfig } from "../selectors/settings";
 import { ConfigKey } from "../models/config";
 import { setRunnerConfig } from "./settings";
+import { createPackageOnRunner, readFileFromRunnerCmd } from "../controller/cmd";
 
 export enum GraphSetActionType {
 	INIT_SETS = "INIT_SETS",
@@ -613,6 +614,23 @@ export const saveCurrentGraphSetOnRemoteAs = (): AppThunk =>
 				message: "Please check the console for further details."
 			}));
 			console.error(err);
+		}
+	};
+
+export const downloadGraphSetFromRemote = (set: GraphSetRecord): AppThunk =>
+	async (dispatch, getState) => {
+		try {
+
+			const pkgResult = await createPackageOnRunner(set);
+			await readFileFromRunnerCmd(pkgResult.filename, RunnerFileType.Package);
+
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: `Error while trying to download graph ${set.name}`,
+				message: "Please check the console for further details."
+			}));
+			console.log(err);
 		}
 	};
 

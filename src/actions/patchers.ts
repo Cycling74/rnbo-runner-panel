@@ -17,10 +17,11 @@ import { DataRefRecord } from "../models/dataref";
 import { DataFileRecord } from "../models/datafile";
 import { PatcherExportRecord } from "../models/patcher";
 import { cloneJSON, dayjs, getUniqueName, InvalidMIDIFormatError, parseMIDIMappingDisplayValue, UnknownMIDIFormatError, validateDataRefExportFilename, validatePatcherInstanceAlias, validatePresetName } from "../lib/util";
-import { MIDIMetaMappingType } from "../lib/constants";
+import { MIDIMetaMappingType, RunnerFileType } from "../lib/constants";
 import { DialogResult, showConfirmDialog, showTextInputDialog } from "../lib/dialogs";
 import { addPendingDataFile } from "./datafiles";
 import { getDataFileByFilename, getPendingDataFileByFilename } from "../selectors/datafiles";
+import { createPackageOnRunner, readFileFromRunnerCmd } from "../controller/cmd";
 
 export enum PatcherActionType {
 	INIT_PATCHERS = "INIT_PATCHERS",
@@ -267,6 +268,23 @@ export const renamePatcherOnRemote = (patcher: PatcherExportRecord, newName: str
 				message: "Please check the console for further details."
 			}));
 			console.error(err);
+		}
+	};
+
+export const downloadPatcherFromRemote = (patcher: PatcherExportRecord): AppThunk =>
+	async (dispatch, getState) => {
+		try {
+
+			const pkgResult = await createPackageOnRunner(patcher);
+			await readFileFromRunnerCmd(pkgResult.filename, RunnerFileType.Package);
+
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: `Error while trying to download patcher ${patcher.name}`,
+				message: "Please check the console for further details."
+			}));
+			console.log(err);
 		}
 	};
 
