@@ -16,7 +16,7 @@ import { AppSetting } from "../models/settings";
 import { DataRefRecord } from "../models/dataref";
 import { DataFileRecord } from "../models/datafile";
 import { PatcherExportRecord } from "../models/patcher";
-import { cloneJSON, dayjs, getUniqueName, InvalidMIDIFormatError, parseMIDIMappingDisplayValue, UnknownMIDIFormatError, validateDataRefExportFilename, validatePatcherInstanceAlias, validatePresetName } from "../lib/util";
+import { cloneJSON, dayjs, getUniqueName, InvalidMIDIFormatError, isUserAbortedError, parseMIDIMappingDisplayValue, UnknownMIDIFormatError, validateDataRefExportFilename, validatePatcherInstanceAlias, validatePresetName } from "../lib/util";
 import { MIDIMetaMappingType, RunnerFileType } from "../lib/constants";
 import { DialogResult, showConfirmDialog, showTextInputDialog } from "../lib/dialogs";
 import { addPendingDataFile } from "./datafiles";
@@ -279,6 +279,8 @@ export const downloadPatcherFromRemote = (patcher: PatcherExportRecord): AppThun
 			await readFileFromRunnerCmd(pkgResult.filename, RunnerFileType.Package);
 
 		} catch (err) {
+			if (isUserAbortedError(err)) return; // User Aborted File Destination chooser
+
 			dispatch(showNotification({
 				level: NotificationLevel.error,
 				title: `Error while trying to download patcher ${patcher.name}`,

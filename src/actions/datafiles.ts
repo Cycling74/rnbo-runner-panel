@@ -2,7 +2,7 @@ import { ActionBase, AppThunk } from "../lib/store";
 import { DataFileRecord, PendingDataFileRecord } from "../models/datafile";
 import { showNotification } from "./notifications";
 import { NotificationLevel } from "../models/notification";
-import { dayjs } from "../lib/util";
+import { dayjs, isUserAbortedError } from "../lib/util";
 import { DialogResult, showConfirmDialog } from "../lib/dialogs";
 import { getDataFiles, getPendingDataFileByFilename } from "../selectors/datafiles";
 import { DataRefRecord } from "../models/dataref";
@@ -184,6 +184,8 @@ export const downloadDataFileFromRunner = (file: DataFileRecord): AppThunk =>
 				message: `${file.fileName} has been downloaded successfully`
 			}));
 		} catch (err) {
+			if (isUserAbortedError(err)) return; // User Aborted File Destination chooser
+
 			dispatch(showNotification({
 				level: NotificationLevel.error,
 				title: `Error while trying to download audio file ${file.fileName}`,
