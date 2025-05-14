@@ -67,14 +67,14 @@ export type RunnerCmdResponse<R extends RunnerCmdResult<{ message: string; }> = 
 	result?: RunnerCmdResult<R>;
 };
 
-export type RunnerReadFileResult = RunnerCmdResult<{
+export type RunnerReadFileListResult = RunnerCmdResult<{
 	content: string;
 	message: "read";
 	remaining: number;
 	seq: number;
 }>;
 
-export type RunnerReadFileResponse = RunnerCmdResponse<RunnerReadFileResult>;
+export type RunnerReadFileListResponse = RunnerCmdResponse<RunnerReadFileListResult>;
 
 export type RunnerReadFileContentResult = RunnerCmdResult<{
 	content64: string;
