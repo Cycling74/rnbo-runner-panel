@@ -191,4 +191,4 @@ export const downloadDataFileFromRunner = (file: DataFileRecord): AppThunk =>
 			}));
 			console.log(err);
 		}
-	}
+	};

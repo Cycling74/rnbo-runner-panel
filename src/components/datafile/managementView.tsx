@@ -1,7 +1,7 @@
 import { FC, memo, useCallback, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../../hooks/useAppDispatch";
 import { useDisclosure } from "@mantine/hooks";
-import { RunnerFileType, SortOrder } from "../../lib/constants";
+import { SortOrder } from "../../lib/constants";
 import { RootStateType } from "../../lib/store";
 import { getDataFilesSortedByName } from "../../selectors/datafiles";
 import { DataFileRecord } from "../../models/datafile";
@@ -15,7 +15,6 @@ import { mdiUpload } from "@mdi/js";
 import { TableHeaderCell } from "../elements/tableHeaderCell";
 import { DataFileListItem } from "./item";
 import { SearchInput } from "../page/searchInput";
-import { readFileFromRunnerCmd } from "../../controller/cmd";
 
 export const DataFileManagementView: FC = memo(function WrappedDataFileView() {
 
