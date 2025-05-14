@@ -139,6 +139,16 @@ export enum RunnerCmdResultCode {
 	Success = 1
 }
 
+export enum RunnerChunkSize {
+	Read = 1024,
+	Write = 1024 * 10
+}
+
+export enum RunnerCmdHighWaterMarkCount {
+	Read = 1,
+	Write = 20 // amount of chunks we allow to buffer up on the runner side until we apply backpressure locally
+}
+
 export enum RunnerCmdReadMethod {
 	ReadFileContent = "file_read64",
 	ReadFileList = "file_read",

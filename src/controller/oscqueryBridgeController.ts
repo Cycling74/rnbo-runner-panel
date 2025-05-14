@@ -4,7 +4,7 @@ import { OSCBundle, OSCMessage, readPacket, writePacket } from "osc";
 import { initRunnerInfo, setRunnerInfoValue, setAppStatus, setConnectionEndpoint } from "../actions/appStatus";
 import { AppDispatch, store } from "../lib/store";
 import { ReconnectingWebsocket } from "../lib/reconnectingWs";
-import { AppStatus, JackInfoKey, RunnerCmdMethod, RunnerCmdResultCode, RunnerCmdWriteMethod, SystemInfoKey, WebSocketState } from "../lib/constants";
+import { AppStatus, JackInfoKey, RunnerCmdHighWaterMarkCount, RunnerCmdMethod, RunnerCmdResultCode, RunnerCmdWriteMethod, SystemInfoKey, WebSocketState } from "../lib/constants";
 import { OSCQueryRNBOState, OSCQueryRNBOInstance, OSCQueryRNBOPatchersState, OSCValue, OSCQueryRNBOInstancesMetaState, OSCQuerySetMeta, RunnerCmdResponse } from "../lib/types";
 import { deletePortAliases, initConnections, initPorts, setPortAliases, updateSetMetaFromRemote, updateSourcePortConnections, deletePortById, setPortProperties, addPort } from "../actions/graph";
 import { addInstance, deleteInstanceById, initInstances, initPatchers, removeInstanceDataRefByPath, updateInstanceDataRefMeta, updateInstanceDataRefs, updateInstanceParameterDisplayName, updateInstanceAlias } from "../actions/patchers";
@@ -37,7 +37,7 @@ export class RunnerCmd {
 
 	constructor(
 		protected readonly method: RunnerCmdMethod,
-		protected readonly params: any,
+		protected readonly params: Record<string, string | number | boolean>,
 		public readonly timeout = 0 // 0 disables the timeout
 	) {
 	}
@@ -62,6 +62,11 @@ export class RunnerCmd {
 			]
 		},
 		{ metadata: true });
+	}
+
+	public get size(): number {
+		if (this.params.data === undefined || typeof this.params.data !== "string") return 0;
+		return (this.params.data.length / 4) * 3;
 	}
 }
 
@@ -208,31 +213,59 @@ export class OSCQueryBridgeControllerPrivate {
 					cleanup();
 				}
 			},
-			new CountQueuingStrategy({ highWaterMark: 1 })
+			new CountQueuingStrategy({ highWaterMark: RunnerCmdHighWaterMarkCount.Read })
 		);
 
 		this._ws.sendPacket(Buffer.from(cmd.packet));
 		return stream;
 	}
 
-	public getCmdWritableStream(method: RunnerCmdWriteMethod): WritableStream<RunnerCmd> {
+	public getCmdWritableStream(method: RunnerCmdWriteMethod, onProgress: (size: number) => void): WritableStream<RunnerCmd> {
 
 		if (!this.isConnected) throw new Error("Failed to get Runner cmd writer as there is no active connection.");
 		if (this.cmdWriteStreamLock.has(method)) throw new Error(`Failed to get Runner cmd writer as there is already a stream in use for cmd ${method}`);
 
 		const streamId = uuidv4();
+
+		const pending = new Set<string>();
+
+		const resolveWriteOp = (id: RunnerCmd["id"]) => new Promise<void>(resolve => {
+
+			let resolved = false;
+			pending.add(id);
+
+			this.cmdResponseChunkProcessor.registerProcessor(id, (resp): void => {
+				if (resp.result?.code === RunnerCmdResultCode.Success) { // Complete?
+					this.cmdResponseChunkProcessor.unregisterProcess(resp.id);
+					pending.delete((resp.id));
+
+					if (!resolved)  {
+						return void resolve();
+					}
+				}
+			});
+
+			if (pending.size <= RunnerCmdHighWaterMarkCount.Write) {
+				resolved = true;
+				sleep(0).then(resolve);
+			}
+		});
+
+
 		return new WritableStream<RunnerCmd>(
 			{
 				start: () => {
 					this.cmdWriteStreamLock.set(method, streamId);
 				},
-				write: async (cmd: RunnerCmd, controller: WritableStreamDefaultController): Promise<void> =>  {
+				write: async (cmd: RunnerCmd): Promise<void> =>  {
+
 					if (!this.isConnected) {
-						controller.error(new Error("WebSocket connection closed"));
-						return;
+						new Error("WebSocket connection closed");
 					}
 					this._ws.sendPacket(Buffer.from(cmd.packet));
-					await sleep(0);
+
+					await resolveWriteOp(cmd.id);
+					onProgress(cmd.size);
 				},
 
 				close: (): void => {
@@ -243,7 +276,7 @@ export class OSCQueryBridgeControllerPrivate {
 					this.cmdWriteStreamLock.delete(method);
 				}
 			},
-			new CountQueuingStrategy({ highWaterMark: 1 })
+			new CountQueuingStrategy({ highWaterMark: RunnerCmdHighWaterMarkCount.Write })
 		);
 	}
 
