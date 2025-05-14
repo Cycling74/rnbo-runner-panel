@@ -1,7 +1,7 @@
 import * as Base64 from "js-base64";
 import { RunnerChunkSize, RunnerCmdReadMethod, RunnerCmdWriteMethod, RunnerFileType } from "../lib/constants";
 import { oscQueryBridge, RunnerCmd } from "./oscqueryBridgeController";
-import { RunnerDeleteFileResponse, RunnerReadFileContentResponse, RunnerReadFileResponse, RunnerReadFileResult, RunnerReadFileContentResult } from "../lib/types";
+import { RunnerDeleteFileResponse, RunnerReadFileContentResponse, RunnerReadFileListResponse, RunnerReadFileListResult, RunnerReadFileContentResult } from "../lib/types";
 
 const getSupportsFileSystemAccess = () => {
 	return "showSaveFilePicker" in window && (() => {
@@ -23,9 +23,9 @@ export const getFileListFromRunnerCmd = async (filetype: RunnerFileType): Promis
 		}
 	);
 
-	const stream = oscQueryBridge.getCmdReadableStream<RunnerReadFileResponse>(cmd);
+	const stream = oscQueryBridge.getCmdReadableStream<RunnerReadFileListResponse>(cmd);
 	const reader = stream.getReader();
-	const sequences: Array<RunnerReadFileResult> = [];
+	const sequences: Array<RunnerReadFileListResult> = [];
 
 	while (true) {
 		const { done, value } = await reader.read();
@@ -122,6 +122,7 @@ export const readFileFromRunnerCmd = async (filename: string, filetype: RunnerFi
 		throw err;
 	}
 };
+
 
 // Write CMDs
 
