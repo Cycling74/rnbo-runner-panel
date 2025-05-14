@@ -133,11 +133,11 @@ export enum ParameterSortAttr {
 export enum RunnerFileType {
 	DataFile = "datafile",
 	Package = "package"
-};
+}
 
 export enum RunnerCmdResultCode {
 	Success = 1
-};
+}
 
 export enum RunnerCmdReadMethod {
 	ReadFileContent = "file_read64",
