@@ -71,35 +71,29 @@ export async function createPackageOnRunner(patcher: PatcherExportRecord): Promi
 export async function createPackageOnRunner(set: GraphSetRecord): Promise<RunnerCreatePackageResult>;
 export async function createPackageOnRunner(item: PatcherExportRecord | GraphSetRecord): Promise<RunnerCreatePackageResult> {
 
-	try {
 
-		const params = item instanceof PatcherExportRecord
-			? { patcher: item.name }
-			: { set: item.name };
+	const params = item instanceof PatcherExportRecord
+		? { patcher: item.name }
+		: { set: item.name };
 
-		const cmd = new RunnerCmd(RunnerCmdReadMethod.CreatePackage, params);
+	const cmd = new RunnerCmd(RunnerCmdReadMethod.CreatePackage, params);
 
 
-		const stream = oscQueryBridge.getCmdReadableStream<RunnerCreatePackageResponse>(cmd);
-		const reader = stream.getReader();
-		let result: RunnerCreatePackageResult | undefined = undefined;
+	const stream = oscQueryBridge.getCmdReadableStream<RunnerCreatePackageResponse>(cmd);
+	const reader = stream.getReader();
+	let result: RunnerCreatePackageResult | undefined = undefined;
 
-		while (true) {
-			const { done, value } = await reader.read();
-			if (done) break;
-			if (value.code === RunnerCmdResultCode.Success) {
-				result = value;
-			}
+	while (true) {
+		const { done, value } = await reader.read();
+		if (done) break;
+		if (value.code === RunnerCmdResultCode.Success) {
+			result = value;
 		}
-
-		if (!result) throw new Error(`Missing success response when attempting to create package.`);
-		return result;
-
-	} catch (err) {
-		if (err.name === "AbortError") return; // User Aborted the Dialog
-		throw err;
 	}
-};
+
+	if (!result) throw new Error("Missing success response when attempting to create package.");
+	return result;
+}
 
 const readFileCmdTransform = (
 	onProgress?: (p: number) => void
@@ -134,29 +128,23 @@ export const readFileFromRunnerCmd = async (filename: string, filetype: RunnerFi
 
 	if (!getSupportsFileSystemAccess()) throw new Error("FileSystem Access API is not supported");
 
-	try {
-		const handle = await window.showSaveFilePicker({
-			id: "saveFile",
-			startIn: "downloads",
-			suggestedName: filename
-		});
+	const handle = await window.showSaveFilePicker({
+		id: "saveFile",
+		startIn: "downloads",
+		suggestedName: filename
+	});
 
-		const cmd = new RunnerCmd(RunnerCmdReadMethod.ReadFileContent, {
-			filename,
-			filetype,
-			size: RunnerChunkSize.Read
-		});
+	const cmd = new RunnerCmd(RunnerCmdReadMethod.ReadFileContent, {
+		filename,
+		filetype,
+		size: RunnerChunkSize.Read
+	});
 
-		await oscQueryBridge.getCmdReadableStream<RunnerReadFileContentResponse>(cmd)
-			.pipeThrough(readFileCmdTransform())
-			.pipeTo(await handle.createWritable({ keepExistingData: false }));
+	await oscQueryBridge.getCmdReadableStream<RunnerReadFileContentResponse>(cmd)
+		.pipeThrough(readFileCmdTransform())
+		.pipeTo(await handle.createWritable({ keepExistingData: false }));
 
-		return;
-
-	} catch (err) {
-		if (err.name === "AbortError") return; // User Aborted the Dialog
-		throw err;
-	}
+	return;
 };
 
 

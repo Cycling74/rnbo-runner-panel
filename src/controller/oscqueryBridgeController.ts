@@ -259,9 +259,7 @@ export class OSCQueryBridgeControllerPrivate {
 				},
 				write: async (cmd: RunnerCmd): Promise<void> =>  {
 
-					if (!this.isConnected) {
-						new Error("WebSocket connection closed");
-					}
+					if (!this.isConnected) throw(new Error("WebSocket connection closed"));
 					this._ws.sendPacket(Buffer.from(cmd.packet));
 
 					await resolveWriteOp(cmd.id);

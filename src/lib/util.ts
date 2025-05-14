@@ -266,3 +266,8 @@ export const validateDataRefExportFilename = (v: string): true | string => {
 	if (!value?.length) return "Please provide a valid, non empty filename.";
 	return true;
 };
+
+export const isUserAbortedError = (err: Error): boolean => {
+	if (err.name === "AbortError") return true;
+	return false;
+};
