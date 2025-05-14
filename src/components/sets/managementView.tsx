@@ -8,7 +8,7 @@ import { RootStateType } from "../../lib/store";
 import { SortOrder } from "../../lib/constants";
 import { getCurrentGraphSetId, getGraphSetsSortedByName, getInitialGraphSet } from "../../selectors/sets";
 import { SearchInput } from "../page/searchInput";
-import { destroyGraphSetOnRemote, loadGraphSetOnRemote, overwriteGraphSetOnRemote, renameGraphSetOnRemote, triggerStartupGraphSetDialog } from "../../actions/sets";
+import { destroyGraphSetOnRemote, downloadGraphSetFromRemote, loadGraphSetOnRemote, overwriteGraphSetOnRemote, renameGraphSetOnRemote, triggerStartupGraphSetDialog } from "../../actions/sets";
 import { IconElement } from "../elements/icon";
 import { mdiStarCog } from "@mdi/js";
 
@@ -48,9 +48,14 @@ const SetManagementView: FC = memo(function WrappedSetsView() {
 		dispatch(overwriteGraphSetOnRemote(set));
 	}, [dispatch]);
 
+	const onDownloadSet = useCallback((set: GraphSetRecord) => {
+		dispatch(downloadGraphSetFromRemote(set));
+	}, [dispatch]);
+
 	const onConfigureStartupSet = useCallback(() => {
 		dispatch(triggerStartupGraphSetDialog());
 	}, [dispatch]);
+
 
 	return (
 		<Stack gap={ 0 } >
@@ -80,10 +85,11 @@ const SetManagementView: FC = memo(function WrappedSetsView() {
 								set={ set }
 								isCurrent={ set.id === currentSetId }
 								isInitial={ initialGraphSet && initialGraphSet.id === set.id}
-								onRename={ onRenameSet }
-								onLoad={ onLoadSet }
 								onDelete={ onDeleteSet }
+								onDownload={ onDownloadSet }
+								onLoad={ onLoadSet }
 								onOverwrite={ onOverwriteSet }
+								onRename={ onRenameSet }
 							/>
 						))
 					}

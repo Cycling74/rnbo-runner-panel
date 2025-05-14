@@ -4,7 +4,7 @@ import { PatcherSortAttr, SortOrder } from "../../lib/constants";
 import { useAppDispatch, useAppSelector } from "../../hooks/useAppDispatch";
 import { getHasPatcherExports, getSortedPatcherExports } from "../../selectors/patchers";
 import { RootStateType } from "../../lib/store";
-import { destroyPatcherOnRemote, renamePatcherOnRemote } from "../../actions/patchers";
+import { destroyPatcherOnRemote, downloadPatcherFromRemote, renamePatcherOnRemote } from "../../actions/patchers";
 import { PatcherExportRecord } from "../../models/patcher";
 import { TableHeaderCell } from "../elements/tableHeaderCell";
 import { PatcherItem } from "./item";
@@ -41,6 +41,10 @@ export const PatcherManagementView: FC = memo(function WrappedPatcherView() {
 		dispatch(renamePatcherOnRemote(patcher, newName));
 	}, [dispatch]);
 
+	const onDownloadPatcher = useCallback((patcher: PatcherExportRecord) => {
+		dispatch(downloadPatcherFromRemote(patcher));
+	}, [dispatch]);
+
 	if (!hasPatchers) {
 		return (
 			<Alert title="No Patchers available" variant="light" color="yellow">
@@ -72,6 +76,7 @@ export const PatcherManagementView: FC = memo(function WrappedPatcherView() {
 							<PatcherItem
 								key={ p.id }
 								onDelete={ onDeletePatcher }
+								onDownload={ onDownloadPatcher }
 								onRename={ onRenamePatcher }
 								patcher={ p }
 							/>
