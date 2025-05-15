@@ -191,12 +191,13 @@ export type OSCQueryRNBOInfoState = OSCQueryBaseNode & {
 		[SystemInfoKey.CompilerId]: OSCQueryStringValue;
 		[SystemInfoKey.CompilerVersion]: OSCQueryStringValue;
 		[SystemInfoKey.DiskBytesAvailable]: OSCQueryStringValue;
+		[SystemInfoKey.RNBOVersion]: OSCQueryStringValue;
+		[SystemInfoKey.RunnerVersion]: OSCQueryStringValue;
 		[SystemInfoKey.SystemId]: OSCQueryStringValue;
 		[SystemInfoKey.SystemName]: OSCQueryStringValue;
 		[SystemInfoKey.SystemOS]: OSCQueryStringValue;
 		[SystemInfoKey.SystemProcessor]: OSCQueryStringValue;
 		[SystemInfoKey.TargetId]: OSCQueryStringValue;
-		[SystemInfoKey.Version]: OSCQueryStringValue;
 		supported_cmds: OSCQueryListValue;
 		unpported_cmds: OSCQueryListValue;
 		update: OSCQueryBaseNode & {
