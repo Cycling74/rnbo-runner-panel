@@ -6,13 +6,12 @@ import { mdiUpload, mdiUploadOff } from "@mdi/js";
 import { IconElement } from "../elements/icon";
 import { IconProps } from "@mdi/react/dist/IconProps";
 
-
-type FileDropZoneProps = {
+export type FileDropZoneProps = {
 	accept: DropzoneProps["accept"];
 	fileIcon: IconProps["path"];
 	maxFiles: number;
-	setFiles: (files: FileWithPath[]) => any;
-}
+	setFiles: (files: FileWithPath[]) => void;
+};
 
 export const FileDropZone: FC<FileDropZoneProps> = memo(function WrappedFileDropzone({
 	accept,

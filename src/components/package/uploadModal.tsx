@@ -7,7 +7,7 @@ import { mdiAlertCircleOutline, mdiClose, mdiFileExport, mdiFileMusic, mdiGroup,
 import { useAppSelector } from "../../hooks/useAppDispatch";
 import { TableHeaderCell } from "../elements/tableHeaderCell";
 import { ResourceType, RunnerFileType, SystemInfoKey } from "../../lib/constants";
-import { FileDropZone } from "../page/fileDropZone";
+import { FileDropZone, FileDropZoneProps } from "../page/fileDropZone";
 import { getRunnerInfoRecord } from "../../selectors/appStatus";
 import { PackageInfoRecord } from "../../models/packageInfo";
 import { getPackageUploadConflicts, PackageUploadConflicts, readInfoFromPackageFile } from "../../lib/package";
@@ -16,8 +16,9 @@ import { getPatcherExports } from "../../selectors/patchers";
 import { getGraphSets } from "../../selectors/sets";
 import { installPackageOnRunner, writeFileToRunnerCmd } from "../../controller/cmd";
 
-const PACKAGE_MIME_TYPE: string[] = [
-];
+const PACKAGE_MIME_TYPE: FileDropZoneProps["accept"] = {
+	"application/x-tar": [".rnbopack"]
+};
 
 export type UploadFile = {
 	id: string;
