@@ -2,14 +2,14 @@ import { Map as ImmuMap } from "immutable";
 import { ActionIcon, Alert, Button, Center, Group, Modal, RingProgress, Stack, Table, Text } from "@mantine/core";
 import { FC, memo, useCallback, useState } from "react";
 import { useIsMobileDevice } from "../../hooks/useIsMobileDevice";
-import { Dropzone, FileWithPath } from "@mantine/dropzone";
-import classes from "./datafile.module.css";
+import { FileWithPath } from "@mantine/dropzone";
 import { formatFileSize } from "../../lib/util";
 import { v4 } from "uuid";
 import { IconElement } from "../elements/icon";
-import { mdiAlertCircleOutline, mdiCheckCircleOutline, mdiClose, mdiFileMusic, mdiLoading, mdiProgressClock, mdiUpload, mdiUploadOff } from "@mdi/js";
+import { mdiAlertCircleOutline, mdiCheckCircleOutline, mdiClose, mdiFileMusic, mdiLoading, mdiProgressClock, mdiUpload } from "@mdi/js";
 import { writeFileToRunnerCmd } from "../../controller/cmd";
 import { RunnerFileType } from "../../lib/constants";
+import { FileDropZone } from "../page/fileDropZone";
 
 const AUDIO_MIME_TYPE: string[] = [
 	"audio/aiff", "audio/x-aiff",
@@ -26,45 +26,6 @@ export type UploadFile = {
 	progress: number;
 	error?: Error;
 }
-
-type FileDropZoneProps = {
-	maxFiles: number;
-	setFiles: (files: FileWithPath[]) => any;
-}
-
-const FileDropZone: FC<FileDropZoneProps> = memo(function WrappedDateFileDropzone({
-	maxFiles,
-	setFiles
-}) {
-	return (
-		<Dropzone
-			accept={ AUDIO_MIME_TYPE }
-			onDrop={ setFiles }
-			className={ classes.fileDropZone }
-			maxFiles={ maxFiles }
-		>
-			<Group className={ classes.fileDropGroup } >
-				<Dropzone.Accept>
-					<IconElement path={ mdiUpload } size={ 3 } />
-				</Dropzone.Accept>
-				<Dropzone.Reject>
-					<IconElement path={ mdiUploadOff } size={ 3 } />
-				</Dropzone.Reject>
-				<Dropzone.Idle>
-					<IconElement path={ mdiFileMusic } size={ 3 } />
-				</Dropzone.Idle>
-				<div>
-					<Text size="xl" inline>
-						Drag here or click to select
-					</Text>
-					<Text size="md" c="dimmed" inline mt="md">
-						Choose { maxFiles === 1 ? "a single audio file" : `up to ${maxFiles} audio files` }
-					</Text>
-				</div>
-			</Group>
-		</Dropzone>
-	);
-});
 
 type FileUploadRowProps = {
 	upload: UploadFile;
@@ -227,7 +188,14 @@ export const DataFileUploadModal: FC<DataFileUploadModalProps> = memo(function W
 				<Modal.Body>
 					<Stack gap="xl">
 						{
-							step === UploadStep.Select ? <FileDropZone maxFiles={ maxFileCount } setFiles={ onSetFiles } /> : null
+							step === UploadStep.Select ? (
+								<FileDropZone
+									accept={ AUDIO_MIME_TYPE }
+									fileIcon={ mdiFileMusic }
+									maxFiles={ maxFileCount }
+									setFiles={ onSetFiles }
+								/>
+							) : null
 						}
 						{
 							step === UploadStep.Confirm || step === UploadStep.Uploading || step === UploadStep.Error ? (
