@@ -6,7 +6,7 @@ import { getPatcherInstance, getPatcherInstanceParametersByInstanceId, getPatche
 import { getAppSetting } from "../selectors/settings";
 import { ParameterRecord } from "../models/parameter";
 import { MessagePortRecord } from "../models/messageport";
-import { OSCArgument, OSCMessage, writePacket } from "osc";
+import { OSCArgument, OSCMessage, writePacket } from "osc/dist/osc-browser";
 import { showNotification } from "./notifications";
 import { NotificationLevel } from "../models/notification";
 import { oscQueryBridge } from "../controller/oscqueryBridgeController";

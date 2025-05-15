@@ -4,7 +4,7 @@ import { getConnection, getConnectionByPorts, getConnections, getEditorNodesAndP
 import { GraphConnectionRecord, GraphNode, GraphNodeRecord, NodeType } from "../models/graph";
 import { showNotification } from "./notifications";
 import { NotificationLevel } from "../models/notification";
-import { writePacket } from "osc";
+import { writePacket } from "osc/dist/osc-browser";
 import { oscQueryBridge } from "../controller/oscqueryBridgeController";
 import { calculateLayout, isValidConnection } from "../lib/editorUtils";
 import { setConnection, setNode, setNodePosition, setNodePositions, unloadPatcherNodeOnRemote } from "./graph";

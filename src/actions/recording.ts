@@ -1,4 +1,4 @@
-import { writePacket } from "osc";
+import { writePacket } from "osc/dist/osc-browser";
 import { ActionBase, AppThunk } from "../lib/store";
 import { NotificationLevel } from "../models/notification";
 import { getIsStreamRecording } from "../selectors/recording";

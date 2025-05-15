@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
 import { parse as parseQuery } from "querystring";
-import { OSCBundle, OSCMessage, readPacket, writePacket } from "osc";
+import { OSCBundle, OSCMessage, readPacket, writePacket } from "osc/dist/osc-browser";
 import { initRunnerInfo, setRunnerInfoValue, setAppStatus, setConnectionEndpoint } from "../actions/appStatus";
 import { AppDispatch, store } from "../lib/store";
 import { ReconnectingWebsocket } from "../lib/reconnectingWs";
