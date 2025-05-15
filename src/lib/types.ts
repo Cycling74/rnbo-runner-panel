@@ -84,6 +84,14 @@ export type RunnerCreatePackageResult = RunnerCmdResult<{
 
 export type RunnerCreatePackageResponse = RunnerCmdResponse<RunnerCreatePackageResult>;
 
+export type RunnerInstallPackageResult = RunnerCmdResult<{
+	message: "completed",
+	packagename: string;
+	filename: string;
+}>;
+
+export type RunnerInstallPackageResponse = RunnerCmdResponse<RunnerInstallPackageResult>;
+
 export type RunnerReadFileContentResult = RunnerCmdResult<{
 	content64: string;
 	message: "read";
@@ -100,6 +108,46 @@ export type RunnerDeleteFileResult = RunnerCmdResult<{
 
 export type RunnerDeleteFileResponse = RunnerCmdResponse<RunnerDeleteFileResult>;
 
+// Package Info
+
+export type RunnerPackageDataFileInfo = {
+	location: string;
+	name: string;
+};
+
+export type RunnerPackagePatcherInfo = {
+	binaries: Record<string, string>;
+	config: string;
+	created_at: string;
+	name: string;
+	patcher: string;
+	presets: string;
+};
+
+export type RunnerPackageSetInfo = {
+	created_at: string;
+	location: string;
+	name: string;
+};
+
+export type RunnerPackageTargetInfo = {
+	compiler_id: string;
+	compiler_version: string;
+	dir: string;
+	system_name: string;
+	system_processor: string;
+};
+
+export type RunnerPackageInfo = {
+	datafiles: Array<RunnerPackageDataFileInfo>;
+	name: string;
+	patchers: Array<RunnerPackagePatcherInfo>;
+	rnbo_version: string;
+	runner_version: string;
+	schema_version: 1;
+	sets: Array<RunnerPackageSetInfo>;
+	targets: Record<string, RunnerPackageTargetInfo>;
+};
 
 // OSC Types
 export type OSCValue = string | number | null;

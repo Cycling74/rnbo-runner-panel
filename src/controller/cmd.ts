@@ -1,7 +1,7 @@
 import * as Base64 from "js-base64";
 import { RunnerChunkSize, RunnerCmdReadMethod, RunnerCmdResultCode, RunnerCmdWriteMethod, RunnerFileType } from "../lib/constants";
 import { oscQueryBridge, RunnerCmd } from "./oscqueryBridgeController";
-import { RunnerDeleteFileResponse, RunnerReadFileContentResponse, RunnerReadFileListResponse, RunnerReadFileListResult, RunnerReadFileContentResult, RunnerCreatePackageResult, RunnerCreatePackageResponse } from "../lib/types";
+import { RunnerDeleteFileResponse, RunnerReadFileContentResponse, RunnerReadFileListResponse, RunnerReadFileListResult, RunnerReadFileContentResult, RunnerCreatePackageResult, RunnerCreatePackageResponse, RunnerInstallPackageResponse, RunnerInstallPackageResult } from "../lib/types";
 import { PatcherExportRecord } from "../models/patcher";
 import { GraphSetRecord } from "../models/set";
 
@@ -78,7 +78,6 @@ export async function createPackageOnRunner(item: PatcherExportRecord | GraphSet
 
 	const cmd = new RunnerCmd(RunnerCmdReadMethod.CreatePackage, params);
 
-
 	const stream = oscQueryBridge.getCmdReadableStream<RunnerCreatePackageResponse>(cmd);
 	const reader = stream.getReader();
 	let result: RunnerCreatePackageResult | undefined = undefined;
@@ -93,6 +92,29 @@ export async function createPackageOnRunner(item: PatcherExportRecord | GraphSet
 
 	if (!result) throw new Error("Missing success response when attempting to create package.");
 	return result;
+}
+
+export async function installPackageOnRunner(packageFilename: string): Promise<RunnerInstallPackageResult> {
+
+	const cmd = new RunnerCmd(RunnerCmdReadMethod.InstallPackage, {
+		filename: packageFilename
+	});
+
+	const stream = oscQueryBridge.getCmdReadableStream<RunnerInstallPackageResponse>(cmd);
+	const reader = stream.getReader();
+	let result: RunnerInstallPackageResult | undefined = undefined;
+
+	while (true) {
+		const { done, value } = await reader.read();
+		if (done) break;
+		if (value.code === RunnerCmdResultCode.Success) {
+			result = value;
+		}
+	}
+
+	if (!result) throw new Error("Missing success response when attempting to install package.");
+	return result;
+
 }
 
 
