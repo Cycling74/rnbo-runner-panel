@@ -133,8 +133,8 @@ export enum RunnerCmdResultCode {
 }
 
 export enum RunnerChunkSize {
-	Read = 1024,
-	Write = 1024 * 10
+	Read = 1024 * 1000,
+	Write = 1024 * 1000
 }
 
 export enum RunnerCmdHighWaterMarkCount {

@@ -95,34 +95,40 @@ export async function createPackageOnRunner(item: PatcherExportRecord | GraphSet
 	return result;
 }
 
-const readFileCmdTransform = (
-	onProgress?: (p: number) => void
-) => {
 
-	let extra = "";
-	return new TransformStream<RunnerReadFileContentResult, ArrayBufferLike>(
-		{
-			transform(result: RunnerReadFileContentResult, controller) {
-				if (result?.content64 === undefined) {
-					controller.error(new Error("Missing content64 data"));
-					return;
-				}
+class ReadFileTransformer implements Transformer<RunnerReadFileContentResult, ArrayBufferLike> {
 
-				const chunk = extra + result.content64;
-				extra = "";
+	private extra: string = "";
+	private readonly onProgress: (p: number) => void | undefined;
 
-				const bytes = Math.floor(chunk.length / 4);
-				const overflow = chunk.length % 4;
+	constructor(
+		onProgress?: (p: number) => void
+	) {
+		this.onProgress = onProgress || undefined;
+	}
 
-				const data = Base64.toUint8Array(chunk.slice(0, bytes * 4));
-				if (overflow !== 0) extra = chunk.slice(overflow * -1);
-
-				controller.enqueue(data.buffer);
-				onProgress?.(result.progress);
-			}
+	transform?: TransformerTransformCallback<RunnerReadFileContentResult, ArrayBufferLike> = (
+		result,
+		controller
+	) => {
+		if (result?.content64 === undefined) {
+			controller.error(new Error("Missing content64 data"));
+			return;
 		}
-	);
-};
+
+		const chunk = this.extra + result.content64;
+		this.extra = "";
+
+		const bytes = Math.floor(chunk.length / 4);
+		const overflow = chunk.length % 4;
+
+		const data = Base64.toUint8Array(chunk.slice(0, bytes * 4));
+		if (overflow !== 0) this.extra = chunk.slice(overflow * -1);
+
+		controller.enqueue(data.buffer);
+		this.onProgress?.(result.progress);
+	};
+}
 
 export const readFileFromRunnerCmd = async (filename: string, filetype: RunnerFileType): Promise<void> => {
 
@@ -141,7 +147,7 @@ export const readFileFromRunnerCmd = async (filename: string, filetype: RunnerFi
 	});
 
 	await oscQueryBridge.getCmdReadableStream<RunnerReadFileContentResponse>(cmd)
-		.pipeThrough(readFileCmdTransform())
+		.pipeThrough(new TransformStream(new ReadFileTransformer()))
 		.pipeTo(await handle.createWritable({ keepExistingData: false }));
 
 	return;
@@ -149,48 +155,83 @@ export const readFileFromRunnerCmd = async (filename: string, filetype: RunnerFi
 
 
 // Write CMDs
-
 type WriteFileInfo = {
 	name: string;
 	type: RunnerFileType;
 };
+class WriteFileTransformer implements Transformer<Uint8Array, RunnerCmd> {
 
-const writeFileCmdTransform = (
-	fileInfo: WriteFileInfo
-) => {
+	private buffered: Uint8Array | undefined = undefined;
+	private append: boolean = false;
+	private readonly fileInfo: WriteFileInfo;
 
-	let append = false;
-	return new TransformStream<Uint8Array, RunnerCmd>(
-		{
-			transform(chunk, controller) {
-				for (let i = 0; i < chunk.byteLength; i += RunnerChunkSize.Write) {
-					const end = i + RunnerChunkSize.Write;
-					controller.enqueue(
-						new RunnerCmd(RunnerCmdWriteMethod.WriteFile, {
-							filename: fileInfo.name,
-							filetype: fileInfo.type,
-							data: Base64.fromUint8Array(chunk.subarray(i, end > chunk.byteLength ? undefined : end), false),
-							append
-						})
-					);
-					append = true;
-				}
-			},
+	constructor(
+		fileInfo: WriteFileInfo
+	) {
+		this.fileInfo = fileInfo;
+	}
 
-			flush(controller) {
-				controller.enqueue(
-					new RunnerCmd(RunnerCmdWriteMethod.WriteFile, {
-						filename: fileInfo.name,
-						filetype: fileInfo.type,
-						data: "",
-						append,
-						complete: true
-					})
-				);
+	private convertChunkToCmd(chunk: Uint8Array): RunnerCmd {
+		const cmd = new RunnerCmd(RunnerCmdWriteMethod.WriteFile, {
+			filename: this.fileInfo.name,
+			filetype: this.fileInfo.type,
+			data: Base64.fromUint8Array(chunk, false),
+			append: this.append
+		});
+		this.append = true;
+		return cmd;
+
+	}
+
+	transform: TransformerTransformCallback<Uint8Array, RunnerCmd> = (
+		chunk,
+		controller
+	) => {
+		let pos = 0;
+
+		if (this.buffered) {
+			// Previously buffered chunk?
+			const incomingLength = RunnerChunkSize.Write - this.buffered.length > chunk.length ? chunk.length : RunnerChunkSize.Write - this.buffered.length;
+			const mergedArray = new Uint8Array(this.buffered.length + incomingLength);
+			mergedArray.set(this.buffered, 0);
+			mergedArray.set(chunk.subarray(0, incomingLength), this.buffered.length);
+			controller.enqueue(this.convertChunkToCmd(mergedArray));
+			pos = incomingLength;
+			this.buffered = undefined;
+		}
+
+		if (pos + RunnerChunkSize.Write > chunk.length) {
+			// write all at once
+			controller.enqueue(this.convertChunkToCmd(chunk.subarray(pos)));
+		} else {
+
+			while (pos + RunnerChunkSize.Write < chunk.length) {
+				const end = pos + RunnerChunkSize.Write;
+				controller.enqueue(this.convertChunkToCmd(chunk.subarray(pos, end)));
+				pos = end;
+			}
+
+			if (pos < chunk.length) {
+				// Buffer Overflow
+				this.buffered = chunk.subarray(pos);
 			}
 		}
-	);
-};
+	};
+
+	flush: TransformerFlushCallback<RunnerCmd> = (
+		controller
+	) => {
+		controller.enqueue(
+			new RunnerCmd(RunnerCmdWriteMethod.WriteFile, {
+				filename: this.fileInfo.name,
+				filetype: this.fileInfo.type,
+				data: "",
+				append: true,
+				complete: true
+			})
+		);
+	};
+}
 
 export const writeFileToRunnerCmd = async (file: File, type: RunnerFileType, onProgress?: (progress: number) => void): Promise<void> => {
 
@@ -205,6 +246,6 @@ export const writeFileToRunnerCmd = async (file: File, type: RunnerFileType, onP
 	if (writeStream.locked) throw new Error("Can't write cmd to stream as it's already locked");
 
 	await file.stream()
-		.pipeThrough(writeFileCmdTransform({ name: file.name, type }))
+		.pipeThrough(new TransformStream<Uint8Array, RunnerCmd>(new WriteFileTransformer({ name: file.name, type })))
 		.pipeTo(writeStream);
 };
