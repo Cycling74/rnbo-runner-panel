@@ -43,12 +43,6 @@ export enum InstanceTab {
 	DataRefs = "datarefs",
 }
 
-export enum ResourceTab {
-	Graphs = "graphs",
-	Patchers = "patchers",
-	AudioFiles = "audiofiles"
-}
-
 export const bodyFontSize = 16;
 
 export const nodeDefaultWidth = 435;
@@ -134,6 +128,12 @@ export enum ParameterSortAttr {
 export enum RunnerFileType {
 	DataFile = "datafile",
 	Package = "package"
+}
+
+export enum ResourceType {
+	DataFile = RunnerFileType.DataFile,
+	Patcher = "patcher",
+	Set = "set"
 }
 
 export enum RunnerCmdResultCode {
