@@ -3,7 +3,7 @@ import { ActionIcon, Menu, Table } from "@mantine/core";
 import { PatcherExportRecord } from "../../models/patcher";
 import classes from "./patchers.module.css";
 import { IconElement } from "../elements/icon";
-import { mdiDotsVertical, mdiDownload, mdiPencil, mdiTrashCan } from "@mdi/js";
+import { mdiDotsVertical, mdiPackageDown, mdiPencil, mdiTrashCan } from "@mdi/js";
 import { EditableTableTextCell } from "../elements/editableTableCell";
 
 export type PatcherItemProps = {
@@ -60,7 +60,7 @@ export const PatcherItem: FunctionComponent<PatcherItemProps> = memo(function Wr
 					<Menu.Dropdown>
 						<Menu.Label>Patcher</Menu.Label>
 						<Menu.Item leftSection={ <IconElement path={ mdiPencil } /> } onClick={ onTriggerRenamePatcher } >Rename</Menu.Item>
-						<Menu.Item  leftSection={ <IconElement path={ mdiDownload }/> } onClick={ onTriggerDownload } >Download</Menu.Item>
+						<Menu.Item  leftSection={ <IconElement path={ mdiPackageDown }/> } onClick={ onTriggerDownload } >Download</Menu.Item>
 						<Menu.Divider />
 						<Menu.Item color="red" leftSection={ <IconElement path={ mdiTrashCan }/> } onClick={ onDeletePatcher } >Delete</Menu.Item>
 					</Menu.Dropdown>
