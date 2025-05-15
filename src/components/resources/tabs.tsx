@@ -1,5 +1,5 @@
 import { memo, useCallback, useState } from "react";
-import { ResourceTab } from "../../lib/constants";
+import { ResourceType } from "../../lib/constants";
 import { Tabs, Text } from "@mantine/core";
 import { IconElement } from "../elements/icon";
 import { DataFileManagementView } from "../datafile/managementView";
@@ -9,15 +9,15 @@ import styles from "./tabs.module.css";
 import SetManagementView from "../sets/managementView";
 
 const tabs = [
-	{ icon: mdiGroup, value: ResourceTab.Graphs, label: "Graphs" },
-	{ icon: mdiFileExport, value: ResourceTab.Patchers, label: "Patchers" },
-	{ icon: mdiFileMusic, value: ResourceTab.AudioFiles, label: "Audio Files" }
+	{ icon: mdiGroup, value: ResourceType.Set, label: "Graphs" },
+	{ icon: mdiFileExport, value: ResourceType.Patcher, label: "Patchers" },
+	{ icon: mdiFileMusic, value: ResourceType.DataFile, label: "Audio Files" }
 ];
 
 export const ResourceTabs = memo(function WrappedResourceTabs() {
 
-	const [activeTab, setActiveTab] = useState<ResourceTab>(ResourceTab.Graphs);
-	const onChangeTab = useCallback((v: ResourceTab) => setActiveTab(v), [setActiveTab]);
+	const [activeTab, setActiveTab] = useState<ResourceType>(ResourceType.Set);
+	const onChangeTab = useCallback((v: ResourceType) => setActiveTab(v), [setActiveTab]);
 
 	return (
 		<div className={ styles.wrapper } >
@@ -32,13 +32,13 @@ export const ResourceTabs = memo(function WrappedResourceTabs() {
 					}
 				</Tabs.List>
 				<div className={ styles.tabContent } >
-					<Tabs.Panel value={ ResourceTab.AudioFiles } >
+					<Tabs.Panel value={ ResourceType.DataFile } >
 						<DataFileManagementView />
 					</Tabs.Panel>
-					<Tabs.Panel value={ ResourceTab.Graphs }>
+					<Tabs.Panel value={ ResourceType.Set }>
 						<SetManagementView />
 					</Tabs.Panel>
-					<Tabs.Panel value={ ResourceTab.Patchers }>
+					<Tabs.Panel value={ ResourceType.Patcher }>
 						<PatcherManagementView />
 					</Tabs.Panel>
 				</div>
