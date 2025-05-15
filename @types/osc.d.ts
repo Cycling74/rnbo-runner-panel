@@ -1,4 +1,4 @@
-declare module "osc" {
+declare module "osc/dist/osc-browser" {
 
 	export type OSCTimeTag = {
 		raw: [number, number];

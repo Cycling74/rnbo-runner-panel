@@ -1,4 +1,4 @@
-import { writePacket } from "osc";
+import { writePacket } from "osc/dist/osc-browser";
 import { oscQueryBridge } from "../controller/oscqueryBridgeController";
 import { ActionBase, AppThunk } from "../lib/store";
 import { ConfigKey, ConfigRecord } from "../models/config";

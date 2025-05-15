@@ -1,4 +1,4 @@
-import { OSCArgument, writePacket } from "osc";
+import { OSCArgument, writePacket } from "osc/dist/osc-browser";
 import { oscQueryBridge } from "../controller/oscqueryBridgeController";
 import { ActionBase, AppThunk } from "../lib/store";
 import { GraphSetRecord, GraphSetViewRecord } from "../models/set";

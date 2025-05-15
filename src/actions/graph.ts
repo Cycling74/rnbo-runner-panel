@@ -1,4 +1,4 @@
-import { writePacket } from "osc";
+import { writePacket } from "osc/dist/osc-browser";
 import { oscQueryBridge } from "../controller/oscqueryBridgeController";
 import { ActionBase, AppThunk, RootStateType } from "../lib/store";
 import { OSCQueryRNBOJackConnections, OSCQueryRNBOJackPortInfo, OSCQuerySetMeta } from "../lib/types";
