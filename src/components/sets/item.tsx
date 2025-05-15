@@ -2,7 +2,7 @@ import { FunctionComponent, MouseEvent, memo, useCallback, useState } from "reac
 import { GraphSetRecord } from "../../models/set";
 import { ActionIcon, Group, Menu, Table, Tooltip } from "@mantine/core";
 import { IconElement } from "../elements/icon";
-import { mdiArrowUpBoldBoxOutline, mdiDotsVertical, mdiDownload, mdiFileReplaceOutline, mdiPencil, mdiStarBoxOutline, mdiTrashCan } from "@mdi/js";
+import { mdiArrowUpBoldBoxOutline, mdiDotsVertical, mdiFileReplaceOutline, mdiPackageDown, mdiPencil, mdiStarBoxOutline, mdiTrashCan } from "@mdi/js";
 import { EditableTableTextCell } from "../elements/editableTableCell";
 
 export type GraphSetItemProps = {
@@ -100,7 +100,7 @@ export const GraphSetItem: FunctionComponent<GraphSetItemProps> = memo(function 
 							Overwrite
 						</Menu.Item>
 						<Menu.Divider />
-						<Menu.Item leftSection={ <IconElement path={ mdiDownload } /> } onClick={ onTriggerDownload } >
+						<Menu.Item leftSection={ <IconElement path={ mdiPackageDown } /> } onClick={ onTriggerDownload } >
 							Download
 						</Menu.Item>
 						<Menu.Divider />
