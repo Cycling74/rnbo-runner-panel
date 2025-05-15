@@ -22,12 +22,13 @@ export enum SystemInfoKey {
 	CompilerId = "compiler_id",
 	CompilerVersion = "compiler_version",
 	DiskBytesAvailable = "disk_bytes_available",
+	RNBOVersion = "version",
+	RunnerVersion = "runner_version",
 	SystemId = "system_id",
 	SystemName = "system_name",
 	SystemOS = "system_os_name",
 	SystemProcessor = "system_processor",
-	TargetId = "target_id",
-	Version = "version",
+	TargetId = "target_id"
 }
 
 export enum JackInfoKey {
