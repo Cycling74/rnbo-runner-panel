@@ -5,19 +5,18 @@ import { Header } from "../components/header";
 import classes from "./app.module.css";
 import { useDisclosure } from "@mantine/hooks";
 import AppNav from "../components/nav";
-import { useRouter } from "next/router";
 import AppStatusWrapper from "../components/page/statusWrapper";
+import { Outlet, useLocation } from "react-router";
 
-export const AppLayout: React.FC<PropsWithChildren> = ({ children }) => {
+export const AppLayout: React.FC<PropsWithChildren> = () => {
 
 	const { other } = useTheme();
-	const { events } = useRouter();
+	const { pathname } = useLocation();
 	const [navOpen, { close: closeNav, toggle: toggleNav }] = useDisclosure();
 
 	useEffect(() => {
-		events.on("routeChangeStart", closeNav);
-		return () => events.off("routeChangeStart", closeNav);
-	}, [events, closeNav]);
+		return () => closeNav();
+	}, [pathname, closeNav]);
 
 	return (
 		<AppShell
@@ -29,7 +28,7 @@ export const AppLayout: React.FC<PropsWithChildren> = ({ children }) => {
 			<AppShell.Main className={ classes.main } >
 				<AppStatusWrapper>
 					<div className={ classes.wrapper } >
-						{ children }
+						<Outlet />
 					</div>
 				</AppStatusWrapper>
 			</AppShell.Main>

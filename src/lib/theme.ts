@@ -1,4 +1,4 @@
-import { Button, Drawer, MantineTheme, MantineThemeOther, Menu, Modal, Tabs, TextInput, Tooltip, createTheme, rem } from "@mantine/core";
+import { Button, Drawer, MantineTheme, MantineThemeOther, MantineThemeOverride, Menu, Modal, Tabs, TextInput, Tooltip, createTheme, rem } from "@mantine/core";
 
 export type CustomThemeProps = {
 	headerHeight: number | string;
@@ -10,8 +10,10 @@ export const customProps: MantineThemeOther & CustomThemeProps = {
 	navWidth: rem(60)
 };
 
-export const rnboTheme = createTheme({
+export const rnboTheme: MantineThemeOverride = createTheme({
 	cursorType: "pointer",
+	fontFamily: "'Lato', sans-serif",
+	fontFamilyMonospace: "'Ubuntu Mono', monospace",
 	headings: {
 		sizes: {
 			h1: {

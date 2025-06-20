@@ -1,5 +1,5 @@
 import { ActionIcon, Group, Stack, Tooltip } from "@mantine/core";
-import { FunctionComponent, useCallback, useEffect } from "react";
+import { FC, useCallback, useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "../hooks/useAppDispatch";
 import { RootStateType } from "../lib/store";
 import { getSortedPatcherExports } from "../selectors/patchers";
@@ -31,7 +31,7 @@ import { GraphSetTitle } from "../components/editor/setTitle";
 import { IconElement } from "../components/elements/icon";
 import { GraphNodeRecord } from "../models/graph";
 
-const Index: FunctionComponent<Record<string, never>> = () => {
+export const GraphEditorPage: FC<Record<never, never>> = () => {
 
 	const dispatch = useAppDispatch();
 	const [
@@ -243,5 +243,3 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 		</>
 	);
 };
-
-export default Index;

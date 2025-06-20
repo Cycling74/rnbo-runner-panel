@@ -1,7 +1,7 @@
 import { useAppDispatch, useAppSelector } from "../hooks/useAppDispatch";
 import { RootStateType } from "../lib/store";
 import { getGraphSetViewsBySortOrder, getSelectedGraphSetView } from "../selectors/sets";
-import { MouseEvent, useCallback, useEffect } from "react";
+import { FC, MouseEvent, useCallback, useEffect } from "react";
 import { ActionIcon, Group, Menu, Stack, Tooltip } from "@mantine/core";
 import { mdiDotsVertical, mdiMidiPort, mdiPencil, mdiPlus, mdiTableEye, mdiTrashCan, mdiTune } from "@mdi/js";
 import { useDisclosure } from "@mantine/hooks";
@@ -16,7 +16,7 @@ import { SetViewParameterModal } from "../components/setViews/paramModal";
 import { IconElement } from "../components/elements/icon";
 import { PageTitle } from "../components/page/title";
 
-export default function SetViews() {
+export const SetViewsPage: FC<Record<never, never>> = () => {
 
 	const [setViewDrawerOpen, { open: openSetViewDrawer, close: closeSetViewDrawer }] = useDisclosure(false);
 	const [addParametersViewOpen, { open: openAddParametersView, close: closeAddParametersView }] = useDisclosure(false);
@@ -198,4 +198,4 @@ export default function SetViews() {
 
 		</>
 	);
-}
+};

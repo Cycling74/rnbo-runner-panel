@@ -1,3 +1,4 @@
+import { FC } from "react";
 import { ActionIcon, Group, Stack, Tooltip } from "@mantine/core";
 import { PageTitle } from "../components/page/title";
 import { ResourceTabs } from "../components/resources/tabs";
@@ -6,7 +7,7 @@ import { mdiPackageUp } from "@mdi/js";
 import { IconElement } from "../components/elements/icon";
 import { PackageUploadModal } from "../components/package/uploadModal";
 
-const Resources = () => {
+export const ResourcesPage: FC<Record<never, never>> = () => {
 	const [showUploadModal, uploadModalHandlers] = useDisclosure(false);
 
 	return (
@@ -24,5 +25,3 @@ const Resources = () => {
 		</Stack>
 	);
 };
-
-export default Resources;
