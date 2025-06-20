@@ -7,6 +7,7 @@ import { Duration } from "dayjs/plugin/duration";
 export type RecordStatusProps = {
 	active: boolean;
 	capturedTime: Duration;
+	disabled: boolean;
 	timeout: Duration | null;
 	onToggleRecording: () => void;
 };
@@ -21,9 +22,11 @@ const formatDuration = (current: Duration, timeout: Duration): string => {
 };
 
 export const RecordStatus: FunctionComponent<RecordStatusProps> = memo(forwardRef<HTMLButtonElement, RecordStatusProps>(
-	function WrappedRecordComponent({ active, capturedTime, onToggleRecording, timeout }, ref) {
+	function WrappedRecordComponent({ active, capturedTime, disabled, onToggleRecording, timeout }, ref) {
+
 		return (
 			<Button
+				disabled={ disabled }
 				color="gray"
 				leftSection={ <IconElement path={ mdiRecord } color={ active ? "red" : undefined } /> }
 				onClick={ onToggleRecording }
