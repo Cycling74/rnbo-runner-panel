@@ -32,7 +32,12 @@ export default defineConfig({
 		nodePolyfills({
 			include: ["events", "fs", "path", "querystring", "stream"]
 		}),
-		webfontDownload(),
+		webfontDownload(
+			[],
+			{
+				subsetsAllowed: ["latin"]
+			}
+		),
 		react()
 	]
 });
