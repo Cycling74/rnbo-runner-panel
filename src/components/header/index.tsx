@@ -30,6 +30,7 @@ export const Header: FunctionComponent<HeaderProps> = memo(function WrappedHeade
 	const dispatch = useAppDispatch();
 
 	const [
+		status,
 		recordingState,
 		recordingTimeout,
 		transportIsRolling,
@@ -37,6 +38,7 @@ export const Header: FunctionComponent<HeaderProps> = memo(function WrappedHeade
 	] = useAppSelector((state: RootStateType) => {
 		const status = getAppStatus(state);
 		return [
+			status,
 			getStreamRecordingState(state),
 			getStreamRecordingTimeout(state),
 			getTransportControlState(state).rolling,
@@ -44,6 +46,7 @@ export const Header: FunctionComponent<HeaderProps> = memo(function WrappedHeade
 		];
 	});
 
+	const isReady = status === AppStatus.Ready;
 	const onToggleEndpointInfo = useCallback(() => dispatch(toggleEndpointInfo()), [dispatch]);
 	const onToggleTransportControl = useCallback(() => dispatch(toggleTransportControl()), [dispatch]);
 	const onToggleRecording = useCallback(() => dispatch(toggleStreamRecording()), [dispatch]);
@@ -56,11 +59,11 @@ export const Header: FunctionComponent<HeaderProps> = memo(function WrappedHeade
 					<img src={ scheme === "light" ? "/c74-dark.svg" : "/c74-light.svg" } alt="Cycling '74 Logo" />
 				</Group>
 				<Group justify="end" align="center" gap="md">
-					<Tooltip label={ recordingState.active ? `Stop Recording${recordingTimeout === null ? "" : " (Time Left)"}` : "Start Recording" } >
-						<RecordStatus { ...recordingState } timeout={ recordingTimeout } onToggleRecording={ onToggleRecording } />
+					<Tooltip disabled={ !isReady } label={ recordingState.active ? `Stop Recording${recordingTimeout === null ? "" : " (Time Left)"}` : "Start Recording" } >
+						<RecordStatus disabled={ !isReady } { ...recordingState } timeout={ recordingTimeout } onToggleRecording={ onToggleRecording } />
 					</Tooltip>
-					<Tooltip label="Open Transport Control" >
-						<ActionIcon variant="transparent" color={ transportIsRolling ? undefined : "gray" } onClick={ onToggleTransportControl } >
+					<Tooltip label="Open Transport Control" disabled={ !isReady }>
+						<ActionIcon disabled={ !isReady } variant="transparent" color={ transportIsRolling ? undefined : "gray" } onClick={ onToggleTransportControl } >
 							<IconElement path={ mdiMetronome } />
 						</ActionIcon>
 					</Tooltip>

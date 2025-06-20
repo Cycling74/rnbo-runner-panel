@@ -7,13 +7,10 @@ import { toggleShowSettings } from "../../actions/settings";
 import { RootStateType } from "../../lib/store";
 import { getShowSettingsModal } from "../../selectors/settings";
 import { ExternalNavLink, NavLink } from "./link";
-import { useRouter } from "next/router";
 import { getFirstPatcherNodeInstanceId } from "../../selectors/graph";
 import { mdiChartSankeyVariant, mdiCog, mdiHelpCircle, mdiMidiPort, mdiVectorSquare, mdiTableEye, mdiDatabaseCog } from "@mdi/js";
 
 const AppNav: FunctionComponent = memo(function WrappedNav() {
-
-	const { pathname, query } = useRouter();
 
 	const dispatch = useAppDispatch();
 	const onToggleSettings = useCallback(() => dispatch(toggleShowSettings()), [dispatch]);
@@ -25,8 +22,6 @@ const AppNav: FunctionComponent = memo(function WrappedNav() {
 		getFirstPatcherNodeInstanceId(state)
 	]);
 
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	const { id, ...restQuery } = query; // slurp out potential id query element for a clean query
 
 	return (
 		<AppShell.Navbar>
@@ -35,35 +30,30 @@ const AppNav: FunctionComponent = memo(function WrappedNav() {
 					<NavLink
 						icon={ mdiChartSankeyVariant }
 						label="Graph Editor"
-						href={{ pathname: "/", query: restQuery }}
-						isActive={ pathname === "/" }
+						pathname="/"
 					/>
 					<NavLink
 						disabled={ instanceId === undefined }
 						icon={ mdiVectorSquare }
 						label="Devices"
-						href={{ pathname: "/instances/[id]", query: { ...restQuery, id: instanceId } }}
-						isActive={ pathname === "/instances/[id]" }
+						pathname={ `/instances/${encodeURIComponent(instanceId)}` }
 					/>
 					<NavLink
 						icon={ mdiTableEye }
 						label="Parameter Views"
-						href={{ pathname: "/setviews", query: { ...restQuery } }}
-						isActive={ pathname === "/setviews" }
+						pathname="/setviews"
 					/>
 					<NavLink
 						icon={ mdiMidiPort }
 						label="MIDI Mappings"
-						href={{ pathname: "/midimappings", query: restQuery }}
-						isActive={ pathname === "/midimappings" }
+						pathname="/midimappings"
 					/>
 				</Stack>
 				<Stack className={ classes.navMenu } >
 					<NavLink
 						icon={ mdiDatabaseCog }
 						label="Manage Resources"
-						href={{ pathname: "/resources", query: restQuery }}
-						isActive={ pathname === "/resources" }
+						pathname="/resources"
 					/>
 					<ExternalNavLink
 						icon={ mdiHelpCircle }

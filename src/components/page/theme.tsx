@@ -6,20 +6,15 @@ import { RootStateType } from "../../lib/store";
 import { getAppSetting } from "../../selectors/settings";
 import { AppSetting } from "../../models/settings";
 
-export type PageThemeProps = PropsWithChildren & {
-	fontFamily: string;
-	fontFamilyMonospace: string;
-};
+export type PageThemeProps = PropsWithChildren;
 
 export const PageTheme: FunctionComponent<PageThemeProps> = ({
-	children,
-	fontFamily,
-	fontFamilyMonospace
+	children
 }) => {
 
 	const colorScheme = useAppSelector((state: RootStateType) => getAppSetting(state, AppSetting.colorScheme).value as "light" | "dark");
 	return (
-		<MantineProvider theme={{ ...rnboTheme, fontFamily, fontFamilyMonospace }} forceColorScheme={ colorScheme } >
+		<MantineProvider theme={ rnboTheme } forceColorScheme={ colorScheme } >
 			{ children }
 		</MantineProvider>
 	);

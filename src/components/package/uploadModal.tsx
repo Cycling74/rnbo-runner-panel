@@ -100,7 +100,7 @@ const PackageUploadConfirmForm: FC<PackageUploadConfirmFormProps> = ({
 	const onTriggerSubmit = useCallback((e: FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 		onSubmit();
-	}, []);
+	}, [onSubmit]);
 
 	const supportsUpload = supportsRNBOVersion && supportsTarget;
 

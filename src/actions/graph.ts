@@ -10,9 +10,9 @@ import { PatcherExportRecord } from "../models/patcher";
 import { updateSetMetaOnRemoteFromNodes } from "./meta";
 import { calculateLayout } from "../lib/editorUtils";
 import { getGraphEditorInstance } from "../selectors/editor";
-import Router from "next/router";
 import { DialogResult, showConfirmDialog } from "../lib/dialogs";
 import { getPatcherInstance } from "../selectors/patchers";
+import { getCurrentPathname, getCurrentSearchParams, pushRoute } from "../routes";
 
 class TempPatcherInstanceCoordinatesStore {
 	constructor(
@@ -549,10 +549,10 @@ export const unloadPatcherNodeOnRemote = (instanceId: string): AppThunk =>
 			const nodes = getNodes(state);
 			dispatch(updateSetMetaOnRemoteFromNodes(nodes.filterNot(n => n.type === NodeType.Patcher && n.instanceId === instanceId).valueSeq().toArray()));
 
-			if (Router.asPath.startsWith(`/instances/${encodeURIComponent(pInstance.id)}`)) {
-				const rQuery = { ...Router.query };
+			if (getCurrentPathname().startsWith(`/instances/${encodeURIComponent(pInstance.id)}`)) {
+				const rQuery = { ...getCurrentSearchParams() };
 				delete rQuery.id;
-				Router.push({ pathname: "/", query: rQuery });
+				pushRoute({ pathname: "/", query: rQuery });
 			}
 		} catch (err) {
 			dispatch(showNotification({
