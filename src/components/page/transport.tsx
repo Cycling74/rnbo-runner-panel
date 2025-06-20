@@ -25,7 +25,7 @@ const TransportControl: FunctionComponent = memo(function WrappedTransport() {
 	const dispatch = useAppDispatch();
 	const onClose = useCallback(() => dispatch(hideTransportControl()), [dispatch]);
 	const [activePointer, setActivePointer] = useState<ActivePointer | undefined>(undefined);
-	const inputRef = useRef<HTMLDivElement>();
+	const inputRef = useRef<HTMLInputElement>();
 	const [displayValue, setDisplayValue] = useState<number>(0);
 
 	const [
