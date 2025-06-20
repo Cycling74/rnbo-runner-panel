@@ -29,8 +29,6 @@ import { initTransport, updateTransportStatus } from "../actions/transport";
 import { deserializeSetMeta } from "../lib/meta";
 import { initStreamRecording, updateStreamRecordingActiveState, updateStreamRecordingCapturedTime } from "../actions/recording";
 
-const dispatch = store.dispatch as AppDispatch;
-
 export class RunnerCmd {
 
 	public readonly id = uuidv4();
@@ -165,6 +163,10 @@ export class OSCQueryBridgeControllerPrivate {
 		});
 	}
 
+	private get dispatch(): AppDispatch {
+		return store.dispatch;
+	}
+
 	public getCmdReadableStream<R extends RunnerCmdResponse>(cmd: RunnerCmd): ReadableStream<R["result"]> {
 
 		let timeout: ReturnType<typeof setTimeout> | undefined;
@@ -286,25 +288,25 @@ export class OSCQueryBridgeControllerPrivate {
 	private async _initAudio(state: OSCQueryRNBOState) {
 
 		// Init Transport
-		dispatch(initTransport(state.CONTENTS.jack?.CONTENTS?.transport));
+		this.dispatch(initTransport(state.CONTENTS.jack?.CONTENTS?.transport));
 
 		// Init Recording
-		dispatch(initStreamRecording(state.CONTENTS.jack?.CONTENTS?.record));
+		this.dispatch(initStreamRecording(state.CONTENTS.jack?.CONTENTS?.record));
 
 		// Init RunnerInfo
-		dispatch(initRunnerInfo(state));
+		this.dispatch(initRunnerInfo(state));
 
 		// Initialize RNBO Graph Ports and Nodes
-		dispatch(initPorts(state.CONTENTS.jack?.CONTENTS.info.CONTENTS.ports));
+		this.dispatch(initPorts(state.CONTENTS.jack?.CONTENTS.info.CONTENTS.ports));
 
 		// Initialize RNBO Graph Connections
-		dispatch(initConnections(state.CONTENTS.jack?.CONTENTS.connections));
+		this.dispatch(initConnections(state.CONTENTS.jack?.CONTENTS.connections));
 
 		// Initialize RNBO Instances
-		dispatch(initInstances(state.CONTENTS.inst));
+		this.dispatch(initInstances(state.CONTENTS.inst));
 
 		// Set Init App Status
-		dispatch(setAppStatus(AppStatus.Ready));
+		this.dispatch(setAppStatus(AppStatus.Ready));
 	}
 
 	private async _init() {
@@ -312,21 +314,21 @@ export class OSCQueryBridgeControllerPrivate {
 		const state = await this._requestState<OSCQueryRNBOState>("/rnbo");
 
 		// Init Config
-		dispatch(initRunnerConfig(state));
+		this.dispatch(initRunnerConfig(state));
 
 		// Init Patcher Info
-		dispatch(initPatchers(state.CONTENTS.patchers));
+		this.dispatch(initPatchers(state.CONTENTS.patchers));
 
 		// Init Sets info
-		dispatch(initSets(state.CONTENTS.inst?.CONTENTS?.control?.CONTENTS?.sets?.CONTENTS?.load?.RANGE?.[0]?.VALS || []));
-		dispatch(setGraphSetInitialSet(state.CONTENTS.inst?.CONTENTS?.control?.CONTENTS?.sets?.CONTENTS?.initial?.VALUE));
-		dispatch(setCurrentGraphSet(state.CONTENTS.inst?.CONTENTS?.control?.CONTENTS?.sets?.CONTENTS?.current?.CONTENTS?.name?.VALUE || ""));
-		dispatch(setCurrentGraphSetDirtyState(state.CONTENTS.inst?.CONTENTS?.control?.CONTENTS?.sets?.CONTENTS?.current?.CONTENTS?.dirty?.TYPE === "T"));
-		dispatch(initSetPresets(state.CONTENTS.inst?.CONTENTS?.control?.CONTENTS?.sets?.CONTENTS?.presets?.CONTENTS?.load?.RANGE?.[0]?.VALS || []));
-		dispatch(setGraphSetPresetLatest(state.CONTENTS.inst?.CONTENTS?.control?.CONTENTS?.sets?.CONTENTS?.presets?.CONTENTS?.loaded?.VALUE || ""));
-		dispatch(initSetViews(state.CONTENTS.inst?.CONTENTS?.control?.CONTENTS?.sets?.CONTENTS?.views));
+		this.dispatch(initSets(state.CONTENTS.inst?.CONTENTS?.control?.CONTENTS?.sets?.CONTENTS?.load?.RANGE?.[0]?.VALS || []));
+		this.dispatch(setGraphSetInitialSet(state.CONTENTS.inst?.CONTENTS?.control?.CONTENTS?.sets?.CONTENTS?.initial?.VALUE));
+		this.dispatch(setCurrentGraphSet(state.CONTENTS.inst?.CONTENTS?.control?.CONTENTS?.sets?.CONTENTS?.current?.CONTENTS?.name?.VALUE || ""));
+		this.dispatch(setCurrentGraphSetDirtyState(state.CONTENTS.inst?.CONTENTS?.control?.CONTENTS?.sets?.CONTENTS?.current?.CONTENTS?.dirty?.TYPE === "T"));
+		this.dispatch(initSetPresets(state.CONTENTS.inst?.CONTENTS?.control?.CONTENTS?.sets?.CONTENTS?.presets?.CONTENTS?.load?.RANGE?.[0]?.VALS || []));
+		this.dispatch(setGraphSetPresetLatest(state.CONTENTS.inst?.CONTENTS?.control?.CONTENTS?.sets?.CONTENTS?.presets?.CONTENTS?.loaded?.VALUE || ""));
+		this.dispatch(initSetViews(state.CONTENTS.inst?.CONTENTS?.control?.CONTENTS?.sets?.CONTENTS?.views));
 
-		dispatch(triggerDataFileListRefresh(true));
+		this.dispatch(triggerDataFileListRefresh(true));
 
 		this._hasIsActive  = state.CONTENTS.jack?.CONTENTS?.info?.CONTENTS?.is_active !== undefined;
 
@@ -334,28 +336,28 @@ export class OSCQueryBridgeControllerPrivate {
 		if ((!this._hasIsActive && state.CONTENTS.jack?.CONTENTS?.active?.TYPE === "T") || state.CONTENTS.jack?.CONTENTS?.info?.CONTENTS?.is_active?.TYPE === "T") {
 			await this._initAudio(state);
 		} else {
-			dispatch(setAppStatus(AppStatus.AudioOff));
+			this.dispatch(setAppStatus(AppStatus.AudioOff));
 		}
 
 		// Init RNBO Graph Positions or default to a new layout
 		const meta: OSCQuerySetMeta = deserializeSetMeta(state.CONTENTS.inst?.CONTENTS.control.CONTENTS.sets.CONTENTS.meta.VALUE);
-		dispatch(updateSetMetaFromRemote(meta));
+		this.dispatch(updateSetMetaFromRemote(meta));
 	}
 
 	private _onClose = (evt: ErrorEvent) => {
-		dispatch(setAppStatus(AppStatus.Closed, new Error("The connection to the RNBO Runner was closed")));
+		this.dispatch(setAppStatus(AppStatus.Closed, new Error("The connection to the RNBO Runner was closed")));
 	};
 
 	private _onError = (evt: ErrorEvent) => {
-		dispatch(setAppStatus(AppStatus.Error, new Error(`The connection to the RNBO Runner encountered an error ${evt.error.message}`)));
+		this.dispatch(setAppStatus(AppStatus.Error, new Error(`The connection to the RNBO Runner encountered an error ${evt.error.message}`)));
 	};
 
 	private _onReconnecting = () => {
-		dispatch(setAppStatus(AppStatus.Reconnecting));
+		this.dispatch(setAppStatus(AppStatus.Reconnecting));
 	};
 
 	private _onReconnected = () => {
-		dispatch(setAppStatus(AppStatus.ResyncingState));
+		this.dispatch(setAppStatus(AppStatus.ResyncingState));
 		this._init();
 	};
 
@@ -407,7 +409,7 @@ export class OSCQueryBridgeControllerPrivate {
 
 			// Add Patcher Instance
 			const info = await this._requestState<OSCQueryRNBOInstance>(path);
-			return void dispatch(addInstance(info));
+			return void this.dispatch(addInstance(info));
 
 			// We only create the instance here, adding the Node to the graph is handled
 			// by keeping the ports in sync
@@ -416,25 +418,25 @@ export class OSCQueryBridgeControllerPrivate {
 		// Handle changes to patchers list - request updated list
 		if (patchersPathMatcher.test(path)) {
 			const patcherInfo = await this._requestState<OSCQueryRNBOPatchersState>("/rnbo/patchers");
-			return void dispatch(initPatchers(patcherInfo));
+			return void this.dispatch(initPatchers(patcherInfo));
 		}
 
 		// Handle Set Views
 		const setViewMatch = path.match(setViewPathMatcher);
 		if (setViewMatch && setViewMatch.groups?.rest === undefined) {
-			return void dispatch(addSetView(setViewMatch.groups.id));
+			return void this.dispatch(addSetView(setViewMatch.groups.id));
 		}
 
 		// Handle Port Alias Additions
 		const aliasMatch = path.match(portAliasPathMatcher);
 		if (aliasMatch?.groups?.port !== undefined) {
-			return void dispatch(addPort(aliasMatch?.groups?.port));
+			return void this.dispatch(addPort(aliasMatch?.groups?.port));
 		}
 
 		// Handle Port Property Additions
 		const propMatch = path.match(portPropertiesPathMatcher);
 		if (propMatch?.groups?.port !== undefined) {
-			return void dispatch(addPort(propMatch?.groups?.port));
+			return void this.dispatch(addPort(propMatch?.groups?.port));
 		}
 
 		// Parse out if instance path?
@@ -451,7 +453,7 @@ export class OSCQueryBridgeControllerPrivate {
 		) {
 			// Updated Preset Entries
 			const presetInfo = await this._requestState< OSCQueryRNBOInstance["CONTENTS"]["presets"]>(`/rnbo/inst/${instanceId}/presets`);
-			return void dispatch(updateInstancePresetEntries(instanceId, presetInfo.CONTENTS.entries));
+			return void this.dispatch(updateInstancePresetEntries(instanceId, presetInfo.CONTENTS.entries));
 		} else if (
 			instInfoMatch.groups.content === "params" &&
 			!instInfoMatch.groups.rest.endsWith("/normalized") &&
@@ -460,19 +462,19 @@ export class OSCQueryBridgeControllerPrivate {
 		) {
 			// Add Parameter
 			const paramInfo = await this._requestState< OSCQueryRNBOInstance["CONTENTS"]["params"]>(`/rnbo/inst/${instanceId}/params`);
-			return void dispatch(updateInstanceParameters(instanceId, paramInfo));
+			return void this.dispatch(updateInstanceParameters(instanceId, paramInfo));
 		} else if (
 			instInfoMatch.groups.content === "messages/in" || instInfoMatch.groups.content === "messages/out"
 		) {
 			// Add Message Inputs & Outputs
 			const messagesInfo = await this._requestState<OSCQueryRNBOInstance["CONTENTS"]["messages"]>(`/rnbo/inst/${instanceId}/messages`);
-			return void dispatch(updateInstanceMessages(instanceId, messagesInfo));
+			return void this.dispatch(updateInstanceMessages(instanceId, messagesInfo));
 		} else if (
 			instInfoMatch.groups.content === "data_refs"
 		) {
 			// Add DataRefs
 			const dataRefInfo = await this._requestState<OSCQueryRNBOInstance["CONTENTS"]["data_refs"]>(`/rnbo/inst/${instanceId}/data_refs`);
-			return void dispatch(updateInstanceDataRefs(instanceId, dataRefInfo));
+			return void this.dispatch(updateInstanceDataRefs(instanceId, dataRefInfo));
 		}
 	}
 
@@ -481,25 +483,25 @@ export class OSCQueryBridgeControllerPrivate {
 		// Removed Patcher
 		if (patchersPathMatcher.test(path)) {
 			const patcherInfo = await this._requestState<OSCQueryRNBOPatchersState>("/rnbo/patchers");
-			return void dispatch(initPatchers(patcherInfo));
+			return void this.dispatch(initPatchers(patcherInfo));
 		}
 
 		// Removed Set View
 		const setViewMatch = path.match(setViewPathMatcher);
 		if (setViewMatch && setViewMatch.groups?.rest === undefined) {
-			return void dispatch(deleteSetView(parseInt(setViewMatch.groups.id, 10)));
+			return void this.dispatch(deleteSetView(parseInt(setViewMatch.groups.id, 10)));
 		}
 
 		// Handle Port Alias Removals
 		const aliasMatch = path.match(portAliasPathMatcher);
 		if (aliasMatch?.groups?.port) {
-			return void dispatch(deletePortAliases(aliasMatch?.groups?.port));
+			return void this.dispatch(deletePortAliases(aliasMatch?.groups?.port));
 		}
 
 		// Handle Port Property Removals
 		const propMatch = path.match(portPropertiesPathMatcher);
 		if (propMatch?.groups?.port) {
-			return void dispatch(deletePortById(propMatch?.groups?.port));
+			return void this.dispatch(deletePortById(propMatch?.groups?.port));
 		}
 
 		// Removed Instance
@@ -507,7 +509,7 @@ export class OSCQueryBridgeControllerPrivate {
 		if (instMatch?.groups?.id) {
 			// We only delete the instance here, removing the Node from the graph is handled
 			// by keeping the ports in sync
-			return void dispatch(deleteInstanceById(instMatch.groups.id));
+			return void this.dispatch(deleteInstanceById(instMatch.groups.id));
 		}
 
 		// Parse out if instance path?
@@ -524,7 +526,7 @@ export class OSCQueryBridgeControllerPrivate {
 			instInfoMatch.groups.rest === "entries"
 		) {
 			const presetInfo = await this._requestState< OSCQueryRNBOInstance["CONTENTS"]["presets"]>(`/rnbo/inst/${instanceId}/presets`);
-			return void dispatch(updateInstancePresetEntries(instanceId, presetInfo.CONTENTS.entries));
+			return void this.dispatch(updateInstancePresetEntries(instanceId, presetInfo.CONTENTS.entries));
 		}
 
 		// Removed Parameter
@@ -535,7 +537,7 @@ export class OSCQueryBridgeControllerPrivate {
 			!instInfoMatch.groups.rest.endsWith("/normalized") &&
 			!instInfoMatch.groups.rest.endsWith("/display_name")
 		) {
-			return void dispatch(removeInstanceParameterByPath(path));
+			return void this.dispatch(removeInstanceParameterByPath(path));
 		}
 
 		// Removed Message Inport
@@ -543,7 +545,7 @@ export class OSCQueryBridgeControllerPrivate {
 			instInfoMatch.groups.content === "messages/in" &&
 			!instInfoMatch.groups.rest.endsWith("meta")
 		) {
-			return void dispatch(removeInstanceMessageInportByPath(path));
+			return void this.dispatch(removeInstanceMessageInportByPath(path));
 		}
 
 		// Removed Message Outport
@@ -551,7 +553,7 @@ export class OSCQueryBridgeControllerPrivate {
 			instInfoMatch.groups.content === "messages/out" &&
 			!instInfoMatch.groups.rest.endsWith("meta")
 		) {
-			return void dispatch(removeInstanceMessageOutportByPath(path));
+			return void this.dispatch(removeInstanceMessageOutportByPath(path));
 		}
 
 		// Removed DataRef
@@ -559,7 +561,7 @@ export class OSCQueryBridgeControllerPrivate {
 			instInfoMatch.groups.content === "data_refs" &&
 			!instInfoMatch.groups.rest.endsWith("meta")
 		) {
-			return void dispatch(removeInstanceDataRefByPath(path));
+			return void this.dispatch(removeInstanceDataRefByPath(path));
 		}
 	}
 
@@ -567,12 +569,12 @@ export class OSCQueryBridgeControllerPrivate {
 		// console.log("ATTRIBUTES_CHANGED", data);
 		if (data.FULL_PATH === "/rnbo/inst/control/sets/load" && data.RANGE !== undefined) {
 			const sets: Array<string> = data.RANGE?.[0]?.VALS || [];
-			dispatch(initSets(sets));
+			this.dispatch(initSets(sets));
 		}
 
 		if (data.FULL_PATH === setsPresetsLoadPath) {
 			const names: Array<string> = data.RANGE?.[0]?.VALS || [];
-			dispatch(initSetPresets(names));
+			this.dispatch(initSetPresets(names));
 		}
 	}
 
@@ -594,14 +596,14 @@ export class OSCQueryBridgeControllerPrivate {
 			const state = await this._requestState<OSCQueryRNBOState>("/rnbo");
 			await this._initAudio(state);
 		} else {
-			dispatch(setAppStatus(AppStatus.AudioOff));
+			this.dispatch(setAppStatus(AppStatus.AudioOff));
 		}
 	}
 
 	private async _processOSCMessage(packet: OSCMessage): Promise<void> {
 
 		if (packet.address === "/rnbo/jack/restart") {
-			return void dispatch(showNotification({ title: "Restarting Jack", message: "Please wait while the Jack server is being restarted with the updated audio configuration settings.", level: NotificationLevel.info }));
+			return void this.dispatch(showNotification({ title: "Restarting Jack", message: "Please wait while the Jack server is being restarted with the updated audio configuration settings.", level: NotificationLevel.info }));
 		}
 
 		if (packet.address === "/rnbo/jack/info/is_active") {
@@ -616,52 +618,52 @@ export class OSCQueryBridgeControllerPrivate {
 		}
 		// Transport Control Control
 		if (packet.address === "/rnbo/jack/transport/bpm") {
-			if (packet.args?.length) return void dispatch(updateTransportStatus({ bpm: (packet.args as unknown as [number])?.[0] }));
+			if (packet.args?.length) return void this.dispatch(updateTransportStatus({ bpm: (packet.args as unknown as [number])?.[0] }));
 		}
 
 		if (packet.address === "/rnbo/jack/transport/rolling") {
-			if (packet.args?.length) return void dispatch(updateTransportStatus({ rolling: (packet.args as unknown as [boolean])?.[0] }));
+			if (packet.args?.length) return void this.dispatch(updateTransportStatus({ rolling: (packet.args as unknown as [boolean])?.[0] }));
 		}
 
 		if (packet.address === "/rnbo/jack/transport/sync") {
-			if (packet.args?.length) return void dispatch(updateTransportStatus({ sync: (packet.args as unknown as [boolean])?.[0] }));
+			if (packet.args?.length) return void this.dispatch(updateTransportStatus({ sync: (packet.args as unknown as [boolean])?.[0] }));
 		}
 
 		if (packet.address === "/rnbo/inst/control/sets/initial") {
-			return void dispatch(setGraphSetInitialSet((packet.args as unknown as [string])?.[0] || undefined));
+			return void this.dispatch(setGraphSetInitialSet((packet.args as unknown as [string])?.[0] || undefined));
 		}
 
 		if (packet.address === "/rnbo/inst/control/sets/presets/loaded") {
-			return void dispatch(setGraphSetPresetLatest((packet.args as unknown as [string])?.[0] || ""));
+			return void this.dispatch(setGraphSetPresetLatest((packet.args as unknown as [string])?.[0] || ""));
 		}
 
 		if (packet.address === "/rnbo/inst/control/sets/current/name") {
-			return void dispatch(setCurrentGraphSet((packet.args as unknown as [string])?.[0] || ""));
+			return void this.dispatch(setCurrentGraphSet((packet.args as unknown as [string])?.[0] || ""));
 		}
 
 		if (packet.address === "/rnbo/inst/control/sets/current/dirty") {
-			return void dispatch(setCurrentGraphSetDirtyState((packet.args as unknown as [boolean])?.[0] || false));
+			return void this.dispatch(setCurrentGraphSetDirtyState((packet.args as unknown as [boolean])?.[0] || false));
 		}
 
 		const setMetaMatch = packet.address.match(setMetaPathMatcher);
 		if (setMetaMatch) {
 			const meta: OSCQuerySetMeta = deserializeSetMeta((packet.args as unknown as [string])[0]);
-			return void dispatch(updateSetMetaFromRemote(meta));
+			return void this.dispatch(updateSetMetaFromRemote(meta));
 		}
 
 		if (packet.address === "/rnbo/inst/control/sets/views/order") {
-			return void dispatch(updateSetViewOrder(packet.args as unknown as number[]));
+			return void this.dispatch(updateSetViewOrder(packet.args as unknown as number[]));
 		}
 
 		const setViewMatch = packet.address.match(setViewPathMatcher);
 		if (setViewMatch) {
 			if (setViewMatch.groups?.rest === "/name") {
-				return void dispatch(updateSetViewName(
+				return void this.dispatch(updateSetViewName(
 					parseInt(setViewMatch.groups.id, 10),
 					packet.args[0] as unknown as string
 				));
 			} else if (setViewMatch.groups?.rest === "/params") {
-				return void dispatch(updateSetViewParameterList(
+				return void this.dispatch(updateSetViewParameterList(
 					parseInt(setViewMatch.groups.id, 10),
 					packet.args as unknown as string[]
 				));
@@ -675,9 +677,9 @@ export class OSCQueryBridgeControllerPrivate {
 				const instanceId: string = instancePresetMatch.groups.id;
 				switch (instancePresetMatch.groups.property) {
 					case "initial":
-						return void dispatch(updateInstancePresetInitial(instanceId, name));
+						return void this.dispatch(updateInstancePresetInitial(instanceId, name));
 					case "loaded":
-						return void dispatch(updateInstancePresetLatest(instanceId, name));
+						return void this.dispatch(updateInstancePresetLatest(instanceId, name));
 					default:
 						break;
 				}
@@ -689,29 +691,29 @@ export class OSCQueryBridgeControllerPrivate {
 		const aliasMatch = packet.address.match(portAliasPathMatcher);
 		if (aliasMatch?.groups?.port) {
 			await sleep(0); // we do this in order to ensure the state fully updated and pending state updates are flushed in case of rapid port creation
-			return void dispatch(setPortAliases(aliasMatch?.groups?.port, packet.args as unknown as string[]));
+			return void this.dispatch(setPortAliases(aliasMatch?.groups?.port, packet.args as unknown as string[]));
 		}
 
 		// Handle Port Properties setting
 		const propMatch = packet.address.match(portPropertiesPathMatcher);
 		if (propMatch?.groups?.port) {
 			await sleep(0); // we do this in order to ensure the state fully updated and pending state updates are flushed in case of rapid port creation
-			return void dispatch(setPortProperties(propMatch?.groups?.port, (packet.args as unknown as [string])[0]));
+			return void this.dispatch(setPortProperties(propMatch?.groups?.port, (packet.args as unknown as [string])[0]));
 		}
 
 		// Connection Changes
 		const connectionMatch = packet.address.match(connectionsPathMatcher);
 		if (connectionMatch?.groups?.id) {
-			return void dispatch(updateSourcePortConnections(connectionMatch.groups.id, packet.args as unknown as string[]));
+			return void this.dispatch(updateSourcePortConnections(connectionMatch.groups.id, packet.args as unknown as string[]));
 		}
 
 		// Runner Info Changes
 		const runnerInfoMatch = packet.address.match(runnerInfoMatcher);
 		if (runnerInfoMatch?.groups?.name === "datafile_dir_mtime") {
 			// only sent when it changes so we don't care what the value, just read the list again
-			return void dispatch(triggerDataFileListRefresh());
+			return void this.dispatch(triggerDataFileListRefresh());
 		} else if (runnerInfoMatch?.groups?.name?.length) {
-			return void dispatch(setRunnerInfoValue(runnerInfoMatch?.groups?.name as SystemInfoKey, (packet.args as unknown as [string])?.[0] || ""));
+			return void this.dispatch(setRunnerInfoValue(runnerInfoMatch?.groups?.name as SystemInfoKey, (packet.args as unknown as [string])?.[0] || ""));
 		}
 
 		// Jack Info Changes
@@ -722,7 +724,7 @@ export class OSCQueryBridgeControllerPrivate {
 			packet.args.length >= 1 &&
 			typeof packet.args[0] === "number"
 		) {
-			return void dispatch(setRunnerInfoValue(jackInfoMatch.groups.name as JackInfoKey, (packet.args as unknown as [number])?.[0] || 0.0));
+			return void this.dispatch(setRunnerInfoValue(jackInfoMatch.groups.name as JackInfoKey, (packet.args as unknown as [number])?.[0] || 0.0));
 		}
 
 		// Update configs
@@ -732,18 +734,18 @@ export class OSCQueryBridgeControllerPrivate {
 			instanceConfigPathMatcher.test(packet.address)
 		) {
 			if (packet.args.length) {
-				return void dispatch(updateRunnerConfig(packet.address, packet.args[0] as unknown as string | number | boolean));
+				return void this.dispatch(updateRunnerConfig(packet.address, packet.args[0] as unknown as string | number | boolean));
 			}
 		}
 
 		// Recording
 		const recordMatch = packet.address.match(recordPathMatcher);
 		if (recordMatch?.groups?.name === "active") {
-			return void dispatch(updateStreamRecordingActiveState(packet.args[0] as unknown as boolean));
+			return void this.dispatch(updateStreamRecordingActiveState(packet.args[0] as unknown as boolean));
 		} else if (recordMatch?.groups?.name === "captured") {
-			return void dispatch(updateStreamRecordingCapturedTime(packet.args[0] as unknown as number));
+			return void this.dispatch(updateStreamRecordingCapturedTime(packet.args[0] as unknown as number));
 		} else if (recordMatch && packet.args.length) {
-			return void dispatch(updateRunnerConfig(packet.address, packet.args[0] as unknown as string | number | boolean));
+			return void this.dispatch(updateRunnerConfig(packet.address, packet.args[0] as unknown as string | number | boolean));
 		}
 
 		// Instance Scoped Messages
@@ -760,25 +762,25 @@ export class OSCQueryBridgeControllerPrivate {
 			// Normalized Value Update
 			const name = packetMatch.groups.rest.split("/").slice(0, -1).join("/");
 			if (!name || !packet.args.length || typeof packet.args[0] !== "number") return;
-			return void dispatch(updateInstanceParameterValueNormalized(instanceId, name, packet.args[0]));
+			return void this.dispatch(updateInstanceParameterValueNormalized(instanceId, name, packet.args[0]));
 		} else if (
 			packetMatch.groups.content === "params" && packetMatch.groups.rest.endsWith("/meta")
 		) {
 			// Meta Update
 			const name = packetMatch.groups.rest.split("/").slice(0, -1).join("/");
-			return void dispatch(updateInstanceParameterMeta(instanceId, name, packet.args[0] as unknown as string));
+			return void this.dispatch(updateInstanceParameterMeta(instanceId, name, packet.args[0] as unknown as string));
 		} else if (
 			packetMatch.groups.content === "params" && packetMatch.groups.rest.endsWith("/display_name")
 		) {
 			const name = packetMatch.groups.rest.split("/").slice(0, -1).join("/");
-			return void dispatch(updateInstanceParameterDisplayName(instanceId, name, packet.args[0] as unknown as string));
+			return void this.dispatch(updateInstanceParameterDisplayName(instanceId, name, packet.args[0] as unknown as string));
 		} else if (
 			packetMatch.groups.content === "params"
 		) {
 			// Value Update
 			const name = packetMatch.groups.rest;
 			if (!name || !packet.args.length || typeof packet.args[0] !== "number") return;
-			return void dispatch(updateInstanceParameterValue(instanceId, name, packet.args[0]));
+			return void this.dispatch(updateInstanceParameterValue(instanceId, name, packet.args[0]));
 		}
 
 		// Preset changes
@@ -787,17 +789,17 @@ export class OSCQueryBridgeControllerPrivate {
 			packetMatch.groups.rest === "entries"
 		) {
 			const presetInfo = await this._requestState< OSCQueryRNBOInstance["CONTENTS"]["presets"]>(`/rnbo/inst/${instanceId}/presets`);
-			return void dispatch(updateInstancePresetEntries(instanceId, presetInfo.CONTENTS.entries));
+			return void this.dispatch(updateInstancePresetEntries(instanceId, presetInfo.CONTENTS.entries));
 		}
 
 		// Port / Data Ref meta
 		if (packetMatch.groups.rest.endsWith("/meta")) {
 			if (packetMatch.groups.content === "messages/out") {
-				return void dispatch(updateInstanceMessageOutportMeta(instanceId, packetMatch.groups.rest.replace(/\/meta$/, ""), packet.args[0] as unknown as string));
+				return void this.dispatch(updateInstanceMessageOutportMeta(instanceId, packetMatch.groups.rest.replace(/\/meta$/, ""), packet.args[0] as unknown as string));
 			} else if (packetMatch.groups.content === "messages/in") {
-				return void dispatch(updateInstanceMessageInportMeta(instanceId, packetMatch.groups.rest.replace(/\/meta$/, ""), packet.args[0] as unknown as string));
+				return void this.dispatch(updateInstanceMessageInportMeta(instanceId, packetMatch.groups.rest.replace(/\/meta$/, ""), packet.args[0] as unknown as string));
 			} else if (packetMatch.groups.content === "data_refs") {
-				return void dispatch(updateInstanceDataRefMeta(instanceId, packetMatch.groups.rest.replace(/\/meta$/, ""), packet.args[0] as unknown as string));
+				return void this.dispatch(updateInstanceDataRefMeta(instanceId, packetMatch.groups.rest.replace(/\/meta$/, ""), packet.args[0] as unknown as string));
 			}
 		}
 
@@ -807,7 +809,7 @@ export class OSCQueryBridgeControllerPrivate {
 			packetMatch.groups.rest?.length
 		) {
 			// groups.rest might not actually be a valid id but that should be okay
-			return void dispatch(updateInstanceMessageOutportValue(instanceId, packetMatch.groups.rest, packet.args as any as OSCValue | OSCValue[]));
+			return void this.dispatch(updateInstanceMessageOutportValue(instanceId, packetMatch.groups.rest, packet.args as any as OSCValue | OSCValue[]));
 		}
 
 		// Data Refs
@@ -819,15 +821,15 @@ export class OSCQueryBridgeControllerPrivate {
 			typeof packet.args[0] === "string"
 		) {
 			// File mapping update
-			return void dispatch(updateInstanceDataRefValue(instanceId, packetMatch.groups.rest, packet.args[0] as string));
+			return void this.dispatch(updateInstanceDataRefValue(instanceId, packetMatch.groups.rest, packet.args[0] as string));
 		}
 
 		if (packetMatch.groups.content === "midi/last") {
 			switch (packetMatch.groups.rest) {
 				case "value":
-					return void dispatch(updateInstanceMIDILastValue(instanceId, packet.args[0] as unknown as string));
+					return void this.dispatch(updateInstanceMIDILastValue(instanceId, packet.args[0] as unknown as string));
 				case "report":
-					return void dispatch(updateInstanceMIDIReport(instanceId, packet.args[0] as unknown as boolean));
+					return void this.dispatch(updateInstanceMIDIReport(instanceId, packet.args[0] as unknown as boolean));
 				default:
 					return;
 			}
@@ -836,7 +838,7 @@ export class OSCQueryBridgeControllerPrivate {
 		if (packetMatch.groups?.content === "config") {
 			switch (packetMatch.groups.rest) {
 				case "name_alias":
-					return void dispatch(updateInstanceAlias(instanceId, packet.args[0] as unknown as string));
+					return void this.dispatch(updateInstanceAlias(instanceId, packet.args[0] as unknown as string));
 				default:
 					return;
 			}
@@ -861,11 +863,11 @@ export class OSCQueryBridgeControllerPrivate {
 		this._ws = new ReconnectingWebsocket({ hostname, port });
 
 		try {
-			dispatch(setConnectionEndpoint(hostname, port));
+			this.dispatch(setConnectionEndpoint(hostname, port));
 			await this._ws.connect();
 
 			this.cmdWriteStreamLock.clear();
-			dispatch(setAppStatus(AppStatus.InitializingState));
+			this.dispatch(setAppStatus(AppStatus.InitializingState));
 
 			this._ws.on("close", this._onClose);
 			this._ws.on("error", this._onError);
@@ -876,7 +878,7 @@ export class OSCQueryBridgeControllerPrivate {
 
 			await this._init();
 		} catch (err) {
-			dispatch(setAppStatus(AppStatus.Error, new Error(`Failed to connect to start up: ${err.message}`)));
+			this.dispatch(setAppStatus(AppStatus.Error, new Error(`Failed to connect to start up: ${err.message}`)));
 			console.log(err);
 			// Rethrow error
 			throw err;
