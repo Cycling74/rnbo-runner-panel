@@ -17,7 +17,7 @@ export const rnboTheme: MantineThemeOverride = createTheme({
 	headings: {
 		sizes: {
 			h1: {
-				fontWeight: "900"
+				fontWeight: "700"
 			},
 			h2: {
 				fontWeight: "700"
