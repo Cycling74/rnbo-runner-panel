@@ -10,7 +10,7 @@ export default defineConfig({
 	build: {
 		rollupOptions: {
 			output: {
-				dir: normalize(join(import.meta.dirname, "dist"))
+				dir: normalize(join(import.meta.dirname, "out"))
 			}
 		}
 	},
