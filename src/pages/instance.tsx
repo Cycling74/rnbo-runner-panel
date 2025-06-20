@@ -1,35 +1,37 @@
-import { MouseEvent, useCallback } from "react";
-import { useAppDispatch, useAppSelector } from "../../hooks/useAppDispatch";
-import { RootStateType } from "../../lib/store";
-import InstanceComponent from "../../components/instance";
-import { useRouter } from "next/router";
+import { FC, MouseEvent, useCallback } from "react";
+import { useAppDispatch, useAppSelector } from "../hooks/useAppDispatch";
+import { RootStateType } from "../lib/store";
+import InstanceComponent from "../components/instance";
 import { ActionIcon, Button, Group, Menu, Stack, Tooltip } from "@mantine/core";
-import classes from "../../components/instance/instance.module.css";
-import { getAppStatus } from "../../selectors/appStatus";
-import { AppStatus, SortOrder } from "../../lib/constants";
-import Link from "next/link";
-import { getPatcherInstance, getPatcherInstanceParametersByInstanceId, getPatcherInstances, getPatcherInstanceMessageInportsByInstanceId, getPatcherInstanceMesssageOutportsByInstanceId, getPatcherInstanceDataRefsByInstanceId } from "../../selectors/patchers";
-import { unloadPatcherNodeOnRemote } from "../../actions/graph";
-import { getAppSetting } from "../../selectors/settings";
-import { AppSetting } from "../../models/settings";
-import PresetDrawer from "../../components/presets";
-import { PresetRecord } from "../../models/preset";
-import { destroyPresetOnRemoteInstance, renamePresetOnRemoteInstance, setInitialPresetOnRemoteInstance, loadPresetOnRemoteInstance, onOverwritePresetOnRemoteInstance, createPresetOnRemoteInstance, changeAliasOnRemoteInstance } from "../../actions/patchers";
+import classes from "../components/instance/instance.module.css";
+import { getAppStatus } from "../selectors/appStatus";
+import { AppStatus, SortOrder } from "../lib/constants";
+import { getPatcherInstance, getPatcherInstanceParametersByInstanceId, getPatcherInstances, getPatcherInstanceMessageInportsByInstanceId, getPatcherInstanceMesssageOutportsByInstanceId, getPatcherInstanceDataRefsByInstanceId } from "../selectors/patchers";
+import { unloadPatcherNodeOnRemote } from "../actions/graph";
+import { getAppSetting } from "../selectors/settings";
+import { AppSetting } from "../models/settings";
+import PresetDrawer from "../components/presets";
+import { PresetRecord } from "../models/preset";
+import { destroyPresetOnRemoteInstance, renamePresetOnRemoteInstance, setInitialPresetOnRemoteInstance, loadPresetOnRemoteInstance, onOverwritePresetOnRemoteInstance, createPresetOnRemoteInstance, changeAliasOnRemoteInstance } from "../actions/patchers";
 import { useDisclosure } from "@mantine/hooks";
-import { getDataFilesSortedByName } from "../../selectors/datafiles";
-import InstanceKeyboardModal from "../../components/keyroll/modal";
-import { IconElement } from "../../components/elements/icon";
+import { getDataFilesSortedByName } from "../selectors/datafiles";
+import InstanceKeyboardModal from "../components/keyroll/modal";
+import { IconElement } from "../components/elements/icon";
 import { mdiCamera, mdiChartSankeyVariant, mdiDotsVertical, mdiPencil, mdiPiano, mdiTrashCan } from "@mdi/js";
-import { InstanceSelectTitle } from "../../components/instance/title";
-import { PatcherInstanceRecord } from "../../models/instance";
+import { InstanceSelectTitle } from "../components/instance/title";
+import { PatcherInstanceRecord } from "../models/instance";
+import { Link, useLocation, useNavigate, useParams } from "react-router";
 
-export default function Instance() {
+export const InstancePage: FC<Record<never, never>> = () => {
 
-	const { query, isReady, pathname, push } = useRouter();
+	const { search } = useLocation();
+	const navigate = useNavigate();
+	const { id } = useParams();
+
 	const [presetDrawerIsOpen, { close: closePresetDrawer, toggle: togglePresetDrawer }] = useDisclosure();
 	const [keyboardModalIsOpen, { close: closeKeyboardModal, toggle: toggleKeyboardModal }] = useDisclosure();
 
-	const { id, ...restQuery } = query;
+
 	const instanceId = Array.isArray(id) ? id.join("") : id || "0";
 
 	const dispatch = useAppDispatch();
@@ -70,8 +72,8 @@ export default function Instance() {
 	});
 
 	const onChangeInstance = useCallback((instance: PatcherInstanceRecord) => {
-		push({ pathname, query: { ...query, id: instance.id } });
-	}, [push, pathname, query]);
+		navigate({ pathname: `/instances/${encodeURIComponent(instance.id)}`, search });
+	}, [navigate, search]);
 
 	const onUnloadInstance = useCallback((e: MouseEvent<HTMLButtonElement>) => {
 		dispatch(unloadPatcherNodeOnRemote(currentInstance.id));
@@ -105,7 +107,7 @@ export default function Instance() {
 		dispatch(changeAliasOnRemoteInstance(currentInstance));
 	}, [dispatch, currentInstance]);
 
-	if (!isReady || appStatus !== AppStatus.Ready) return null;
+	if (appStatus !== AppStatus.Ready) return null;
 
 	if (!currentInstance || !parameters || !messageInports || !messageOutports) {
 		// Instance not found / doesn't exist
@@ -114,7 +116,7 @@ export default function Instance() {
 				<h2>Instance Not Found</h2>
 				<Button
 					component={ Link }
-					href={{ pathname: "/", query: restQuery }}
+					to={{ pathname: "/", search }}
 					leftSection={ <IconElement path={ mdiChartSankeyVariant } /> }
 					variant="outline"
 					color="gray"
@@ -197,4 +199,4 @@ export default function Instance() {
 			/>
 		</Stack>
 	);
-}
+};

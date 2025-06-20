@@ -3,10 +3,9 @@ import { EditorNodeProps, calcPortOffset } from "./util";
 import EditorPort from "./port";
 import classes from "./editor.module.css";
 import { ActionIcon, Menu, Paper, Tooltip } from "@mantine/core";
-import Link from "next/link";
-import { useRouter } from "next/router";
 import { IconElement } from "../elements/icon";
 import { mdiDotsVertical, mdiPencil, mdiTrashCan, mdiVectorSquare } from "@mdi/js";
+import { Link, useLocation } from "react-router";
 
 const EditorPatcherNode: FunctionComponent<EditorNodeProps> = memo(function WrappedGraphPatcherNode({
 	data: {
@@ -23,7 +22,7 @@ const EditorPatcherNode: FunctionComponent<EditorNodeProps> = memo(function Wrap
 	selected
 }) {
 
-	const { query } = useRouter();
+	const { search } = useLocation();
 	const portSizeLimit = sinks.length && sources.length ? Math.round(width / 2) : width;
 
 	const onTriggerRename = useCallback(() => {
@@ -51,7 +50,7 @@ const EditorPatcherNode: FunctionComponent<EditorNodeProps> = memo(function Wrap
 							<Menu.Label>
 								Device Actions
 							</Menu.Label>
-							<Menu.Item leftSection={ <IconElement path={ mdiVectorSquare } /> } component={ Link } href={{ pathname: "/instances/[id]", query: { ...query, id: node.instanceId } }} >
+							<Menu.Item leftSection={ <IconElement path={ mdiVectorSquare } /> } component={ Link } to={{ pathname: `/instances/${encodeURIComponent(node.instanceId)}`, search }} >
 								Open Device Control
 							</Menu.Item>
 							<Menu.Item leftSection={ <IconElement path={ mdiPencil } /> } onClick={ onTriggerRename } >

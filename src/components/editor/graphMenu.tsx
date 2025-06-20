@@ -2,8 +2,7 @@ import { ActionIcon, Menu, Tooltip } from "@mantine/core";
 import { FC, memo } from "react";
 import { mdiArrowUpBoldBoxOutline, mdiContentSave, mdiContentSaveMove, mdiDatabaseCog, mdiDotsVertical, mdiPencil, mdiPlus, mdiReload, mdiTrashCan } from "@mdi/js";
 import { IconElement } from "../elements/icon";
-import Link from "next/link";
-import { useRouter } from "next/router";
+import { Link, useLocation } from "react-router";
 
 export type GraphSetMenuProps = {
 	hasLoadedGraph?: boolean;
@@ -31,7 +30,7 @@ export const GraphSetMenu: FC<GraphSetMenuProps> = memo(function WrapedSaveGraph
 	onTriggerRenameCurrentSet
 }) {
 
-	const { query } = useRouter();
+	const { search } = useLocation();
 
 	return (
 		<Menu position="bottom-end" >
@@ -69,7 +68,7 @@ export const GraphSetMenu: FC<GraphSetMenuProps> = memo(function WrapedSaveGraph
 				<Menu.Item
 					leftSection={ <IconElement path={ mdiDatabaseCog } /> }
 					component={ Link }
-					href={{ pathname: "/resources", query: { ...query } }}
+					to={{ pathname: "/resources", search }}
 				>
 					Manage Graphs
 				</Menu.Item>

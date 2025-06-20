@@ -4,13 +4,12 @@ import { ParameterRecord } from "../../models/parameter";
 import { ActionIcon, Group, Menu, Table, Tooltip } from "@mantine/core";
 import { mdiDotsVertical, mdiEraser, mdiPencil, mdiVectorSquare } from "@mdi/js";
 import { IconElement } from "../elements/icon";
-import Link from "next/link";
-import { useRouter } from "next/router";
 import classes from "./midi.module.css";
 import { formatMIDIMappingToDisplay, formatParamValueForDisplay } from "../../lib/util";
 import { EditableTableTextCell } from "../elements/editableTableCell";
 import { MIDIMetaMappingType } from "../../lib/constants";
 import { MIDIMetaMapping } from "../../lib/types";
+import { Link, useLocation } from "react-router";
 
 export type MIDIMappedParamProps = {
 	instance: PatcherInstanceRecord;
@@ -19,7 +18,6 @@ export type MIDIMappedParamProps = {
 	onUpdateMIDIMapping: (param: ParameterRecord, value: string) => void;
 };
 
-
 const MIDIMappedParameter: FC<MIDIMappedParamProps> = memo(function WrappedMIDIMappedParam({
 	instance,
 	param,
@@ -27,7 +25,7 @@ const MIDIMappedParameter: FC<MIDIMappedParamProps> = memo(function WrappedMIDIM
 	onUpdateMIDIMapping
 }) {
 
-	const { query: restQuery } = useRouter();
+	const { search } = useLocation();
 	const [isEditingMapping, setIsEditingMapping] = useState<boolean>(false);
 
 	const onTriggerEditing = useCallback(() => {
@@ -73,7 +71,8 @@ const MIDIMappedParameter: FC<MIDIMappedParamProps> = memo(function WrappedMIDIM
 							<Menu.Item
 								leftSection={ <IconElement path={ mdiVectorSquare } /> }
 								component={ Link }
-								href={{ pathname: "/instances/[id]", query: { ...restQuery, id: instance.id } }}
+								to={{
+									pathname: `/instances/${encodeURIComponent(instance.id)}`, search } }
 							>
 								Open Device Control
 							</Menu.Item>

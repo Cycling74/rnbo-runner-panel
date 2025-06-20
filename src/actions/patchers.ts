@@ -1,4 +1,3 @@
-import Router from "next/router";
 import { ActionBase, AppThunk } from "../lib/store";
 import { MIDIMetaMapping, OSCQueryRNBOInstance, OSCQueryRNBOInstanceDataRefs, OSCQueryRNBOInstancePresetEntries, OSCQueryRNBOInstancesState, OSCQueryRNBOPatchersState, OSCValue, ParameterMetaJsonMap } from "../lib/types";
 import { PatcherInstanceRecord } from "../models/instance";
@@ -22,6 +21,7 @@ import { DialogResult, showConfirmDialog, showTextInputDialog } from "../lib/dia
 import { addPendingDataFile } from "./datafiles";
 import { getDataFileByFilename, getPendingDataFileByFilename } from "../selectors/datafiles";
 import { createPackageOnRunner, readFileFromRunnerCmd } from "../controller/cmd";
+import { getCurrentPathname } from "../routes";
 
 export enum PatcherActionType {
 	INIT_PATCHERS = "INIT_PATCHERS",
@@ -1159,7 +1159,7 @@ export const updateInstanceMessageOutportValue = (instanceId: string, tag: Messa
 			if (!enabled) return;
 
 			// Active Instance view?!
-			if (Router.pathname !== "/instances/[id]" || Router.query.id !== `${instanceId}`) return;
+			if (getCurrentPathname() !== `/instances/${encodeURIComponent(instanceId)}`) return;
 
 			const instance = getPatcherInstance(state, instanceId);
 			if (!instance) return;

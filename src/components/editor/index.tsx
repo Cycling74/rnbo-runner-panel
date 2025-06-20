@@ -11,13 +11,13 @@ import { RootStateType } from "../../lib/store";
 import "reactflow/dist/base.css";
 import classes from "./editor.module.css";
 import GraphEdge, { RNBOGraphEdgeType } from "./edge";
-import { useRouter } from "next/router";
 import { ActionIcon, Tooltip, useMantineColorScheme } from "@mantine/core";
 import { IconElement } from "../elements/icon";
 import { mdiFitToScreen, mdiLock, mdiLockOpen, mdiMinus, mdiPlus, mdiSitemap } from "@mdi/js";
 import { maxEditorZoom, minEditorZoom } from "../../lib/constants";
 import { EditorNodeDesc } from "../../selectors/graph";
 import { getHotkeyHandler } from "@mantine/hooks";
+import { useLocation, useNavigate } from "react-router";
 
 export type GraphEditorProps = {
 	connections: RootStateType["graph"]["connections"];
@@ -69,7 +69,8 @@ const GraphEditor: FunctionComponent<GraphEditorProps> = memo(function WrappedFl
 }) {
 
 	const { colorScheme } = useMantineColorScheme();
-	const { push, query } = useRouter();
+	const { search } = useLocation();
+	const navigate = useNavigate();
 
 	// Validate Connection Directions and Types
 	const validateConnection = useCallback((conn: Connection) => {
@@ -94,8 +95,8 @@ const GraphEditor: FunctionComponent<GraphEditorProps> = memo(function WrappedFl
 
 	const onNodeDoubleClick = useCallback((e: React.MouseEvent, node: Node<NodeDataProps>) => {
 		if (node.type !== NodeType.Patcher) return;
-		push({ pathname: "/instances/[id]", query: { ...query, id: node.data.node.instanceId }});
-	}, [query, push]);
+		navigate({ pathname: `/instances/${encodeURIComponent(node.data.node.instanceId)}`, search });
+	}, [search, navigate]);
 
 	const onDeleteNode = useCallback((node: GraphNodeRecord) => {
 		if (node.type !== NodeType.Patcher) return;
