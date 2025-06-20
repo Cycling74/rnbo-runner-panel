@@ -45,13 +45,11 @@ class MyRequestHandler(SimpleHTTPRequestHandler):
 		normPath.remove('')
 
 		fpath = path.join(args.directory, '{os.sep}'.join(normPath))
-		# handle /instances/12 -> /instances/[id].html  mapping
-		ipath = path.join(normPath[0], "[id].html")
 
 		if not path.isfile(fpath) and not fext and path.isfile(fpath + '.html'):
 			self.path = self.path + '.html'
-		elif len(normPath) == 2 and path.isfile(path.join(args.directory, ipath)):
-			self.path = path.join("/", ipath)
+		elif len(normPath) == 2 and path.isfile(path.join(args.directory, fpath)):
+			self.path = path.join("/", fpath)
 
 		return SimpleHTTPRequestHandler.do_GET(self)
 
