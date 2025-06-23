@@ -58,13 +58,17 @@ export type InstanceParameterTabProps = {
 	parameters: ImmuMap<ParameterRecord["id"], ParameterRecord>;
 	sortAttr: AppSettingRecord;
 	sortOrder: AppSettingRecord;
+	thumbSize: AppSettingRecord;
+	trackSize: AppSettingRecord;
 }
 
 const InstanceParameterTab: FunctionComponent<InstanceParameterTabProps> = memo(function WrappedInstanceParameterTab({
 	instance,
 	parameters,
 	sortAttr,
-	sortOrder
+	sortOrder,
+	thumbSize,
+	trackSize
 }) {
 
 	const [searchValue, setSearchValue] = useState<string>("");
@@ -198,6 +202,8 @@ const InstanceParameterTab: FunctionComponent<InstanceParameterTabProps> = memo(
 							onRestoreMetadata={ onRestoreDefaultParameterMetadata }
 							onSaveMetadata={ onSaveParameterMetadata }
 							onSetNormalizedValue={ onSetNormalizedParamValue }
+							thumbSize={ thumbSize }
+							trackSize={ trackSize }
 							ParamComponentType={ ParameterComponentType }
 							extraParameterProps={{
 								instanceIsMIDIMapping: instance.waitingForMidiMapping,

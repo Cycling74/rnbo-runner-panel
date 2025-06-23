@@ -5,12 +5,15 @@ import { ParameterRecord } from "../../models/parameter";
 import ParameterItem from "../parameter/item";
 import { ParameterSetViewActionsProps, withParameterSetViewActions } from "../parameter/withSetViewActions";
 import { ParameterMIDIActionsProps, withParameterMIDIActions } from "../parameter/withMidiActions";
+import { AppSettingRecord } from "../../models/settings";
 
 const ParameterComponentType = withParameterMIDIActions(withParameterSetViewActions(ParameterItem));
 const ParameterListComponent: ComponentType<ParameterListProps<ParameterSetViewActionsProps & ParameterMIDIActionsProps>> = ParameterList;
 
 export type SetViewParameterListProps = {
 	parameters: ImmuOrderedSet<ParameterRecord>;
+	thumbSize: AppSettingRecord;
+	trackSize: AppSettingRecord;
 	waitingForMidiMapping: boolean;
 	onClearParamMIDIMapping: (param: ParameterRecord) => void;
 	onActivateParamMIDIMapping: (param: ParameterRecord) => void;
@@ -24,6 +27,8 @@ export type SetViewParameterListProps = {
 
 export const SetViewParameterList: FC<SetViewParameterListProps> = memo(function WrappedSetViewParameterList({
 	parameters,
+	thumbSize,
+	trackSize,
 	waitingForMidiMapping,
 	onActivateParamMIDIMapping,
 	onClearParamMIDIMapping,
@@ -42,6 +47,8 @@ export const SetViewParameterList: FC<SetViewParameterListProps> = memo(function
 				onSaveMetadata={ onSaveParamMetadata }
 				onSetNormalizedValue={ onSetNormalizedParamValue }
 				parameters={ parameters }
+				thumbSize={ thumbSize }
+				trackSize={ trackSize }
 				ParamComponentType={ ParameterComponentType }
 				extraParameterProps={{
 					instanceIsMIDIMapping: waitingForMidiMapping,

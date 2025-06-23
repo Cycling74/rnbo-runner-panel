@@ -46,7 +46,9 @@ export default function Instance() {
 		enabledMessageOuput,
 		enabledMIDIKeyboard,
 		sortAttr,
-		sortOrder
+		sortOrder,
+		paramThumbSize,
+		paramTrackSize
 	] = useAppSelector((state: RootStateType) => {
 		const currentInstance = getPatcherInstance(state, instanceId);
 		return [
@@ -61,7 +63,9 @@ export default function Instance() {
 			getAppSetting(state, AppSetting.debugMessageOutput),
 			getAppSetting(state, AppSetting.keyboardMIDIInput),
 			getAppSetting(state, AppSetting.paramSortAttribute),
-			getAppSetting(state, AppSetting.paramSortOrder)
+			getAppSetting(state, AppSetting.paramSortOrder),
+			getAppSetting(state, AppSetting.paramThumbSize),
+			getAppSetting(state, AppSetting.paramTrackSize)
 		];
 	});
 
@@ -169,6 +173,8 @@ export default function Instance() {
 				dataRefs={ dataRefs }
 				datafiles={ datafiles }
 				enabledMessageOuput={ enabledMessageOuput }
+				paramThumbSize={ paramThumbSize }
+				paramTrackSize={ paramTrackSize }
 				paramSortAttr={ sortAttr }
 				paramSortOrder={ sortOrder }
 			/>

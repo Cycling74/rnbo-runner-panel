@@ -31,6 +31,8 @@ export type InstanceProps = {
 	messageInports: ImmuMap<MessagePortRecord["id"], MessagePortRecord>;
 	messageOutports: ImmuMap<MessagePortRecord["id"], MessagePortRecord>;
 	parameters: ImmuMap<ParameterRecord["id"], ParameterRecord>;
+	paramThumbSize: AppSettingRecord;
+	paramTrackSize: AppSettingRecord;
 	paramSortOrder: AppSettingRecord;
 	paramSortAttr: AppSettingRecord;
 }
@@ -44,7 +46,9 @@ const Instance: FunctionComponent<InstanceProps> = memo(function WrappedInstance
 	messageOutports,
 	parameters,
 	paramSortOrder,
-	paramSortAttr
+	paramSortAttr,
+	paramThumbSize,
+	paramTrackSize
 }) {
 
 	const [activeTab, setActiveTab] = useState<InstanceTab>(InstanceTab.Parameters);
@@ -73,7 +77,14 @@ const Instance: FunctionComponent<InstanceProps> = memo(function WrappedInstance
 			</Tabs.List>
 			<div className={ classes.instanceTabContentWrap } >
 				<Tabs.Panel value={ InstanceTab.Parameters } >
-					<InstanceParameterTab instance={ instance } parameters={ parameters } sortAttr={ paramSortAttr } sortOrder={ paramSortOrder } />
+					<InstanceParameterTab
+						instance={ instance }
+						parameters={ parameters }
+						thumbSize={ paramThumbSize }
+						trackSize={ paramTrackSize }
+						sortAttr={ paramSortAttr }
+						sortOrder={ paramSortOrder }
+					/>
 				</Tabs.Panel>
 				<Tabs.Panel value={ InstanceTab.Inports } >
 					<InstanceInportTab instance={ instance } messageInports={ messageInports } />
