@@ -41,7 +41,6 @@ export function withParameterSetViewActions(
 
 		return (
 			<WrappedComponent
-				displayPrefix={ `${param.instanceId}:` }
 				index={ index }
 				param={ param }
 				{ ...props }
