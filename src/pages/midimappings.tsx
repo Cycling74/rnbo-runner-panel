@@ -84,7 +84,7 @@ const MIDIMappings = () => {
 
 	useEffect(() => {
 		setSortedParameterIds(getSortedParameterIds(parameters, sortAttr, sortOrder));
-	}, [patcherInstances, parameters.size, sortAttr, sortOrder]);
+	}, [patcherInstances, parameters, sortAttr, sortOrder]);
 
 	const displayParameters = ImmuOrderedSet<ParameterRecord>().withMutations(set => {
 		sortedParameterIds.forEach(id => {

@@ -111,7 +111,7 @@ const InstanceParameterTab: FunctionComponent<InstanceParameterTabProps> = memo(
 
 	useEffect(() => {
 		setSortedParameterIds(getSortedParameterIds(parameters, sortAttr.value as ParameterSortAttr, sortOrder.value as SortOrder));
-	}, [instance, parameters.size, sortAttr, sortOrder]);
+	}, [instance, parameters, sortAttr, sortOrder]);
 
 	useEffect(() => {
 		const onKeyDown = (e: KeyboardEvent) => {
