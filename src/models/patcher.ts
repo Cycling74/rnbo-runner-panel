@@ -1,22 +1,27 @@
 import { Record as ImmuRecord } from "immutable";
 import { OSCQueryRNBOPatcher } from "../lib/types";
+import { dayjs } from "../lib/util";
+import { Dayjs } from "dayjs";
 
 export const UNLOAD_PATCHER_NAME = "<none>";
 
-export type PatcherRecordProps = {
+export type PatcherExportRecordProps = {
+	createdAt: Dayjs;
 	name: string;
 	io: [number, number, number, number];
 }
 
-export class PatcherRecord extends ImmuRecord<PatcherRecordProps>({
+export class PatcherExportRecord extends ImmuRecord<PatcherExportRecordProps>({
 
+	createdAt: dayjs(),
 	name: "",
 	io: [0, 0, 0, 0]
 
 }) {
 
-	static fromDescription(name: string, desc: OSCQueryRNBOPatcher): PatcherRecord {
-		return new PatcherRecord({
+	static fromDescription(name: string, desc: OSCQueryRNBOPatcher): PatcherExportRecord {
+		return new PatcherExportRecord({
+			createdAt: dayjs(desc.CONTENTS.created_at?.VALUE, "YYYY-MM-DD HH:mm:ss"),
 			name,
 			io: desc.CONTENTS.io.VALUE
 		});
@@ -40,5 +45,9 @@ export class PatcherRecord extends ImmuRecord<PatcherRecordProps>({
 
 	get id(): string {
 		return this.name;
+	}
+
+	public matchesQuery(query: string): boolean {
+		return !query.length || this.name.toLowerCase().includes(query);
 	}
 }

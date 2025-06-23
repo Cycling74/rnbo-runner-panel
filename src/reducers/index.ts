@@ -2,10 +2,11 @@ import { combineReducers } from "redux";
 
 import { appStatus } from "./appStatus";
 import { datafiles } from "./datafiles";
-import { instances } from "./instances";
+import { editor } from "./editor";
+import { patchers } from "./patchers";
 import { graph } from "./graph";
 import { nofitications } from "./notifications";
-import { patchers } from "./patchers";
+import { recording } from "./recording";
 import { settings } from "./settings";
 import { sets } from "./sets";
 import { transport } from "./transport";
@@ -13,10 +14,11 @@ import { transport } from "./transport";
 export const rootReducer = combineReducers({
 	appStatus,
 	datafiles,
-	instances,
+	editor,
 	graph,
 	nofitications,
 	patchers,
+	recording,
 	settings,
 	sets,
 	transport

@@ -1,6 +1,6 @@
 import { Record as ImmuRecord } from "immutable";
-import { OSCQueryRNBOState, OSCQueryRNBOInstanceConfig, OSCQueryRNBOJackConfig, OSCQueryStringValueRange, OSCQueryValueType, OSCQueryIntValue, OSCQueryStringValue, OSCQueryFloatValue, OSCQueryValueRange, OSCQueryBooleanValue, OSCQueryRNBOConfigState } from "../lib/types";
-import { getNumberValueOptions, getStringValueOptions } from "../lib/util";
+import { OSCQueryRNBOState, OSCQueryRNBOInstancesConfig, OSCQueryRNBOJackConfig, OSCQueryStringValueRange, OSCQueryValueType, OSCQueryIntValue, OSCQueryStringValue, OSCQueryFloatValue, OSCQueryValueRange, OSCQueryBooleanValue, OSCQueryRNBOConfigState, OSCQueryRNBOJackRecord } from "../lib/types";
+import { getNumberValueMax, getNumberValueMin, getNumberValueOptions, getStringValueOptions } from "../lib/util";
 import { DEFAULT_MIDI_RANGE, DEFAULT_SAMPLE_RATES, SettingsTab } from "../lib/constants";
 
 export type ConfigValue = number | string | boolean;
@@ -13,7 +13,7 @@ export enum ConfigKey {
 	AutoConnectAudioIndexed = "auto_connect_audio_indexed",
 	AutoConnectMIDI = "auto_connect_midi",
 	AutoConnectMIDIHardware = "auto_connect_midi_hardware",
-	AutoStartLast = "auto_start_last",
+	AutoStartLastSet = "auto_start_last",
 	AudioFadeIn = "audio_fade_in",
 	AudioFadeOut = "audio_fade_out",
 	PortToOsc = "port_to_osc",
@@ -31,8 +31,11 @@ export enum ConfigKey {
 	PatcherMIDIProgramChangeChannel = "patcher_midi_program_change_channel",
 	SetMIDIProgramChangeChannel = "set_midi_program_change_channel",
 	SetPresetMIDIProgramChangeChannel = "set_preset_midi_program_change_channel",
-	ControlAutoConnectMIDI = "control_auto_connect_midi"
+	ControlAutoConnectMIDI = "control_auto_connect_midi",
 
+	// Recording
+	RecordingChannelCount = "channels",
+	RecordingTimeout = "timeout"
 }
 
 export type ConfigRecordProps = {
@@ -42,7 +45,7 @@ export type ConfigRecordProps = {
 	max?: number;
 	options?: ConfigOptions;
 	path: string;
-	tab: SettingsTab;
+	tab?: SettingsTab;
 	title: string;
 
 	oscValue: number | string | boolean | null;
@@ -50,9 +53,8 @@ export type ConfigRecordProps = {
 }
 
 const instanceConfigDetails: Partial<Record<ConfigKey, Omit<ConfigRecordProps, "id" | "oscValue" | "oscType" >>> = {
-	[ConfigKey.AutoStartLast]: {
-		path: `/rnbo/inst/config/${ConfigKey.AutoStartLast}`,
-		tab: SettingsTab.Instance,
+	[ConfigKey.AutoStartLastSet]: {
+		path: `/rnbo/inst/config/${ConfigKey.AutoStartLastSet}`,
 		title: "Auto Start Last Set"
 	},
 	[ConfigKey.AutoConnectAudio]: {
@@ -98,7 +100,7 @@ const instanceConfigDetails: Partial<Record<ConfigKey, Omit<ConfigRecordProps, "
 		options: DEFAULT_MIDI_RANGE,
 		path: `/rnbo/inst/config/${ConfigKey.AudioFadeOut}`,
 		tab: SettingsTab.Instance,
-		title: "MIDI Program Change Channel: Load Instance Preset"
+		title: "MIDI Program Change Channel: Load Device Preset"
 	}
 };
 
@@ -165,6 +167,22 @@ const controlConfigDetails: Partial<Record<ConfigKey, Omit<ConfigRecordProps, "i
 	}
 };
 
+const recordingConfigDetails: Partial<Record<ConfigKey, Omit<ConfigRecordProps, "id" | "oscValue" | "oscType" >>> = {
+	[ConfigKey.RecordingChannelCount]: {
+		min: 1,
+		max: 128,
+		path: "/rnbo/jack/record/channels",
+		tab: SettingsTab.Recording,
+		title: "Channel Count"
+	},
+	[ConfigKey.RecordingTimeout]: {
+		min: 0,
+		path: "/rnbo/jack/record/timeout",
+		tab: SettingsTab.Recording,
+		title: "Timeout"
+	}
+};
+
 type ConfigOSCDescType = OSCQueryStringValue | OSCQueryIntValue | OSCQueryBooleanValue | OSCQueryFloatValue;
 type ConfigOscDescRangeType = OSCQueryValueRange | OSCQueryStringValueRange;
 
@@ -175,7 +193,7 @@ export class ConfigRecord extends ImmuRecord<ConfigRecordProps>({
 	max: undefined,
 	options: undefined,
 	path: "",
-	tab: SettingsTab.Instance,
+	tab: undefined,
 	title: "",
 
 	oscType: OSCQueryValueType.True,
@@ -211,6 +229,24 @@ export class ConfigRecord extends ImmuRecord<ConfigRecordProps>({
 		}
 	}
 
+	protected static getConfigNumberRange(
+		desc: ConfigOSCDescType & ConfigOscDescRangeType,
+		defaultMin: ConfigRecordProps["min"],
+		defaultMax: ConfigRecordProps["max"]
+	): Pick<ConfigRecordProps, "min" | "max"> {
+		if (
+			(desc.TYPE !== OSCQueryValueType.Int32 && desc.TYPE !== OSCQueryValueType.Float32) ||
+			!desc.RANGE
+		) {
+			return { min: defaultMin, max: defaultMax };
+		}
+
+		return {
+			min: getNumberValueMin(desc as OSCQueryValueRange) || defaultMin,
+			max: getNumberValueMax(desc as OSCQueryValueRange) || defaultMax
+		};
+	}
+
 	protected static getConfigOptions(
 		desc: ConfigOSCDescType & ConfigOscDescRangeType,
 		defaultOptions?: ConfigRecordProps["options"]
@@ -234,8 +270,8 @@ export class ConfigRecord extends ImmuRecord<ConfigRecordProps>({
 	public static arrayFromDescription(desc: OSCQueryRNBOState): Array<ConfigRecord> {
 		const result: Array<ConfigRecord> = [];
 
-		const instConfig: Partial<OSCQueryRNBOInstanceConfig["CONTENTS"]> = desc.CONTENTS.inst.CONTENTS.config?.CONTENTS || {};
-		for (const key of Object.keys(instanceConfigDetails) as Array<keyof OSCQueryRNBOInstanceConfig["CONTENTS"]>) {
+		const instConfig: Partial<OSCQueryRNBOInstancesConfig["CONTENTS"]> = desc.CONTENTS.inst.CONTENTS.config?.CONTENTS || {};
+		for (const key of Object.keys(instanceConfigDetails) as Array<keyof OSCQueryRNBOInstancesConfig["CONTENTS"]>) {
 
 			const value = instConfig[key];
 			if (!value) continue;
@@ -244,6 +280,7 @@ export class ConfigRecord extends ImmuRecord<ConfigRecordProps>({
 				id: key as ConfigKey,
 				...instanceConfigDetails[key as ConfigKey],
 				description: value.DESCRIPTION || "",
+				...this.getConfigNumberRange(value, instanceConfigDetails[key as ConfigKey].min, instanceConfigDetails[key as ConfigKey].max),
 				options: this.getConfigOptions(value, instanceConfigDetails[key as ConfigKey].options),
 				oscValue: value.VALUE,
 				oscType: value.TYPE
@@ -259,6 +296,7 @@ export class ConfigRecord extends ImmuRecord<ConfigRecordProps>({
 				id: key as ConfigKey,
 				...controlConfigDetails[key as ConfigKey],
 				description: value.DESCRIPTION || "",
+				...this.getConfigNumberRange(value, controlConfigDetails[key as ConfigKey].min, controlConfigDetails[key as ConfigKey].max),
 				options: this.getConfigOptions(value, controlConfigDetails[key as ConfigKey].options),
 				oscValue: value.VALUE,
 				oscType: value.TYPE
@@ -278,11 +316,28 @@ export class ConfigRecord extends ImmuRecord<ConfigRecordProps>({
 					id: key as ConfigKey,
 					...jackConfigDetails[key as ConfigKey],
 					description: value.DESCRIPTION || "",
+					...this.getConfigNumberRange(value, jackConfigDetails[key as ConfigKey].min, jackConfigDetails[key as ConfigKey].max),
 					options: this.getConfigOptions(value, jackConfigDetails[key as ConfigKey].options),
 					oscValue: value.VALUE,
 					oscType: value.TYPE
 				}));
 			}
+		}
+
+		const recordingConfig: Partial<OSCQueryRNBOJackRecord["CONTENTS"]> = desc.CONTENTS.jack.CONTENTS.record?.CONTENTS || {};
+		for (const key of Object.keys(recordingConfigDetails) as Array<keyof OSCQueryRNBOJackRecord["CONTENTS"]>) {
+			const value = recordingConfig[key];
+			if (!value) continue;
+
+			result.push(new ConfigRecord({
+				id: key as ConfigKey,
+				...recordingConfigDetails[key as ConfigKey],
+				description: value.DESCRIPTION || "",
+				...this.getConfigNumberRange(value, recordingConfigDetails[key as ConfigKey].min, recordingConfigDetails[key as ConfigKey].max),
+				options: this.getConfigOptions(value, recordingConfigDetails[key as ConfigKey].options),
+				oscValue: value.VALUE,
+				oscType: value.TYPE
+			}));
 		}
 
 		return result;

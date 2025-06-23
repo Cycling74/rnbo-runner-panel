@@ -3,25 +3,34 @@ import { FunctionComponent, memo, useEffect, useState } from "react";
 import classes from "./instance.module.css";
 import { InstanceTab } from "../../lib/constants";
 import InstanceParameterTab from "./paramTab";
-import InstanceMessagesTab from "./messageTab";
+import InstanceInportTab from "./inportTab";
+import InstanceOutportTab from "./outportTab";
 import InstanceDataRefsTab from "./datarefTab";
-import { InstanceStateRecord } from "../../models/instance";
+import { PatcherInstanceRecord } from "../../models/instance";
 import { AppSettingRecord } from "../../models/settings";
 import { DataFileRecord } from "../../models/datafile";
-import { Seq } from "immutable";
+import { Map as ImmuMap, Seq } from "immutable";
 import { IconElement } from "../elements/icon";
-import { mdiFileMusic, mdiSwapHorizontal, mdiTune } from "@mdi/js";
+import { mdiExport, mdiFileMusic, mdiImport, mdiTune } from "@mdi/js";
+import { ParameterRecord } from "../../models/parameter";
+import { MessagePortRecord } from "../../models/messageport";
+import { DataRefRecord } from "../../models/dataref";
 
 const tabs = [
 	{ icon: mdiTune, value: InstanceTab.Parameters, label: "Parameters" },
-	{ icon: mdiSwapHorizontal, value: InstanceTab.MessagePorts, label: "Ports" },
+	{ icon: mdiImport, value: InstanceTab.Inports, label: "Inports" },
+	{ icon: mdiExport, value: InstanceTab.Outports, label: "Outports" },
 	{ icon: mdiFileMusic, value: InstanceTab.DataRefs, label: "Buffers" }
 ];
 
 export type InstanceProps = {
-	instance: InstanceStateRecord;
+	instance: PatcherInstanceRecord;
 	datafiles: Seq.Indexed<DataFileRecord>
+	dataRefs: ImmuMap<DataRefRecord["id"], DataRefRecord>;
 	enabledMessageOuput: AppSettingRecord;
+	messageInports: ImmuMap<MessagePortRecord["id"], MessagePortRecord>;
+	messageOutports: ImmuMap<MessagePortRecord["id"], MessagePortRecord>;
+	parameters: ImmuMap<ParameterRecord["id"], ParameterRecord>;
 	paramSortOrder: AppSettingRecord;
 	paramSortAttr: AppSettingRecord;
 }
@@ -29,7 +38,11 @@ export type InstanceProps = {
 const Instance: FunctionComponent<InstanceProps> = memo(function WrappedInstance({
 	instance,
 	datafiles,
+	dataRefs,
 	enabledMessageOuput,
+	messageInports,
+	messageOutports,
+	parameters,
 	paramSortOrder,
 	paramSortAttr
 }) {
@@ -60,13 +73,16 @@ const Instance: FunctionComponent<InstanceProps> = memo(function WrappedInstance
 			</Tabs.List>
 			<div className={ classes.instanceTabContentWrap } >
 				<Tabs.Panel value={ InstanceTab.Parameters } >
-					<InstanceParameterTab instance={ instance } sortAttr={ paramSortAttr } sortOrder={ paramSortOrder } />
+					<InstanceParameterTab instance={ instance } parameters={ parameters } sortAttr={ paramSortAttr } sortOrder={ paramSortOrder } />
 				</Tabs.Panel>
-				<Tabs.Panel value={ InstanceTab.MessagePorts } >
-					<InstanceMessagesTab instance={ instance } outputEnabled={ enabledMessageOuput.value as boolean } />
+				<Tabs.Panel value={ InstanceTab.Inports } >
+					<InstanceInportTab instance={ instance } messageInports={ messageInports } />
+				</Tabs.Panel>
+				<Tabs.Panel value={ InstanceTab.Outports } >
+					<InstanceOutportTab instance={ instance } messageOutports={ messageOutports } outputEnabled={ enabledMessageOuput.value as boolean } />
 				</Tabs.Panel>
 				<Tabs.Panel value={ InstanceTab.DataRefs } >
-					<InstanceDataRefsTab instance={ instance } datafiles={ datafiles } />
+					<InstanceDataRefsTab instance={ instance } datafiles={ datafiles } dataRefs={ dataRefs } />
 				</Tabs.Panel>
 			</div>
 		</Tabs>

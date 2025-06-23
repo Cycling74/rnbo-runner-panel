@@ -1,15 +1,15 @@
 import { FunctionComponent, memo, useCallback, useEffect } from "react";
 import { useAppDispatch } from "../../hooks/useAppDispatch";
 import KeyRoll from "../keyroll";
-import { InstanceStateRecord } from "../../models/instance";
-import { triggerInstanceMidiNoteOffEventOnRemote, triggerInstanceMidiNoteOnEventOnRemote } from "../../actions/instances";
+import { PatcherInstanceRecord } from "../../models/instance";
+import { triggerInstanceMidiNoteOffEventOnRemote, triggerInstanceMidiNoteOnEventOnRemote } from "../../actions/patchers";
 import { Group, Modal } from "@mantine/core";
 import { useIsMobileDevice } from "../../hooks/useIsMobileDevice";
 import { IconElement } from "../elements/icon";
 import { mdiPiano } from "@mdi/js";
 
 export type InstanceKeyboardModalProps = {
-	instance: InstanceStateRecord;
+	instance: PatcherInstanceRecord;
 	keyboardEnabled: boolean;
 	open: boolean;
 	onClose: () => any;

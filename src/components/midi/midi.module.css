@@ -1,0 +1,81 @@
+.midiWrappingsMap {
+	height: 100%;
+	gap: var(--mantine-spacing-md);
+}
+
+.midiSourceColumnHeader {
+	width: 120px;
+
+	@media (min-width: $mantine-breakpoint-md) {
+		width: 160px;
+	}
+}
+
+.midiSourceColumn {
+	cursor: text;
+}
+
+.parameterValueColumnHeader,
+.parameterValueColumn {
+	cursor: default;
+	display: none;
+	user-select: none;
+
+	@media (min-width: $mantine-breakpoint-md) {
+		display: table-cell;
+		width: 150px;
+  }
+}
+
+.patcherInstanceColumnHeader {
+	width: 100px;
+
+	@media (min-width: $mantine-breakpoint-md) {
+		width: initial;
+	}
+}
+
+.patcherInstanceColumn {
+	cursor: default;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	user-select: none;
+	white-space: nowrap;
+
+	.patcherInstanceName {
+		display: none;
+
+		@media (min-width: $mantine-breakpoint-md) {
+			display: inline-block;
+		}
+	}
+
+	.patcherInstanceIndex {
+		display: inline-block;
+
+		@media (min-width: $mantine-breakpoint-md) {
+			display: none;
+		}
+	}
+}
+
+.parameterNameColumnHeader {
+	width: 120px;
+
+	@media (min-width: $mantine-breakpoint-md) {
+		width: initial;
+	}
+}
+
+.parameterNameColumn {
+	cursor: default;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	user-select: none;
+	white-space: nowrap;
+}
+
+.actionColumnHeader {
+	width: 10px;
+}
+.actionColumn {}

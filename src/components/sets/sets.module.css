@@ -8,4 +8,9 @@
 
 .setListWrapper {
 	flex: 1;
+	padding-top: var(--mantine-spacing-xs);
+}
+
+.newSetButton {
+	flex: 1;
 }

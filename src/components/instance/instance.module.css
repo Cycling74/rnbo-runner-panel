@@ -31,6 +31,8 @@
 	color: var(--mantine-color-dimmed);
 	font-size: var(--mantine-font-size-sm);
 	flex: 1;
+	margin-top: var(--mantine-spacing-sm);
+	text-align: center;
 }
 
 .disabledMessageOutput {
@@ -50,4 +52,12 @@
 	.tabLabel {
 		display: block;
 	}
+}
+
+.title {
+	font-weight: var(--mantine-h1-font-weight);
+	font-size: var(--mantine-font-size-xl);
+	line-height: 34px;
+	max-width: 90%;
+	width: fit-content;
 }

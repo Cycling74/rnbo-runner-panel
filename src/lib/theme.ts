@@ -1,4 +1,4 @@
-import { Button, Drawer, MantineTheme, MantineThemeOther, Modal, Tabs, TextInput, Tooltip, createTheme, rem } from "@mantine/core";
+import { Button, Drawer, MantineTheme, MantineThemeOther, Menu, Modal, Tabs, TextInput, Tooltip, createTheme, rem } from "@mantine/core";
 
 export type CustomThemeProps = {
 	headerHeight: number | string;
@@ -43,6 +43,11 @@ export const rnboTheme = createTheme({
 		Drawer: Drawer.extend({
 			styles: {
 				title: { fontWeight: "700" }
+			}
+		}),
+		Menu: Menu.extend({
+			defaultProps: {
+				clickOutsideEvents: ["mousedown", "pointerdown", "touchstart"]
 			}
 		}),
 		Modal: Modal.extend({

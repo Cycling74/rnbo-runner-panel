@@ -1,27 +1,27 @@
-import { ChangeEvent, MouseEvent, useCallback } from "react";
+import { MouseEvent, useCallback } from "react";
 import { useAppDispatch, useAppSelector } from "../../hooks/useAppDispatch";
 import { RootStateType } from "../../lib/store";
 import InstanceComponent from "../../components/instance";
 import { useRouter } from "next/router";
-import { Button, Group, NativeSelect, Stack, Text } from "@mantine/core";
+import { ActionIcon, Button, Group, Menu, Stack, Tooltip } from "@mantine/core";
 import classes from "../../components/instance/instance.module.css";
 import { getAppStatus } from "../../selectors/appStatus";
 import { AppStatus, SortOrder } from "../../lib/constants";
 import Link from "next/link";
-import { getInstanceByIndex, getInstances } from "../../selectors/instances";
-import { unloadPatcherNodeByIndexOnRemote } from "../../actions/graph";
+import { getPatcherInstance, getPatcherInstanceParametersByInstanceId, getPatcherInstances, getPatcherInstanceMessageInportsByInstanceId, getPatcherInstanceMesssageOutportsByInstanceId, getPatcherInstanceDataRefsByInstanceId } from "../../selectors/patchers";
+import { unloadPatcherNodeOnRemote } from "../../actions/graph";
 import { getAppSetting } from "../../selectors/settings";
 import { AppSetting } from "../../models/settings";
 import PresetDrawer from "../../components/presets";
 import { PresetRecord } from "../../models/preset";
-import { destroyPresetOnRemoteInstance, renamePresetOnRemoteInstance, setInitialPresetOnRemoteInstance, loadPresetOnRemoteInstance, savePresetToRemoteInstance } from "../../actions/instances";
+import { destroyPresetOnRemoteInstance, renamePresetOnRemoteInstance, setInitialPresetOnRemoteInstance, loadPresetOnRemoteInstance, onOverwritePresetOnRemoteInstance, createPresetOnRemoteInstance, changeAliasOnRemoteInstance } from "../../actions/patchers";
 import { useDisclosure } from "@mantine/hooks";
 import { getDataFilesSortedByName } from "../../selectors/datafiles";
 import InstanceKeyboardModal from "../../components/keyroll/modal";
-import { modals } from "@mantine/modals";
 import { IconElement } from "../../components/elements/icon";
-import { mdiCamera, mdiChartSankeyVariant, mdiPiano, mdiVectorSquare, mdiVectorSquareRemove } from "@mdi/js";
-import { ResponsiveButton } from "../../components/elements/responsiveButton";
+import { mdiCamera, mdiChartSankeyVariant, mdiDotsVertical, mdiPencil, mdiPiano, mdiTrashCan } from "@mdi/js";
+import { InstanceSelectTitle } from "../../components/instance/title";
+import { PatcherInstanceRecord } from "../../models/instance";
 
 export default function Instance() {
 
@@ -29,13 +29,17 @@ export default function Instance() {
 	const [presetDrawerIsOpen, { close: closePresetDrawer, toggle: togglePresetDrawer }] = useDisclosure();
 	const [keyboardModalIsOpen, { close: closeKeyboardModal, toggle: toggleKeyboardModal }] = useDisclosure();
 
-	const { index, ...restQuery } = query;
-	const instanceIndex = parseInt(Array.isArray(index) ? index.join("") : index || "0", 10);
+	const { id, ...restQuery } = query;
+	const instanceId = Array.isArray(id) ? id.join("") : id || "0";
 
 	const dispatch = useAppDispatch();
 
 	const [
 		currentInstance,
+		parameters,
+		messageInports,
+		messageOutports,
+		dataRefs,
 		appStatus,
 		instances,
 		datafiles,
@@ -44,12 +48,15 @@ export default function Instance() {
 		sortAttr,
 		sortOrder
 	] = useAppSelector((state: RootStateType) => {
-		const currentInstance = getInstanceByIndex(state, instanceIndex);
-
+		const currentInstance = getPatcherInstance(state, instanceId);
 		return [
 			currentInstance,
+			currentInstance ? getPatcherInstanceParametersByInstanceId(state, currentInstance.id) : undefined,
+			currentInstance ? getPatcherInstanceMessageInportsByInstanceId(state, currentInstance.id) : undefined,
+			currentInstance ? getPatcherInstanceMesssageOutportsByInstanceId(state, currentInstance.id) : undefined,
+			currentInstance ? getPatcherInstanceDataRefsByInstanceId(state, currentInstance.id) : undefined,
 			getAppStatus(state),
-			getInstances(state),
+			getPatcherInstances(state),
 			getDataFilesSortedByName(state, SortOrder.Asc),
 			getAppSetting(state, AppSetting.debugMessageOutput),
 			getAppSetting(state, AppSetting.keyboardMIDIInput),
@@ -58,34 +65,24 @@ export default function Instance() {
 		];
 	});
 
-	const onChangeInstance = useCallback((e: ChangeEvent<HTMLSelectElement>) => {
-		push({ pathname, query: { ...query, index: e.currentTarget.value } });
+	const onChangeInstance = useCallback((instance: PatcherInstanceRecord) => {
+		push({ pathname, query: { ...query, id: instance.id } });
 	}, [push, pathname, query]);
 
 	const onUnloadInstance = useCallback((e: MouseEvent<HTMLButtonElement>) => {
-		modals.openConfirmModal({
-			title: "Unload Patcher Instance",
-			centered: true,
-			children: (
-				<Text size="sm">
-					Are you sure you want to unload the Patcher Instance { currentInstance?.patcher } at index {currentInstance?.index}?
-				</Text>
-			),
-			labels: { confirm: "Unload", cancel: "Cancel" },
-			confirmProps: { color: "red" },
-			onConfirm: () => {
-				dispatch(unloadPatcherNodeByIndexOnRemote(currentInstance.index));
-				push({ pathname: "/", query: restQuery });
-			}
-		});
-	}, [dispatch, currentInstance, push, restQuery]);
+		dispatch(unloadPatcherNodeOnRemote(currentInstance.id));
+	}, [dispatch, currentInstance]);
 
 	const onLoadPreset = useCallback((preset: PresetRecord) => {
 		dispatch(loadPresetOnRemoteInstance(currentInstance, preset));
 	}, [dispatch, currentInstance]);
 
-	const onSavePreset = useCallback((name: string) => {
-		dispatch(savePresetToRemoteInstance(currentInstance, name));
+	const onCreatePreset = useCallback(() => {
+		dispatch(createPresetOnRemoteInstance(currentInstance));
+	}, [dispatch, currentInstance]);
+
+	const onOverwritePreset = useCallback((preset: PresetRecord) => {
+		dispatch(onOverwritePresetOnRemoteInstance(currentInstance, preset));
 	}, [dispatch, currentInstance]);
 
 	const onDeletePreset = useCallback((preset: PresetRecord) => {
@@ -100,9 +97,13 @@ export default function Instance() {
 		dispatch(setInitialPresetOnRemoteInstance(currentInstance, preset));
 	}, [dispatch, currentInstance]);
 
+	const onTriggerRenameInstance = useCallback(() => {
+		dispatch(changeAliasOnRemoteInstance(currentInstance));
+	}, [dispatch, currentInstance]);
+
 	if (!isReady || appStatus !== AppStatus.Ready) return null;
 
-	if (!currentInstance) {
+	if (!currentInstance || !parameters || !messageInports || !messageOutports) {
 		// Instance not found / doesn't exist
 		return (
 			<div className={ classes.instanceNotFound } >
@@ -124,39 +125,48 @@ export default function Instance() {
 		<Stack className={ classes.instanceWrap } >
 			<Group justify="space-between" wrap="nowrap">
 				<div style={{ flex: "1 2 50%" }} >
-					<NativeSelect
-						data={ instances.valueSeq().sortBy(n => n.index).toArray().map(d => ({ value: `${d.index}`, label: `${d.index}: ${d.patcher}` })) }
-						leftSection={ <IconElement path={ mdiVectorSquare } /> }
-						onChange={ onChangeInstance }
-						value={ currentInstance.index }
-						style={{ maxWidth: 300, width: "100%" }}
+					<InstanceSelectTitle
+						currentInstanceId={ currentInstance.id }
+						instances={ instances }
+						onChangeInstance={ onChangeInstance }
 					/>
 				</div>
 				<Group style={{ flex: "0" }} wrap="nowrap" gap="xs" >
-					<ResponsiveButton
-						label="Unload Instance"
-						tooltip="Unload Patcher Instance"
-						icon={ mdiVectorSquareRemove }
-						onClick={ onUnloadInstance }
-						variant="outline"
-						color="red"
-					/>
-					<ResponsiveButton
-						label="Keyboard"
-						tooltip="Open Virtual Keyboard"
-						icon={ mdiPiano }
-						onClick={ toggleKeyboardModal }
-					/>
-					<ResponsiveButton
-						label="Presets"
-						tooltip="Open Instance Preset Menu"
-						icon={ mdiCamera }
-						onClick={ togglePresetDrawer }
-					/>
+					<Tooltip label="Open Device Preset Menu">
+						<ActionIcon size="lg" variant="default" onClick={ togglePresetDrawer } >
+							<IconElement path={ mdiCamera } />
+						</ActionIcon>
+					</Tooltip>
+					<Menu position="bottom-end">
+						<Menu.Target>
+							<Tooltip label="Open Device Menu">
+								<ActionIcon variant="default" size="lg">
+									<IconElement path={ mdiDotsVertical } />
+								</ActionIcon>
+							</Tooltip>
+						</Menu.Target>
+						<Menu.Dropdown>
+							<Menu.Label>Device</Menu.Label>
+							<Menu.Item leftSection={ <IconElement path={ mdiPencil } /> } onClick={ onTriggerRenameInstance } >
+								Rename
+							</Menu.Item>
+							<Menu.Item leftSection={ <IconElement path={ mdiPiano } /> } onClick={ toggleKeyboardModal } >
+								Virtual Keyboard
+							</Menu.Item>
+							<Menu.Divider />
+							<Menu.Item leftSection={ <IconElement path={ mdiTrashCan } /> } onClick={ onUnloadInstance } color="red" >
+								Delete
+							</Menu.Item>
+						</Menu.Dropdown>
+					</Menu>
 				</Group>
 			</Group>
 			<InstanceComponent
 				instance={ currentInstance }
+				parameters={ parameters }
+				messageInports={ messageInports }
+				messageOutports={ messageOutports }
+				dataRefs={ dataRefs }
 				datafiles={ datafiles }
 				enabledMessageOuput={ enabledMessageOuput }
 				paramSortAttr={ sortAttr }
@@ -167,8 +177,9 @@ export default function Instance() {
 				onClose={ closePresetDrawer }
 				onDeletePreset={ onDeletePreset }
 				onLoadPreset={ onLoadPreset }
-				onSavePreset={ onSavePreset }
+				onCreatePreset={ onCreatePreset }
 				onRenamePreset={ onRenamePreset }
+				onOverwritePreset={ onOverwritePreset }
 				onSetInitialPreset={ onSetInitialPreset }
 				presets={ currentInstance.presets.valueSeq() }
 			/>

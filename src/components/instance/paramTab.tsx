@@ -1,86 +1,29 @@
-import { ActionIcon, Button, Group, Popover, SegmentedControl, Select, Stack, Text, TextInput, Tooltip } from "@mantine/core";
-import { ChangeEvent, FC, FunctionComponent, MouseEvent, KeyboardEvent as ReactKeyboardEvent, memo, useCallback, useEffect, useRef, useState } from "react";
+import { ActionIcon, Button, Group, Popover, SegmentedControl, Select, Stack, Text, Tooltip } from "@mantine/core";
+import { ComponentType, FunctionComponent, MouseEvent, memo, useCallback, useEffect, useState } from "react";
 import { ParameterSortAttr, SortOrder } from "../../lib/constants";
-import ParameterList from "../parameter/list";
+import ParameterList, { ParameterListProps } from "../parameter/list";
 import { ParameterRecord } from "../../models/parameter";
 import classes from "./instance.module.css";
 import { useAppDispatch } from "../../hooks/useAppDispatch";
-import { InstanceStateRecord } from "../../models/instance";
+import { PatcherInstanceRecord } from "../../models/instance";
 import {
 	restoreDefaultParameterMetaOnRemote, setInstanceParameterMetaOnRemote,
 	setInstanceParameterValueNormalizedOnRemote,
-	setInstanceWaitingForMidiMappingOnRemote, clearParameterMidiMappingOnRemote,
+	setInstanceWaitingForMidiMappingOnRemote, clearParameterMIDIMappingOnRemote,
 	activateParameterMIDIMappingFocus
-} from "../../actions/instances";
-import { OrderedSet as ImmuOrderedSet } from "immutable";
+} from "../../actions/patchers";
+import { OrderedSet as ImmuOrderedSet, Map as ImmuMap } from "immutable";
 import { setAppSetting } from "../../actions/settings";
 import { AppSetting, AppSettingRecord } from "../../models/settings";
-import { useDebouncedCallback, useDisclosure } from "@mantine/hooks";
+import { useDebouncedCallback } from "@mantine/hooks";
 import { IconElement } from "../elements/icon";
-import { mdiClose, mdiMagnify, mdiMidiPort, mdiSort, mdiSortAscending, mdiSortDescending } from "@mdi/js";
+import { mdiMidiPort, mdiSort, mdiSortAscending, mdiSortDescending } from "@mdi/js";
+import { ParameterMIDIActionsProps, withParameterMIDIActions } from "../parameter/withMidiActions";
+import ParameterItem from "../parameter/item";
+import { SearchInput } from "../page/searchInput";
 
-type ParameterSearchInputProps = {
-	onSearch: (query: string) => any;
-}
-
-const ParameterSearchInput: FC<ParameterSearchInputProps> = memo(function WrappedParameterSearchInput({
-	onSearch
-}) {
-
-	const [showSearchInput, showSearchInputActions] = useDisclosure();
-	const [searchValue, setSearchValue] = useState<string>("");
-	const searchInputRef = useRef<HTMLInputElement>();
-
-	const onChangeSearchValue = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-		setSearchValue(e.target.value);
-	}, [setSearchValue]);
-
-	const onBlur = useCallback(() => {
-		if (!searchValue?.length) showSearchInputActions.close();
-	}, [searchValue, showSearchInputActions]);
-
-	const onClear = useCallback(() => {
-		setSearchValue("");
-		searchInputRef.current?.focus();
-	}, [setSearchValue]);
-
-	const onKeyDown = useCallback((e: ReactKeyboardEvent<HTMLInputElement>) => {
-		if (e.key === "Escape") {
-			if (searchValue.length) {
-				setSearchValue("");
-			} else {
-				searchInputRef.current?.blur();
-			}
-		}
-	}, [setSearchValue, searchInputRef, searchValue]);
-
-	useEffect(() => {
-		onSearch(searchValue);
-	}, [searchValue, onSearch]);
-
-	return (
-		showSearchInput || searchValue?.length ? (
-			<TextInput
-				autoFocus
-				ref={ searchInputRef }
-				onKeyDown={ onKeyDown }
-				onBlur={ onBlur }
-				onChange={ onChangeSearchValue }
-				leftSection={ <IconElement path={ mdiMagnify } /> } size="xs"
-				rightSection={(
-					<ActionIcon variant="transparent" color="gray" onClick={ onClear } >
-						<IconElement path={ mdiClose } size="1em" />
-					</ActionIcon>
-				)}
-				value={ searchValue }
-			/>
-		) : (
-			<ActionIcon size="md" variant="default" onClick={ showSearchInputActions.open } >
-				<IconElement path={ mdiMagnify } />
-			</ActionIcon>
-		)
-	);
-});
+const ParameterComponentType = withParameterMIDIActions(ParameterItem);
+const ParameterListComponent: ComponentType<ParameterListProps<ParameterMIDIActionsProps>> = ParameterList;
 
 const collator = new Intl.Collator("en-US");
 const parameterComparators: Record<ParameterSortAttr, Record<SortOrder, (a: ParameterRecord, b: ParameterRecord) => number>> = {
@@ -88,42 +31,44 @@ const parameterComparators: Record<ParameterSortAttr, Record<SortOrder, (a: Para
 		[SortOrder.Asc]: (a: ParameterRecord, b: ParameterRecord) => {
 			if (a.index < b.index) return -1;
 			if (a.index > b.index) return 1;
-			return collator.compare(a.name.toLowerCase(), b.name.toLowerCase());
+			return collator.compare(a.label.toLowerCase(), b.label.toLowerCase());
 		},
 		[SortOrder.Desc]: (a: ParameterRecord, b: ParameterRecord) => {
 			if (a.index > b.index) return -1;
 			if (a.index < b.index) return 1;
-			return collator.compare(a.name.toLowerCase(), b.name.toLowerCase()) * -1;
+			return collator.compare(a.label.toLowerCase(), b.label.toLowerCase()) * -1;
 		}
 	},
 	[ParameterSortAttr.Name]: {
 		[SortOrder.Asc]: (a: ParameterRecord, b: ParameterRecord) => {
-			return collator.compare(a.name.toLowerCase(), b.name.toLowerCase());
+			return collator.compare(a.label.toLowerCase(), b.label.toLowerCase());
 		},
 		[SortOrder.Desc]: (a: ParameterRecord, b: ParameterRecord) => {
-			return collator.compare(a.name.toLowerCase(), b.name.toLowerCase()) * -1;
+			return collator.compare(a.label.toLowerCase(), b.label.toLowerCase()) * -1;
 		}
 	}
 };
 
-const getSortedParameterIds = (params: InstanceStateRecord["parameters"], attr: ParameterSortAttr, order: SortOrder): ImmuOrderedSet<string> => {
-	return ImmuOrderedSet<string>(params.valueSeq().sort(parameterComparators[attr][order]).map(p => p.id));
+const getSortedParameterIds = (params: ImmuMap<ParameterRecord["id"], ParameterRecord>, attr: ParameterSortAttr, order: SortOrder): ImmuOrderedSet<ParameterRecord["id"]> => {
+	return ImmuOrderedSet<ParameterRecord["id"]>(params.valueSeq().sort(parameterComparators[attr][order]).map(p => p.id));
 };
 
 export type InstanceParameterTabProps = {
-	instance: InstanceStateRecord;
+	instance: PatcherInstanceRecord;
+	parameters: ImmuMap<ParameterRecord["id"], ParameterRecord>;
 	sortAttr: AppSettingRecord;
 	sortOrder: AppSettingRecord;
 }
 
 const InstanceParameterTab: FunctionComponent<InstanceParameterTabProps> = memo(function WrappedInstanceParameterTab({
 	instance,
+	parameters,
 	sortAttr,
 	sortOrder
 }) {
 
 	const [searchValue, setSearchValue] = useState<string>("");
-	const [sortedParamIds, setSortedParamIds] = useState<ImmuOrderedSet<ParameterRecord["id"]>>(getSortedParameterIds(instance.parameters, sortAttr.value as ParameterSortAttr, sortOrder.value as SortOrder));
+	const [sortedParameterIds, setSortedParameterIds] = useState<ImmuOrderedSet<ParameterRecord["id"]>>(ImmuOrderedSet<ParameterRecord["id"]>());
 
 	const dispatch = useAppDispatch();
 
@@ -136,16 +81,16 @@ const InstanceParameterTab: FunctionComponent<InstanceParameterTabProps> = memo(
 	}, [dispatch]);
 
 	const onSetNormalizedParamValue = useCallback((param: ParameterRecord, val: number) => {
-		dispatch(setInstanceParameterValueNormalizedOnRemote(instance, param, val));
-	}, [dispatch, instance]);
+		dispatch(setInstanceParameterValueNormalizedOnRemote(param, val));
+	}, [dispatch]);
 
 	const onSaveParameterMetadata = useCallback((param: ParameterRecord, meta: string) => {
-		dispatch(setInstanceParameterMetaOnRemote(instance, param, meta));
-	}, [dispatch, instance]);
+		dispatch(setInstanceParameterMetaOnRemote(param, meta));
+	}, [dispatch]);
 
 	const onRestoreDefaultParameterMetadata = useCallback((param: ParameterRecord) => {
-		dispatch(restoreDefaultParameterMetaOnRemote(instance, param));
-	}, [dispatch, instance]);
+		dispatch(restoreDefaultParameterMetaOnRemote(param));
+	}, [dispatch]);
 
 	const onToggleMIDIMapping = useCallback((e: MouseEvent<HTMLButtonElement>) => {
 		e.currentTarget.blur();
@@ -153,20 +98,20 @@ const InstanceParameterTab: FunctionComponent<InstanceParameterTabProps> = memo(
 	}, [dispatch, instance]);
 
 	const onActivateParameterMIDIMapping = useCallback((param: ParameterRecord) => {
-		dispatch(activateParameterMIDIMappingFocus(instance, param));
-	}, [dispatch, instance]);
+		dispatch(activateParameterMIDIMappingFocus(param));
+	}, [dispatch]);
 
 	const onClearParameterMidiMapping = useCallback((param: ParameterRecord) => {
-		dispatch(clearParameterMidiMappingOnRemote(instance.id, param.id));
-	}, [dispatch, instance]);
+		dispatch(clearParameterMIDIMappingOnRemote(param));
+	}, [dispatch]);
 
 	const onSearch = useDebouncedCallback((query: string) => {
 		setSearchValue(query);
 	}, 150);
 
 	useEffect(() => {
-		setSortedParamIds(getSortedParameterIds(instance.parameters, sortAttr.value as ParameterSortAttr, sortOrder.value as SortOrder));
-	}, [instance, sortAttr, sortOrder]);
+		setSortedParameterIds(getSortedParameterIds(parameters, sortAttr.value as ParameterSortAttr, sortOrder.value as SortOrder));
+	}, [instance, parameters.size, sortAttr, sortOrder]);
 
 	useEffect(() => {
 		const onKeyDown = (e: KeyboardEvent) => {
@@ -187,8 +132,14 @@ const InstanceParameterTab: FunctionComponent<InstanceParameterTabProps> = memo(
 		};
 	}, [instance.id, dispatch]);
 
-	let parameters = sortedParamIds.map(id => instance.parameters.get(id)).filter(p => !!p);
-	if (searchValue?.length) parameters = parameters.filter(p => p.matchesQuery(searchValue));
+	const displayParameters = ImmuOrderedSet<ParameterRecord>().withMutations(set => {
+		sortedParameterIds.forEach(id => {
+			const p = parameters.get(id);
+			if (p && (!searchValue?.length || p.matchesQuery(searchValue.toLowerCase()))) {
+				set.add(p);
+			}
+		});
+	});
 
 	return (
 		<Stack gap="md" h="100%">
@@ -203,7 +154,7 @@ const InstanceParameterTab: FunctionComponent<InstanceParameterTabProps> = memo(
 					</ActionIcon>
 				</Tooltip>
 				<Group justify="flex-end" gap="xs">
-					<ParameterSearchInput onSearch={ onSearch } />
+					<SearchInput onSearch={ onSearch } />
 					<Popover position="bottom-end" withArrow>
 						<Popover.Target>
 							<Button size="xs" variant="default" leftSection={ <IconElement path={ mdiSort } /> } >
@@ -236,20 +187,23 @@ const InstanceParameterTab: FunctionComponent<InstanceParameterTabProps> = memo(
 				</Group>
 			</Group>
 			{
-				!instance.parameters.size ? (
+				!parameters.size ? (
 					<div className={ classes.emptySection }>
-						This patcher instance has no parameters
+						This device has no parameters
 					</div>
 				) : (
 					<div className={ classes.paramSectionWrap } >
-						<ParameterList
-							parameters={ parameters }
-							isMIDIMapping={ instance.waitingForMidiMapping }
-							onActivateMIDIMapping={ onActivateParameterMIDIMapping }
-							onSetNormalizedValue={ onSetNormalizedParamValue }
-							onSaveMetadata={ onSaveParameterMetadata }
+						<ParameterListComponent
+							parameters={ displayParameters }
 							onRestoreMetadata={ onRestoreDefaultParameterMetadata }
-							onClearMidiMapping={ onClearParameterMidiMapping }
+							onSaveMetadata={ onSaveParameterMetadata }
+							onSetNormalizedValue={ onSetNormalizedParamValue }
+							ParamComponentType={ ParameterComponentType }
+							extraParameterProps={{
+								instanceIsMIDIMapping: instance.waitingForMidiMapping,
+								onActivateMIDIMapping: onActivateParameterMIDIMapping,
+								onClearMidiMapping: onClearParameterMidiMapping
+							}}
 						/>
 					</div>
 				)

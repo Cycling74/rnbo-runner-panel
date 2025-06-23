@@ -1,0 +1,15 @@
+.wrap {
+	align-items: center;
+	display: flex;
+	flex: 1;
+	flex-wrap: nowrap;
+	gap: 1px;
+	min-width: 0;
+}
+
+.title {
+	min-width: 0;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}

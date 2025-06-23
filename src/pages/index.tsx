@@ -1,58 +1,92 @@
-import { Button, Group, Stack, Text, Tooltip } from "@mantine/core";
-import { FunctionComponent, useCallback } from "react";
+import { ActionIcon, Group, Stack, Tooltip } from "@mantine/core";
+import { FunctionComponent, useCallback, useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "../hooks/useAppDispatch";
 import { RootStateType } from "../lib/store";
-import { getPatchersSortedByName } from "../selectors/patchers";
-import { getConnections, getNodes } from "../selectors/graph";
+import { getSortedPatcherExports } from "../selectors/patchers";
+import { getConnections, getEditorNodesAndPorts, getPorts } from "../selectors/graph";
 import GraphEditor from "../components/editor";
 import PresetDrawer from "../components/presets";
-import { Connection, Edge, EdgeChange, Node, NodeChange } from "reactflow";
+import { Connection, EdgeChange, NodeChange, ReactFlowInstance } from "reactflow";
+import { loadPatcherNodeOnRemote } from "../actions/graph";
 import {
-	applyEditorEdgeChanges, applyEditorNodeChanges, createEditorConnection,
-	removeEditorConnectionsById, removeEditorNodesById,
-	loadPatcherNodeOnRemote
-} from "../actions/graph";
-import SetsDrawer from "../components/sets";
-import { destroySetPresetOnRemote, loadSetPresetOnRemote, saveSetPresetToRemote, renameSetPresetOnRemote, clearGraphSetOnRemote, destroyGraphSetOnRemote, loadGraphSetOnRemote, renameGraphSetOnRemote, saveGraphSetOnRemote } from "../actions/sets";
-import { destroyPatcherOnRemote, renamePatcherOnRemote } from "../actions/patchers";
+	applyEditorEdgeChanges, applyEditorNodeChanges, changeNodeAlias, createEditorConnection,
+	editorZoomIn,
+	editorZoomOut,
+	generateEditorLayout,
+	toggleEditorLockedState,
+	triggerEditorFitView
+} from "../actions/editor";
+import { destroySetPresetOnRemote, loadSetPresetOnRemote, renameSetPresetOnRemote, loadNewEmptyGraphSetOnRemote, overwriteSetPresetOnRemote, createSetPresetOnRemote, saveCurrentGraphSetOnRemote, saveCurrentGraphSetOnRemoteAs, reloadCurrentGraphSetOnRemote, destroyCurrentGraphSetOnRemote, renameCurrentGraphSetOnRemote, triggerLoadGraphSetDialog } from "../actions/sets";
 import { PresetRecord } from "../models/preset";
-import { getGraphSetPresetsSortedByName, getGraphSetsSortedByName } from "../selectors/sets";
+import { getCurrentGraphSet, getCurrentGraphSetId, getCurrentGraphSetIsDirty, getGraphSetPresetsSortedByName } from "../selectors/sets";
 import { useDisclosure } from "@mantine/hooks";
-import PatcherDrawer from "../components/patchers";
-import { PatcherRecord } from "../models/patcher";
-import { SortOrder } from "../lib/constants";
-import { GraphSetRecord } from "../models/set";
-import { modals } from "@mantine/modals";
+import { PatcherExportRecord } from "../models/patcher";
+import { PatcherSortAttr, SortOrder, UnsavedSetName } from "../lib/constants";
+import { mdiCamera, mdiContentSave } from "@mdi/js";
+import { initEditor, unmountEditor } from "../actions/editor";
+import { getGraphEditorLockedState } from "../selectors/editor";
+import { AddNodeMenu } from "../components/editor/addNodeMenu";
+import { GraphSetMenu } from "../components/editor/graphMenu";
+import { GraphSetTitle } from "../components/editor/setTitle";
 import { IconElement } from "../components/elements/icon";
-import { mdiCamera, mdiFileExport, mdiGroup } from "@mdi/js";
-import { ResponsiveButton } from "../components/elements/responsiveButton";
+import { GraphNodeRecord } from "../models/graph";
 
 const Index: FunctionComponent<Record<string, never>> = () => {
 
 	const dispatch = useAppDispatch();
 	const [
 		patchers,
-		nodes,
+		nodeInfo,
 		connections,
-		graphSets,
-		graphPresets
+		ports,
+		currentGraphSet,
+		currentGraphSetId,
+		currentGraphSetIsDirty,
+		graphPresets,
+		editorLocked
 	] = useAppSelector((state: RootStateType) => [
-		getPatchersSortedByName(state, SortOrder.Asc),
-		getNodes(state),
+		getSortedPatcherExports(state, PatcherSortAttr.Name, SortOrder.Asc),
+		getEditorNodesAndPorts(state),
 		getConnections(state),
-		getGraphSetsSortedByName(state, SortOrder.Asc),
-		getGraphSetPresetsSortedByName(state, SortOrder.Asc)
+		getPorts(state),
+		getCurrentGraphSet(state),
+		getCurrentGraphSetId(state),
+		getCurrentGraphSetIsDirty(state),
+		getGraphSetPresetsSortedByName(state, SortOrder.Asc),
+		getGraphEditorLockedState(state)
 	]);
 
-	const [patcherDrawerIsOpen, { close: closePatcherDrawer, toggle: togglePatcherDrawer }] = useDisclosure();
-	const [setDrawerIsOpen,  { close: closeSetDrawer, toggle: toggleSetDrawer }] = useDisclosure();
 	const [presetDrawerIsOpen, { close: closePresetDrawer, toggle: togglePresetDrawer }] = useDisclosure();
 
 	// Instances
-	const onAddInstance = useCallback((patcher: PatcherRecord) => {
+	const onAddPatcherInstance = useCallback((patcher: PatcherExportRecord) => {
 		dispatch(loadPatcherNodeOnRemote(patcher));
-		closePatcherDrawer();
-	}, [dispatch, closePatcherDrawer]);
+	}, [dispatch]);
+
+	// Editor
+	const onEditorInit = useCallback((instance: ReactFlowInstance) => {
+		dispatch(initEditor(instance));
+	}, [dispatch]);
+
+	const onEditorFitView = useCallback(() => {
+		dispatch(triggerEditorFitView());
+	}, [dispatch]);
+
+	const onEditorToggleLocked = useCallback(() => {
+		dispatch(toggleEditorLockedState());
+	}, [dispatch]);
+
+	const onEditorAutoLayout = useCallback(() => {
+		dispatch(generateEditorLayout());
+	}, [dispatch]);
+
+	const onEditorZoomIn = useCallback(() => {
+		dispatch(editorZoomIn());
+	}, [dispatch]);
+
+	const onEditorZoomOut = useCallback(() => {
+		dispatch(editorZoomOut());
+	}, [dispatch]);
 
 	// Nodes
 	const onConnectNodes = useCallback((connection: Connection) => {
@@ -63,8 +97,8 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 		dispatch(applyEditorNodeChanges(changes));
 	}, [dispatch]);
 
-	const onNodesDelete = useCallback((nodes: Pick<Node, "id">[]) => {
-		dispatch(removeEditorNodesById(nodes.map(n => n.id)));
+	const onRenameNode = useCallback((node: GraphNodeRecord) => {
+		dispatch(changeNodeAlias(node));
 	}, [dispatch]);
 
 	// Edges
@@ -72,52 +106,38 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 		dispatch(applyEditorEdgeChanges(changes));
 	}, [dispatch]);
 
-	const onEdgesDelete = useCallback((edges: Pick<Edge, "id">[]) => {
-		dispatch(removeEditorConnectionsById(edges.map(e => e.id)));
+	// Current Set
+	const onSaveCurrentSet = useCallback(() => {
+		if (!currentGraphSetId) return;
+		dispatch(saveCurrentGraphSetOnRemote());
+	}, [dispatch, currentGraphSetId]);
+
+	const onSaveCurrentSetAs = useCallback(() => {
+		dispatch(saveCurrentGraphSetOnRemoteAs());
 	}, [dispatch]);
+
+	const onRenameCurrentSet = useCallback(() => {
+		if (!currentGraphSetId) return;
+		dispatch(renameCurrentGraphSetOnRemote());
+	}, [dispatch, currentGraphSetId]);
+
+	const onReloadCurrentSet = useCallback(() => {
+		if (!currentGraphSetId) return;
+		dispatch(reloadCurrentGraphSetOnRemote());
+	}, [dispatch, currentGraphSetId]);
+
+	const onDeleteCurrentSet = useCallback(() => {
+		if (!currentGraphSetId) return;
+		dispatch(destroyCurrentGraphSetOnRemote());
+	}, [dispatch, currentGraphSetId]);
 
 	// Sets
-	const onClearSet = useCallback(() => {
-		dispatch(clearGraphSetOnRemote());
-		closeSetDrawer();
-	}, [dispatch, closeSetDrawer]);
-
-	const onDeleteSet = useCallback((set: GraphSetRecord) => {
-		dispatch(destroyGraphSetOnRemote(set));
+	const onLoadEmptySet = useCallback(() => {
+		dispatch(loadNewEmptyGraphSetOnRemote());
 	}, [dispatch]);
 
-	const onLoadSet = useCallback((set: GraphSetRecord) => {
-		dispatch(loadGraphSetOnRemote(set));
-		closeSetDrawer();
-	}, [dispatch, closeSetDrawer]);
-
-	const onRenameSet = useCallback((set: GraphSetRecord, name: string) => {
-		dispatch(renameGraphSetOnRemote(set, name));
-	}, [dispatch]);
-
-	const onSaveSet = useCallback((name: string) => {
-		dispatch(saveGraphSetOnRemote(name));
-	}, [dispatch]);
-
-	const onSaveSetAs = useCallback((set: GraphSetRecord) => {
-		if (set.latest) {
-			dispatch(saveGraphSetOnRemote(set.name));
-		} else {
-			modals.openConfirmModal({
-				title: "Overwrite Set",
-				centered: true,
-				children: (
-					<Text size="sm">
-						Are you sure you want to overwrite the set named { `"${set.name}"` }?
-					</Text>
-				),
-				labels: { confirm: "Overwrite", cancel: "Cancel" },
-				confirmProps: { color: "red" },
-				onConfirm: () => {
-					dispatch(saveGraphSetOnRemote(set.name));
-				}
-			});
-		}
+	const onTriggerLoadSet = useCallback(() => {
+		dispatch(triggerLoadGraphSetDialog());
 	}, [dispatch]);
 
 	// Presets
@@ -125,8 +145,12 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 		dispatch(loadSetPresetOnRemote(preset));
 	}, [dispatch]);
 
-	const onSavePreset = useCallback((name: string) => {
-		dispatch(saveSetPresetToRemote(name));
+	const onCreatePreset = useCallback(() => {
+		dispatch(createSetPresetOnRemote());
+	}, [dispatch]);
+
+	const onOverwritePreset = useCallback((preset: PresetRecord) => {
+		dispatch(overwriteSetPresetOnRemote(preset));
 	}, [dispatch]);
 
 	const onDeletePreset = useCallback((preset: PresetRecord) => {
@@ -137,74 +161,83 @@ const Index: FunctionComponent<Record<string, never>> = () => {
 		dispatch(renameSetPresetOnRemote(preset, name));
 	}, [dispatch]);
 
-	const onDeletePatcher = useCallback((p: PatcherRecord) => {
-		dispatch(destroyPatcherOnRemote(p));
-	}, [dispatch]);
-
-	const onRenamePatcher = useCallback((p: PatcherRecord, name: string) => {
-		dispatch(renamePatcherOnRemote(p, name));
+	useEffect(() => {
+		return () => dispatch(unmountEditor());
 	}, [dispatch]);
 
 	return (
 		<>
 			<Stack style={{ height: "100%" }} >
 				<Group justify="space-between" wrap="nowrap">
-					<Tooltip label="Open Exported Patcher Menu">
-						<Button variant="default" leftSection={ <IconElement path={ mdiFileExport } /> } onClick={ togglePatcherDrawer } >
-							Patchers
-						</Button>
-					</Tooltip>
+					<GraphSetTitle
+						name={ currentGraphSet?.name || "Untitled" }
+						isDirty={ !currentGraphSet || currentGraphSetIsDirty }
+					/>
 					<Group style={{ flex: "0" }} wrap="nowrap" gap="xs" >
-						<ResponsiveButton
-							label="Graph Sets"
-							tooltip="Open Graph Set Menu"
-							icon={ mdiGroup }
-							onClick={ toggleSetDrawer }
+						<AddNodeMenu
+							onAddPatcherInstance={ onAddPatcherInstance }
+							patchers={ patchers }
 						/>
-						<ResponsiveButton
-							label="Presets"
-							tooltip="Open Graph Preset Menu"
-							icon={ mdiCamera }
-							onClick={ togglePresetDrawer }
-						/>
+						<Tooltip label="Open Graph Preset Menu">
+							<ActionIcon onClick={ togglePresetDrawer } variant="default" size="lg" >
+								<IconElement path={ mdiCamera } />
+							</ActionIcon>
+						</Tooltip>
+						<ActionIcon.Group>
+							<Tooltip label="Save Graph">
+								<ActionIcon
+									variant="default"
+									size="lg"
+									onClick={ onSaveCurrentSet }
+									disabled={ !currentGraphSetIsDirty }
+								>
+									<IconElement path={ mdiContentSave } />
+								</ActionIcon>
+							</Tooltip>
+							<GraphSetMenu
+
+								hasLoadedGraph={ currentGraphSetId && currentGraphSetId !== UnsavedSetName }
+
+								onLoadEmptySet={ onLoadEmptySet }
+								onTriggerLoadSet={ onTriggerLoadSet }
+
+								onDeleteCurrentSet={ onDeleteCurrentSet }
+								onReloadCurrentSet={ onReloadCurrentSet }
+								onSaveCurrentSet={ onSaveCurrentSet }
+								onSaveCurrentSetAs={ onSaveCurrentSetAs }
+								onTriggerRenameCurrentSet={ onRenameCurrentSet }
+							/>
+						</ActionIcon.Group>
 					</Group>
 				</Group>
 				<GraphEditor
-					nodes={ nodes }
+					nodeInfo={ nodeInfo }
 					connections={ connections }
+					ports={ ports }
+
 					onConnect={ onConnectNodes }
 					onNodesChange={ onNodesChange }
-					onNodesDelete={ onNodesDelete }
 					onEdgesChange={ onEdgesChange }
-					onEdgesDelete={ onEdgesDelete }
+					onRenameNode={ onRenameNode }
+
+					onInit={ onEditorInit }
+					onAutoLayout={ onEditorAutoLayout }
+					onFitView={ onEditorFitView }
+					onToggleLocked={ onEditorToggleLocked }
+					locked={ editorLocked }
+					zoom={ 1 }
+					onZoomIn={ onEditorZoomIn }
+					onZoomOut={ onEditorZoomOut }
 				/>
 			</Stack>
-			<PatcherDrawer
-				open={ patcherDrawerIsOpen }
-				patchers={ patchers }
-				onClose={ closePatcherDrawer }
-				onLoadPatcher={ onAddInstance }
-				onRenamePatcher={ onRenamePatcher }
-				onDeletePatcher={ onDeletePatcher }
-			/>
-			<SetsDrawer
-				onClose={ closeSetDrawer }
-				onClearSet={ onClearSet }
-				onDeleteSet={ onDeleteSet }
-				onLoadSet={ onLoadSet }
-				onRenameSet={ onRenameSet }
-				onSaveSet={ onSaveSet }
-				onSaveSetAs={ onSaveSetAs }
-				open={ setDrawerIsOpen }
-				sets={ graphSets }
-			/>
 			<PresetDrawer
 				open={ presetDrawerIsOpen }
 				onClose={ closePresetDrawer }
 				onDeletePreset={ onDeletePreset }
 				onLoadPreset={ onLoadPreset }
-				onSavePreset={ onSavePreset }
+				onCreatePreset={ onCreatePreset }
 				onRenamePreset={ onRenamePreset }
+				onOverwritePreset={ onOverwritePreset }
 				presets={ graphPresets }
 			/>
 		</>

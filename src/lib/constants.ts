@@ -1,3 +1,5 @@
+import { Map as ImmuMap } from "immutable";
+
 export enum WebSocketState {
 	CONNECTING = 0,
 	OPEN = 1,
@@ -16,13 +18,46 @@ export enum AppStatus {
 	Error
 }
 
+export enum SystemInfoKey {
+	CompilerId = "compiler_id",
+	CompilerVersion = "compiler_version",
+	DiskBytesAvailable = "disk_bytes_available",
+	SystemId = "system_id",
+	SystemName = "system_name",
+	SystemOS = "system_os_name",
+	SystemProcessor = "system_processor",
+	TargetId = "target_id",
+	Version = "version",
+}
+
+export enum JackInfoKey {
+	CPULoad = "cpu_load",
+	XRunCount = "xrun_count",
+}
+
 export enum InstanceTab {
-	MessagePorts = "msg",
+	Inports = "inports",
+	Outports = "outports",
 	Parameters = "params",
 	DataRefs = "datarefs",
 }
 
+export enum ResourceTab {
+	Graphs = "graphs",
+	Patchers = "patchers",
+	AudioFiles = "audiofiles"
+}
+
 export const bodyFontSize = 16;
+
+export const nodeDefaultWidth = 435;
+export const nodeHeaderHeight = 50;
+export const nodePortSpacing = 30;
+export const nodePortHeight = 20;
+export const defaultNodeGap = 150;
+
+export const maxEditorZoom = 5;
+export const minEditorZoom = 0.25;
 
 export enum Breakpoints {
 	xs = 36 * 16,
@@ -41,6 +76,7 @@ export enum SettingsTab {
 	UI = "ui",
 	Control = "control",
 	Instance = "instance",
+	Recording = "recording",
 	Audio = "audio"
 }
 
@@ -62,6 +98,26 @@ export enum SortOrder {
 	Desc = "desc"
 }
 
+export enum MIDIMappedParameterSortAttr {
+	MIDISource = "midi_source",
+	InstanceId = "instance_id",
+	ParameterName = "param_name"
+}
+
+export enum MIDIMetaMappingType {
+	ChannelPressure = "channel_pressure",
+	ControlChange = "control_change",
+	KeyPressure = "key_pressure",
+	Note = "note",
+	PitchBend = "pitch_bend",
+	ProgramChange = "progam_change"
+}
+
+export enum PatcherSortAttr {
+	Date = "date",
+	Name = "name"
+}
+
 export enum ParameterSortAttr {
 	Index = "displayorder",
 	Name = "name"
@@ -74,8 +130,40 @@ export enum RunnerCmdMethod {
 	WriteFileExtended = "file_write_extended"
 }
 
+export enum OnLoadGraphSetSetting {
+	EmptySet = "___new_empty_set___",
+	LastSet = "___last__loaded_set___",
+}
+
 export enum MetadataScope {
 	Parameter,
 	Inport,
-	Outport
+	Outport,
+	DataRef
 }
+
+export enum KnownPortGroup {
+	SystemRecordSink = "rnbo-graph-record-sink",
+	UserGraphSrc = "rnbo-graph-user-src",
+	UserGraphSink = "rnbo-graph-user-sink",
+	Hidden = "rnbo-graph-hidden"
+}
+
+export const knownPortGroupDisplayNames: ImmuMap<string, string> = ImmuMap({
+	[KnownPortGroup.SystemRecordSink]: "System Record Output",
+	[KnownPortGroup.UserGraphSrc]: "System Input",
+	[KnownPortGroup.UserGraphSink]: "System Output",
+	[KnownPortGroup.Hidden]: "Hidden"
+});
+
+export enum RNBOJackPortPropertyKey {
+	InstanceId = "rnbo-instance-id",
+	Physical = "physical",
+	PortGroup = "http://jackaudio.org/metadata/port-group",
+	PrettyName = "http://jackaudio.org/metadata/pretty-name",
+	Source = "source",
+	Terminal = "terminal",
+	Type = "type"
+}
+
+export const UnsavedSetName = "(untitled)";

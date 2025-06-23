@@ -2,7 +2,8 @@ import { Map as ImmuMap } from "immutable";
 import { createSelector } from "reselect";
 import { AppStatus } from "../lib/constants";
 import { RootStateType } from "../lib/store";
-import { RunnerInfoKey, RunnerInfoRecord } from "../models/runnerInfo";
+import { RunnerInfoRecord } from "../models/runnerInfo";
+import { RunnerInfoKey } from "../lib/types";
 
 
 export const getAppStatus = (state: RootStateType): AppStatus => state.appStatus.status;

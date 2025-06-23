@@ -1,6 +1,6 @@
 {
   "name": "rnbo-runner-panel",
-  "version": "2.1.0",
+  "version": "2.1.1-beta.12",
   "private": true,
   "engines": {
     "node": ">=20 <21"
@@ -11,10 +11,15 @@
     "start": "next start",
     "lint": "next lint",
     "prepackage-debian": "npm run build",
-    "package-debian": "node scripts/package-debian.mjs",
+    "package-debian": "node scripts/package-linux.mjs --debian ./debian/",
+    "prepackage-linux": "npm run build",
+    "package-linux": "node scripts/package-linux.mjs ./build/",
+    "prepackage-conan": "npm run package-linux",
+    "package-conan": "node scripts/package-conan.mjs",
     "preversion": "next lint"
   },
   "dependencies": {
+    "@dagrejs/dagre": "^1.1.4",
     "@mantine/core": "^7.10.2",
     "@mantine/dropzone": "^7.10.2",
     "@mantine/hooks": "^7.10.2",
@@ -22,8 +27,10 @@
     "@mdi/js": "^7.4.47",
     "@mdi/react": "^1.6.1",
     "@types/websocket": "^1.0.2",
+    "dayjs": "^1.11.13",
     "immutable": "^4.0.0-rc.12",
     "js-base64": "^3.7.7",
+    "lodash.debounce": "^4.0.8",
     "lodash.throttle": "^4.1.1",
     "next": "^13.5.3",
     "osc": "^2.4.1",
@@ -38,6 +45,7 @@
   },
   "devDependencies": {
     "@types/js-base64": "^3.3.1",
+    "@types/lodash.debounce": "^4.0.9",
     "@types/lodash.throttle": "^4.1.6",
     "@types/node": "^20.6.1",
     "@types/react": "^18.2.0",

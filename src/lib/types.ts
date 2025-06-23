@@ -1,3 +1,6 @@
+import { ConnectionType } from "../models/graph";
+import { JackInfoKey, KnownPortGroup, RNBOJackPortPropertyKey, SystemInfoKey } from "./constants";
+
 // See https://github.com/Microsoft/TypeScript/issues/1897
 export type AnyJson =
  | string
@@ -8,6 +11,46 @@ export type AnyJson =
  | {[key: string]: AnyJson}
 
 export interface JsonMap {  [key: string]: AnyJson }
+
+export type MIDIControlChangeMetaMapping = {
+	chan: number;
+	ctrl: number;
+};
+
+export type MIDINoteMetaMapping = {
+	chan: number;
+	note: number;
+};
+
+export type MIDIKeypressMetaMapping = {
+	chan: number;
+	keypress: number;
+};
+
+export type MIDIPitchBendMetaMapping = {
+	bend: number;
+};
+
+export type MIDIProgramChangeMetaMapping = {
+	prgchg: number;
+};
+
+export type MIDIChannelPressureMetaMapping = {
+	chanpress: number;
+};
+
+export type MIDIIndividualScopedMetaMapping = MIDIControlChangeMetaMapping | MIDINoteMetaMapping | MIDIKeypressMetaMapping;
+export type MIDIChannelScopedMetaMapping = MIDIPitchBendMetaMapping | MIDIProgramChangeMetaMapping | MIDIChannelPressureMetaMapping;
+
+export type MIDIMetaMapping = MIDIIndividualScopedMetaMapping | MIDIChannelScopedMetaMapping;
+
+export type ParameterMetaJsonMap = JsonMap & {
+	midi?: MIDIMetaMapping;
+};
+
+export type DataRefMetaJsonMap = JsonMap;
+
+export type RunnerInfoKey = SystemInfoKey | JackInfoKey;
 
 export type OSCValue = string | number | null;
 
@@ -95,20 +138,22 @@ export type OSCQueryStringValueRange = {
 
 export type OSCQueryRNBOInfoState = OSCQueryBaseNode & {
 	CONTENTS: {
-		compiler_id: OSCQueryStringValue;
-		compiler_version: OSCQueryStringValue;
-		disk_bytes_available: OSCQueryStringValue;
+		[SystemInfoKey.CompilerId]: OSCQueryStringValue;
+		[SystemInfoKey.CompilerVersion]: OSCQueryStringValue;
+		[SystemInfoKey.DiskBytesAvailable]: OSCQueryStringValue;
+		[SystemInfoKey.SystemId]: OSCQueryStringValue;
+		[SystemInfoKey.SystemName]: OSCQueryStringValue;
+		[SystemInfoKey.SystemOS]: OSCQueryStringValue;
+		[SystemInfoKey.SystemProcessor]: OSCQueryStringValue;
+		[SystemInfoKey.TargetId]: OSCQueryStringValue;
+		[SystemInfoKey.Version]: OSCQueryStringValue;
 		supported_cmds: OSCQueryListValue;
-		system_id: OSCQueryListValue;
-		system_name: OSCQueryListValue;
-		system_processor: OSCQueryListValue;
 		unpported_cmds: OSCQueryListValue;
 		update: OSCQueryBaseNode & {
 			CONTENTS: {
 				supported: OSCQueryBooleanValue;
 			};
 		}
-		version: OSCQueryStringValue;
 	};
 };
 
@@ -119,7 +164,7 @@ export type OSCQueryRNBOConfigState = OSCQueryBaseNode & {
 	}
 };
 
-export type OSCQueryRNBOInstanceConfig = OSCQueryBaseNode & {
+export type OSCQueryRNBOInstancesConfig = OSCQueryBaseNode & {
 	CONTENTS: {
 		auto_connect_audio: OSCQueryBooleanValue;
 		auto_connect_audio_indexed: OSCQueryBooleanValue;
@@ -130,6 +175,16 @@ export type OSCQueryRNBOInstanceConfig = OSCQueryBaseNode & {
 		preset_midi_program_change_channel: OSCQueryStringValue & OSCQueryStringValueRange;
 	}
 };
+
+export type RNBOJackPortProperties = {
+	[RNBOJackPortPropertyKey.InstanceId]?: number;
+	[RNBOJackPortPropertyKey.Physical]?: true;
+	[RNBOJackPortPropertyKey.PortGroup]?: KnownPortGroup | string;
+	[RNBOJackPortPropertyKey.PrettyName]?: string;
+	[RNBOJackPortPropertyKey.Source]: boolean;
+	[RNBOJackPortPropertyKey.Terminal]?: true;
+	[RNBOJackPortPropertyKey.Type]: ConnectionType;
+}
 
 export type OSCQueryRNBOJackPortInfo = OSCQueryBaseNode & {
 	CONTENTS: {
@@ -146,7 +201,10 @@ export type OSCQueryRNBOJackPortInfo = OSCQueryBaseNode & {
 			};
 		};
 		aliases: OSCQueryBaseNode & {
-			CONTENTS: Record<string, OSCQueryListValue<string, string[]>>;
+			CONTENTS?: Record<string, OSCQueryListValue<string, string[]>>;
+		};
+		properties: OSCQueryBaseNode & {
+			CONTENTS: Record<string, OSCQueryStringValue>;
 		};
 	};
 };
@@ -173,7 +231,7 @@ export type OSCQueryRNBOJackConfig = OSCQueryBaseNode & {
 	};
 };
 
-export type OSCQueryRNBOJackTransport =  OSCQueryBaseNode & {
+export type OSCQueryRNBOJackTransport = OSCQueryBaseNode & {
 	CONTENTS: {
 		bpm: OSCQueryFloatValue;
 		rolling: OSCQueryBooleanValue;
@@ -181,14 +239,23 @@ export type OSCQueryRNBOJackTransport =  OSCQueryBaseNode & {
 	}
 }
 
+export type OSCQueryRNBOJackRecord = OSCQueryBaseNode & {
+	CONTENTS: {
+		active: OSCQueryBooleanValue;
+		captured: OSCQueryFloatValue;
+		channels: OSCQueryIntValue & OSCQueryValueRange;
+		timeout: OSCQueryFloatValue & OSCQueryValueRange;
+	}
+};
+
 export type OSCQueryRNBOJackInfoState =  OSCQueryBaseNode & {
 	CONTENTS: {
 		is_realtime?: OSCQueryBooleanValue;
 		owns_server?: OSCQueryBooleanValue;
 		ports?: OSCQueryRNBOJackPortInfo;
 		is_active?: OSCQueryBooleanValue;
-		xrun_count?: OSCQueryIntValue;
-		cpu_load?: OSCQueryFloatValue;
+		[JackInfoKey.CPULoad]?: OSCQueryFloatValue;
+		[JackInfoKey.XRunCount]?: OSCQueryIntValue;
 	};
 };
 
@@ -199,6 +266,7 @@ export type OSCQueryRNBOJackState = OSCQueryBaseNode & {
 		info?: OSCQueryRNBOJackInfoState;
 		config: OSCQueryRNBOJackConfig;
 		control: any;
+		record?: OSCQueryRNBOJackRecord;
 		transport?: OSCQueryRNBOJackTransport;
 	};
 };
@@ -217,6 +285,7 @@ export type OSCQueryRNBOPatchersState = OSCQueryBaseNode & {
 
 export type OSCQueryRNBOInstanceParameterValue = OSCQueryBaseNode & OSCQueryFloatValue & OSCQueryValueRange & {
 	CONTENTS: {
+		display_name: OSCQueryStringValue;
 		index: OSCQueryIntValue;
 		meta: OSCQueryStringValue;
 		normalized: OSCQueryFloatValue & OSCQueryValueRange & { VALUE: number; }
@@ -245,6 +314,17 @@ export type OSCQueryRNBOInstanceMessages = OSCQueryBaseNode & {
 	CONTENTS: Record<string, OSCQueryRNBOInstanceMessageInfo>;
 };
 
+
+export type OSCQueryRNBOInstanceDataRefInfo = OSCQueryStringValue & {
+	CONTENTS: {
+		meta: OSCQueryStringValue;
+	};
+};
+
+export type OSCQueryRNBOInstanceDataRefs = OSCQueryBaseNode & {
+	CONTENTS: Record<string, OSCQueryRNBOInstanceDataRefInfo>
+};
+
 export type OSCQueryRNBOInstancePresetEntries = OSCQueryListValue<string, string[]>;
 
 export type OSCQueryRNBOInstanceConnection = OSCQueryListValue<string, string[]>;
@@ -265,6 +345,13 @@ export type OSCQueryRNBOInstanceConnections = OSCQueryBaseNode & {
 	};
 };
 
+export type OSCQueryRNBOInstanceConfig = OSCQueryBaseNode & {
+	CONTENTS: {
+		name_alias: OSCQueryStringValue;
+		set_preset_patcher_named: OSCQueryBooleanValue;
+	};
+};
+
 export type OSCQueryRNBOInstance = OSCQueryBaseNode & {
 	CONTENTS: {
 		jack: OSCQueryBaseNode & {
@@ -277,13 +364,13 @@ export type OSCQueryRNBOInstance = OSCQueryBaseNode & {
 				midi_outs: OSCQueryListValue<string, string[]>;
 			};
 		};
-		name: OSCQueryStringValue & { VALUE: string; };
+		name: OSCQueryStringValue;
 		params: OSCQueryBaseNode & {
 			CONTENTS: Record<string, OSCQueryRNBOInstanceParameterInfo>;
-		}
-		data_refs: OSCQueryBaseNode & {
-			CONTENTS: Record<string, OSCQueryStringValue>;
+			VALUE: undefined
 		};
+		config: OSCQueryRNBOInstanceConfig;
+		data_refs: OSCQueryRNBOInstanceDataRefs;
 		presets: OSCQueryBaseNode & {
 			CONTENTS: {
 				entries: OSCQueryRNBOInstancePresetEntries;
@@ -316,10 +403,29 @@ export type OSCQueryRNBOInstance = OSCQueryBaseNode & {
 
 export type OSCQueryRNBOInstancesMetaState = OSCQuerySingleValue<OSCQueryValueType.String, string>;
 
+export type OSCQueryRNBOSetView = OSCQueryBaseNode & {
+	CONTENTS: {
+		name: OSCQueryStringValue;
+		params: OSCQueryListValue<string, string[]>;
+	}
+};
+
+export type OSCQueryRNBOSetViewListState = OSCQueryBaseNode & {
+	CONTENTS: Record<string, OSCQueryRNBOSetView>;
+};
+
+export type OSCQueryRNBOSetViewState = OSCQueryBaseNode & {
+	CONTENTS: {
+		list: OSCQueryRNBOSetViewListState;
+		order: OSCQueryListValue<string, number[]>;
+	};
+};
+
 export type OSCQueryRNBOInstancesControlState = OSCQueryBaseNode & {
 	CONTENTS: {
 		sets: OSCQueryBaseNode & {
 			CONTENTS: {
+				initial: OSCQueryStringValue;
 				meta: OSCQueryRNBOInstancesMetaState;
 				save: OSCQuerySingleValue<OSCQueryValueType.String, string>;
 				load: OSCQuerySingleValue<OSCQueryValueType.String, string> & {
@@ -336,9 +442,11 @@ export type OSCQueryRNBOInstancesControlState = OSCQueryBaseNode & {
 				};
 				current?: OSCQueryBaseNode & {
 					CONTENTS: {
-						name: OSCQuerySingleValue<OSCQueryValueType.String, string>;
+						name: OSCQueryStringValue;
+						dirty: OSCQueryBooleanValue;
 					}
 				};
+				views?: OSCQueryRNBOSetViewState;
 			}
 		};
 	};
@@ -347,7 +455,7 @@ export type OSCQueryRNBOInstancesControlState = OSCQueryBaseNode & {
 export type OSCQueryRNBOInstancesState = OSCQueryBaseNode & {
 	CONTENTS: Record<number, OSCQueryRNBOInstance> & {
 		control: OSCQueryRNBOInstancesControlState;
-		config: OSCQueryRNBOInstanceConfig;
+		config: OSCQueryRNBOInstancesConfig;
 	}
 };
 

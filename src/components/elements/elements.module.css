@@ -1,3 +1,21 @@
 .icon {
 	width: 1.3em;
 }
+
+.editableTableCellText {
+	border-bottom: 1px solid transparent;
+}
+
+.editableTableCellWrapper {
+	border-bottom: 1px solid var(--mantine-primary-color-filled);
+	padding: 0;
+}
+
+.editableTableCellInputWrapper {
+	border: none;
+	flex: 1;
+}
+
+.editableTableCellInput {
+	border: none;
+}

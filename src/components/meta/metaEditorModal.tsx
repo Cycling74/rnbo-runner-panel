@@ -1,13 +1,13 @@
 import { Anchor, Button, Group, Modal, Stack, Text, TextInput, Textarea, Tooltip } from "@mantine/core";
 import { ChangeEvent, FC, FormEvent, memo, useCallback, useEffect, useState } from "react";
 import { useIsMobileDevice } from "../../hooks/useIsMobileDevice";
-import { modals } from "@mantine/modals";
 import { JsonMap } from "../../lib/types";
 import { MetadataScope } from "../../lib/constants";
-import { parseParamMetaJSONString } from "../../lib/util";
+import { parseMetaJSONString } from "../../lib/util";
 import classes from "./metaEditorModal.module.css";
 import { IconElement } from "../elements/icon";
 import { mdiClose, mdiCodeBraces } from "@mdi/js";
+import { DialogResult, showConfirmDialog } from "../../lib/dialogs";
 
 export type MetaEditorModalProps = {
 	name: string;
@@ -42,6 +42,14 @@ const scopeLabels: Record<MetadataScope, { nameField: { name: string; label: str
 		},
 		restoreTooltip: "Restore the default value that has been set on the [param] object at export time",
 		title: "Edit Parameter Metadata"
+	},
+	[MetadataScope.DataRef]: {
+		nameField: {
+			name: "dataref_name",
+			label: "Buffer Name"
+		},
+		restoreTooltip: "Restore the default value that has been set on the object at export time",
+		title: "Edit Buffer Metadata"
 	}
 };
 
@@ -68,79 +76,72 @@ export const MetaEditorModal: FC<MetaEditorModalProps> = memo(function WrappedPa
 			return;
 		}
 
-		modals.openConfirmModal({
-			title: "Received Remote Changes",
-			centered: true,
-			children: (
-				<Text size="sm" id="red">
-					The meta data has been updated on the runner. Should any local changes be overwritten by the new remote value?
-				</Text>
-			),
-			labels: { confirm: "Overwrite", cancel: "Cancel" },
-			confirmProps: { color: "red" },
-			onCancel: () => {
-				setInitialValue(meta);
-			},
-			onConfirm: () => {
+		showConfirmDialog({
+			text: "The meta data has been updated on the runner. Should any local changes be overwritten by the new remote value?",
+			actions: {
+				confirm: { label: "Overwrite Changes" },
+				cancel: { label: "Keep Unsaved Changes" }
+			}
+		}).then((result: DialogResult) => {
+
+			if (result === DialogResult.Confirm) {
 				setError(undefined);
 				setInitialValue(meta);
 				setValue(meta);
 				setHasChanges(false);
+			} else {
+				setInitialValue(meta);
 			}
 		});
 	}, [meta, initialValue, setInitialValue, setValue, hasChanges, setHasChanges, setError]);
 
 	const showFullScreen = useIsMobileDevice();
 
-	const onTriggerClose = useCallback(() => {
+	const onTriggerClose = useCallback(async () => {
 		if (hasChanges) {
-			modals.openConfirmModal({
-				title: "Unsaved Changes",
-				centered: true,
-				children: (
-					<Text size="sm" id="red">
-						The meta data has unsaved changes. Are you sure you want to discard them?
-					</Text>
-				),
-				labels: { confirm: "Discard", cancel: "Cancel" },
-				confirmProps: { color: "red" },
-				onConfirm: () => onClose()
+			const result = await showConfirmDialog({
+				text: "The meta data has unsaved changes. Are you sure you want to discard them?",
+				actions: {
+					confirm: { label: "Discard Changes", color: "red" }
+				}
 			});
+
+			if (result === DialogResult.Confirm) {
+				// Discard unsaved changes
+				onClose();
+			}
 		} else {
 			onClose();
 		}
 	}, [onClose, hasChanges]);
 
-	const onCancel = useCallback(() => {
+	const onCancel = useCallback(async () => {
 
 		if (hasChanges) {
-			modals.openConfirmModal({
-				title: "Discard Changes",
-				centered: true,
-				children: (
-					<Text size="sm" id="red">
-						The meta data has unsaved changes. Are you sure you want to discard them?
-					</Text>
-				),
-				labels: { confirm: "Discard", cancel: "Cancel" },
-				confirmProps: { color: "red" },
-				onConfirm: () => {
-					setValue(meta);
-					setHasChanges(false);
-
-					try {
-						if (meta) parseParamMetaJSONString(meta); // ensure valid
-						setError(undefined);
-					} catch (err: unknown) {
-						setError(err instanceof Error ? err : new Error("Invalid JSON format."));
-					}
+			const result = await showConfirmDialog({
+				text: "The meta data has unsaved changes. Are you sure you want to discard them?",
+				actions: {
+					confirm: { label: "Discard Changes", color: "red" }
 				}
 			});
+
+			if (result === DialogResult.Confirm) {
+				// Discard unsaved changes
+				setValue(meta);
+				setHasChanges(false);
+
+				try {
+					if (meta) parseMetaJSONString(meta); // ensure valid
+					setError(undefined);
+				} catch (err: unknown) {
+					setError(err instanceof Error ? err : new Error("Invalid JSON format."));
+				}
+			}
 		} else {
 			setValue(meta);
 			setHasChanges(false);
 			try {
-				parseParamMetaJSONString(meta); // ensure valid
+				parseMetaJSONString(meta); // ensure valid
 				setError(undefined);
 			} catch (err: unknown) {
 				setError(err instanceof Error ? err : new Error("Invalid JSON format."));
@@ -152,7 +153,7 @@ export const MetaEditorModal: FC<MetaEditorModalProps> = memo(function WrappedPa
 		if (error) {
 			try {
 				const v = e.currentTarget.value;
-				if (v) parseParamMetaJSONString(v); // ensure valid
+				if (v) parseMetaJSONString(v); // ensure valid
 				setError(undefined);
 			} catch (err: unknown) {
 				setError(err instanceof Error ? err : new Error("Invalid JSON format."));
@@ -165,7 +166,7 @@ export const MetaEditorModal: FC<MetaEditorModalProps> = memo(function WrappedPa
 	const onInputBlur = useCallback(() => {
 		try {
 			if (value) {
-				const j: JsonMap = parseParamMetaJSONString(value); // ensure valid
+				const j: JsonMap = parseMetaJSONString(value); // ensure valid
 				setValue(JSON.stringify(j, null, 2));
 			}
 			setError(undefined);
@@ -177,7 +178,7 @@ export const MetaEditorModal: FC<MetaEditorModalProps> = memo(function WrappedPa
 	const onSaveValue = useCallback((e: FormEvent) => {
 		e.preventDefault();
 		try {
-			if (value) parseParamMetaJSONString(value); // ensure valid
+			if (value) parseMetaJSONString(value); // ensure valid
 			setHasChanges(false);
 			onSaveMeta(value);
 		} catch (err: unknown) {
@@ -185,18 +186,17 @@ export const MetaEditorModal: FC<MetaEditorModalProps> = memo(function WrappedPa
 		}
 	}, [setError, setHasChanges, onSaveMeta, value]);
 
-	const onTriggerRestore = useCallback(() => {
-		modals.openConfirmModal({
-			title: "Restore Defaults",
-			centered: true,
-			children: (
-				<Text size="sm" id="red">
-					Are you sure you want to restore the default metadata value? This action cannot be undone.
-				</Text>
-			),
-			labels: { confirm: "Restore", cancel: "Cancel" },
-			onConfirm: () => onRestore()
+	const onTriggerRestore = useCallback(async () => {
+		const result = await showConfirmDialog({
+			text: "Are you sure you want to restore the default metadata value? This action cannot be undone.",
+			actions: {
+				confirm: { label: "Restore Defaults" }
+			}
 		});
+
+		if (result === DialogResult.Confirm) {
+			onRestore();
+		}
 	}, [onRestore]);
 
 	const uiLabels = scopeLabels[scope];

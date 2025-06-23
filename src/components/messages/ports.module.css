@@ -1,11 +1,3 @@
-.inport {
-	width: 100%;
-}
-
-.outport {
-	width: 100%;
-}
-
 .portItem {
 	break-inside: avoid-column;
 	page-break-inside: avoid;
@@ -20,11 +12,4 @@
 }
 
 .portList {
-	display: grid;
-	grid-template-columns: 1fr;
-	gap: var(--mantine-spacing-md);
-
-	@media (min-width: $mantine-breakpoint-md) {
-		grid-template-columns: 1fr 1fr;
-  }
 }

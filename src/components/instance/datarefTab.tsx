@@ -1,54 +1,71 @@
-import { Stack, Text } from "@mantine/core";
-import { FunctionComponent, memo, useCallback } from "react";
+import { Map as ImmuMap, Seq } from "immutable";
+import { Group, Stack } from "@mantine/core";
+import { FunctionComponent, memo, useCallback, useState } from "react";
 import { useAppDispatch } from "../../hooks/useAppDispatch";
 import DataRefList from "../dataref/list";
 import classes from "./instance.module.css";
-import { InstanceStateRecord } from "../../models/instance";
-import { setInstanceDataRefValueOnRemote } from "../../actions/instances";
+import { PatcherInstanceRecord } from "../../models/instance";
+import { clearInstanceDataRefValueOnRemote, exportInstanceDataRef, restoreDefaultDataRefMetaOnRemote, setInstanceDataRefMetaOnRemote, setInstanceDataRefValueOnRemote } from "../../actions/patchers";
 import { DataRefRecord } from "../../models/dataref";
-import { modals } from "@mantine/modals";
 import { DataFileRecord } from "../../models/datafile";
-import { Seq } from "immutable";
+import { SearchInput } from "../page/searchInput";
 
 export type InstanceDataRefTabProps = {
-	instance: InstanceStateRecord;
+	instance: PatcherInstanceRecord;
 	datafiles: Seq.Indexed<DataFileRecord>;
+	dataRefs: ImmuMap<DataRefRecord["id"], DataRefRecord>;
 }
 
 const InstanceDataRefsTab: FunctionComponent<InstanceDataRefTabProps> = memo(function WrappedInstanceDataRefsTab({
 	instance,
-	datafiles
+	datafiles,
+	dataRefs
 }) {
 
 	const dispatch = useAppDispatch();
+	const [searchValue, setSearchValue] = useState<string>("");
 
 	const onSetDataRef = useCallback((dataref: DataRefRecord, file: DataFileRecord) => {
-		dispatch(setInstanceDataRefValueOnRemote(instance, dataref, file));
-	}, [dispatch, instance]);
+		dispatch(setInstanceDataRefValueOnRemote(dataref, file));
+	}, [dispatch]);
 
 	const onClearDataRef = useCallback((dataref: DataRefRecord) => {
-		modals.openConfirmModal({
-			title: "Clear Buffer Mapping",
-			centered: true,
-			children: (
-				<Text size="sm">
-					Are you sure you want to clear the Buffer Mapping for { `"${dataref.id}"` }?
-				</Text>
-			),
-			labels: { confirm: "Clear", cancel: "Cancel" },
-			confirmProps: { color: "red" },
-			onConfirm: () => dispatch(setInstanceDataRefValueOnRemote(instance, dataref))
-		});
-	}, [dispatch, instance]);
+		dispatch(clearInstanceDataRefValueOnRemote(dataref));
+	}, [dispatch]);
+
+	const onSaveMetadata = useCallback((dataref: DataRefRecord, value: string) => {
+		dispatch(setInstanceDataRefMetaOnRemote(dataref, value));
+	}, [dispatch]);
+
+	const onRestoreMetadata = useCallback((dataref: DataRefRecord) => {
+		dispatch(restoreDefaultDataRefMetaOnRemote(dataref));
+	}, [dispatch]);
+
+	const onExportDataRef = useCallback((dataref: DataRefRecord) => {
+		dispatch(exportInstanceDataRef(dataref));
+	}, [dispatch]);
 
 	return (
-		<Stack>
+		<Stack gap="xs">
+			<Group justify="flex-end">
+				<SearchInput onSearch={ setSearchValue } />
+			</Group>
 			{
-				!instance.datarefs.size ? (
+				!dataRefs.size ? (
 					<div className={ classes.emptySection }>
-						This patcher instance has no buffers.
+						This device has no buffers.
 					</div>
-				) : <DataRefList datarefs={ instance.datarefs } options={ datafiles } onSetDataRef={ onSetDataRef } onClearDataRef={ onClearDataRef } />
+				) : (
+					<DataRefList
+						dataRefs={ dataRefs.filter(ref => ref.matchesQuery(searchValue)) }
+						options={ datafiles }
+						onSetDataRef={ onSetDataRef }
+						onClearDataRef={ onClearDataRef }
+						onRestoreMetadata={ onRestoreMetadata }
+						onSaveMetadata={ onSaveMetadata }
+						onExportDataRef={ onExportDataRef }
+					/>
+				)
 			}
 		</Stack>
 	);

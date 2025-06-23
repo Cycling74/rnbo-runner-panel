@@ -1,20 +1,19 @@
-import { Divider, Drawer, Group, Stack, Text } from "@mantine/core";
+import { Button, Divider, Drawer, Flex, Group, Stack } from "@mantine/core";
 import { FunctionComponent, memo, useCallback } from "react";
 import { PresetItem } from "./item";
-import { SavePresetForm } from "./save";
-import { DrawerSectionTitle } from "../page/drawer";
-import { modals } from "@mantine/modals";
 import { PresetRecord } from "../../models/preset";
 import { Seq } from "immutable";
 import { IconElement } from "../elements/icon";
-import { mdiCamera } from "@mdi/js";
+import { mdiCamera, mdiPlus } from "@mdi/js";
+import styles from "./presets.module.css";
 
 export type PresetDrawerProps = {
 	open: boolean;
 	onClose: () => any;
 	onDeletePreset: (preset: PresetRecord) => any;
 	onLoadPreset: (preset: PresetRecord) => any;
-	onSavePreset: (name: string) => any;
+	onCreatePreset: () => any;
+	onOverwritePreset: (preset: PresetRecord) => any;
 	onRenamePreset: (preset: PresetRecord, name: string) => any;
 	onSetInitialPreset?: (set: PresetRecord) => any;
 	presets: Seq.Indexed<PresetRecord>;
@@ -23,46 +22,69 @@ export type PresetDrawerProps = {
 const PresetDrawer: FunctionComponent<PresetDrawerProps> = memo(function WrappedPresetDrawer({
 	open,
 	onClose,
+	onCreatePreset,
 	onDeletePreset,
 	onLoadPreset,
-	onSavePreset,
+	onOverwritePreset,
 	onRenamePreset,
 	onSetInitialPreset,
 	presets
 }: PresetDrawerProps) {
 
 	const onTriggerDeletePreset = useCallback((preset: PresetRecord) => {
-		modals.openConfirmModal({
-			title: "Delete Preset",
-			centered: true,
-			children: (
-				<Text size="sm">
-					Are you sure you want to delete the preset named { `"${preset.name}"` }?
-				</Text>
-			),
-			labels: { confirm: "Delete", cancel: "Cancel" },
-			confirmProps: { color: "red" },
-			onConfirm: () => onDeletePreset(preset)
-		});
+		onDeletePreset(preset);
 	}, [onDeletePreset]);
 
+	const validateUniquePresetName = useCallback((name: string): boolean => {
+		return !presets.find(p => p.name === name);
+	}, [presets]);
+
 	return (
-		<Drawer
-			opened={ open }
-			onClose={ onClose }
-			position="right"
-			title={ <Group gap="xs"><IconElement path={ mdiCamera }/> Presets</Group> }
-		>
-			<SavePresetForm onSave={ onSavePreset } />
-			<Divider mt="lg" />
-			<DrawerSectionTitle>Saved Presets</DrawerSectionTitle>
-			<Stack gap="sm">
-				{
-					presets.map(preset => <PresetItem key={ preset.id } preset={ preset } onLoad={ onLoadPreset } onDelete={ onTriggerDeletePreset } onRename = { onRenamePreset } onSetInitial = { onSetInitialPreset }/> )
-				}
-			</Stack>
-		</Drawer>
+		<Drawer.Root opened={ open } onClose={ onClose } position="right">
+			<Drawer.Overlay />
+			<Drawer.Content>
+				<Flex direction="column" style={{ height: "100%" }}>
+					<Drawer.Header>
+						<Drawer.Title>
+							<Group gap="xs">
+								<IconElement path={ mdiCamera } />
+								Presets
+							</Group>
+						</Drawer.Title>
+						<Drawer.CloseButton />
+					</Drawer.Header>
+					<Drawer.Body style={{ flex: 1 }} >
+						<Flex direction="column" style={{ height: "100%" }} gap="lg" >
+							<Flex className={ styles.presetListWrapper } direction="column">
+								<Stack gap="sm" >
+									{
+										presets.map(preset => (
+											<PresetItem
+												key={ preset.id }
+												preset={ preset }
+												onLoad={ onLoadPreset }
+												onDelete={ onTriggerDeletePreset }
+												onRename={ onRenamePreset }
+												onOverwrite={ onOverwritePreset }
+												onSetInitial = { onSetInitialPreset }
+												validateUniqueName={ validateUniquePresetName }
+											/>
+										))
+									}
+								</Stack>
+							</Flex>
+							<Divider />
+							<Button variant="outline" leftSection={ <IconElement path={ mdiPlus } /> } fullWidth={ true } onClick={ onCreatePreset } >
+								Create Preset
+							</Button>
+						</Flex>
+					</Drawer.Body>
+				</Flex>
+			</Drawer.Content>
+		</Drawer.Root>
 	);
 });
 
 export default PresetDrawer;
+
+

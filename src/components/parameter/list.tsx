@@ -1,32 +1,30 @@
-import { FunctionComponent, memo, useEffect, useRef, useState } from "react";
-import ParameterItem, { parameterBoxHeight } from "./item";
+import { ComponentType, useEffect, useRef, useState } from "react";
+import { parameterBoxHeight, ParameterItemProps } from "./item";
 import classes from "./parameters.module.css";
 import { useViewportSize } from "@mantine/hooks";
 import { Breakpoints } from "../../lib/constants";
-import { clamp } from "../../lib/util";
+import { clamp, genericMemo } from "../../lib/util";
 import { ParameterRecord } from "../../models/parameter";
 import { OrderedSet } from "immutable";
 import { useThemeColorScheme } from "../../hooks/useTheme";
 
-export type ParameterListProps = {
-	isMIDIMapping: boolean;
-	onActivateMIDIMapping: (parameter: ParameterRecord) => any;
+export type ParameterListProps<ExtraProps = object> = {
+	onRestoreMetadata: (param: ParameterRecord) => any;
+	onSaveMetadata: (param: ParameterRecord, meta: string) => any;
 	onSetNormalizedValue: (parameter: ParameterRecord, nValue: number) => any;
-	onSaveMetadata: (parameter: ParameterRecord, meta: string) => any;
-	onRestoreMetadata: (parameter: ParameterRecord) => any;
-	onClearMidiMapping: (parameter: ParameterRecord) => any;
 	parameters: OrderedSet<ParameterRecord>;
+	extraParameterProps: ExtraProps;
+	ParamComponentType: ComponentType<ExtraProps & ParameterItemProps>;
 }
 
-const ParameterList: FunctionComponent<ParameterListProps> = memo(function WrappedParameterList({
-	isMIDIMapping,
-	onActivateMIDIMapping,
-	onSetNormalizedValue,
-	onSaveMetadata,
+const ParameterList = genericMemo(function WrappedParameterList<ExtraProps>({
 	onRestoreMetadata,
-	onClearMidiMapping,
-	parameters
-}) {
+	onSaveMetadata,
+	onSetNormalizedValue,
+	parameters,
+	extraParameterProps,
+	ParamComponentType
+}: ParameterListProps<ExtraProps>) {
 
 	const ref = useRef<HTMLDivElement>();
 	const [topCoord, setTopCoord] = useState<number>(0);
@@ -48,19 +46,20 @@ const ParameterList: FunctionComponent<ParameterListProps> = memo(function Wrapp
 		setTopCoord(ref.current?.getBoundingClientRect().top);
 	}, [ref, height]);
 
+	let index = -1;
+
 	return (
-		<div ref={ ref } className={ classes.parameterList } data-color-scheme={ colorScheme } data-active-midi-mapping={ isMIDIMapping } style={{ columnCount }} >
+		<div ref={ ref } className={ classes.parameterList } data-color-scheme={ colorScheme } style={{ columnCount }} >
 			{
 				ref.current === null ? null : parameters.map(p =>
-					<ParameterItem
+					<ParamComponentType
 						key={p.id}
 						param={p}
-						instanceIsMIDIMapping={ isMIDIMapping }
-						onActivateMIDIMapping={ onActivateMIDIMapping }
-						onSetNormalizedValue={ onSetNormalizedValue }
-						onSaveMetadata={ onSaveMetadata }
+						index={ ++index }
 						onRestoreMetadata={ onRestoreMetadata }
-						onClearMidiMapping={ onClearMidiMapping }
+						onSaveMetadata={ onSaveMetadata }
+						onSetNormalizedValue={ onSetNormalizedValue }
+						{ ...extraParameterProps }
 					/>
 				)
 			}

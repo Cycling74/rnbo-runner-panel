@@ -1,0 +1,10 @@
+.patcherMenuSection {
+	display: flex;
+	flex-direction: column;
+	max-height: inherit;
+}
+
+.patcherMenuSectionList {
+	flex: 1;
+	overflow: auto;
+}

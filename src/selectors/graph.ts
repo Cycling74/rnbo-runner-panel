@@ -1,10 +1,13 @@
-import { Map as ImmuMap, Seq, Set as ImmuSet } from "immutable";
+import { Map as ImmuMap, OrderedMap as ImmuOrderedMap, Seq } from "immutable";
 import { RootStateType } from "../lib/store";
-import { GraphConnectionRecord, GraphControlNodeRecord, GraphNodeRecord, GraphPatcherNodeRecord, GraphPortRecord, GraphSystemNodeRecord, NodeType, PortDirection } from "../models/graph";
+import { ConnectionType, GraphConnectionRecord, GraphNodeRecord, GraphPortRecord, NodePositionRecord, NodeType, PortDirection } from "../models/graph";
 import { createSelector } from "reselect";
+import { knownPortGroupDisplayNames, nodeDefaultWidth, nodeHeaderHeight } from "../lib/constants";
+import { calculateNodeContentHeight } from "../lib/util";
+import { getPatcherInstances } from "./patchers";
 
 export const getNodes = (state: RootStateType): ImmuMap<GraphNodeRecord["id"], GraphNodeRecord> => state.graph.nodes;
-export const getPatcherIdsByIndex = (state: RootStateType): ImmuMap<GraphPatcherNodeRecord["index"], GraphPatcherNodeRecord["id"]> => state.graph.patcherNodeIdByIndex;
+export const getPatcherNodeIdsByInstanceId = (state: RootStateType): ImmuMap<GraphNodeRecord["instanceId"], GraphNodeRecord["id"]> => state.graph.patcherNodeIdByInstanceId;
 
 export const getNode = createSelector(
 	[
@@ -19,83 +22,150 @@ export const getNode = createSelector(
 
 export const getPatcherNodes = createSelector(
 	[getNodes],
-	(nodes): ImmuMap<GraphPatcherNodeRecord["id"], GraphPatcherNodeRecord> => {
-		return nodes.filter(node => node.type === NodeType.Patcher) as ImmuMap<GraphPatcherNodeRecord["id"], GraphPatcherNodeRecord>;
+	(nodes): ImmuMap<GraphNodeRecord["id"], GraphNodeRecord> => {
+		return nodes.filter(node => node.type === NodeType.Patcher) as ImmuMap<GraphNodeRecord["id"], GraphNodeRecord>;
 	}
 );
 
-export const getPatcherNodeByIndex = createSelector(
-	[
-		getNodes,
-		getPatcherIdsByIndex,
-		(state: RootStateType, index: GraphPatcherNodeRecord["index"]): GraphPatcherNodeRecord["index"] => index
-	],
-	(nodes, idsByIndex, index): GraphPatcherNodeRecord | undefined => {
-		const id = idsByIndex.get(index);
-		const node = id ? nodes.get(id) : undefined;
-		return node as GraphPatcherNodeRecord | undefined;
-	}
-);
-
-export const getFirstPatcherNodeIndex = createSelector(
-	[getPatcherIdsByIndex],
-	(idsByIndex): number | undefined => {
-		return idsByIndex.size === 0 ? undefined : idsByIndex.keySeq().sort().first();
-	}
-);
-
-export const getPatcherNodesByIndex = (state: RootStateType): ImmuMap<GraphPatcherNodeRecord["index"], GraphPatcherNodeRecord> => {
-	return ImmuMap<GraphPatcherNodeRecord["index"], GraphPatcherNodeRecord>().withMutations(map => {
-		state.graph.patcherNodeIdByIndex.forEach((id, index) => {
-			const node = getNode(state, id);
-			if (node && node.type === NodeType.Patcher) map.set(index, node);
+export const getPatcherNodesByInstanceId = (state: RootStateType): ImmuMap<GraphNodeRecord["instanceId"], GraphNodeRecord> => {
+	return ImmuMap<GraphNodeRecord["instanceId"], GraphNodeRecord>().withMutations(map => {
+		state.graph.patcherNodeIdByInstanceId.forEach((nodeId, instanceId) => {
+			const node = getNode(state, nodeId);
+			if (node && node.type === NodeType.Patcher && node.instanceId !== undefined) map.set(instanceId, node);
 		});
 	});
 };
 
-export const getControlNodes = createSelector(
-	[getNodes],
-	(nodes): ImmuMap<GraphControlNodeRecord["id"], GraphControlNodeRecord> => {
-		return nodes.filter(node => node.type === NodeType.Control) as ImmuMap<GraphControlNodeRecord["id"], GraphControlNodeRecord>;
-	}
-);
-
-export const getControlsNodesJackNames = createSelector(
-	[getNodes],
-	(nodes) :ImmuSet<GraphControlNodeRecord["jackName"]> => {
-		return ImmuSet<GraphControlNodeRecord["jackName"]>().withMutations(result => {
-			for (const node of nodes.valueSeq().toArray()) {
-				if (node.type === NodeType.Control) result.add(node.jackName);
-			}
-		});
-	}
-);
-
-export const getSystemNodes = createSelector(
-	[getNodes],
-	(nodes):  ImmuMap<GraphSystemNodeRecord["id"], GraphSystemNodeRecord> => {
-		return nodes.filter(node => node.type === NodeType.System) as ImmuMap<GraphSystemNodeRecord["id"], GraphSystemNodeRecord>;
-	}
-);
-
-export const getSystemNodeByJackNameAndDirection = createSelector(
+export const getPatcherNodeByInstanceId = createSelector(
 	[
 		getNodes,
-		(state: RootStateType, jackName: GraphSystemNodeRecord["jackName"]): GraphSystemNodeRecord["jackName"] => jackName,
-		(state: RootStateType, jackName: GraphSystemNodeRecord["jackName"], direction: PortDirection): PortDirection => direction
+		getPatcherNodeIdsByInstanceId,
+		(state: RootStateType, instanceId: GraphNodeRecord["id"]): GraphNodeRecord["id"] => instanceId
 	],
-	(nodes, jackName, direction): GraphSystemNodeRecord | undefined => {
-		return nodes.find(node => node.type === NodeType.System && node.jackName === jackName && node.direction === direction) as GraphSystemNodeRecord | undefined;
+	(nodes, idsByInstanceId, instanceId): GraphNodeRecord | undefined => {
+		const id = idsByInstanceId.get(instanceId);
+		const node = id ? nodes.get(id) : undefined;
+		return node && node.type === NodeType.Patcher ? node : undefined;
 	}
 );
 
-export const getSystemNodesJackNames = createSelector(
-	[getNodes],
-	(nodes): ImmuSet<GraphSystemNodeRecord["jackName"]> => {
-		return ImmuSet<GraphSystemNodeRecord["jackName"]>().withMutations(result => {
-			for (const node of nodes.valueSeq().toArray()) {
-				if (node.type === NodeType.System) result.add(node.jackName);
-			}
+export const getFirstPatcherNodeInstanceId = createSelector(
+	[
+		getPatcherNodes
+	],
+	(nodes): string | undefined => {
+		const collator = new Intl.Collator("en-US", { numeric: true });
+		return nodes.size === 0 ? undefined : nodes.sort((a, b) => collator.compare(a.id, b.id)).first()?.instanceId;
+	}
+);
+
+export const getNodePositions = (state: RootStateType): ImmuMap<NodePositionRecord["id"], NodePositionRecord> => state.graph.nodePositions;
+export const getNodePosition = createSelector(
+	[
+		getNodePositions,
+		(state: RootStateType, id: NodePositionRecord["id"]): NodePositionRecord["id"] => id
+
+	],
+	(positions, id): NodePositionRecord | undefined => {
+		return positions.get(id);
+	}
+);
+
+export const getPorts = (state: RootStateType): ImmuOrderedMap<GraphPortRecord["id"], GraphPortRecord> => state.graph.ports;
+
+export const getPortsForTypeAndDirection = createSelector(
+	[
+		getPorts,
+		(state: RootStateType, type: ConnectionType): ConnectionType => type,
+		(state: RootStateType, type: ConnectionType, direction: PortDirection): PortDirection => direction
+	],
+	(ports, type, direction): ImmuOrderedMap<GraphPortRecord["id"], GraphPortRecord> => {
+		return ports.filter((p) => p.type === type && p.direction === direction);
+	}
+);
+
+export const getPortsForNodeId = createSelector(
+	[
+		getNode,
+		getPorts
+	],
+	(node, ports): ImmuOrderedMap<GraphPortRecord["id"], GraphPortRecord> => {
+		return ports.filter(p => p.nodeId === node.id);
+	}
+);
+
+export const getPort = createSelector(
+	[
+		getPorts,
+		(state: RootStateType, id: GraphPortRecord["id"]): GraphPortRecord["id"] => id
+
+	],
+	(ports, id): GraphPortRecord | undefined => {
+		return ports.get(id);
+	}
+);
+
+export type EditorNodePorts = {
+	sinks: GraphPortRecord[];
+	sources: GraphPortRecord[];
+};
+
+export type EditorNodeDimensions = {
+	contentHeight: number;
+	height: number;
+	width: number;
+};
+
+export type EditorNodePosition = {
+	x: number;
+	y: number;
+};
+
+export type EditorNodeMeta = {
+	displayName: string;
+};
+
+export type EditorNodeDesc = EditorNodePorts & EditorNodeDimensions & EditorNodePosition & EditorNodeMeta & {
+	node: GraphNodeRecord;
+};
+
+export const getEditorNodesAndPorts = createSelector(
+	[
+		getNodes,
+		getPorts,
+		getNodePositions,
+		getPatcherInstances
+	],
+	(nodes, ports, positions, instances): ImmuMap<GraphNodeRecord["id"], EditorNodeDesc> => {
+		const portMap = new Map<GraphNodeRecord["id"], EditorNodePorts>();
+		ports.forEach((port) => {
+			if (port.isHidden) return;
+			if (!portMap.has(port.nodeId)) portMap.set(port.nodeId, { sinks: [], sources: [] });
+			portMap.get(port.nodeId)[port.direction === PortDirection.Sink ? "sinks" : "sources"].push(port);
+		});
+
+		return ImmuMap<GraphNodeRecord["id"], EditorNodeDesc>().withMutations(result => {
+			nodes.forEach(node => {
+				if (node.isHidden) return;
+
+				const ports = portMap.get(node.id) || { sinks: [], sources: [] };
+				const contentHeight = calculateNodeContentHeight(ports.sinks.length, ports.sources.length);
+				const position = positions.get(node.id);
+
+				const desc: EditorNodeDesc = {
+					node,
+					displayName: node.type === NodeType.System
+						? knownPortGroupDisplayNames.get(node.id) || node.id
+						: instances.get(node.instanceId)?.displayName || node.id,
+					...ports,
+					contentHeight,
+					x: position?.x || 0,
+					y: position?.y || 0,
+					height: nodeHeaderHeight + contentHeight,
+					width: nodeDefaultWidth
+				};
+				result.set(node.id, desc);
+			});
 		});
 	}
 );
@@ -112,72 +182,37 @@ export const getConnection = createSelector(
 	}
 );
 
-export type NodeAndPortDesc = {
-	sourceNodeId: string;
+export type PortDesc = {
 	sourcePortId: string;
-	sinkNodeId: string;
 	sinkPortId: string;
 };
 
-export const getConnectionByNodesAndPorts = createSelector(
+export const getConnectionByPorts = createSelector(
 	[
 		getConnections,
-		(state: RootStateType, desc: NodeAndPortDesc): NodeAndPortDesc => desc
+		(state: RootStateType, desc: PortDesc): PortDesc => desc
 	],
-	(connections, { sourceNodeId, sourcePortId, sinkNodeId, sinkPortId }): GraphConnectionRecord | undefined => {
-		return connections.get(GraphConnectionRecord.idFromNodesAndPorts(sourceNodeId, sourcePortId, sinkNodeId, sinkPortId));
+	(connections, { sourcePortId, sinkPortId }): GraphConnectionRecord | undefined => {
+		return connections.get(GraphConnectionRecord.idFromPorts(sourcePortId, sinkPortId));
 	}
 );
 
-export const getConnectionsForSourceNodeAndPort = createSelector(
+export const getConnectionsForSourcePort = createSelector(
 	[
 		getConnections,
-		(state: RootStateType, desc: Pick<NodeAndPortDesc, "sourceNodeId" | "sourcePortId">): Pick<NodeAndPortDesc, "sourceNodeId" | "sourcePortId"> => desc
+		(state: RootStateType, sourcePortId: GraphConnectionRecord["sourcePortId"]): GraphConnectionRecord["sourcePortId"] => sourcePortId
 	],
-	(connections, { sourceNodeId, sourcePortId }): Seq.Indexed<GraphConnectionRecord> => {
-		return connections.filter(conn => conn.sourceNodeId === sourceNodeId && conn.sourcePortId === sourcePortId).valueSeq();
+	(connections, sourcePortId): Seq.Indexed<GraphConnectionRecord> => {
+		return connections.filter(conn => conn.sourcePortId === sourcePortId).valueSeq();
 	}
 );
 
-
-export const getConnectionsForSinkNodeAndPort = createSelector(
+export const getConnectionsForSinkPort = createSelector(
 	[
 		getConnections,
-		(state: RootStateType, desc: Pick<NodeAndPortDesc, "sinkNodeId" | "sinkPortId">): Pick<NodeAndPortDesc, "sinkNodeId" | "sinkPortId"> => desc
+		(state: RootStateType, sinkPortId: GraphConnectionRecord["sinkPortId"]): GraphConnectionRecord["sinkPortId"] => sinkPortId
 	],
-	(connections, { sinkNodeId, sinkPortId }): Seq.Indexed<GraphConnectionRecord> => {
-		return connections.filter(conn => conn.sinkNodeId === sinkNodeId && conn.sinkPortId === sinkPortId).valueSeq();
-	}
-);
-
-export const getPortAliases = (state: RootStateType): ImmuMap<GraphPortRecord["portName"], string[]> => state.graph.portAliases;
-
-export const getPortAlias = createSelector(
-	[
-		getPortAliases,
-		(state: RootStateType, portName: GraphPortRecord["portName"]): GraphPortRecord["portName"] => portName
-	],
-	(aliases, portName): string | undefined => {
-		// For now we only alias system node ports
-		return portName.startsWith("system")
-			? aliases.get(portName)?.[0] || undefined
-			: undefined;
-	}
-);
-
-export const getPortAliasesForNode = createSelector(
-	[
-		getPortAliases,
-		(state: RootStateType, node: GraphNodeRecord): GraphNodeRecord => node
-	],
-	(aliases, node): ImmuMap<GraphPortRecord["portName"], string> => {
-		return ImmuMap<GraphPortRecord["portName"], string>().withMutations(map => {
-			node.ports.valueSeq().forEach(port => {
-				const alias = aliases.get(port.portName);
-				if (alias?.length) {
-					map.set(port.portName, alias[0]);
-				}
-			});
-		});
+	(connections, sinkPortId): Seq.Indexed<GraphConnectionRecord> => {
+		return connections.filter(conn => conn.sinkPortId === sinkPortId).valueSeq();
 	}
 );

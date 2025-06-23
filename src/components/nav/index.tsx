@@ -8,8 +8,8 @@ import { RootStateType } from "../../lib/store";
 import { getShowSettingsModal } from "../../selectors/settings";
 import { ExternalNavLink, NavLink } from "./link";
 import { useRouter } from "next/router";
-import { getFirstPatcherNodeIndex } from "../../selectors/graph";
-import { mdiChartSankeyVariant, mdiCog, mdiFileMusic, mdiHelpCircle, mdiVectorSquare } from "@mdi/js";
+import { getFirstPatcherNodeInstanceId } from "../../selectors/graph";
+import { mdiChartSankeyVariant, mdiCog, mdiHelpCircle, mdiMidiPort, mdiVectorSquare, mdiTableEye, mdiDatabaseCog } from "@mdi/js";
 
 const AppNav: FunctionComponent = memo(function WrappedNav() {
 
@@ -19,14 +19,14 @@ const AppNav: FunctionComponent = memo(function WrappedNav() {
 	const onToggleSettings = useCallback(() => dispatch(toggleShowSettings()), [dispatch]);
 	const [
 		settingsAreShown,
-		instanceIndex
+		instanceId
 	] = useAppSelector((state: RootStateType) => [
 		getShowSettingsModal(state),
-		getFirstPatcherNodeIndex(state)
+		getFirstPatcherNodeInstanceId(state)
 	]);
 
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	const { index, ...restQuery } = query; // slurp out potential index query element for a clean query
+	const { id, ...restQuery } = query; // slurp out potential id query element for a clean query
 
 	return (
 		<AppShell.Navbar>
@@ -39,20 +39,32 @@ const AppNav: FunctionComponent = memo(function WrappedNav() {
 						isActive={ pathname === "/" }
 					/>
 					<NavLink
-						disabled={ instanceIndex === undefined }
+						disabled={ instanceId === undefined }
 						icon={ mdiVectorSquare }
-						label="Patcher Instance Control"
-						href={{ pathname: "/instances/[index]", query: { ...restQuery, index: instanceIndex } }}
-						isActive={ pathname === "/instances/[index]" }
+						label="Devices"
+						href={{ pathname: "/instances/[id]", query: { ...restQuery, id: instanceId } }}
+						isActive={ pathname === "/instances/[id]" }
 					/>
 					<NavLink
-						icon={ mdiFileMusic }
-						label="Audio Files"
-						href={{ pathname: "/files", query: restQuery }}
-						isActive={ pathname === "/files" }
+						icon={ mdiTableEye }
+						label="Parameter Views"
+						href={{ pathname: "/setviews", query: { ...restQuery } }}
+						isActive={ pathname === "/setviews" }
+					/>
+					<NavLink
+						icon={ mdiMidiPort }
+						label="MIDI Mappings"
+						href={{ pathname: "/midimappings", query: restQuery }}
+						isActive={ pathname === "/midimappings" }
 					/>
 				</Stack>
 				<Stack className={ classes.navMenu } >
+					<NavLink
+						icon={ mdiDatabaseCog }
+						label="Manage Resources"
+						href={{ pathname: "/resources", query: restQuery }}
+						isActive={ pathname === "/resources" }
+					/>
 					<ExternalNavLink
 						icon={ mdiHelpCircle }
 						label="Help & Documentation"

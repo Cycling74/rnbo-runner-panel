@@ -61,7 +61,7 @@ const SettingsTabPanel: FunctionComponent<SettingsTabPanelProps> = memo(function
 }) {
 
 	const dispatch = useAppDispatch();
-	const onChangeSetting = useCallback(( target: SettingTarget, id: AppSetting | ConfigKey, value: SettingsItemValue) => {
+	const onChangeSetting = useCallback(( target: SettingTarget, id: AppSetting | ConfigKey, value: SettingsItemValue): void => {
 
 		if (target === SettingTarget.App) {
 			return void dispatch(setAppSetting(id as AppSetting, value));
@@ -161,13 +161,16 @@ const Settings: FunctionComponent = memo(function WrappedSettings() {
 	const tabConfigByTab: Record<SettingsTab, TabConfig> = {
 		[SettingsTab.UI]: {
 			title: "UI",
-			description: "UI settings are device scoped, saved to the local storage and restored on page load."
+			description: "UI settings are scoped to the device you are currently using the Web Interface on and restored on page load."
 		},
 		[SettingsTab.Control]: {
 			title: "Control"
 		},
 		[SettingsTab.Instance]: {
-			title: "Patcher Instance"
+			title: "Devices"
+		},
+		[SettingsTab.Recording]: {
+			title: "Record"
 		},
 		[SettingsTab.Audio]: {
 			title: "Audio",
@@ -236,6 +239,11 @@ const Settings: FunctionComponent = memo(function WrappedSettings() {
 									id={ SettingsTab.UI}
 									items={ activeTab === SettingsTab.UI ? settingsItems : [] }
 									{ ...tabConfigByTab[SettingsTab.UI] }
+								/>
+								<SettingsTabPanel
+									id={ SettingsTab.Recording}
+									items={ activeTab === SettingsTab.Recording ? settingsItems : [] }
+									{ ...tabConfigByTab[SettingsTab.Recording] }
 								/>
 							</Stack>
 						</Tabs>
