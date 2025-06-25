@@ -276,7 +276,12 @@ export const downloadPatcherFromRemote = (patcher: PatcherExportRecord): AppThun
 		try {
 
 			const pkgResult = await createPackageOnRunner(patcher);
-			await readFileFromRunnerCmd(pkgResult.filename, RunnerFileType.Package);
+			const hash = await readFileFromRunnerCmd(pkgResult.filename, RunnerFileType.Package);
+			dispatch(showNotification({
+				level: NotificationLevel.success,
+				title: "Finished Download",
+				message: `Patcher ${patcher.name} has been downloaded successfully (hash: ${hash})`
+			}));
 
 		} catch (err) {
 			if (isUserAbortedError(err)) return; // User Aborted File Destination chooser

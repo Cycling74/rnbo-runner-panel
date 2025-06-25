@@ -1,4 +1,5 @@
 import * as Base64 from "js-base64";
+import Crypto from "crypto-js";
 import { RunnerChunkSize, RunnerCmdReadMethod, RunnerCmdResultCode, RunnerCmdWriteMethod, RunnerFileType } from "../lib/constants";
 import { oscQueryBridge, RunnerCmd } from "./oscqueryBridgeController";
 import { RunnerDeleteFileResponse, RunnerReadFileContentResponse, RunnerReadFileListResponse, RunnerReadFileListResult, RunnerReadFileContentResult, RunnerCreatePackageResult, RunnerCreatePackageResponse, RunnerInstallPackageResponse, RunnerInstallPackageResult } from "../lib/types";
@@ -117,16 +118,31 @@ export async function installPackageOnRunner(packageFilename: string): Promise<R
 
 }
 
-
 class ReadFileTransformer implements Transformer<RunnerReadFileContentResult, ArrayBufferLike> {
 
 	private extra: string = "";
 	private readonly onProgress: (p: number) => void | undefined;
+	private readonly hasher = Crypto.algo.MD5.create();
+	private readContentHash: string = "";
+	private runnerHash: string = "";
+	private readonly decoder = new TextDecoder();
 
 	constructor(
 		onProgress?: (p: number) => void
 	) {
 		this.onProgress = onProgress || undefined;
+	}
+
+	public get readContentMD5(): string {
+		return this.readContentHash;
+	}
+
+	public get runnerFileMD5(): string {
+		return this.runnerHash;
+	}
+
+	public get fileHashesMatch(): boolean {
+		return this.readContentHash === this.runnerHash;
 	}
 
 	transform?: TransformerTransformCallback<RunnerReadFileContentResult, ArrayBufferLike> = (
@@ -148,11 +164,17 @@ class ReadFileTransformer implements Transformer<RunnerReadFileContentResult, Ar
 		if (overflow !== 0) this.extra = chunk.slice(overflow * -1);
 
 		controller.enqueue(data.buffer);
+		this.hasher.update(Crypto.lib.WordArray.create(data));
 		this.onProgress?.(result.progress);
+
+		if (result.md5) {
+			this.runnerHash = result.md5;
+			this.readContentHash = this.hasher.finalize().toString().toUpperCase();
+		}
 	};
 }
 
-export const readFileFromRunnerCmd = async (filename: string, filetype: RunnerFileType): Promise<void> => {
+export const readFileFromRunnerCmd = async (filename: string, filetype: RunnerFileType): Promise<string> => {
 
 	if (!getSupportsFileSystemAccess()) throw new Error("FileSystem Access API is not supported");
 
@@ -168,11 +190,17 @@ export const readFileFromRunnerCmd = async (filename: string, filetype: RunnerFi
 		size: RunnerChunkSize.Read
 	});
 
+	const transformer = new ReadFileTransformer();
+
 	await oscQueryBridge.getCmdReadableStream<RunnerReadFileContentResponse>(cmd)
-		.pipeThrough(new TransformStream(new ReadFileTransformer()))
+		.pipeThrough(new TransformStream(transformer))
 		.pipeTo(await handle.createWritable({ keepExistingData: false }));
 
-	return;
+	if (!transformer.fileHashesMatch) {
+		console.warn(`File hashes don't seem to match, the runner reported a MD5 of\n${transformer.runnerFileMD5} but the written data resulted in\n${transformer.readContentMD5}`);
+	}
+
+	return transformer.readContentMD5;
 };
 
 

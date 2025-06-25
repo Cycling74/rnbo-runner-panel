@@ -622,7 +622,13 @@ export const downloadGraphSetFromRemote = (set: GraphSetRecord): AppThunk =>
 		try {
 
 			const pkgResult = await createPackageOnRunner(set);
-			await readFileFromRunnerCmd(pkgResult.filename, RunnerFileType.Package);
+			const hash = await readFileFromRunnerCmd(pkgResult.filename, RunnerFileType.Package);
+
+			dispatch(showNotification({
+				level: NotificationLevel.success,
+				title: "Finished Download",
+				message: `Graph ackage ${set.name} has been downloaded successfully (hash: ${hash})`
+			}));
 
 		} catch (err) {
 			if (isUserAbortedError(err)) return; // User Aborted File Destination chooser
