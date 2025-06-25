@@ -1,4 +1,4 @@
-import { OrderedSet as ImmuOrderedSet } from "immutable";
+import { Map as ImmuMap, OrderedSet as ImmuOrderedSet } from "immutable";
 import { ComponentType, FC, memo } from "react";
 import ParameterList, { ParameterListProps } from "../parameter/list";
 import { ParameterRecord } from "../../models/parameter";
@@ -6,11 +6,14 @@ import ParameterItem from "../parameter/item";
 import { ParameterSetViewActionsProps, withParameterSetViewActions } from "../parameter/withSetViewActions";
 import { ParameterMIDIActionsProps, withParameterMIDIActions } from "../parameter/withMidiActions";
 import { AppSettingRecord } from "../../models/settings";
+import { PatcherInstanceRecord } from "../../models/instance";
+import { ParameterWithInstanceNamePrefixProps, withPatcherInstanceNamePrefix } from "../parameter/withInstanceNamePrefix";
 
-const ParameterComponentType = withParameterMIDIActions(withParameterSetViewActions(ParameterItem));
-const ParameterListComponent: ComponentType<ParameterListProps<ParameterSetViewActionsProps & ParameterMIDIActionsProps>> = ParameterList;
+const ParameterComponentType = withPatcherInstanceNamePrefix(withParameterMIDIActions(withParameterSetViewActions(ParameterItem)));
+const ParameterListComponent: ComponentType<ParameterListProps<ParameterSetViewActionsProps & ParameterMIDIActionsProps & ParameterWithInstanceNamePrefixProps>> = ParameterList;
 
 export type SetViewParameterListProps = {
+	patcherInstances: ImmuMap<PatcherInstanceRecord["id"], PatcherInstanceRecord>;
 	parameters: ImmuOrderedSet<ParameterRecord>;
 	thumbSize: AppSettingRecord;
 	trackSize: AppSettingRecord;
@@ -29,6 +32,7 @@ export const SetViewParameterList: FC<SetViewParameterListProps> = memo(function
 	parameters,
 	thumbSize,
 	trackSize,
+	patcherInstances,
 	waitingForMidiMapping,
 	onActivateParamMIDIMapping,
 	onClearParamMIDIMapping,
@@ -57,7 +61,8 @@ export const SetViewParameterList: FC<SetViewParameterListProps> = memo(function
 					onDecreaseIndex: onDecreaseParamIndex,
 					onIncreaseIndex: onIncreaseParamIndex,
 					onRemoveFromSetView: onRemoveParamFromSetView,
-					listSize: parameters.size
+					listSize: parameters.size,
+					patcherInstances: patcherInstances
 				}}
 			/>
 

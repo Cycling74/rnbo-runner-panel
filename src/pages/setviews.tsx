@@ -8,7 +8,7 @@ import { useDisclosure } from "@mantine/hooks";
 import { createSetViewOnRemote, destroySetViewOnRemote, loadSetView, decreaseParameterIndexInSetView, increaseParameterIndexInSetView, removeParameterFromSetView, renameSetViewOnRemote, setViewContainedInstancesWaitingForMidiMappingOnRemote, renameSelectedSetViewOnRemote  } from "../actions/sets";
 import SetViewDrawer from "../components/setViews/drawer";
 import { GraphSetViewRecord } from "../models/set";
-import { getPatcherInstanceParametersBySetView, getPatcherInstancesAreWaitingForMIDIMappingBySetView } from "../selectors/patchers";
+import { getPatcherInstanceParametersBySetView, getPatcherInstances, getPatcherInstancesAreWaitingForMIDIMappingBySetView } from "../selectors/patchers";
 import { SetViewParameterList } from "../components/setViews/parameterList";
 import { ParameterRecord } from "../models/parameter";
 import { activateParameterMIDIMappingFocus, clearParameterMIDIMappingOnRemote, restoreDefaultParameterMetaOnRemote, setInstanceParameterMetaOnRemote, setInstanceParameterValueNormalizedOnRemote } from "../actions/patchers";
@@ -30,7 +30,8 @@ export default function SetViews() {
 		currentSetViewIsMIDIMapping,
 		setViews,
 		paramThumbSize,
-		paramTrackSize
+		paramTrackSize,
+		patcherInstances
 	] = useAppSelector((state: RootStateType) => {
 		const current = getSelectedGraphSetView(state);
 		return [
@@ -39,7 +40,8 @@ export default function SetViews() {
 			current ? getPatcherInstancesAreWaitingForMIDIMappingBySetView(state, current) : false,
 			getGraphSetViewsBySortOrder(state),
 			getAppSetting(state, AppSetting.paramThumbSize),
-			getAppSetting(state, AppSetting.paramTrackSize)
+			getAppSetting(state, AppSetting.paramTrackSize),
+			getPatcherInstances(state)
 		];
 	});
 
@@ -171,6 +173,7 @@ export default function SetViews() {
 								parameters={ currentSetViewParameters }
 								thumbSize={ paramThumbSize }
 								trackSize={ paramTrackSize }
+								patcherInstances={ patcherInstances }
 								waitingForMidiMapping={ currentSetViewIsMIDIMapping }
 								onClearParamMIDIMapping={ onClearParameterMIDIMapping }
 								onActivateParamMIDIMapping={ onActivateParameterMIDIMapping }

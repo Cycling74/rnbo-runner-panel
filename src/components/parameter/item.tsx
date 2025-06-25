@@ -49,7 +49,7 @@ export type ParameterMenuItem = ParameterMenuAction | ParameterMenuDivider;
 export type ParameterItemProps = React.DetailedHTMLProps<React.HTMLAttributes<HTMLDivElement>, HTMLDivElement> & {
 	menuItems?: Array<ParameterMenuItem>
 	disabled?: boolean;
-	displayPrefix?: string;
+	label?: string;
 	index: number;
 	param: ParameterRecord;
 	thumbSize: AppSettingRecord;
@@ -78,7 +78,7 @@ const ParameterItem: FC<ParameterItemProps> = memo(function WrappedParameter({
 	menuItems = [],
 	className = "",
 	disabled = false,
-	displayPrefix = undefined,
+	label = undefined,
 	param,
 	thumbSize,
 	trackSize,
@@ -108,7 +108,7 @@ const ParameterItem: FC<ParameterItemProps> = memo(function WrappedParameter({
 	const currentValue = useLocalValue ? localValue : param.normalizedValue;
 	const value = param.getValueForNormalizedValue(currentValue);
 	const stepSize = param.isEnum ? 1 / (param.enumVals.length - 1) : 0.001;
-	const displayName = displayPrefix ? `${displayPrefix} ${param.label}` : param.label;
+	const displayName = label || param.label;
 	const indicatorText = param.isMidiMapped
 		? formatMIDIMappingToDisplay(param.midiMappingType as MIDIMetaMappingType, param.meta.midi)
 		: null;
