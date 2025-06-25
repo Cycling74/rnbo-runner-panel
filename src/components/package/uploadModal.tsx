@@ -15,6 +15,7 @@ import { getDataFiles } from "../../selectors/datafiles";
 import { getPatcherExports } from "../../selectors/patchers";
 import { getGraphSets } from "../../selectors/sets";
 import { installPackageOnRunner, writeFileToRunnerCmd } from "../../controller/cmd";
+import { getFileMD5Hash } from "../../lib/util";
 
 const PACKAGE_MIME_TYPE: FileDropZoneProps["accept"] = {
 	"application/x-tar": [".rnbopack"]
@@ -82,6 +83,7 @@ const PackageContentItem: FC<PackageContentItemProps> = ({
 type PackageUploadConfirmFormProps = {
 	conflicts: PackageUploadConflicts;
 	info: PackageInfoRecord;
+	md5: string;
 	onCancel: () => void;
 	onSubmit: () => void;
 	supportsRNBOVersion: boolean;
@@ -91,6 +93,7 @@ type PackageUploadConfirmFormProps = {
 const PackageUploadConfirmForm: FC<PackageUploadConfirmFormProps> = ({
 	conflicts,
 	info,
+	md5,
 	onCancel,
 	onSubmit,
 	supportsRNBOVersion,
@@ -100,7 +103,7 @@ const PackageUploadConfirmForm: FC<PackageUploadConfirmFormProps> = ({
 	const onTriggerSubmit = useCallback((e: FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 		onSubmit();
-	}, []);
+	}, [onSubmit]);
 
 	const supportsUpload = supportsRNBOVersion && supportsTarget;
 
@@ -136,6 +139,12 @@ const PackageUploadConfirmForm: FC<PackageUploadConfirmFormProps> = ({
 							readOnly
 							error={ !supportsTarget ? "The package does not support the runner's target id" : undefined }
 							value={ info.targets.keySeq().toArray().join("\n") }
+						/>
+						<TextInput
+							label="File MD5 Hash"
+							name="md5"
+							readOnly
+							value={ md5 }
 						/>
 					</Stack>
 				</Fieldset>
@@ -234,6 +243,7 @@ interface PackageUploadConfirmState {
 	conflicts: PackageUploadConflicts;
 	pkgInfo: PackageInfoRecord;
 	file: File;
+	md5: string;
 }
 
 interface PackageUploadUploadingState {
@@ -286,6 +296,7 @@ export const PackageUploadModal: FC<PackageUploadModalProps> = memo(function Wra
 			setUploadState({
 				conflicts: getPackageUploadConflicts(pkgInfo, datafiles, patcherExports, graphSets),
 				file,
+				md5: await getFileMD5Hash(file),
 				pkgInfo,
 				step: PackageUploadStep.Confirm
 			} as PackageUploadConfirmState);
@@ -342,6 +353,7 @@ export const PackageUploadModal: FC<PackageUploadModalProps> = memo(function Wra
 			content = <PackageUploadConfirmForm
 				conflicts={ uploadState.conflicts }
 				info={ uploadState.pkgInfo }
+				md5={ uploadState.md5 }
 				onCancel={ onCancel }
 				onSubmit={ onSubmit }
 				supportsRNBOVersion={ uploadState.pkgInfo.supportsRNBOVersion(rnboVersion) }
