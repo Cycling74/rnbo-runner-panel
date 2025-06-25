@@ -15,6 +15,8 @@ import { activateParameterMIDIMappingFocus, clearParameterMIDIMappingOnRemote, r
 import { SetViewParameterModal } from "../components/setViews/paramModal";
 import { IconElement } from "../components/elements/icon";
 import { PageTitle } from "../components/page/title";
+import { getAppSetting } from "../selectors/settings";
+import { AppSetting } from "../models/settings";
 
 export default function SetViews() {
 
@@ -26,14 +28,18 @@ export default function SetViews() {
 		currentSetView,
 		currentSetViewParameters,
 		currentSetViewIsMIDIMapping,
-		setViews
+		setViews,
+		paramThumbSize,
+		paramTrackSize
 	] = useAppSelector((state: RootStateType) => {
 		const current = getSelectedGraphSetView(state);
 		return [
 			current,
 			current ? getPatcherInstanceParametersBySetView(state, current) : undefined,
 			current ? getPatcherInstancesAreWaitingForMIDIMappingBySetView(state, current) : false,
-			getGraphSetViewsBySortOrder(state)
+			getGraphSetViewsBySortOrder(state),
+			getAppSetting(state, AppSetting.paramThumbSize),
+			getAppSetting(state, AppSetting.paramTrackSize)
 		];
 	});
 
@@ -163,6 +169,8 @@ export default function SetViews() {
 						!currentSetViewParameters ? null : (
 							<SetViewParameterList
 								parameters={ currentSetViewParameters }
+								thumbSize={ paramThumbSize }
+								trackSize={ paramTrackSize }
 								waitingForMidiMapping={ currentSetViewIsMIDIMapping }
 								onClearParamMIDIMapping={ onClearParameterMIDIMapping }
 								onActivateParamMIDIMapping={ onActivateParameterMIDIMapping }

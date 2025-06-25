@@ -1,12 +1,14 @@
 import { Record as ImmuRecord } from "immutable";
-import { ParameterSortAttr, SettingsTab, SortOrder } from "../lib/constants";
+import { ParameterSortAttr, ParamSize, SettingsTab, SortOrder } from "../lib/constants";
 
 export enum AppSetting {
 	colorScheme = "colorscheme",
 	debugMessageOutput = "message_out_debug",
 	keyboardMIDIInput = "keyboard_midi_input",
 	paramSortAttribute = "parameter_sort_attribute",
-	paramSortOrder = "parameter_sort_order"
+	paramSortOrder = "parameter_sort_order",
+	paramThumbSize = "parameter_thumb_size",
+	paramTrackSize = "parameter_track_size"
 }
 
 export enum AppSettingType {
@@ -66,6 +68,22 @@ export const appSettingDefaults: Record<AppSetting, Omit<AppSettingRecordProps, 
 		title: "Parameter List: Sort Order",
 		type: AppSettingType.String,
 		value: SortOrder.Asc
+	},
+	[AppSetting.paramThumbSize]: {
+		description: "Configure the size of the thumb of a parameter slider",
+		tab: SettingsTab.UI,
+		options: Object.values(ParamSize),
+		title: "Parameter List: Thumb Size",
+		type: AppSettingType.String,
+		value: ParamSize.lg
+	},
+	[AppSetting.paramTrackSize]: {
+		description: "Configure the size of the track of a parameter slider",
+		tab: SettingsTab.UI,
+		options: Object.values(ParamSize),
+		title: "Parameter List: Track Size",
+		type: AppSettingType.String,
+		value: ParamSize.md
 	}
 };
 

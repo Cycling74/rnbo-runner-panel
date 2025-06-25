@@ -98,6 +98,13 @@ export enum SortOrder {
 	Desc = "desc"
 }
 
+export enum ParamSize {
+	sm = "Small",
+	md = "Medium",
+	lg = "Large",
+	xl = "Extra-large"
+}
+
 export enum MIDIMappedParameterSortAttr {
 	MIDISource = "midi_source",
 	InstanceId = "instance_id",

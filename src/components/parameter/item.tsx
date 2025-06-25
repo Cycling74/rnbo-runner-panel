@@ -3,13 +3,28 @@ import { ParameterRecord } from "../../models/parameter";
 import classes from "./parameters.module.css";
 import { ActionIcon, Group, Indicator, MantineColor, Menu, Slider, Tooltip } from "@mantine/core";
 import { formatMIDIMappingToDisplay, formatParamValueForDisplay } from "../../lib/util";
-import { MetadataScope, MIDIMetaMappingType } from "../../lib/constants";
+import { MetadataScope, MIDIMetaMappingType, ParamSize } from "../../lib/constants";
 import { mdiCodeBraces, mdiDotsVertical } from "@mdi/js";
 import { IconElement } from "../elements/icon";
 import { useDisclosure } from "@mantine/hooks";
 import { MetaEditorModal } from "../meta/metaEditorModal";
+import { AppSettingRecord } from "../../models/settings";
 
 export const parameterBoxHeight = 87 + 6; // 87px + 6px margin
+
+const thumbSizeLookup: Record<ParamSize, number> = {
+	[ParamSize.sm]: 16,
+	[ParamSize.md]: 20,
+	[ParamSize.lg]: 24,
+	[ParamSize.xl]: 28
+};
+
+const trackSizeLookup: Record<ParamSize, string> = {
+	[ParamSize.sm]: "sm",
+	[ParamSize.md]: "md",
+	[ParamSize.lg]: "lg",
+	[ParamSize.xl]: "xl"
+};
 
 export enum ParameterMenuEntryType {
 	Action,
@@ -37,6 +52,8 @@ export type ParameterItemProps = React.DetailedHTMLProps<React.HTMLAttributes<HT
 	displayPrefix?: string;
 	index: number;
 	param: ParameterRecord;
+	thumbSize: AppSettingRecord;
+	trackSize: AppSettingRecord;
 	onRestoreMetadata: (param: ParameterRecord) => any;
 	onSaveMetadata: (param: ParameterRecord, meta: string) => any;
 	onSetNormalizedValue: (param: ParameterRecord, nValue: number) => void;
@@ -63,6 +80,8 @@ const ParameterItem: FC<ParameterItemProps> = memo(function WrappedParameter({
 	disabled = false,
 	displayPrefix = undefined,
 	param,
+	thumbSize,
+	trackSize,
 	onRestoreMetadata,
 	onSaveMetadata,
 	onSetNormalizedValue,
@@ -137,7 +156,9 @@ const ParameterItem: FC<ParameterItemProps> = memo(function WrappedParameter({
 					onChange={ onChange }
 					onChangeEnd={ onChangeEnd }
 					precision={ 3 }
+					size={ trackSizeLookup[trackSize.value as ParamSize] || trackSizeLookup[ParamSize.md] }
 					step={ stepSize }
+					thumbSize={ thumbSizeLookup[thumbSize.value as ParamSize] || thumbSizeLookup[ParamSize.md] }
 					value={ currentValue }
 					marks={
 						param.isEnum

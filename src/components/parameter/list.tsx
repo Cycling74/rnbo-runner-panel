@@ -7,12 +7,15 @@ import { clamp, genericMemo } from "../../lib/util";
 import { ParameterRecord } from "../../models/parameter";
 import { OrderedSet } from "immutable";
 import { useThemeColorScheme } from "../../hooks/useTheme";
+import { AppSettingRecord } from "../../models/settings";
 
 export type ParameterListProps<ExtraProps = object> = {
 	onRestoreMetadata: (param: ParameterRecord) => any;
 	onSaveMetadata: (param: ParameterRecord, meta: string) => any;
 	onSetNormalizedValue: (parameter: ParameterRecord, nValue: number) => any;
 	parameters: OrderedSet<ParameterRecord>;
+	thumbSize: AppSettingRecord;
+	trackSize: AppSettingRecord;
 	extraParameterProps: ExtraProps;
 	ParamComponentType: ComponentType<ExtraProps & ParameterItemProps>;
 }
@@ -22,6 +25,8 @@ const ParameterList = genericMemo(function WrappedParameterList<ExtraProps>({
 	onSaveMetadata,
 	onSetNormalizedValue,
 	parameters,
+	thumbSize,
+	trackSize,
 	extraParameterProps,
 	ParamComponentType
 }: ParameterListProps<ExtraProps>) {
@@ -55,6 +60,8 @@ const ParameterList = genericMemo(function WrappedParameterList<ExtraProps>({
 					<ParamComponentType
 						key={p.id}
 						param={p}
+						thumbSize={ thumbSize }
+						trackSize={ trackSize }
 						index={ ++index }
 						onRestoreMetadata={ onRestoreMetadata }
 						onSaveMetadata={ onSaveMetadata }
