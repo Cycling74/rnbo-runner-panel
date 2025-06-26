@@ -313,11 +313,16 @@ export const PackageUploadModal: FC<PackageUploadModalProps> = memo(function Wra
 			}
 
 			setUploadState({ step: PackageUploadStep.Uploading, progress: 0 });
-			await writeFileToRunnerCmd(
+			const uploadHash = await writeFileToRunnerCmd(
 				uploadState.file,
 				RunnerFileType.Package,
 				(progress: number) => setUploadState({ step: PackageUploadStep.Uploading, progress })
 			);
+
+			if (uploadHash !== uploadState.md5) {
+				throw new Error(`Upload failed due to a data mismatch! The hash of the transported data (${uploadHash}) does not match the file's hash.`);
+			}
+
 			setUploadState({ step: PackageUploadStep.Installing });
 
 			await installPackageOnRunner(uploadState.file?.name);
