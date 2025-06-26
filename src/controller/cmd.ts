@@ -214,6 +214,8 @@ class WriteFileTransformer implements Transformer<Uint8Array, RunnerCmd> {
 	private buffered: Uint8Array | undefined = undefined;
 	private append: boolean = false;
 	private readonly fileInfo: WriteFileInfo;
+	private readonly hasher = Crypto.algo.MD5.create();
+	private writtenContentHash: string = "";
 
 	constructor(
 		fileInfo: WriteFileInfo
@@ -230,7 +232,14 @@ class WriteFileTransformer implements Transformer<Uint8Array, RunnerCmd> {
 		});
 		this.append = true;
 		return cmd;
+	}
 
+	private updateHash(chunk: Uint8Array): void {
+		this.hasher.update(Crypto.lib.WordArray.create(chunk));
+	}
+
+	public get writeContentMD5(): string {
+		return this.writtenContentHash;
 	}
 
 	transform: TransformerTransformCallback<Uint8Array, RunnerCmd> = (
@@ -246,18 +255,23 @@ class WriteFileTransformer implements Transformer<Uint8Array, RunnerCmd> {
 			mergedArray.set(this.buffered, 0);
 			mergedArray.set(chunk.subarray(0, incomingLength), this.buffered.length);
 			controller.enqueue(this.convertChunkToCmd(mergedArray));
+			this.updateHash(mergedArray);
 			pos = incomingLength;
 			this.buffered = undefined;
 		}
 
 		if (pos + RunnerChunkSize.Write > chunk.length) {
 			// write all at once
-			controller.enqueue(this.convertChunkToCmd(chunk.subarray(pos)));
+			const data: Uint8Array = chunk.subarray(pos);
+			controller.enqueue(this.convertChunkToCmd(data));
+			this.updateHash(data);
 		} else {
 
 			while (pos + RunnerChunkSize.Write < chunk.length) {
 				const end = pos + RunnerChunkSize.Write;
-				controller.enqueue(this.convertChunkToCmd(chunk.subarray(pos, end)));
+				const data: Uint8Array = chunk.subarray(pos, end);
+				controller.enqueue(this.convertChunkToCmd(data));
+				this.updateHash(data);
 				pos = end;
 			}
 
@@ -272,6 +286,7 @@ class WriteFileTransformer implements Transformer<Uint8Array, RunnerCmd> {
 		controller
 	) => {
 		if (this.buffered !== undefined) {
+			this.updateHash(this.buffered);
 			controller.enqueue(this.convertChunkToCmd(this.buffered));
 			this.buffered = undefined;
 		}
@@ -284,10 +299,15 @@ class WriteFileTransformer implements Transformer<Uint8Array, RunnerCmd> {
 				complete: true
 			})
 		);
+		this.writtenContentHash = this.hasher.finalize().toString().toUpperCase();
 	};
 }
 
-export const writeFileToRunnerCmd = async (file: File, type: RunnerFileType, onProgress?: (progress: number) => void): Promise<void> => {
+export const writeFileToRunnerCmd = async (
+	file: File,
+	type: RunnerFileType,
+	onProgress?: (progress: number) => void
+): Promise<string> => {
 
 	let written: number = 0;
 	const writeStream = oscQueryBridge.getCmdWritableStream(
@@ -299,7 +319,10 @@ export const writeFileToRunnerCmd = async (file: File, type: RunnerFileType, onP
 	);
 	if (writeStream.locked) throw new Error("Can't write cmd to stream as it's already locked");
 
+	const transformer = new WriteFileTransformer({ name: file.name, type });
 	await file.stream()
-		.pipeThrough(new TransformStream<Uint8Array, RunnerCmd>(new WriteFileTransformer({ name: file.name, type })))
+		.pipeThrough(new TransformStream<Uint8Array, RunnerCmd>(transformer))
 		.pipeTo(writeStream);
+
+	return transformer.writeContentMD5;
 };
