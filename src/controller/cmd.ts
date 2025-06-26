@@ -271,6 +271,10 @@ class WriteFileTransformer implements Transformer<Uint8Array, RunnerCmd> {
 	flush: TransformerFlushCallback<RunnerCmd> = (
 		controller
 	) => {
+		if (this.buffered !== undefined) {
+			controller.enqueue(this.convertChunkToCmd(this.buffered));
+			this.buffered = undefined;
+		}
 		controller.enqueue(
 			new RunnerCmd(RunnerCmdWriteMethod.WriteFile, {
 				filename: this.fileInfo.name,
