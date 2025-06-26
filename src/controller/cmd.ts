@@ -159,8 +159,20 @@ class ReadFileTransformer implements Transformer<RunnerReadFileContentResult, Ui
 
 		if (result.md5) {
 			this.runnerHash = result.md5;
-			this.readContentHash = this.hasher.finalize().toString().toUpperCase();
 		}
+	};
+
+	flush?: TransformerFlushCallback<Uint8Array<ArrayBufferLike>> = (
+		controller
+	) => {
+
+		if (this.extra) { // Flush any leftover data
+			const data = Base64.toUint8Array(this.extra);
+			controller.enqueue(data);
+			this.hasher.update(Crypto.lib.WordArray.create(data));
+		}
+
+		this.readContentHash = this.hasher.finalize().toString().toUpperCase();
 	};
 }
 
