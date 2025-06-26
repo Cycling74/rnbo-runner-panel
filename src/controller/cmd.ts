@@ -6,16 +6,6 @@ import { RunnerDeleteFileResponse, RunnerReadFileContentResponse, RunnerReadFile
 import { PatcherExportRecord } from "../models/patcher";
 import { GraphSetRecord } from "../models/set";
 
-const getSupportsFileSystemAccess = () => {
-	return "showSaveFilePicker" in window && (() => {
-		try {
-			return window.self === window.top;
-		} catch {
-			return false;
-		}
-	})();
-};
-
 // Read CMDs
 export const getFileListFromRunnerCmd = async (filetype: RunnerFileType): Promise<string[]> => {
 	const cmd = new RunnerCmd(
@@ -118,7 +108,7 @@ export async function installPackageOnRunner(packageFilename: string): Promise<R
 
 }
 
-class ReadFileTransformer implements Transformer<RunnerReadFileContentResult, ArrayBufferLike> {
+class ReadFileTransformer implements Transformer<RunnerReadFileContentResult, Uint8Array> {
 
 	private extra: string = "";
 	private readonly onProgress: (p: number) => void | undefined;
@@ -145,7 +135,7 @@ class ReadFileTransformer implements Transformer<RunnerReadFileContentResult, Ar
 		return this.readContentHash === this.runnerHash;
 	}
 
-	transform?: TransformerTransformCallback<RunnerReadFileContentResult, ArrayBufferLike> = (
+	transform?: TransformerTransformCallback<RunnerReadFileContentResult, Uint8Array> = (
 		result,
 		controller
 	) => {
@@ -163,7 +153,7 @@ class ReadFileTransformer implements Transformer<RunnerReadFileContentResult, Ar
 		const data = Base64.toUint8Array(chunk.slice(0, bytes * 4));
 		if (overflow !== 0) this.extra = chunk.slice(overflow * -1);
 
-		controller.enqueue(data.buffer);
+		controller.enqueue(data);
 		this.hasher.update(Crypto.lib.WordArray.create(data));
 		this.onProgress?.(result.progress);
 
@@ -176,25 +166,19 @@ class ReadFileTransformer implements Transformer<RunnerReadFileContentResult, Ar
 
 export const readFileFromRunnerCmd = async (filename: string, filetype: RunnerFileType): Promise<string> => {
 
-	if (!getSupportsFileSystemAccess()) throw new Error("FileSystem Access API is not supported");
-
-	const handle = await window.showSaveFilePicker({
-		id: "saveFile",
-		startIn: "downloads",
-		suggestedName: filename
-	});
-
 	const cmd = new RunnerCmd(RunnerCmdReadMethod.ReadFileContent, {
 		filename,
 		filetype,
 		size: RunnerChunkSize.Read
 	});
 
+	const streamsaver = await import("streamsaver");
+	const fileStream = streamsaver.createWriteStream(filename, {});
 	const transformer = new ReadFileTransformer();
 
 	await oscQueryBridge.getCmdReadableStream<RunnerReadFileContentResponse>(cmd)
 		.pipeThrough(new TransformStream(transformer))
-		.pipeTo(await handle.createWritable({ keepExistingData: false }));
+		.pipeTo(fileStream);
 
 	if (!transformer.fileHashesMatch) {
 		console.warn(`File hashes don't seem to match, the runner reported a MD5 of\n${transformer.runnerFileMD5} but the written data resulted in\n${transformer.readContentMD5}`);
@@ -202,7 +186,6 @@ export const readFileFromRunnerCmd = async (filename: string, filetype: RunnerFi
 
 	return transformer.readContentMD5;
 };
-
 
 // Write CMDs
 type WriteFileInfo = {
