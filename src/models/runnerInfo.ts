@@ -13,7 +13,7 @@ export type RunnerInfoRecordProps = {
 type RunnerInfoOSCDescType = OSCQueryStringValue | OSCQueryIntValue | OSCQueryBooleanValue | OSCQueryFloatValue;
 
 export class RunnerInfoRecord extends ImmuRecord<RunnerInfoRecordProps>({
-	id: SystemInfoKey.Version,
+	id: SystemInfoKey.RunnerVersion,
 	description: "",
 	oscValue: 0,
 	oscType: OSCQueryValueType.Int32,

@@ -25,7 +25,7 @@ function App({ Component, pageProps }: AppProps) {
 
 	useEffect(() => {
 		oscQueryBridge.connect(parseConnectionQueryString(location.search?.slice(1)))
-			.catch(err => null); // handled internally
+			.catch((err): null => null); // handled internally
 
 		return () => oscQueryBridge.close();
 	}, []);

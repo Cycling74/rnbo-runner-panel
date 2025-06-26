@@ -2,7 +2,7 @@ import debounce from "lodash.debounce";
 import { Map as ImmuMap } from "immutable";
 import { GraphNodeRecord, NodePositionRecord } from "../models/graph";
 import { oscQueryBridge } from "../controller/oscqueryBridgeController";
-import { writePacket } from "osc";
+import { writePacket } from "osc/dist/osc-browser";
 import { AppThunk } from "../lib/store";
 import { getNodePositions, getNodes } from "../selectors/graph";
 import { serializeSetMeta } from "../lib/meta";

@@ -2,17 +2,18 @@ import { FunctionComponent, MouseEvent, memo, useCallback, useState } from "reac
 import { GraphSetRecord } from "../../models/set";
 import { ActionIcon, Group, Menu, Table, Tooltip } from "@mantine/core";
 import { IconElement } from "../elements/icon";
-import { mdiArrowUpBoldBoxOutline, mdiDotsVertical, mdiFileReplaceOutline, mdiPencil, mdiStarBoxOutline, mdiTrashCan } from "@mdi/js";
+import { mdiArrowUpBoldBoxOutline, mdiDotsVertical, mdiFileReplaceOutline, mdiPackageDown, mdiPencil, mdiStarBoxOutline, mdiTrashCan } from "@mdi/js";
 import { EditableTableTextCell } from "../elements/editableTableCell";
 
 export type GraphSetItemProps = {
 	set: GraphSetRecord;
 	isCurrent: boolean;
 	isInitial: boolean;
-	onDelete: (set: GraphSetRecord) => any;
-	onLoad: (set: GraphSetRecord) => any;
-	onRename: (set: GraphSetRecord, name: string) => any;
-	onOverwrite: (set: GraphSetRecord) => any;
+	onDelete: (set: GraphSetRecord) => void;
+	onDownload: (set: GraphSetRecord) => void;
+	onLoad: (set: GraphSetRecord) => void;
+	onRename: (set: GraphSetRecord, name: string) => void;
+	onOverwrite: (set: GraphSetRecord) => void;
 };
 
 export const GraphSetItem: FunctionComponent<GraphSetItemProps> = memo(function WrappedGraphSet({
@@ -20,6 +21,7 @@ export const GraphSetItem: FunctionComponent<GraphSetItemProps> = memo(function 
 	isCurrent,
 	isInitial,
 	onDelete,
+	onDownload,
 	onLoad,
 	onRename,
 	onOverwrite
@@ -46,6 +48,10 @@ export const GraphSetItem: FunctionComponent<GraphSetItemProps> = memo(function 
 	const onTriggerRenameSet = useCallback(() => {
 		setIsEditingName(true);
 	}, [setIsEditingName]);
+
+	const onTriggerDownload = useCallback(() => {
+		onDownload(set);
+	}, [onDownload, set]);
 
 	return (
 		<Table.Tr>
@@ -92,6 +98,10 @@ export const GraphSetItem: FunctionComponent<GraphSetItemProps> = memo(function 
 						</Menu.Item>
 						<Menu.Item leftSection={ <IconElement path={ mdiFileReplaceOutline } /> } onClick={ onOverwriteSet } disabled={ isCurrent } >
 							Overwrite
+						</Menu.Item>
+						<Menu.Divider />
+						<Menu.Item leftSection={ <IconElement path={ mdiPackageDown } /> } onClick={ onTriggerDownload } >
+							Download
 						</Menu.Item>
 						<Menu.Divider />
 						<Menu.Item color="red" leftSection={ <IconElement path={ mdiTrashCan } /> } onClick={ onDeleteSet } >

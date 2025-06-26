@@ -1,3 +1,4 @@
+import Crypto from "crypto-js";
 import { KeyboardEvent, memo } from "react";
 import { AnyJson, JsonMap, MIDIChannelPressureMetaMapping, MIDIControlChangeMetaMapping, MIDIKeypressMetaMapping, MIDIMetaMapping, MIDINoteMetaMapping, MIDIPitchBendMetaMapping, MIDIProgramChangeMetaMapping, OSCQueryStringValueRange, OSCQueryValueRange } from "./types";
 import { MIDIMetaMappingType, nodePortHeight, nodePortSpacing, OnLoadGraphSetSetting, UnsavedSetName } from "./constants";
@@ -265,4 +266,29 @@ export const validateDataRefExportFilename = (v: string): true | string => {
 	const value = v.trim();
 	if (!value?.length) return "Please provide a valid, non empty filename.";
 	return true;
+};
+
+export const isUserAbortedError = (err: Error): boolean => {
+	if (err.name === "AbortError") return true;
+	return false;
+};
+
+export const getFileMD5Hash = async (file: File, chunkSize: number = 2097152): Promise<string> => {
+	const chunks = Math.ceil(file.size / chunkSize);
+	const hasher = Crypto.algo.MD5.create();
+	const fileReader = new FileReader();
+
+	const readChunk = (chunk: Blob): Promise<ArrayBuffer> => new Promise<ArrayBuffer>(resolve => {
+		fileReader.onload = (e) => resolve(e.target.result as ArrayBuffer);
+		fileReader.readAsArrayBuffer(chunk);
+	});
+
+
+	for (let i = 0; i < chunks; i++) {
+		const start = i * chunkSize;
+		const end = start + chunkSize >= file.size ? file.size : start + chunkSize;
+		hasher.update(Crypto.lib.WordArray.create(await readChunk(file.slice(start, end))));
+	}
+
+	return hasher.finalize().toString().toUpperCase();
 };

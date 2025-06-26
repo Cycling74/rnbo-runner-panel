@@ -3,18 +3,20 @@ import { ActionIcon, Menu, Table } from "@mantine/core";
 import { PatcherExportRecord } from "../../models/patcher";
 import classes from "./patchers.module.css";
 import { IconElement } from "../elements/icon";
-import { mdiDotsVertical, mdiPencil, mdiTrashCan } from "@mdi/js";
+import { mdiDotsVertical, mdiPackageDown, mdiPencil, mdiTrashCan } from "@mdi/js";
 import { EditableTableTextCell } from "../elements/editableTableCell";
 
 export type PatcherItemProps = {
 	patcher: PatcherExportRecord;
-	onDelete: (p: PatcherExportRecord) => any;
-	onRename: (p: PatcherExportRecord, name: string) => any;
+	onDelete: (p: PatcherExportRecord) => void;
+	onDownload: (p: PatcherExportRecord) => void;
+	onRename: (p: PatcherExportRecord, name: string) => void;
 };
 
 export const PatcherItem: FunctionComponent<PatcherItemProps> = memo(function WrappedPatcherItem({
 	patcher,
 	onDelete,
+	onDownload,
 	onRename
 }: PatcherItemProps) {
 
@@ -31,6 +33,10 @@ export const PatcherItem: FunctionComponent<PatcherItemProps> = memo(function Wr
 	const onTriggerRenamePatcher = useCallback(() => {
 		setIsEditingName(true);
 	}, [setIsEditingName]);
+
+	const onTriggerDownload = useCallback(() => {
+		onDownload(patcher);
+	}, [patcher, onDownload]);
 
 	return (
 		<Table.Tr className={ classes.patcherItem } >
@@ -54,6 +60,7 @@ export const PatcherItem: FunctionComponent<PatcherItemProps> = memo(function Wr
 					<Menu.Dropdown>
 						<Menu.Label>Patcher</Menu.Label>
 						<Menu.Item leftSection={ <IconElement path={ mdiPencil } /> } onClick={ onTriggerRenamePatcher } >Rename</Menu.Item>
+						<Menu.Item  leftSection={ <IconElement path={ mdiPackageDown }/> } onClick={ onTriggerDownload } >Download</Menu.Item>
 						<Menu.Divider />
 						<Menu.Item color="red" leftSection={ <IconElement path={ mdiTrashCan }/> } onClick={ onDeletePatcher } >Delete</Menu.Item>
 					</Menu.Dropdown>
