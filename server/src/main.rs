@@ -1,7 +1,10 @@
 use {
     rocket::{
+        delete,
         fs::{FileServer, NamedFile, TempFile},
-        get, launch, put, routes,
+        get, launch, put,
+        response::status::NoContent,
+        routes,
         serde::{Serialize, json::Json},
     },
     std::path::{Path, PathBuf},
@@ -49,6 +52,15 @@ async fn download(filetype: &str, name: PathBuf) -> Option<NamedFile> {
     NamedFile::open(dir.join(name)).await.ok()
 }
 
+#[delete("/<filetype>/<name>")]
+async fn delete(filetype: &str, name: PathBuf) -> NoContent {
+    //do we care if there isn't a file at the path given?
+    if let Some(path) = filetype_path(filetype) {
+        let _ = std::fs::remove_file(path.join(name));
+    }
+    NoContent
+}
+
 #[put("/<filetype>/<name>", data = "<file>")]
 async fn upload(filetype: &str, name: &str, mut file: TempFile<'_>) -> Option<std::io::Result<()>> {
     let dir = filetype_path(filetype)?; //XXX will 404, is that okay?
@@ -61,5 +73,5 @@ fn rocket() -> _ {
     //rocket::build()
     rocket::build()
         .mount("/", FileServer::from("../out"))
-        .mount("/api", routes![list, download, upload])
+        .mount("/api", routes![list, download, upload, delete])
 }
