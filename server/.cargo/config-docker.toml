@@ -1,0 +1,3 @@
+[target.aarch64-unknown-linux-gnu]
+linker = "/usr/local/oecore-x86_64/sysroots/x86_64-oesdk-linux/usr/bin/aarch64-oe-linux/aarch64-oe-linux-gcc"
+rustflags = ["-C", "link-arg=-Wl,-rpath,/data/UserData/rnbo/lib/", "-C", "link-arg=--sysroot=/usr/local/oecore-x86_64/sysroots/cortexa72-oe-linux"]
