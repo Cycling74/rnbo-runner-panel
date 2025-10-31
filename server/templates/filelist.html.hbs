@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>RNBO File List</title>
+</head>
+
+<body>
+	<h1>{{list.filetype}}</h1>
+	<ul>
+	{{#each list.files}}
+		<li>
+			<a href="{{uri}}">{{name}}</a>
+		</li>
+	{{/each}}
+	</ul>
+</body>
+</html>
