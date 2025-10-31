@@ -1,23 +1,4 @@
-use {
-    clap::Parser,
-    rocket::{
-        State, delete,
-        fs::{FileServer, NamedFile, TempFile},
-        get, main, put,
-        response::status::NoContent,
-        routes,
-        serde::{Serialize, json::Json},
-        uri,
-    },
-    rocket_dyn_templates::{Template, context},
-    serde::Deserialize,
-    std::{
-        collections::{HashMap, HashSet},
-        fs::File,
-        io::BufReader,
-        path::{Path, PathBuf},
-    },
-};
+use rocket::serde::Serialize;
 
 #[derive(Serialize)]
 #[serde(crate = "rocket::serde")]

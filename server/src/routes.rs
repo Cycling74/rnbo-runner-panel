@@ -1,26 +1,17 @@
 use {
     crate::{
-        config::{Config, RunnerConfig},
-        filelist::{FileList, FileListItem},
+        config::Config,
+        filelist::FileList,
     },
-    clap::Parser,
     rocket::{
         State, delete,
-        fs::{FileServer, NamedFile, TempFile},
-        get, main, put,
+        fs::{NamedFile, TempFile},
+        get, put,
         response::status::NoContent,
-        routes,
-        serde::{Serialize, json::Json},
-        uri,
+        serde::json::Json,
     },
     rocket_dyn_templates::{Template, context},
-    serde::Deserialize,
-    std::{
-        collections::{HashMap, HashSet},
-        fs::File,
-        io::BufReader,
-        path::{Path, PathBuf},
-    },
+    std::path::{Path, PathBuf},
 };
 
 #[get("/", format = "html")]
@@ -38,7 +29,7 @@ pub async fn list_html(state: &State<Config>, filetype: &str) -> Option<Template
 
 #[get("/<filetype>", format = "json", rank = 2)]
 pub async fn list_json(state: &State<Config>, filetype: &str) -> Option<Json<FileList>> {
-    state.filelist(filetype).map(|list| Json(list))
+    state.filelist(filetype).map(Json)
 }
 
 #[get("/<filetype>/<name>")]
