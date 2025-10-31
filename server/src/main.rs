@@ -6,7 +6,9 @@ use {
         response::status::NoContent,
         routes,
         serde::{Serialize, json::Json},
+        uri,
     },
+    rocket_dyn_templates::{Template, context},
     std::{
         collections::HashMap,
         path::{Path, PathBuf},
@@ -15,8 +17,16 @@ use {
 
 #[derive(Serialize)]
 #[serde(crate = "rocket::serde")]
+struct FileListItem {
+    name: String,
+    uri: String,
+}
+
+#[derive(Serialize)]
+#[serde(crate = "rocket::serde")]
 struct FileList {
-    files: Vec<String>,
+    filetype: String,
+    files: Vec<FileListItem>,
 }
 struct Config {
     filetype_path: HashMap<String, PathBuf>,
@@ -26,29 +36,47 @@ impl Config {
     fn filetype_path(&self, filetype: &str) -> Option<&PathBuf> {
         self.filetype_path.get(filetype)
     }
-}
 
-#[get("/<filetype>")]
-async fn list(state: &State<Config>, filetype: &str) -> Option<Json<FileList>> {
-    state.filetype_path(filetype).map(|path| {
-        let mut files = Vec::new();
-        if let Ok(dir) = std::fs::read_dir(path) {
-            for entry in dir {
-                if let Ok(entry) = entry {
-                    let path = entry.path();
-                    if !path.is_dir()
-                        && let Some(name) = path.file_name()
-                        && let Some(name) = name.to_str()
-                        && !name.starts_with(".")
-                    {
-                        files.push(name.to_owned());
+    fn filelist(&self, filetype: &str) -> Option<FileList> {
+        self.filetype_path(filetype).map(|path| {
+            let mut files = Vec::new();
+            if let Ok(dir) = std::fs::read_dir(path) {
+                for entry in dir {
+                    if let Ok(entry) = entry {
+                        let path = entry.path();
+                        if !path.is_dir()
+                            && let Some(name) = path.file_name()
+                            && let Some(name) = name.to_str()
+                            && !name.starts_with(".")
+                        {
+                            let item = FileListItem {
+                                name: name.to_owned(),
+                                uri: uri!("/api", download(filetype, name)).to_string(),
+                            };
+                            files.push(item);
+                        }
                     }
                 }
             }
-        }
-        let list = FileList { files };
-        Json(list)
-    })
+            files.sort_by_cached_key(|i| i.name.to_owned());
+            FileList {
+                filetype: filetype.to_owned(),
+                files,
+            }
+        })
+    }
+}
+
+#[get("/<filetype>", format = "html", rank = 1)]
+async fn list_html(state: &State<Config>, filetype: &str) -> Option<Template> {
+    state
+        .filelist(filetype)
+        .map(|list| Template::render("filelist", context! { list }))
+}
+
+#[get("/<filetype>", format = "json", rank = 2)]
+async fn list_json(state: &State<Config>, filetype: &str) -> Option<Json<FileList>> {
+    state.filelist(filetype).map(|list| Json(list))
 }
 
 #[get("/<filetype>/<name>")]
@@ -89,6 +117,10 @@ fn rocket() -> _ {
     );
     rocket::build()
         .mount("/", FileServer::from("../out"))
-        .mount("/api", routes![list, download, upload, delete])
+        .mount(
+            "/api",
+            routes![list_json, list_html, download, upload, delete],
+        )
         .manage(Config { filetype_path })
+        .attach(Template::fairing())
 }
