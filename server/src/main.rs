@@ -56,6 +56,7 @@ async fn main() -> Result<(), rocket::Error> {
         filetype_paths.insert("source_cache".to_string(), path.to_owned());
     }
 
+    let package_dir = runner_config.package_dir.clone();
     if let Some(path) = runner_config.package_dir {
         filetype_paths.insert("packages".to_string(), path.to_owned());
     }
@@ -68,7 +69,15 @@ async fn main() -> Result<(), rocket::Error> {
                 "/files",
                 routes![filetypes, list_json, list_html, download, upload, delete],
             )
-            .manage(Config::new(filetype_paths, deleteable_filetypes))
+            .mount(
+                "/packages",
+                routes![get_package, get_all_package, get_package_file],
+            )
+            .manage(Config::new(
+                filetype_paths,
+                deleteable_filetypes,
+                package_dir,
+            ))
             .attach(Template::fairing())
             .launch()
             .await?;

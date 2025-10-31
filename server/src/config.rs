@@ -13,6 +13,7 @@ use {
 pub struct Config {
     pub filetype_paths: HashMap<String, PathBuf>,
     pub deleteable_filetypes: HashSet<String>,
+    pub package_dir: Option<PathBuf>,
 }
 
 #[derive(Deserialize, Default)]
@@ -49,12 +50,19 @@ impl Config {
     pub fn new(
         filetype_paths: HashMap<String, PathBuf>,
         deleteable_filetypes: HashSet<String>,
+        package_dir: Option<PathBuf>,
     ) -> Self {
         Self {
             filetype_paths,
             deleteable_filetypes,
+            package_dir,
         }
     }
+
+    pub fn package_dir(&self) -> &Option<PathBuf> {
+        &self.package_dir
+    }
+
     pub fn filetypelist(&self) -> FileList {
         let mut items = Vec::new();
         for filetype in self.filetype_paths.keys() {
