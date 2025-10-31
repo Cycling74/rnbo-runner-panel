@@ -1,10 +1,7 @@
 use {
     crate::config::{Config, RunnerConfig},
     clap::Parser,
-    rocket::{
-        fs::FileServer, main,
-        routes,
-    },
+    rocket::{fs::FileServer, main, routes},
     rocket_dyn_templates::Template,
     std::{
         collections::{HashMap, HashSet},
@@ -71,10 +68,7 @@ async fn main() -> Result<(), rocket::Error> {
                 "/files",
                 routes![filetypes, list_json, list_html, download, upload, delete],
             )
-            .manage(Config {
-                filetype_paths,
-                deleteable_filetypes,
-            })
+            .manage(Config::new(filetype_paths, deleteable_filetypes))
             .attach(Template::fairing())
             .launch()
             .await?;

@@ -46,6 +46,15 @@ impl RunnerConfig {
 }
 
 impl Config {
+    pub fn new(
+        filetype_paths: HashMap<String, PathBuf>,
+        deleteable_filetypes: HashSet<String>,
+    ) -> Self {
+        Self {
+            filetype_paths,
+            deleteable_filetypes,
+        }
+    }
     pub fn filetypelist(&self) -> FileList {
         let mut items = Vec::new();
         for filetype in self.filetype_paths.keys() {
