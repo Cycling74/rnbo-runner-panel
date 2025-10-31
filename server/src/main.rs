@@ -51,7 +51,7 @@ impl Config {
                         {
                             let item = FileListItem {
                                 name: name.to_owned(),
-                                uri: uri!("/api", download(filetype, name)).to_string(),
+                                uri: uri!("/files", download(filetype, name)).to_string(),
                             };
                             files.push(item);
                         }
@@ -118,7 +118,7 @@ fn rocket() -> _ {
     rocket::build()
         .mount("/", FileServer::from("../out"))
         .mount(
-            "/api",
+            "/files",
             routes![list_json, list_html, download, upload, delete],
         )
         .manage(Config { filetype_path })
