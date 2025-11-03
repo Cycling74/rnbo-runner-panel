@@ -3,7 +3,9 @@ linker = "arm-linux-gnueabihf-ld"
 
 [target.aarch64-unknown-linux-gnu]
 linker = "/usr/local/Cellar/aarch64-unknown-linux-gnu/13.2.0/bin/aarch64-linux-gnu-gcc"
-rustflags = ["-C", "link-arg=-Wl,-rpath,/data/UserData/rnbo/lib/,-L../build/rnbo/lib/"]
 
 [target.x86_64-linux-musleabi]
 linker = "x86_64-linux-gnueabihf-ld"
+
+[target.armv7-unknown-linux-gnueabihf]
+linker = "/usr/local/Cellar/armv7-unknown-linux-gnueabihf/13.3.0/bin/armv7-unknown-linux-gnueabihf-gcc"
