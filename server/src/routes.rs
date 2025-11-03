@@ -249,13 +249,15 @@ mod package {
                         && let Ok(resp) = serde_json::from_str::<PackageResponse>(resp.as_str())
                         && resp.id == id
                     {
-                        if let Some(result) = resp.result {
+                        if let Some(result) = resp.result
+                            && result.progress >= 100.0
+                        {
                             let path = PathBuf::from(result.filename);
                             return Ok(Redirect::to(uri!(
                                 "/files",
                                 super::file::get_html("packages", path)
                             )));
-                        } else {
+                        } else if let Some(_err) = resp.error {
                             eprintln!("error with package_create");
                             return Err(Status::NotFound);
                         }
