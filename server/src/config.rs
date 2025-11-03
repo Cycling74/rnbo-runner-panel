@@ -1,5 +1,7 @@
 use {
     crate::filelist::{FileList, FileListItem},
+    rocket::http::uri::fmt::{Formatter, FromUriParam, Query, UriDisplay},
+    rocket::request::FromSegments,
     rocket::uri,
     serde::Deserialize,
     std::{
@@ -63,15 +65,8 @@ impl Config {
         &self.package_dir
     }
 
-    pub fn filetypelist(&self) -> FileList {
-        let mut items = Vec::new();
-        for filetype in self.filetype_paths.keys() {
-            items.push(FileListItem {
-                name: filetype.clone(),
-                uri: uri!("/files", crate::routes::list_json(filetype)).to_string(),
-            });
-        }
-        FileList::new_sorted("filetypes", items)
+    pub fn filetypelist(&self) -> Vec<String> {
+        self.filetype_paths.keys().map(|k| k.to_string()).collect()
     }
 
     pub fn filetype_path(&self, filetype: &str) -> Option<&PathBuf> {
@@ -84,29 +79,5 @@ impl Config {
         } else {
             None
         }
-    }
-
-    pub fn filelist(&self, filetype: &str) -> Option<FileList> {
-        self.filetype_path(filetype).map(|path| {
-            let mut items = Vec::new();
-            if let Ok(dir) = std::fs::read_dir(path) {
-                for entry in dir.flatten() {
-                    let path = entry.path();
-                    if !path.is_dir()
-                        && let Some(name) = path.file_name()
-                        && let Some(name) = name.to_str()
-                        && !name.starts_with(".")
-                    {
-                        let item = FileListItem {
-                            name: name.to_owned(),
-                            uri: uri!("/files", crate::routes::download(filetype, name))
-                                .to_string(),
-                        };
-                        items.push(item);
-                    }
-                }
-            }
-            FileList::new_sorted(filetype, items)
-        })
     }
 }

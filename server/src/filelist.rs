@@ -5,6 +5,7 @@ use rocket::serde::Serialize;
 pub struct FileListItem {
     pub name: String,
     pub uri: String,
+    pub dir: bool,
 }
 
 #[derive(Serialize)]
