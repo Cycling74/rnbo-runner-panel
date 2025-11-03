@@ -1,26 +1,4 @@
-use {
-    crate::{
-        config::Config,
-        filelist::{FileList, FileListItem},
-    },
-    rocket::{
-        Responder, State, delete,
-        fs::{NamedFile, TempFile},
-        get,
-        http::Status,
-        put,
-        response::{Redirect, status::NoContent},
-        serde::json::Json,
-        uri,
-    },
-    rocket_dyn_templates::{Template, context},
-    serde::{Deserialize, Serialize},
-    std::{
-        path::{Path, PathBuf},
-        time::Duration,
-    },
-    uuid::Uuid,
-};
+use std::time::Duration;
 
 const PACKAGE_TIMEOUT: Duration = Duration::from_millis(2_000);
 
@@ -33,24 +11,17 @@ mod file {
         rocket::{
             Responder, State, delete,
             fs::{NamedFile, TempFile},
-            get,
-            http::Status,
-            put,
-            response::{Redirect, status::NoContent},
+            get, put,
+            response::status::NoContent,
             serde::json::Json,
             uri,
         },
         rocket_dyn_templates::{Template, context},
-        serde::{Deserialize, Serialize},
-        std::{
-            path::{Path, PathBuf},
-            time::Duration,
-        },
-        uuid::Uuid,
+        std::path::{Path, PathBuf},
     };
 
     #[derive(Responder)]
-    enum FileGet {
+    pub enum FileGet {
         #[response(status = 200, content_type = "json")]
         JsonListing(Json<FileList>),
         #[response(status = 200, content_type = "html")]
@@ -98,16 +69,13 @@ mod file {
                 FileGet::HtmlListing(Template::render("filelist", context! { list }))
             })
         } else {
-            NamedFile::open(fullpath)
-                .await
-                .ok()
-                .map(|file| FileGet::File(file))
+            NamedFile::open(fullpath).await.ok().map(FileGet::File)
         }
     }
 
     #[get("/", format = "html", rank = 1)]
     pub async fn get_filetypes(state: &State<Config>) -> Template {
-        let mut items = state
+        let items = state
             .filetypelist()
             .iter()
             .map(|filetype| FileListItem {
@@ -164,26 +132,10 @@ mod file {
 mod package {
     use {
         super::PACKAGE_TIMEOUT,
-        crate::{
-            config::Config,
-            filelist::{FileList, FileListItem},
-        },
-        rocket::{
-            Responder, State, delete,
-            fs::{NamedFile, TempFile},
-            get,
-            http::Status,
-            put,
-            response::{Redirect, status::NoContent},
-            serde::json::Json,
-            uri,
-        },
-        rocket_dyn_templates::{Template, context},
+        crate::config::Config,
+        rocket::{State, get, http::Status, response::Redirect, uri},
         serde::{Deserialize, Serialize},
-        std::{
-            path::{Path, PathBuf},
-            time::Duration,
-        },
+        std::path::PathBuf,
         uuid::Uuid,
     };
 
@@ -271,7 +223,7 @@ mod package {
             .await
             && let Ok(mut ws) = res.into_websocket().await
         {
-            let id = cmd.id.clone();
+            let id = cmd.id;
 
             let cmd = serde_json::to_string(&cmd).unwrap();
             let packet = OscPacket::Message(OscMessage {
@@ -288,28 +240,24 @@ mod package {
                     .await
                     .map_err(|_| Status::PreconditionFailed)?
                 {
-                    if let Message::Binary(vec) = message {
-                        if let Ok((_, OscPacket::Message(m))) =
+                    if let Message::Binary(vec) = message
+                        && let Ok((_, OscPacket::Message(m))) =
                             rosc::decoder::decode_udp(vec.as_ref())
-                        {
-                            if m.addr == "/rnbo/resp"
-                                && !m.args.is_empty()
-                                && let OscType::String(resp) = &m.args[0]
-                                && let Ok(resp) =
-                                    serde_json::from_str::<PackageResponse>(resp.as_str())
-                                && resp.id == id
-                            {
-                                if let Some(result) = resp.result {
-                                    let path = PathBuf::from(result.filename);
-                                    return Ok(Redirect::to(uri!(
-                                        "/files",
-                                        super::file::get_html("packages", path)
-                                    )));
-                                } else {
-                                    eprintln!("error with package_create");
-                                    return Err(Status::NotFound);
-                                }
-                            }
+                        && m.addr == "/rnbo/resp"
+                        && !m.args.is_empty()
+                        && let OscType::String(resp) = &m.args[0]
+                        && let Ok(resp) = serde_json::from_str::<PackageResponse>(resp.as_str())
+                        && resp.id == id
+                    {
+                        if let Some(result) = resp.result {
+                            let path = PathBuf::from(result.filename);
+                            return Ok(Redirect::to(uri!(
+                                "/files",
+                                super::file::get_html("packages", path)
+                            )));
+                        } else {
+                            eprintln!("error with package_create");
+                            return Err(Status::NotFound);
                         }
                     }
                 }
@@ -320,11 +268,7 @@ mod package {
         }
     }
 
-    async fn get_impl(
-        state: &State<Config>,
-        packagetype: &str,
-        name: Option<&str>,
-    ) -> Result<Redirect, Status> {
+    async fn get_impl(packagetype: &str, name: Option<&str>) -> Result<Redirect, Status> {
         let cmd = match packagetype {
             "all" => PackageCmd::all(),
             "set" if name.is_some() => PackageCmd::set(name.unwrap()),
@@ -338,17 +282,13 @@ mod package {
     }
 
     #[get("/<packagetype>/<name>")]
-    pub async fn get(
-        state: &State<Config>,
-        packagetype: &str,
-        name: &str,
-    ) -> Result<Redirect, Status> {
-        return get_impl(state, packagetype, Some(name)).await;
+    pub async fn get(packagetype: &str, name: &str) -> Result<Redirect, Status> {
+        return get_impl(packagetype, Some(name)).await;
     }
 
     #[get("/all")]
-    pub async fn get_all(state: &State<Config>) -> Result<Redirect, Status> {
-        return get_impl(state, "all", None).await;
+    pub async fn get_all() -> Result<Redirect, Status> {
+        return get_impl("all", None).await;
     }
 }
 
