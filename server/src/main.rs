@@ -59,6 +59,7 @@ async fn main() -> Result<(), rocket::Error> {
     let package_dir = runner_config.package_dir.clone();
     if let Some(path) = runner_config.package_dir {
         filetype_paths.insert("packages".to_string(), path.to_owned());
+        deleteable_filetypes.insert("packages".to_string());
     }
 
     {
