@@ -140,6 +140,22 @@ mod package {
     };
 
     //packages
+    #[derive(Serialize, Default, Clone)]
+    struct PackageCreateConfig {
+        //package details
+        #[serde(skip_serializing_if = "Option::is_none")]
+        rnbo_version: Option<String>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        include_presets: Option<bool>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        include_views: Option<bool>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        include_datafiles: Option<bool>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        include_binaries: Option<bool>,
+    }
+
+    //packages
     #[derive(Serialize, Default)]
     struct PackageParams {
         #[serde(skip_serializing_if = "Option::is_none")]
@@ -148,6 +164,9 @@ mod package {
         patcher: Option<String>,
         #[serde(skip_serializing_if = "Option::is_none")]
         all: Option<bool>,
+
+        #[serde(flatten)]
+        config: PackageCreateConfig,
     }
 
     #[derive(Serialize)]
@@ -158,7 +177,7 @@ mod package {
     }
 
     impl PackageCmd {
-        fn all() -> Self {
+        fn all(config: PackageCreateConfig) -> Self {
             PackageCmd {
                 method: "package_create",
                 id: Uuid::new_v4(),
@@ -169,23 +188,25 @@ mod package {
             }
         }
 
-        fn set(name: &str) -> Self {
+        fn set(name: &str, config: PackageCreateConfig) -> Self {
             PackageCmd {
                 method: "package_create",
                 id: Uuid::new_v4(),
                 params: PackageParams {
                     set: Some(name.to_string()),
+                    config,
                     ..Default::default()
                 },
             }
         }
 
-        fn patcher(name: &str) -> Self {
+        fn patcher(name: &str, config: PackageCreateConfig) -> Self {
             PackageCmd {
                 method: "package_create",
                 id: Uuid::new_v4(),
                 params: PackageParams {
                     patcher: Some(name.to_string()),
+                    config,
                     ..Default::default()
                 },
             }
@@ -270,11 +291,15 @@ mod package {
         }
     }
 
-    async fn get_impl(packagetype: &str, name: Option<&str>) -> Result<Redirect, Status> {
+    async fn get_impl(
+        packagetype: &str,
+        name: Option<&str>,
+        config: PackageCreateConfig,
+    ) -> Result<Redirect, Status> {
         let cmd = match packagetype {
-            "all" => PackageCmd::all(),
-            "set" if name.is_some() => PackageCmd::set(name.unwrap()),
-            "patcher" if name.is_some() => PackageCmd::patcher(name.unwrap()),
+            "all" => PackageCmd::all(config),
+            "set" if name.is_some() => PackageCmd::set(name.unwrap(), config),
+            "patcher" if name.is_some() => PackageCmd::patcher(name.unwrap(), config),
             _ => return Err(Status::NotFound),
         };
 
@@ -283,14 +308,46 @@ mod package {
             .map_err(|_| Status::GatewayTimeout)?
     }
 
-    #[get("/<packagetype>/<name>")]
-    pub async fn get(packagetype: &str, name: &str) -> Result<Redirect, Status> {
-        return get_impl(packagetype, Some(name)).await;
+    #[get(
+        "/<packagetype>/<name>?<rnbo_version>&<include_presets>&<include_views>&<include_binaries>&<include_datafiles>"
+    )]
+    pub async fn get(
+        packagetype: &str,
+        name: &str,
+        rnbo_version: Option<&str>,
+        include_presets: Option<bool>,
+        include_views: Option<bool>,
+        include_binaries: Option<bool>,
+        include_datafiles: Option<bool>,
+    ) -> Result<Redirect, Status> {
+        let config = PackageCreateConfig {
+            rnbo_version: rnbo_version.map(|s| s.to_string()),
+            include_presets,
+            include_views,
+            include_binaries,
+            include_datafiles,
+        };
+        return get_impl(packagetype, Some(name), config).await;
     }
 
-    #[get("/all")]
-    pub async fn get_all() -> Result<Redirect, Status> {
-        return get_impl("all", None).await;
+    #[get(
+        "/all?<rnbo_version>&<include_presets>&<include_views>&<include_binaries>&<include_datafiles>"
+    )]
+    pub async fn get_all(
+        rnbo_version: Option<&str>,
+        include_presets: Option<bool>,
+        include_views: Option<bool>,
+        include_binaries: Option<bool>,
+        include_datafiles: Option<bool>,
+    ) -> Result<Redirect, Status> {
+        let config = PackageCreateConfig {
+            rnbo_version: rnbo_version.map(|s| s.to_string()),
+            include_presets,
+            include_views,
+            include_binaries,
+            include_datafiles,
+        };
+        return get_impl("all", None, config).await;
     }
 }
 
