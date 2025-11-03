@@ -11,8 +11,9 @@ mod file {
         rocket::{
             Responder, State, delete,
             fs::{NamedFile, TempFile},
-            get, put,
-            response::status::NoContent,
+            get,
+            http::Status,
+            put,
             serde::json::Json,
             uri,
         },
@@ -108,12 +109,17 @@ mod file {
     }
 
     #[delete("/<filetype>/<name..>")]
-    pub async fn delete(state: &State<Config>, filetype: &str, name: PathBuf) -> NoContent {
+    pub async fn delete(state: &State<Config>, filetype: &str, name: PathBuf) -> Status {
         //do we care if there isn't a file at the path given?
         if let Some(path) = state.deleteable_filetype_path(filetype) {
-            let _ = std::fs::remove_file(path.join(name));
+            if std::fs::remove_file(path.join(name)).is_ok() {
+                Status::NoContent
+            } else {
+                Status::NotFound
+            }
+        } else {
+            Status::NotFound
         }
-        NoContent
     }
 
     #[put("/<filetype>/<name..>", data = "<file>")]
