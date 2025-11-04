@@ -7,6 +7,8 @@ class RNBORunnerPanelConan(ConanFile):
 	url = "https://github.com/Cycling74/rnbo-runner-panel"
 	settings = None
 	license = "MIT"
+	#compiler is always rustc, this package holds and executable and not something to be linked to
+	settings = "os", "arch", "build_type"
 	no_copy_source = True
 
 	def export_sources(self):
