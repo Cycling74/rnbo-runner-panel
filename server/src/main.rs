@@ -1,5 +1,5 @@
 use {
-    crate::config::{Config, RunnerConfig},
+    crate::config::RunnerConfig,
     clap::Parser,
     rocket::{fs::FileServer, main},
     rocket_dyn_templates::Template,
@@ -19,6 +19,12 @@ struct Args {
     /// path to configuration json
     #[arg(short, long, default_value = "~/.config/rnbo/runner.json")]
     runner_config: String,
+
+    #[arg(short, long, default_value = None)]
+    template_dir: Option<PathBuf>,
+
+    #[arg(short, long, default_value = None)]
+    static_dir: Option<PathBuf>,
 }
 
 #[main]
@@ -63,11 +69,28 @@ async fn main() -> Result<(), rocket::Error> {
     }
 
     {
+        use {
+            core::net::{IpAddr, Ipv4Addr},
+            rocket::config::Config,
+        };
+        let mut static_dir = PathBuf::from("../out");
+
+        let mut config = Config::figment()
+            .merge((Config::PORT, 3000))
+            .merge((Config::ADDRESS, IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0))));
+        if let Some(dir) = args.template_dir {
+            config = config.merge(("template_dir", dir));
+        }
+        if let Some(dir) = args.static_dir {
+            static_dir = dir;
+        }
+
         rocket::build()
-            .mount("/", FileServer::from("../out"))
+            .configure(config)
+            .mount("/", FileServer::from(static_dir))
             .mount("/files", crate::routes::file_routes())
             .mount("/packages", crate::routes::package_routes())
-            .manage(Config::new(
+            .manage(crate::config::Config::new(
                 filetype_paths,
                 deleteable_filetypes,
                 package_dir,
