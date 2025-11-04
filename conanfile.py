@@ -8,16 +8,20 @@ class RNBORunnerPanelConan(ConanFile):
 	settings = None
 	license = "MIT"
 	#compiler is always rustc, this package holds and executable and not something to be linked to
-	settings = "os", "arch", "build_type"
-	no_copy_source = True
+	#settings = "os", "arch", "build_type"
+	settings = { "os": ["Linux"], "arch": "armv8" }
+	exports_sources = "*", "!build","!out", "!node_modules", "!server/target"
 
-	def export_sources(self):
-		self.copy("bin/**", src="build/usr/")
-		self.copy("share/**", src="build/usr/")
+#	def source(self):
+#		git = tools.Git()
+#		git.clone("git@github.com:Cycling74/rnbo-runner-panel.git", "feature/rustserver")
+#		#git.run("checkout v%s" % self.version)
+#		git.run("submodule update --init --recursive")
 
 	def build(self):
-		#do nothing
-		return
+		self.run("npm ci")
+		self.run("npm run package-linux")
 
 	def package(self):
-		self.copy("*")
+		self.copy("bin/**", src="build/usr/")
+		self.copy("share/**", src="build/usr/")
