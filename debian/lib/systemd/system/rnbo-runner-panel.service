@@ -7,10 +7,10 @@
 
 [Service]
   Type=idle
-  ExecStart=/usr/bin/rnbo-runner-panel --directory /usr/share/rnbo-runner-panel/www/
+  ExecStart=/usr/bin/rnbo-runner-panel --static-dir /usr/share/rnbo-runner-panel/www/ --template-dir /usr/share/rnbo-runner-panel/templates/
   KillSignal=SIGINT
-  User=www-data
-  Group=www-data
+  User=pi
+  Group=audio
   Restart=on-failure
   RestartSec=5s
 

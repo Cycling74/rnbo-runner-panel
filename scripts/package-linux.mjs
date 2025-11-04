@@ -7,16 +7,19 @@ import { readPkgInfoVersion } from "./utils.mjs";
 const { readFileSync, writeFileSync, rmSync, copySync } = fs;
 
 const debian = process.argv.includes("--debian");
-const outdir = process.argv.at(-1);
+const outdir = process.argv.at(-2);
+const target = process.argv.at(-1);
 
 const basedir = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+const serverdir = join(basedir, "server");
 const name = process.env.PKG_NAME || "rnbo-runner-panel";
 
 // cleanup if we have an existing export
 rmSync(join(outdir, "usr"), { recursive: true, force: true });
 
 copySync(join(basedir, "out"), join(outdir, "usr", "share", name, "www"), { overwrite: true } );
-copySync(join(basedir, "server.py"), join(outdir, "usr", "bin", name), { overwrite: true } );
+copySync(join(serverdir, "templates"), join(outdir, "usr", "share", name, "templates"), { overwrite: true } );
+copySync(join(serverdir, "target", target, "release", name), join(outdir, "usr", "bin", name), { overwrite: true } );
 
 // do debian specific packaging
 if (debian) {
