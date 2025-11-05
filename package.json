@@ -17,6 +17,7 @@
     "prepackage-conan": "npm run package-linux",
     "package-conan": "node scripts/package-conan.mjs",
     "preversion": "eslint ./src --report-unused-disable-directives --max-warnings 5",
+    "postversion": "node scripts/apply-version.mjs",
     "release": "changeset tag"
   },
   "dependencies": {
