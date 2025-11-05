@@ -51,3 +51,7 @@ cross build --target armv7-unknown-linux-gnueabihf --release
 ### Actions
 
 [build-rust-projects-with-cross](https://github.com/marketplace/actions/build-rust-projects-with-cross)
+
+## License
+
+See the [MIT License File](../LICENSE.txt) in the top level project.
