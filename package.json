@@ -16,7 +16,8 @@
     "package-linux": "node scripts/package-linux.mjs ./build/ aarch64-unknown-linux-gnu",
     "prepackage-conan": "npm run package-linux",
     "package-conan": "node scripts/package-conan.mjs",
-    "preversion": "next lint"
+    "preversion": "next lint",
+    "postversion": "node scripts/apply-version.mjs"
   },
   "dependencies": {
     "@dagrejs/dagre": "^1.1.4",
