@@ -18,6 +18,7 @@ mod file {
             uri,
         },
         rocket_dyn_templates::{Template, context},
+        serde::Deserialize,
         std::path::{Path, PathBuf},
     };
 
@@ -122,16 +123,42 @@ mod file {
         }
     }
 
+    //helper struct to get version string
+    #[derive(Deserialize)]
+    struct VersionBody {
+        #[serde(rename = "VALUE")]
+        value: String,
+    }
+
     #[put("/<filetype>/<name..>", data = "<file>")]
     pub async fn upload(
         state: &State<Config>,
         filetype: &str,
         name: PathBuf,
         mut file: TempFile<'_>,
-    ) -> Option<std::io::Result<()>> {
-        let dir = state.filetype_path(filetype)?; //XXX will 404, is that okay?
-        let p = Path::new(dir).join(name);
-        Some(file.persist_to(p).await)
+    ) -> Result<std::io::Result<()>, Status> {
+        let dir = state
+            .filetype_path(filetype)
+            .ok_or(Status::PreconditionFailed)?;
+
+        let fullpath = if filetype == "packages" && name.starts_with("current/") {
+            if name.components().count() != 2 {
+                return Err(Status::BadRequest);
+            }
+            let body: VersionBody = reqwest::get("http://127.0.0.1:5678/rnbo/info/version?VALUE")
+                .await
+                .map_err(|_| Status::PreconditionFailed)?
+                .json()
+                .await
+                .map_err(|_| Status::PreconditionFailed)?;
+            let name = name.file_name().ok_or(Status::PreconditionFailed)?;
+            //allow for /packages/current/filename.foo
+            Path::new(dir).join(body.value).join(name)
+        } else {
+            Path::new(dir).join(name)
+        };
+
+        Ok(file.persist_to(fullpath).await)
     }
 }
 
