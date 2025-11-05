@@ -22,7 +22,6 @@ pub struct RunnerConfig {
     pub package_dir: Option<PathBuf>,
     pub source_cache_dir: Option<PathBuf>,
 
-    pub export_dir: Option<PathBuf>,
     pub save_dir: Option<PathBuf>,
 
     //file path
