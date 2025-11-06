@@ -65,11 +65,11 @@ const InfoCardSkeleton: FunctionComponent<Pick<InfoCardProps, "title">> = ({ tit
 );
 
 const infoKeyOrder: Partial<Record<RunnerInfoKey, { title: string; format?: (v: RunnerInfoRecord["oscValue"]) => string }>> = {
-	[SystemInfoKey.Version]: {
-		title: "Runner Version"
+	[SystemInfoKey.RNBOVersion]: {
+		title: "RNBO Version"
 	},
-	[SystemInfoKey.TargetId]: {
-		title: "Target Identifier"
+	[SystemInfoKey.RunnerVersion]: {
+		title: "Runner Version"
 	},
 	[SystemInfoKey.DiskBytesAvailable]: {
 		title: "Available Disk Space",
@@ -82,6 +82,9 @@ const infoKeyOrder: Partial<Record<RunnerInfoKey, { title: string; format?: (v: 
 	},
 	[JackInfoKey.XRunCount]: {
 		title: "xrun Count"
+	},
+	[SystemInfoKey.TargetId]: {
+		title: "Target Identifier"
 	}
 };
 

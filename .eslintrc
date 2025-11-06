@@ -8,6 +8,11 @@
     "@typescript-eslint/explicit-function-return-type": "off",
 		"@typescript-eslint/no-explicit-any": "off",
 		"no-shadow": "off",
+		"no-constant-condition": [
+			"error", {
+				"checkLoops": false
+			}
+		],
     "@typescript-eslint/no-shadow": "off",
 		"@next/next/no-img-element": "off",
 		"new-cap": [

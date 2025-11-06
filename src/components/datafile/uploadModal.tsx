@@ -2,24 +2,29 @@ import { Map as ImmuMap } from "immutable";
 import { ActionIcon, Alert, Button, Center, Group, Modal, RingProgress, Stack, Table, Text } from "@mantine/core";
 import { FC, memo, useCallback, useState } from "react";
 import { useIsMobileDevice } from "../../hooks/useIsMobileDevice";
-import { Dropzone, FileWithPath } from "@mantine/dropzone";
-import classes from "./datafile.module.css";
-import { formatFileSize } from "../../lib/util";
+import { FileWithPath } from "@mantine/dropzone";
+import { formatFileSize, getFileMD5Hash } from "../../lib/util";
 import { v4 } from "uuid";
-import { useAppDispatch } from "../../hooks/useAppDispatch";
-import { uploadFileToRemote } from "../../actions/datafiles";
-import { AppDispatch } from "../../lib/store";
 import { IconElement } from "../elements/icon";
-import { mdiAlertCircleOutline, mdiCheckCircleOutline, mdiClose, mdiFileMusic, mdiLoading, mdiProgressClock, mdiUpload, mdiUploadOff } from "@mdi/js";
+import { mdiAlertCircleOutline, mdiCheckCircleOutline, mdiClose, mdiFileMusic, mdiLoading, mdiProgressClock, mdiUpload } from "@mdi/js";
+import { writeFileToRunnerCmd } from "../../controller/cmd";
+import { RunnerFileType } from "../../lib/constants";
+import { FileDropZone } from "../page/fileDropZone";
 
-const AUDIO_MIME_TYPE: string[] = [
-	"audio/aiff", "audio/x-aiff",
-	"audio/wav", "audio/wave", "audio/x-wav", "audio/x-pn-wav",
-	"audio/flac", "audio/x-flac",
-	"audio/mpeg",
-	"audio/ogg", "video/ogg" // for some reason dropzone is seeing .ogg audio as video/ogg
+const AUDIO_MIME_TYPE: Record<string, string[]> = {
+	"audio/aiff": [".aif", ".aiff"],
+	"audio/x-aiff": [".aif", ".aiff"],
+	"audio/wav": [".wav"],
+	"audio/wave": [".wav"],
+	"audio/x-wav": [".wav"],
+	"audio/x-pn-wav": [".wav"],
+	"audio/flac": [".flac"],
+	"audio/x-flac": [".flac"],
+	"audio/mpeg": [".mp3"],
+	"audio/ogg": [".ogg"],
+	"video/ogg": [".ogg"] // for some reason dropzone is seeing .ogg audio as video/ogg
 	// TODO does libsndfile support other formats?
-];
+};
 
 export type UploadFile = {
 	id: string;
@@ -27,45 +32,6 @@ export type UploadFile = {
 	progress: number;
 	error?: Error;
 }
-
-type FileDropZoneProps = {
-	maxFiles: number;
-	setFiles: (files: FileWithPath[]) => any;
-}
-
-const FileDropZone: FC<FileDropZoneProps> = memo(function WrappedDateFileDropzone({
-	maxFiles,
-	setFiles
-}) {
-	return (
-		<Dropzone
-			accept={ AUDIO_MIME_TYPE }
-			onDrop={ setFiles }
-			className={ classes.fileDropZone }
-			maxFiles={ maxFiles }
-		>
-			<Group className={ classes.fileDropGroup } >
-				<Dropzone.Accept>
-					<IconElement path={ mdiUpload } size={ 3 } />
-				</Dropzone.Accept>
-				<Dropzone.Reject>
-					<IconElement path={ mdiUploadOff } size={ 3 } />
-				</Dropzone.Reject>
-				<Dropzone.Idle>
-					<IconElement path={ mdiFileMusic } size={ 3 } />
-				</Dropzone.Idle>
-				<div>
-					<Text size="xl" inline>
-						Drag here or click to select
-					</Text>
-					<Text size="md" c="dimmed" inline mt="md">
-						Choose { maxFiles === 1 ? "a single audio file" : `up to ${maxFiles} audio files` }
-					</Text>
-				</div>
-			</Group>
-		</Dropzone>
-	);
-});
 
 type FileUploadRowProps = {
 	upload: UploadFile;
@@ -146,10 +112,6 @@ enum UploadStep {
 	Error
 }
 
-const doUpload = async (dispatch: AppDispatch, file: File, onProgress: (progress: number) => any) => new Promise<void>((resolve, reject) => {
-	dispatch(uploadFileToRemote(file, { resolve, reject, onProgress }));
-});
-
 export type DataFileUploadModalProps = {
 	maxFileCount?: number;
 	onClose: () => any;
@@ -162,7 +124,6 @@ export const DataFileUploadModal: FC<DataFileUploadModalProps> = memo(function W
 	onUploadSuccess,
 	maxFileCount = 1
 }) {
-	const dispatch = useAppDispatch();
 	const [uploads, setUploads] = useState<ImmuMap<UploadFile["id"], UploadFile>>(ImmuMap<UploadFile["id"], UploadFile>());
 	const [step, setStep] = useState<UploadStep>(UploadStep.Select);
 
@@ -190,9 +151,17 @@ export const DataFileUploadModal: FC<DataFileUploadModalProps> = memo(function W
 		let errored = false;
 		for (const upload of uploads.valueSeq().toArray()) {
 			try {
-				await doUpload(dispatch, upload.file, (progress: number) => {
-					setUploads(up => up.set(upload.id, { ...upload, progress }));
-				});
+				const fileHash = await getFileMD5Hash(upload.file);
+				const uploadHash = await writeFileToRunnerCmd(
+					upload.file,
+					RunnerFileType.DataFile,
+					(progress: number) => {
+						setUploads(up => up.set(upload.id, { ...upload, progress }));
+					}
+				);
+				if (uploadHash !== fileHash) {
+					throw new Error(`Upload failed due to a data mismatch! The hash of the transported data (${uploadHash}) does not match the file's hash.`);
+				}
 			} catch (err) {
 				errored = true;
 				setUploads(up => up.set(upload.id, { ...upload, progress: 0, error: err }));
@@ -205,7 +174,7 @@ export const DataFileUploadModal: FC<DataFileUploadModalProps> = memo(function W
 			setUploads(ImmuMap<UploadFile["id"], UploadFile>());
 			setStep(UploadStep.Select);
 		}
-	}, [setStep, uploads, setUploads, dispatch, onUploadSuccess]);
+	}, [setStep, uploads, setUploads, onUploadSuccess]);
 
 	const onTriggerClose = useCallback(() => {
 		if (step === UploadStep.Uploading) return;
@@ -229,7 +198,14 @@ export const DataFileUploadModal: FC<DataFileUploadModalProps> = memo(function W
 				<Modal.Body>
 					<Stack gap="xl">
 						{
-							step === UploadStep.Select ? <FileDropZone maxFiles={ maxFileCount } setFiles={ onSetFiles } /> : null
+							step === UploadStep.Select ? (
+								<FileDropZone
+									accept={ AUDIO_MIME_TYPE }
+									fileIcon={ mdiFileMusic }
+									maxFiles={ maxFileCount }
+									setFiles={ onSetFiles }
+								/>
+							) : null
 						}
 						{
 							step === UploadStep.Confirm || step === UploadStep.Uploading || step === UploadStep.Error ? (

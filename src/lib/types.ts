@@ -1,5 +1,5 @@
 import { ConnectionType } from "../models/graph";
-import { JackInfoKey, KnownPortGroup, RNBOJackPortPropertyKey, SystemInfoKey } from "./constants";
+import { JackInfoKey, KnownPortGroup, RNBOJackPortPropertyKey, RunnerCmdResultCode, SystemInfoKey } from "./constants";
 
 // See https://github.com/Microsoft/TypeScript/issues/1897
 export type AnyJson =
@@ -49,9 +49,107 @@ export type ParameterMetaJsonMap = JsonMap & {
 };
 
 export type DataRefMetaJsonMap = JsonMap;
-
 export type RunnerInfoKey = SystemInfoKey | JackInfoKey;
 
+// Runner CMD Types
+export type RunnerCmdResultPayload = Record<string, any> & { message: string };
+
+export type RunnerCmdResult<R extends RunnerCmdResultPayload> = R & {
+	code: number | RunnerCmdResultCode;
+	message: R["message"];
+	progress: number;
+};
+
+export type RunnerCmdResponse<R extends RunnerCmdResult<{ message: string; }> = RunnerCmdResult<{ message: string; }>> = {
+	id: string;
+	error?: { code: number; message: string; };
+	jsonrpc: "2.0";
+	result?: RunnerCmdResult<R>;
+};
+
+export type RunnerReadFileListResult = RunnerCmdResult<{
+	content: string;
+	message: "read";
+	remaining: number;
+	seq: number;
+}>;
+
+export type RunnerReadFileListResponse = RunnerCmdResponse<RunnerReadFileListResult>;
+
+export type RunnerCreatePackageResult = RunnerCmdResult<{
+	message: "completed",
+	packagename: string;
+	filename: string;
+}>;
+
+export type RunnerCreatePackageResponse = RunnerCmdResponse<RunnerCreatePackageResult>;
+
+export type RunnerInstallPackageResult = RunnerCmdResult<{
+	message: "completed",
+	packagename: string;
+	filename: string;
+}>;
+
+export type RunnerInstallPackageResponse = RunnerCmdResponse<RunnerInstallPackageResult>;
+
+export type RunnerReadFileContentResult = RunnerCmdResult<{
+	content64: string;
+	message: "read";
+	md5?: string;
+	remaining: number;
+	seq: number;
+}>;
+
+export type RunnerReadFileContentResponse = RunnerCmdResponse<RunnerReadFileContentResult>;
+
+export type RunnerDeleteFileResult = RunnerCmdResult<{
+	message: "received" | "deleted";
+}>;
+
+export type RunnerDeleteFileResponse = RunnerCmdResponse<RunnerDeleteFileResult>;
+
+// Package Info
+
+export type RunnerPackageDataFileInfo = {
+	location: string;
+	name: string;
+};
+
+export type RunnerPackagePatcherInfo = {
+	binaries: Record<string, string>;
+	config: string;
+	created_at: string;
+	name: string;
+	patcher: string;
+	presets: string;
+};
+
+export type RunnerPackageSetInfo = {
+	created_at: string;
+	location: string;
+	name: string;
+};
+
+export type RunnerPackageTargetInfo = {
+	compiler_id: string;
+	compiler_version: string;
+	dir: string;
+	system_name: string;
+	system_processor: string;
+};
+
+export type RunnerPackageInfo = {
+	datafiles: Array<RunnerPackageDataFileInfo>;
+	name: string;
+	patchers: Array<RunnerPackagePatcherInfo>;
+	rnbo_version: string;
+	runner_version: string;
+	schema_version: 1;
+	sets: Array<RunnerPackageSetInfo>;
+	targets: Record<string, RunnerPackageTargetInfo>;
+};
+
+// OSC Types
 export type OSCValue = string | number | null;
 
 export enum OSCAccess {
@@ -141,12 +239,13 @@ export type OSCQueryRNBOInfoState = OSCQueryBaseNode & {
 		[SystemInfoKey.CompilerId]: OSCQueryStringValue;
 		[SystemInfoKey.CompilerVersion]: OSCQueryStringValue;
 		[SystemInfoKey.DiskBytesAvailable]: OSCQueryStringValue;
+		[SystemInfoKey.RNBOVersion]: OSCQueryStringValue;
+		[SystemInfoKey.RunnerVersion]: OSCQueryStringValue;
 		[SystemInfoKey.SystemId]: OSCQueryStringValue;
 		[SystemInfoKey.SystemName]: OSCQueryStringValue;
 		[SystemInfoKey.SystemOS]: OSCQueryStringValue;
 		[SystemInfoKey.SystemProcessor]: OSCQueryStringValue;
 		[SystemInfoKey.TargetId]: OSCQueryStringValue;
-		[SystemInfoKey.Version]: OSCQueryStringValue;
 		supported_cmds: OSCQueryListValue;
 		unpported_cmds: OSCQueryListValue;
 		update: OSCQueryBaseNode & {
@@ -480,4 +579,4 @@ export type OSCQuerySetNodeMeta = { position: { x: number; y: number; }; };
 
 export type OSCQuerySetMeta = {
 	nodes: Record<string, OSCQuerySetNodeMeta>;
-}
+};

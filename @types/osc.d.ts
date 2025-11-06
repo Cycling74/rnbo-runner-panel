@@ -1,13 +1,13 @@
-declare module "osc" {
+declare module "osc/dist/osc-browser" {
 
 	export type OSCTimeTag = {
 		raw: [number, number];
 		native: number;
 	};
 
-	export type OSCArgument = {
+	export type OSCArgument = Array<number | string> | {
 		type: string;
-		value: string | number;
+		value: string | number;
 	};
 
 	export type OSCMessage = {

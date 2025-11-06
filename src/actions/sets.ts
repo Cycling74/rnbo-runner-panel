@@ -1,4 +1,4 @@
-import { OSCArgument, writePacket } from "osc";
+import { OSCArgument, writePacket } from "osc/dist/osc-browser";
 import { oscQueryBridge } from "../controller/oscqueryBridgeController";
 import { ActionBase, AppThunk } from "../lib/store";
 import { GraphSetRecord, GraphSetViewRecord } from "../models/set";
@@ -9,13 +9,14 @@ import { ParameterRecord } from "../models/parameter";
 import { getPatcherInstance, getPatcherInstanceParametersSortedByInstanceIdAndIndex } from "../selectors/patchers";
 import { OSCQueryRNBOSetView, OSCQueryRNBOSetViewState, OSCQueryValueType } from "../lib/types";
 import { getCurrentGraphSet, getCurrentGraphSetId, getCurrentGraphSetIsDirty, getGraphPresets, getGraphSet, getGraphSets, getGraphSetsSortedByName, getGraphSetView, getGraphSetViews, getInitialGraphSet, getSelectedGraphSetView } from "../selectors/sets";
-import { clamp, getUniqueName, instanceAndParamIndicesToSetViewEntry, sleep, validateGraphSetName, validatePresetName, validateSetViewName } from "../lib/util";
+import { clamp, getUniqueName, instanceAndParamIndicesToSetViewEntry, isUserAbortedError, sleep, validateGraphSetName, validatePresetName, validateSetViewName } from "../lib/util";
 import { setInstanceWaitingForMidiMappingOnRemote } from "./patchers";
 import { DialogResult, showConfirmDialog, showSelectInputDialog, showTextInputDialog } from "../lib/dialogs";
-import { OnLoadGraphSetSetting, SortOrder, UnsavedSetName } from "../lib/constants";
+import { OnLoadGraphSetSetting, RunnerFileType, SortOrder, UnsavedSetName } from "../lib/constants";
 import { getRunnerConfig } from "../selectors/settings";
 import { ConfigKey } from "../models/config";
 import { setRunnerConfig } from "./settings";
+import { createPackageOnRunner, readFileFromRunnerCmd } from "../controller/cmd";
 
 export enum GraphSetActionType {
 	INIT_SETS = "INIT_SETS",
@@ -613,6 +614,31 @@ export const saveCurrentGraphSetOnRemoteAs = (): AppThunk =>
 				message: "Please check the console for further details."
 			}));
 			console.error(err);
+		}
+	};
+
+export const downloadGraphSetFromRemote = (set: GraphSetRecord): AppThunk =>
+	async (dispatch, getState) => {
+		try {
+
+			const pkgResult = await createPackageOnRunner(set);
+			const hash = await readFileFromRunnerCmd(pkgResult.filename, RunnerFileType.Package);
+
+			dispatch(showNotification({
+				level: NotificationLevel.success,
+				title: "Finished Download",
+				message: `Graph ackage ${set.name} has been downloaded successfully (hash: ${hash})`
+			}));
+
+		} catch (err) {
+			if (isUserAbortedError(err)) return; // User Aborted File Destination chooser
+
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: `Error while trying to download graph ${set.name}`,
+				message: "Please check the console for further details."
+			}));
+			console.log(err);
 		}
 	};
 

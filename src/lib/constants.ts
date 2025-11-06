@@ -22,12 +22,13 @@ export enum SystemInfoKey {
 	CompilerId = "compiler_id",
 	CompilerVersion = "compiler_version",
 	DiskBytesAvailable = "disk_bytes_available",
+	RNBOVersion = "version",
+	RunnerVersion = "runner_version",
 	SystemId = "system_id",
 	SystemName = "system_name",
 	SystemOS = "system_os_name",
 	SystemProcessor = "system_processor",
-	TargetId = "target_id",
-	Version = "version",
+	TargetId = "target_id"
 }
 
 export enum JackInfoKey {
@@ -40,12 +41,6 @@ export enum InstanceTab {
 	Outports = "outports",
 	Parameters = "params",
 	DataRefs = "datarefs",
-}
-
-export enum ResourceTab {
-	Graphs = "graphs",
-	Patchers = "patchers",
-	AudioFiles = "audiofiles"
 }
 
 export const bodyFontSize = 16;
@@ -130,12 +125,47 @@ export enum ParameterSortAttr {
 	Name = "name"
 }
 
-export enum RunnerCmdMethod {
-	ReadFile = "file_read",
+export enum RunnerFileType {
+	DataFile = "datafile",
+	Package = "package"
+}
+
+export enum ResourceType {
+	DataFile = RunnerFileType.DataFile,
+	Patcher = "patcher",
+	Set = "set"
+}
+
+export enum RunnerCmdResultCode {
+	Success = 1
+}
+
+export enum RunnerChunkSize {
+	Read = 1024 * 1000,
+	Write = 1024 * 1000
+}
+
+export enum RunnerCmdHighWaterMarkCount {
+	Read = 1,
+	Write = 20 // amount of chunks we allow to buffer up on the runner side until we apply backpressure locally
+}
+
+export enum RunnerCmdReadMethod {
+	CreatePackage = "package_create",
+	InstallPackage = "package_install",
+	ReadFileContent = "file_read64",
+	ReadFileList = "file_read",
 	DeleteFile = "file_delete",
 	WriteFile = "file_write",
 	WriteFileExtended = "file_write_extended"
 }
+
+export enum RunnerCmdWriteMethod {
+	WriteFile = "file_write",
+	WriteFileExtended = "file_write_extended"
+}
+
+export type RunnerCmdMethod = RunnerCmdReadMethod | RunnerCmdWriteMethod;
 
 export enum OnLoadGraphSetSetting {
 	EmptySet = "___new_empty_set___",
