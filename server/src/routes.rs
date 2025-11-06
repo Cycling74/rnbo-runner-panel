@@ -110,17 +110,29 @@ mod file {
     }
 
     #[delete("/<filetype>/<name..>")]
-    pub async fn delete(state: &State<Config>, filetype: &str, name: PathBuf) -> Status {
-        //do we care if there isn't a file at the path given?
-        if let Some(path) = state.deleteable_filetype_path(filetype) {
-            if std::fs::remove_file(path.join(name)).is_ok() {
-                Status::NoContent
-            } else {
-                Status::NotFound
+    pub async fn delete(
+        state: &State<Config>,
+        filetype: &str,
+        name: PathBuf,
+    ) -> Result<Status, Status> {
+        let dir = state
+            .deleteable_filetype_path(filetype)
+            .ok_or(Status::BadRequest)?;
+        let path = dir.join(name);
+        if path.is_dir() {
+            if &path == dir {
+                eprintln!("cannot delete top level filetype directories");
+                return Err(Status::Forbidden);
             }
+            tokio::fs::remove_dir_all(path)
+                .await
+                .map_err(|_| Status::NotFound)?;
         } else {
-            Status::NotFound
+            tokio::fs::remove_file(path)
+                .await
+                .map_err(|_| Status::NotFound)?;
         }
+        Ok(Status::NoContent)
     }
 
     //helper struct to get version string
@@ -137,9 +149,7 @@ mod file {
         name: PathBuf,
         mut file: TempFile<'_>,
     ) -> Result<std::io::Result<()>, Status> {
-        let dir = state
-            .filetype_path(filetype)
-            .ok_or(Status::PreconditionFailed)?;
+        let dir = state.filetype_path(filetype).ok_or(Status::BadRequest)?;
 
         let fullpath = if filetype == "packages" && name.starts_with("current/") {
             if name.components().count() != 2 {
@@ -147,16 +157,20 @@ mod file {
             }
             let body: VersionBody = reqwest::get("http://127.0.0.1:5678/rnbo/info/version?VALUE")
                 .await
-                .map_err(|_| Status::PreconditionFailed)?
+                .map_err(|_| Status::FailedDependency)?
                 .json()
                 .await
-                .map_err(|_| Status::PreconditionFailed)?;
-            let name = name.file_name().ok_or(Status::PreconditionFailed)?;
+                .map_err(|_| Status::FailedDependency)?;
+            let name = name.file_name().ok_or(Status::FailedDependency)?;
             //allow for /packages/current/filename.foo
             Path::new(dir).join(body.value).join(name)
         } else {
             Path::new(dir).join(name)
         };
+
+        tokio::fs::create_dir_all(fullpath.parent().expect("to get parent path"))
+            .await
+            .map_err(|_| Status::FailedDependency)?;
 
         Ok(file.persist_to(fullpath).await)
     }
@@ -289,10 +303,8 @@ mod package {
             if let Ok(msg) = rosc::encoder::encode(&packet) {
                 let _ = ws.send(Message::Binary(msg.into())).await;
                 //wait for response, TIMEOUT!
-                while let Some(message) = ws
-                    .try_next()
-                    .await
-                    .map_err(|_| Status::PreconditionFailed)?
+                while let Some(message) =
+                    ws.try_next().await.map_err(|_| Status::FailedDependency)?
                 {
                     if let Message::Binary(vec) = message
                         && let Ok((_, OscPacket::Message(m))) =
@@ -318,9 +330,9 @@ mod package {
                     }
                 }
             }
-            Err(Status::PreconditionFailed)
+            Err(Status::FailedDependency)
         } else {
-            Err(Status::PreconditionFailed)
+            Err(Status::FailedDependency)
         }
     }
 
