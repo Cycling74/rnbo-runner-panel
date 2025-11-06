@@ -75,7 +75,7 @@ mod file {
         }
     }
 
-    #[get("/", format = "html", rank = 1)]
+    #[get("/", format = "html")]
     pub async fn get_filetypes(state: &State<Config>) -> Template {
         let items = state
             .filetypelist()
@@ -235,7 +235,7 @@ mod package {
             }
         }
 
-        fn set(name: &str, config: PackageCreateConfig) -> Self {
+        fn graph(name: &str, config: PackageCreateConfig) -> Self {
             PackageCmd {
                 method: "package_create",
                 id: Uuid::new_v4(),
@@ -266,8 +266,8 @@ mod package {
     #[derive(Deserialize)]
     struct ResultBody {
         filename: String,
-        packagename: String,
         progress: f32,
+        //packagename: String,
         //don't care about the rest
     }
 
@@ -343,7 +343,7 @@ mod package {
     ) -> Result<Redirect, Status> {
         let cmd = match packagetype {
             "all" => PackageCmd::all(config),
-            "set" if name.is_some() => PackageCmd::set(name.unwrap(), config),
+            "graph" if name.is_some() => PackageCmd::graph(name.unwrap(), config),
             "patcher" if name.is_some() => PackageCmd::patcher(name.unwrap(), config),
             _ => return Err(Status::NotFound),
         };
