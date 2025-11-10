@@ -343,8 +343,8 @@ mod package {
     ) -> Result<Redirect, Status> {
         let cmd = match packagetype {
             "all" => PackageCmd::all(config),
-            "graph" if name.is_some() => PackageCmd::graph(name.unwrap(), config),
-            "patcher" if name.is_some() => PackageCmd::patcher(name.unwrap(), config),
+            "graphs" if name.is_some() => PackageCmd::graph(name.unwrap(), config),
+            "patchers" if name.is_some() => PackageCmd::patcher(name.unwrap(), config),
             _ => return Err(Status::NotFound),
         };
 
