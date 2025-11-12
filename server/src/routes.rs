@@ -396,16 +396,86 @@ mod package {
     }
 }
 
+mod userview {
+
+    //USED AI to help with this, had to mix a couple of results
+
+    use {
+        image::{ImageBuffer, Rgb},
+        rocket::{
+            futures::Stream,
+            get,
+            response::{Responder, stream::ByteStream},
+        },
+        std::io::Cursor,
+        tokio::time::Duration,
+    };
+
+    // Helper function to generate a dummy image (same as before)
+    fn generate_image_frame(width: u32, height: u32, frame_num: u32) -> Vec<u8> {
+        let mut img = ImageBuffer::new(width, height);
+        for x in 0..width {
+            for y in 0..height {
+                let r = ((x as f32 / width as f32) * 255.0) as u8;
+                let g = ((y as f32 / height as f32) * 255.0) as u8;
+                let b = (frame_num % 255) as u8;
+                img.put_pixel(x, y, Rgb([r, g, b]));
+            }
+        }
+
+        let mut cursor = Cursor::new(Vec::new());
+        img.write_to(&mut cursor, image::ImageFormat::Jpeg)
+            .expect("Failed to encode image");
+        cursor.into_inner()
+    }
+
+    #[derive(Responder)]
+    #[response(content_type = "multipart/x-mixed-replace; boundary=frame")]
+    pub struct MJPEGStream<S> {
+        inner: ByteStream<S>,
+    }
+
+    #[get("/custom_stream")]
+    pub fn custom_stream_handler() -> MJPEGStream<impl Stream<Item = Vec<u8>> + Send + 'static> {
+        let inner = ByteStream! {
+            let mut interval = tokio::time::interval(Duration::from_millis(20));
+            let mut frame_count = 0;
+
+            loop {
+                interval.tick().await;
+
+                let frame_bytes = generate_image_frame(640, 480, frame_count);
+                frame_count += 1;
+
+                let mut formatted_frame = Vec::new();
+                formatted_frame.extend_from_slice(b"--frame\r\n");
+                formatted_frame.extend_from_slice(b"Content-Type: image/jpeg\r\n\r\n");
+                formatted_frame.extend_from_slice(&frame_bytes);
+                formatted_frame.extend_from_slice(b"\r\n");
+
+                yield formatted_frame;
+            }
+        };
+
+        MJPEGStream { inner }
+    }
+}
+
 pub fn file_routes() -> Vec<rocket::Route> {
     rocket::routes![
         file::get_filetypes,
         file::get_html,
         file::get_json,
         file::upload,
-        file::delete
+        file::delete,
+        userview::custom_stream_handler,
     ]
 }
 
 pub fn package_routes() -> Vec<rocket::Route> {
     rocket::routes![package::get, package::get_all]
+}
+
+pub fn userview_routes() -> Vec<rocket::Route> {
+    rocket::routes![userview::custom_stream_handler]
 }

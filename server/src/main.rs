@@ -90,6 +90,7 @@ async fn main() -> Result<(), rocket::Error> {
             .mount("/", FileServer::from(static_dir))
             .mount("/files", crate::routes::file_routes())
             .mount("/packages", crate::routes::package_routes())
+            .mount("/userviews", crate::routes::userview_routes())
             .manage(crate::config::Config::new(
                 filetype_paths,
                 deleteable_filetypes,
