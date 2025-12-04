@@ -18,7 +18,7 @@ rmSync(join(outdir, "usr"), { recursive: true, force: true });
 copySync(join(basedir, "out"), join(outdir, "usr", "share", name, "www"), { overwrite: true } );
 copySync(join(basedir, "server.py"), join(outdir, "usr", "bin", name), { overwrite: true } );
 
-//do debian specific packaging
+// do debian specific packaging
 if (debian) {
 	const version = process.env.PKG_VERSION || readPkgInfoVersion(join(basedir, "package.json"));
 	// add the version into the control file
