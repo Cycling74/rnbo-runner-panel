@@ -4,7 +4,7 @@ import { useAppDispatch, useAppSelector } from "../hooks/useAppDispatch";
 import { RootStateType } from "../lib/store";
 import classes from "../components/midi/midi.module.css";
 import { MIDIMappedParameterSortAttr, MIDIMetaMappingType, SortOrder } from "../lib/constants";
-import { useCallback, useEffect, useState } from "react";
+import { FC, useCallback, useEffect, useState } from "react";
 import { getPatcherInstanceParametersWithMIDIMapping, getPatcherInstances } from "../selectors/patchers";
 import MIDIMappedParameterList from "../components/midi/mappedParameterList";
 import { ParameterRecord } from "../models/parameter";
@@ -51,7 +51,7 @@ const getSortedParameterIds = (params: ImmuMap<ParameterRecord["id"], ParameterR
 	return ImmuOrderedSet<ParameterRecord["id"]>(params.valueSeq().sort(parameterComparators[attr][order]).map(p => p.id));
 };
 
-const MIDIMappings = () => {
+export const MIDIMappingsPage: FC<Record<never, never>> = () => {
 
 	const [sortOrder, setSortOrder] = useState<SortOrder>(SortOrder.Asc);
 	const [sortAttr, setSortAttr] = useState<MIDIMappedParameterSortAttr>(MIDIMappedParameterSortAttr.MIDISource);
@@ -108,5 +108,3 @@ const MIDIMappings = () => {
 		</Stack>
 	);
 };
-
-export default MIDIMappings;

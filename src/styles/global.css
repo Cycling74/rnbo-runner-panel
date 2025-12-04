@@ -1,0 +1,5 @@
+body {
+	font-family: 'Lato', sans-serif;
+	overflow: hidden;
+	touch-action: pan-x pan-y;
+}

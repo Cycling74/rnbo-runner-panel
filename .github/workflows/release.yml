@@ -38,7 +38,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build and Export Next Application
+      - name: Build and Export Web Application
         run: |
           npm run build
 
