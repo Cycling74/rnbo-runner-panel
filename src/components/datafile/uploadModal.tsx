@@ -3,13 +3,12 @@ import { ActionIcon, Alert, Button, Center, Group, Modal, RingProgress, Stack, T
 import { FC, memo, useCallback, useState } from "react";
 import { useIsMobileDevice } from "../../hooks/useIsMobileDevice";
 import { FileWithPath } from "@mantine/dropzone";
-import { formatFileSize, getFileMD5Hash } from "../../lib/util";
+import { formatFileSize } from "../../lib/util";
 import { v4 } from "uuid";
 import { IconElement } from "../elements/icon";
 import { mdiAlertCircleOutline, mdiCheckCircleOutline, mdiClose, mdiFileMusic, mdiLoading, mdiProgressClock, mdiUpload } from "@mdi/js";
-import { writeFileToRunnerCmd } from "../../controller/cmd";
-import { RunnerFileType } from "../../lib/constants";
 import { FileDropZone } from "../page/fileDropZone";
+import axios from "axios";
 
 const AUDIO_MIME_TYPE: Record<string, string[]> = {
 	"audio/aiff": [".aif", ".aiff"],
@@ -151,17 +150,11 @@ export const DataFileUploadModal: FC<DataFileUploadModalProps> = memo(function W
 		let errored = false;
 		for (const upload of uploads.valueSeq().toArray()) {
 			try {
-				const fileHash = await getFileMD5Hash(upload.file);
-				const uploadHash = await writeFileToRunnerCmd(
-					upload.file,
-					RunnerFileType.DataFile,
-					(progress: number) => {
-						setUploads(up => up.set(upload.id, { ...upload, progress }));
+				await axios.put(`http://localhost:3000/files/datafiles/${upload.file.name}`, upload.file, {
+					headers: {
+						"Content-Type": upload.file.type
 					}
-				);
-				if (uploadHash !== fileHash) {
-					throw new Error(`Upload failed due to a data mismatch! The hash of the transported data (${uploadHash}) does not match the file's hash.`);
-				}
+				});
 			} catch (err) {
 				errored = true;
 				setUploads(up => up.set(upload.id, { ...upload, progress: 0, error: err }));
