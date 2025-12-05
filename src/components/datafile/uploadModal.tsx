@@ -150,7 +150,8 @@ export const DataFileUploadModal: FC<DataFileUploadModalProps> = memo(function W
 		let errored = false;
 		for (const upload of uploads.valueSeq().toArray()) {
 			try {
-				await axios.put(`http://localhost:3000/files/datafiles/${upload.file.name}`, upload.file, {
+				// TODO do we want to check that our host is the same as the runner that we're targeting?
+				await axios.put(`http://${window.location.host}/files/datafiles/${upload.file.name}`, upload.file, {
 					headers: {
 						"Content-Type": upload.file.type
 					}

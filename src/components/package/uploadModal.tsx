@@ -83,7 +83,6 @@ const PackageContentItem: FC<PackageContentItemProps> = ({
 type PackageUploadConfirmFormProps = {
 	conflicts: PackageUploadConflicts;
 	info: PackageInfoRecord;
-	md5: string;
 	onCancel: () => void;
 	onSubmit: () => void;
 	supportsRNBOVersion: boolean;
@@ -93,7 +92,6 @@ type PackageUploadConfirmFormProps = {
 const PackageUploadConfirmForm: FC<PackageUploadConfirmFormProps> = ({
 	conflicts,
 	info,
-	md5,
 	onCancel,
 	onSubmit,
 	supportsRNBOVersion,
@@ -139,12 +137,6 @@ const PackageUploadConfirmForm: FC<PackageUploadConfirmFormProps> = ({
 							readOnly
 							error={ !supportsTarget ? "The package does not support the runner's target id" : undefined }
 							value={ info.targets.keySeq().toArray().join("\n") }
-						/>
-						<TextInput
-							label="File MD5 Hash"
-							name="md5"
-							readOnly
-							value={ md5 }
 						/>
 					</Stack>
 				</Fieldset>
@@ -243,7 +235,6 @@ interface PackageUploadConfirmState {
 	conflicts: PackageUploadConflicts;
 	pkgInfo: PackageInfoRecord;
 	file: File;
-	md5: string;
 }
 
 interface PackageUploadUploadingState {
@@ -296,7 +287,6 @@ export const PackageUploadModal: FC<PackageUploadModalProps> = memo(function Wra
 			setUploadState({
 				conflicts: getPackageUploadConflicts(pkgInfo, datafiles, patcherExports, graphSets),
 				file,
-				md5: await getFileMD5Hash(file),
 				pkgInfo,
 				step: PackageUploadStep.Confirm
 			} as PackageUploadConfirmState);
@@ -314,7 +304,7 @@ export const PackageUploadModal: FC<PackageUploadModalProps> = memo(function Wra
 
 			setUploadState({ step: PackageUploadStep.Uploading, progress: 0 });
 
-			await axios.put(`http://localhost:3000/files/packages/current/${uploadState.file.name}`, uploadState.file, {
+			await axios.put(`http://${window.location.host}/files/packages/current/${uploadState.file.name}`, uploadState.file, {
 				headers: {
 					"Content-Type": uploadState.file.type
 				}
@@ -355,7 +345,6 @@ export const PackageUploadModal: FC<PackageUploadModalProps> = memo(function Wra
 			content = <PackageUploadConfirmForm
 				conflicts={ uploadState.conflicts }
 				info={ uploadState.pkgInfo }
-				md5={ uploadState.md5 }
 				onCancel={ onCancel }
 				onSubmit={ onSubmit }
 				supportsRNBOVersion={ uploadState.pkgInfo.supportsRNBOVersion(rnboVersion) }
