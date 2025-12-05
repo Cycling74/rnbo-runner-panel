@@ -6,7 +6,7 @@ import { IconElement } from "../elements/icon";
 import { mdiAlertCircleOutline, mdiClose, mdiFileExport, mdiFileMusic, mdiGroup, mdiLoading, mdiPackage, mdiUpload } from "@mdi/js";
 import { useAppSelector } from "../../hooks/useAppDispatch";
 import { TableHeaderCell } from "../elements/tableHeaderCell";
-import { ResourceType, RunnerFileType, SystemInfoKey } from "../../lib/constants";
+import { ResourceType, SystemInfoKey } from "../../lib/constants";
 import { FileDropZone, FileDropZoneProps } from "../page/fileDropZone";
 import { getRunnerInfoRecord } from "../../selectors/appStatus";
 import { PackageInfoRecord } from "../../models/packageInfo";
@@ -14,8 +14,8 @@ import { getPackageUploadConflicts, PackageUploadConflicts, readInfoFromPackageF
 import { getDataFiles } from "../../selectors/datafiles";
 import { getPatcherExports } from "../../selectors/patchers";
 import { getGraphSets } from "../../selectors/sets";
-import { installPackageOnRunner, writeFileToRunnerCmd } from "../../controller/cmd";
-import { getFileMD5Hash } from "../../lib/util";
+import { installPackageOnRunner } from "../../controller/cmd";
+import axios from "axios";
 
 const PACKAGE_MIME_TYPE: FileDropZoneProps["accept"] = {
 	"application/x-tar": [".rnbopack"]
@@ -313,15 +313,12 @@ export const PackageUploadModal: FC<PackageUploadModalProps> = memo(function Wra
 			}
 
 			setUploadState({ step: PackageUploadStep.Uploading, progress: 0 });
-			const uploadHash = await writeFileToRunnerCmd(
-				uploadState.file,
-				RunnerFileType.Package,
-				(progress: number) => setUploadState({ step: PackageUploadStep.Uploading, progress })
-			);
 
-			if (uploadHash !== uploadState.md5) {
-				throw new Error(`Upload failed due to a data mismatch! The hash of the transported data (${uploadHash}) does not match the file's hash.`);
-			}
+			await axios.put(`http://localhost:3000/files/packages/current/${uploadState.file.name}`, uploadState.file, {
+				headers: {
+					"Content-Type": uploadState.file.type
+				}
+			});
 
 			setUploadState({ step: PackageUploadStep.Installing });
 
