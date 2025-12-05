@@ -29,6 +29,7 @@
     "@mantine/modals": "^7.10.2",
     "@mdi/js": "^7.4.47",
     "@mdi/react": "^1.6.1",
+    "axios": "^1.13.2",
     "crypto-js": "^4.2.0",
     "dayjs": "^1.11.13",
     "immutable": "^4.0.0-rc.12",
@@ -50,6 +51,7 @@
     "uuid": "^9.0.1"
   },
   "devDependencies": {
+    "@types/axios": "^0.9.36",
     "@types/crypto-js": "^4.2.2",
     "@types/js-base64": "^3.3.1",
     "@types/lodash.debounce": "^4.0.9",
