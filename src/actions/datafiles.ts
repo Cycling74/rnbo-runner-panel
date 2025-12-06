@@ -7,8 +7,9 @@ import { DialogResult, showConfirmDialog } from "../lib/dialogs";
 import { getDataFiles, getPendingDataFileByFilename } from "../selectors/datafiles";
 import { DataRefRecord } from "../models/dataref";
 import { getPatcherInstanceDataRef } from "../selectors/patchers";
-import { deleteFileFromRunnerCmd, getFileListFromRunnerCmd, readFileFromRunnerCmd } from "../controller/cmd";
+import { getFileListFromRunnerCmd, readFileFromRunnerCmd } from "../controller/cmd";
 import { RunnerFileType } from "../lib/constants";
+import axios from "axios";
 
 export enum DataFilesActionType {
 	SET_ALL = "SET_DATAFILES",
@@ -156,7 +157,7 @@ export const deleteDataFileOnRemote = (file: DataFileRecord): AppThunk =>
 				return;
 			}
 
-			await deleteFileFromRunnerCmd(file.fileName, RunnerFileType.DataFile);
+			await axios.delete(`http://${window.location.host}/files/datafiles/${file.fileName}`);
 
 			dispatch(showNotification({
 				level: NotificationLevel.success,
