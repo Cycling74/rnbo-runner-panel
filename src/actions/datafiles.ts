@@ -123,10 +123,22 @@ export const updateDataFiles = (paths: string[]): AppThunk =>
 		}
 	};
 
+type FileListItem = {
+	name: string,
+	uri: string,
+	dir: boolean
+};
+
+type FileListResponse = {
+	filetype: string,
+	items: FileListItem[]
+};
+
 export const triggerDataFileListRefresh = (init: boolean = false): AppThunk =>
 	async (dispatch) => {
 		try {
-			const files = await getFileListFromRunnerCmd(RunnerFileType.DataFile);
+			const { data }: { data: FileListResponse } = await axios.get(`http://${window.location.host}/files/datafiles/`, { headers: { Accept: "application/json" }});
+			const files = data.items.filter(f => !f.dir).map(f => f.name);
 			dispatch(
 				init
 					? initDataFiles(files)
