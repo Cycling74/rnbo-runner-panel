@@ -190,12 +190,12 @@ export const deleteDataFileOnRemote = (file: DataFileRecord): AppThunk =>
 export const downloadDataFileFromRunner = (file: DataFileRecord): AppThunk =>
 	async (dispatch) => {
 		try {
-			const hash = await readFileFromRunnerCmd(file.fileName, RunnerFileType.DataFile);
-			dispatch(showNotification({
-				level: NotificationLevel.success,
-				title: "Finished Download",
-				message: `${file.fileName} has been downloaded successfully (hash: ${hash})`
-			}));
+			let link = document.createElement("a");
+			link.href = `http://${window.location.host}/files/datafiles/${file.fileName}`;
+			link.download = file.fileName;
+			document.body.appendChild(link);
+			link.click();
+			document.body.removeChild(link);
 		} catch (err) {
 			if (isUserAbortedError(err)) return; // User Aborted File Destination chooser
 
