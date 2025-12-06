@@ -154,6 +154,9 @@ export const DataFileUploadModal: FC<DataFileUploadModalProps> = memo(function W
 				await axios.put(`http://${window.location.host}/files/datafiles/${upload.file.name}`, upload.file, {
 					headers: {
 						"Content-Type": upload.file.type
+					},
+					onUploadProgress: ({ progress }) => {
+						setUploads(up => up.set(upload.id, { ...upload, progress: progress * 100 }));
 					}
 				});
 			} catch (err) {
