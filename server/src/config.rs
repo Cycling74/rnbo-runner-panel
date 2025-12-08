@@ -11,7 +11,7 @@ use {
 pub struct Config {
     pub filetype_paths: HashMap<String, PathBuf>,
     pub deleteable_filetypes: HashSet<String>,
-    pub package_dir: Option<PathBuf>,
+    pub _package_dir: Option<PathBuf>,
 }
 
 #[derive(Deserialize, Default)]
@@ -21,11 +21,10 @@ pub struct RunnerConfig {
     pub compile_cache_dir: Option<PathBuf>,
     pub package_dir: Option<PathBuf>,
     pub source_cache_dir: Option<PathBuf>,
-
-    pub save_dir: Option<PathBuf>,
+    //pub save_dir: Option<PathBuf>,
 
     //file path
-    pub db_path: Option<PathBuf>,
+    //pub db_path: Option<PathBuf>,
 }
 
 impl RunnerConfig {
@@ -47,18 +46,20 @@ impl Config {
     pub fn new(
         filetype_paths: HashMap<String, PathBuf>,
         deleteable_filetypes: HashSet<String>,
-        package_dir: Option<PathBuf>,
+        _package_dir: Option<PathBuf>,
     ) -> Self {
         Self {
             filetype_paths,
             deleteable_filetypes,
-            package_dir,
+            _package_dir,
         }
     }
 
+    /*
     pub fn package_dir(&self) -> &Option<PathBuf> {
         &self.package_dir
     }
+    */
 
     pub fn filetypelist(&self) -> Vec<String> {
         self.filetype_paths.keys().map(|k| k.to_string()).collect()

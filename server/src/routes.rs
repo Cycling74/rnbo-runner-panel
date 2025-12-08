@@ -179,8 +179,7 @@ mod file {
 mod package {
     use {
         super::PACKAGE_TIMEOUT,
-        crate::config::Config,
-        rocket::{State, get, http::Status, response::Redirect, uri},
+        rocket::{get, http::Status, response::Redirect, uri},
         serde::{Deserialize, Serialize},
         std::path::PathBuf,
         uuid::Uuid,
@@ -224,7 +223,7 @@ mod package {
     }
 
     impl PackageCmd {
-        fn all(config: PackageCreateConfig) -> Self {
+        fn all(_config: PackageCreateConfig) -> Self {
             PackageCmd {
                 method: "package_create",
                 id: Uuid::new_v4(),
