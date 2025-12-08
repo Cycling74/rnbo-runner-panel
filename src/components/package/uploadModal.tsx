@@ -15,7 +15,8 @@ import { getDataFiles } from "../../selectors/datafiles";
 import { getPatcherExports } from "../../selectors/patchers";
 import { getGraphSets } from "../../selectors/sets";
 import { installPackageOnRunner } from "../../controller/cmd";
-import axios from "axios";
+import { uploadFileToRemote } from "../../actions/files";
+import { RunnerFileType } from "../../lib/constants";
 
 const PACKAGE_MIME_TYPE: FileDropZoneProps["accept"] = {
 	"application/x-tar": [".rnbopack"]
@@ -304,11 +305,9 @@ export const PackageUploadModal: FC<PackageUploadModalProps> = memo(function Wra
 
 			setUploadState({ step: PackageUploadStep.Uploading, progress: 0 });
 
-			await axios.put(`http://${window.location.host}/files/packages/current/${uploadState.file.name}`, uploadState.file, {
-				headers: {
-					"Content-Type": uploadState.file.type
-				}
-			});
+			await uploadFileToRemote(RunnerFileType.Package, uploadState.file,
+				(progress) => setUploadState({ step: PackageUploadStep.Uploading, progress })
+			);
 
 			setUploadState({ step: PackageUploadStep.Installing });
 

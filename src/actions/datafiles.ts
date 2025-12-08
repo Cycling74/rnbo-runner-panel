@@ -7,7 +7,8 @@ import { DialogResult, showConfirmDialog } from "../lib/dialogs";
 import { getDataFiles, getPendingDataFileByFilename } from "../selectors/datafiles";
 import { DataRefRecord } from "../models/dataref";
 import { getPatcherInstanceDataRef } from "../selectors/patchers";
-import axios from "axios";
+import { getFileListFromRemote, deleteFileFromRemote } from "./files";
+import { RunnerFileType } from "../lib/constants";
 
 export enum DataFilesActionType {
 	SET_ALL = "SET_DATAFILES",
@@ -121,22 +122,11 @@ export const updateDataFiles = (paths: string[]): AppThunk =>
 		}
 	};
 
-type FileListItem = {
-	name: string,
-	uri: string,
-	dir: boolean
-};
-
-type FileListResponse = {
-	filetype: string,
-	items: FileListItem[]
-};
-
 export const triggerDataFileListRefresh = (init: boolean = false): AppThunk =>
 	async (dispatch) => {
 		try {
-			const { data }: { data: FileListResponse } = await axios.get(`http://${window.location.host}/files/datafiles/`, { headers: { Accept: "application/json" }});
-			const files = data.items.filter(f => !f.dir).map(f => f.name);
+			const list = await getFileListFromRemote(RunnerFileType.DataFile);
+			const files = list.items.filter(f => !f.dir).map(f => f.name);
 			dispatch(
 				init
 					? initDataFiles(files)
@@ -167,7 +157,7 @@ export const deleteDataFileOnRemote = (file: DataFileRecord): AppThunk =>
 				return;
 			}
 
-			await axios.delete(`http://${window.location.host}/files/datafiles/${file.fileName}`);
+			await deleteFileFromRemote(RunnerFileType.DataFile, file.fileName);
 
 			dispatch(showNotification({
 				level: NotificationLevel.success,

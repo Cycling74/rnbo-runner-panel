@@ -8,7 +8,8 @@ import { v4 } from "uuid";
 import { IconElement } from "../elements/icon";
 import { mdiAlertCircleOutline, mdiCheckCircleOutline, mdiClose, mdiFileMusic, mdiLoading, mdiProgressClock, mdiUpload } from "@mdi/js";
 import { FileDropZone } from "../page/fileDropZone";
-import axios from "axios";
+import { RunnerFileType } from "../../lib/constants";
+import { uploadFileToRemote } from "../../actions/files";
 
 const AUDIO_MIME_TYPE: Record<string, string[]> = {
 	"audio/aiff": [".aif", ".aiff"],
@@ -150,15 +151,10 @@ export const DataFileUploadModal: FC<DataFileUploadModalProps> = memo(function W
 		let errored = false;
 		for (const upload of uploads.valueSeq().toArray()) {
 			try {
-				// TODO do we want to check that our host is the same as the runner that we're targeting?
-				await axios.put(`http://${window.location.host}/files/datafiles/${upload.file.name}`, upload.file, {
-					headers: {
-						"Content-Type": upload.file.type
-					},
-					onUploadProgress: ({ progress }) => {
-						setUploads(up => up.set(upload.id, { ...upload, progress: progress * 100 }));
-					}
-				});
+				await uploadFileToRemote(
+					RunnerFileType.DataFile, upload.file,
+					( progress ) => setUploads(up => up.set(upload.id, { ...upload, progress }))
+				);
 			} catch (err) {
 				errored = true;
 				setUploads(up => up.set(upload.id, { ...upload, progress: 0, error: err }));
