@@ -10,6 +10,7 @@
 
 # Production Build
 out
+build
 
 # misc
 .DS_Store
