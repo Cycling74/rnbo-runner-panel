@@ -2,9 +2,7 @@ import * as Base64 from "js-base64";
 import Crypto from "crypto-js";
 import { RunnerChunkSize, RunnerCmdReadMethod, RunnerCmdResultCode, RunnerCmdWriteMethod, RunnerFileType } from "../lib/constants";
 import { oscQueryBridge, RunnerCmd } from "./oscqueryBridgeController";
-import { RunnerDeleteFileResponse, RunnerReadFileContentResponse, RunnerReadFileListResponse, RunnerReadFileListResult, RunnerReadFileContentResult, RunnerCreatePackageResult, RunnerCreatePackageResponse, RunnerInstallPackageResponse, RunnerInstallPackageResult } from "../lib/types";
-import { PatcherExportRecord } from "../models/patcher";
-import { GraphSetRecord } from "../models/set";
+import { RunnerDeleteFileResponse, RunnerReadFileContentResponse, RunnerReadFileListResponse, RunnerReadFileListResult, RunnerReadFileContentResult, RunnerInstallPackageResponse, RunnerInstallPackageResult } from "../lib/types";
 
 // Read CMDs
 export const getFileListFromRunnerCmd = async (filetype: RunnerFileType): Promise<string[]> => {
@@ -57,33 +55,6 @@ export const deleteFileFromRunnerCmd = async (filename: string, filetype: Runner
 
 	return success;
 };
-
-export async function createPackageOnRunner(patcher: PatcherExportRecord): Promise<RunnerCreatePackageResult>;
-export async function createPackageOnRunner(set: GraphSetRecord): Promise<RunnerCreatePackageResult>;
-export async function createPackageOnRunner(item: PatcherExportRecord | GraphSetRecord): Promise<RunnerCreatePackageResult> {
-
-
-	const params = item instanceof PatcherExportRecord
-		? { patcher: item.name }
-		: { set: item.name };
-
-	const cmd = new RunnerCmd(RunnerCmdReadMethod.CreatePackage, params);
-
-	const stream = oscQueryBridge.getCmdReadableStream<RunnerCreatePackageResponse>(cmd);
-	const reader = stream.getReader();
-	let result: RunnerCreatePackageResult | undefined = undefined;
-
-	while (true) {
-		const { done, value } = await reader.read();
-		if (done) break;
-		if (value.code === RunnerCmdResultCode.Success) {
-			result = value;
-		}
-	}
-
-	if (!result) throw new Error("Missing success response when attempting to create package.");
-	return result;
-}
 
 export async function installPackageOnRunner(packageFilename: string): Promise<RunnerInstallPackageResult> {
 

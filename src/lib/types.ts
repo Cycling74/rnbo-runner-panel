@@ -76,14 +76,6 @@ export type RunnerReadFileListResult = RunnerCmdResult<{
 
 export type RunnerReadFileListResponse = RunnerCmdResponse<RunnerReadFileListResult>;
 
-export type RunnerCreatePackageResult = RunnerCmdResult<{
-	message: "completed",
-	packagename: string;
-	filename: string;
-}>;
-
-export type RunnerCreatePackageResponse = RunnerCmdResponse<RunnerCreatePackageResult>;
-
 export type RunnerInstallPackageResult = RunnerCmdResult<{
 	message: "completed",
 	packagename: string;

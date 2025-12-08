@@ -45,7 +45,7 @@ export const PatcherManagementView: FC = memo(function WrappedPatcherView() {
 
 	const onDownloadPatcher = useCallback(async (patcher: PatcherExportRecord) => {
 		await getPackageFromRemote(PackageType.Patcher, patcher.name);
-	}, [dispatch]);
+	}, []);
 
 	if (!hasPatchers) {
 		return (

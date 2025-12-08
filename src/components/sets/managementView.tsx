@@ -52,7 +52,7 @@ const SetManagementView: FC = memo(function WrappedSetsView() {
 
 	const onDownloadSet = useCallback(async (set: GraphSetRecord) => {
 		await getPackageFromRemote(PackageType.Set, set.name);
-	}, [dispatch]);
+	}, []);
 
 	const onConfigureStartupSet = useCallback(() => {
 		dispatch(triggerStartupGraphSetDialog());

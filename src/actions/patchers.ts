@@ -15,12 +15,11 @@ import { AppSetting } from "../models/settings";
 import { DataRefRecord } from "../models/dataref";
 import { DataFileRecord } from "../models/datafile";
 import { PatcherExportRecord } from "../models/patcher";
-import { cloneJSON, dayjs, getUniqueName, InvalidMIDIFormatError, isUserAbortedError, parseMIDIMappingDisplayValue, UnknownMIDIFormatError, validateDataRefExportFilename, validatePatcherInstanceAlias, validatePresetName } from "../lib/util";
-import { MIDIMetaMappingType, RunnerFileType } from "../lib/constants";
+import { cloneJSON, dayjs, getUniqueName, InvalidMIDIFormatError, parseMIDIMappingDisplayValue, UnknownMIDIFormatError, validateDataRefExportFilename, validatePatcherInstanceAlias, validatePresetName } from "../lib/util";
+import { MIDIMetaMappingType } from "../lib/constants";
 import { DialogResult, showConfirmDialog, showTextInputDialog } from "../lib/dialogs";
 import { addPendingDataFile } from "./datafiles";
 import { getDataFileByFilename, getPendingDataFileByFilename } from "../selectors/datafiles";
-import { createPackageOnRunner } from "../controller/cmd";
 import { getCurrentPathname } from "../routes";
 
 export enum PatcherActionType {
