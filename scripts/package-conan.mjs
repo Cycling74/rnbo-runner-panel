@@ -7,4 +7,4 @@ const basedir = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const version = process.env.PKG_VERSION || readPkgInfoVersion(join(basedir, "package.json"));
 const tag = "c74/testing";
 
-execSync(`conan create . ${version}@${tag}`);
+execSync(`conan create . ${version}@${tag} -s os=Linux -s arch=armv8`);

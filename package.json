@@ -14,7 +14,6 @@
     "package-debian": "node scripts/package-linux.mjs --debian ./debian/ armv7-unknown-linux-gnueabihf",
     "prepackage-linux": "npm run build && cd server && cross build --target aarch64-unknown-linux-gnu --release",
     "package-linux": "node scripts/package-linux.mjs ./build/ aarch64-unknown-linux-gnu",
-    "prepackage-conan": "npm run package-linux",
     "package-conan": "node scripts/package-conan.mjs",
     "preversion": "eslint ./src --report-unused-disable-directives --max-warnings 5",
     "postversion": "node scripts/apply-version.mjs",
