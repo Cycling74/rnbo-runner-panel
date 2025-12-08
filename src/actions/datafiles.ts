@@ -7,7 +7,7 @@ import { DialogResult, showConfirmDialog } from "../lib/dialogs";
 import { getDataFiles, getPendingDataFileByFilename } from "../selectors/datafiles";
 import { DataRefRecord } from "../models/dataref";
 import { getPatcherInstanceDataRef } from "../selectors/patchers";
-import { getFileListFromRemote, deleteFileFromRemote } from "./files";
+import { getFileListFromRemote, deleteFileFromRemote, downloadFileFromRemote } from "./files";
 import { RunnerFileType } from "../lib/constants";
 
 export enum DataFilesActionType {
@@ -178,12 +178,7 @@ export const deleteDataFileOnRemote = (file: DataFileRecord): AppThunk =>
 export const downloadDataFileFromRunner = (file: DataFileRecord): AppThunk =>
 	async (dispatch) => {
 		try {
-			const link = document.createElement("a");
-			link.href = `http://${window.location.host}/files/datafiles/${file.fileName}`;
-			link.download = file.fileName;
-			document.body.appendChild(link);
-			link.click();
-			document.body.removeChild(link);
+			await downloadFileFromRemote(RunnerFileType.DataFile, file.fileName);
 		} catch (err) {
 			if (isUserAbortedError(err)) return; // User Aborted File Destination chooser
 
