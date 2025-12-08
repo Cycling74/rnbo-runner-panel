@@ -7,8 +7,6 @@ import { DialogResult, showConfirmDialog } from "../lib/dialogs";
 import { getDataFiles, getPendingDataFileByFilename } from "../selectors/datafiles";
 import { DataRefRecord } from "../models/dataref";
 import { getPatcherInstanceDataRef } from "../selectors/patchers";
-import { getFileListFromRunnerCmd, readFileFromRunnerCmd } from "../controller/cmd";
-import { RunnerFileType } from "../lib/constants";
 import axios from "axios";
 
 export enum DataFilesActionType {
@@ -190,7 +188,7 @@ export const deleteDataFileOnRemote = (file: DataFileRecord): AppThunk =>
 export const downloadDataFileFromRunner = (file: DataFileRecord): AppThunk =>
 	async (dispatch) => {
 		try {
-			let link = document.createElement("a");
+			const link = document.createElement("a");
 			link.href = `http://${window.location.host}/files/datafiles/${file.fileName}`;
 			link.download = file.fileName;
 			document.body.appendChild(link);
@@ -201,7 +199,7 @@ export const downloadDataFileFromRunner = (file: DataFileRecord): AppThunk =>
 
 			dispatch(showNotification({
 				level: NotificationLevel.error,
-				title: `Error while trying to download audio file ${file.fileName}`,
+				title: `Error while trying to download data file ${file.fileName}`,
 				message: "Please check the console for further details."
 			}));
 			console.log(err);
