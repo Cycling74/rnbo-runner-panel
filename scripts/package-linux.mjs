@@ -19,6 +19,7 @@ rmSync(join(outdir, "usr"), { recursive: true, force: true });
 
 copySync(join(basedir, "out"), join(outdir, "usr", "share", name, "www"), { overwrite: true } );
 copySync(join(serverdir, "templates"), join(outdir, "usr", "share", name, "templates"), { overwrite: true } );
+copySync(join(serverdir, "Rocket.toml"), join(outdir, "usr", "share", name, "Rocket.toml"), { overwrite: true } );
 copySync(join(serverdir, "target", target, "release", name), join(outdir, "usr", "bin", name), { overwrite: true } );
 
 // do debian specific packaging
