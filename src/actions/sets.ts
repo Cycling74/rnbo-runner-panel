@@ -617,31 +617,6 @@ export const saveCurrentGraphSetOnRemoteAs = (): AppThunk =>
 		}
 	};
 
-export const downloadGraphSetFromRemote = (set: GraphSetRecord): AppThunk =>
-	async (dispatch, getState) => {
-		try {
-
-			const pkgResult = await createPackageOnRunner(set);
-			const hash = await readFileFromRunnerCmd(pkgResult.filename, RunnerFileType.Package);
-
-			dispatch(showNotification({
-				level: NotificationLevel.success,
-				title: "Finished Download",
-				message: `Graph ackage ${set.name} has been downloaded successfully (hash: ${hash})`
-			}));
-
-		} catch (err) {
-			if (isUserAbortedError(err)) return; // User Aborted File Destination chooser
-
-			dispatch(showNotification({
-				level: NotificationLevel.error,
-				title: `Error while trying to download graph ${set.name}`,
-				message: "Please check the console for further details."
-			}));
-			console.log(err);
-		}
-	};
-
 export const initSetPresets = (names: string[]): GraphSetAction => {
 	return {
 		type: GraphSetActionType.INIT_SET_PRESETS,

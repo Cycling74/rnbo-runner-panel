@@ -4,11 +4,13 @@ import { PatcherSortAttr, SortOrder } from "../../lib/constants";
 import { useAppDispatch, useAppSelector } from "../../hooks/useAppDispatch";
 import { getHasPatcherExports, getSortedPatcherExports } from "../../selectors/patchers";
 import { RootStateType } from "../../lib/store";
-import { destroyPatcherOnRemote, downloadPatcherFromRemote, renamePatcherOnRemote } from "../../actions/patchers";
+import { destroyPatcherOnRemote, renamePatcherOnRemote } from "../../actions/patchers";
 import { PatcherExportRecord } from "../../models/patcher";
 import { TableHeaderCell } from "../elements/tableHeaderCell";
 import { PatcherItem } from "./item";
 import { SearchInput } from "../page/searchInput";
+import { PackageType } from "../../models/package";
+import { getPackageFromRemote } from "../../actions/packages";
 
 export const PatcherManagementView: FC = memo(function WrappedPatcherView() {
 
@@ -41,8 +43,8 @@ export const PatcherManagementView: FC = memo(function WrappedPatcherView() {
 		dispatch(renamePatcherOnRemote(patcher, newName));
 	}, [dispatch]);
 
-	const onDownloadPatcher = useCallback((patcher: PatcherExportRecord) => {
-		dispatch(downloadPatcherFromRemote(patcher));
+	const onDownloadPatcher = useCallback(async (patcher: PatcherExportRecord) => {
+		await getPackageFromRemote(PackageType.Patcher, patcher.name);
 	}, [dispatch]);
 
 	if (!hasPatchers) {

@@ -8,9 +8,11 @@ import { RootStateType } from "../../lib/store";
 import { SortOrder } from "../../lib/constants";
 import { getCurrentGraphSetId, getGraphSetsSortedByName, getInitialGraphSet } from "../../selectors/sets";
 import { SearchInput } from "../page/searchInput";
-import { destroyGraphSetOnRemote, downloadGraphSetFromRemote, loadGraphSetOnRemote, overwriteGraphSetOnRemote, renameGraphSetOnRemote, triggerStartupGraphSetDialog } from "../../actions/sets";
+import { destroyGraphSetOnRemote, loadGraphSetOnRemote, overwriteGraphSetOnRemote, renameGraphSetOnRemote, triggerStartupGraphSetDialog } from "../../actions/sets";
 import { IconElement } from "../elements/icon";
 import { mdiStarCog } from "@mdi/js";
+import { PackageType } from "../../models/package";
+import { getPackageFromRemote } from "../../actions/packages";
 
 const SetManagementView: FC = memo(function WrappedSetsView() {
 
@@ -48,8 +50,8 @@ const SetManagementView: FC = memo(function WrappedSetsView() {
 		dispatch(overwriteGraphSetOnRemote(set));
 	}, [dispatch]);
 
-	const onDownloadSet = useCallback((set: GraphSetRecord) => {
-		dispatch(downloadGraphSetFromRemote(set));
+	const onDownloadSet = useCallback(async (set: GraphSetRecord) => {
+		await getPackageFromRemote(PackageType.Set, set.name);
 	}, [dispatch]);
 
 	const onConfigureStartupSet = useCallback(() => {

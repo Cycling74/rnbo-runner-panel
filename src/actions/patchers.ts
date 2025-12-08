@@ -20,7 +20,7 @@ import { MIDIMetaMappingType, RunnerFileType } from "../lib/constants";
 import { DialogResult, showConfirmDialog, showTextInputDialog } from "../lib/dialogs";
 import { addPendingDataFile } from "./datafiles";
 import { getDataFileByFilename, getPendingDataFileByFilename } from "../selectors/datafiles";
-import { createPackageOnRunner, readFileFromRunnerCmd } from "../controller/cmd";
+import { createPackageOnRunner } from "../controller/cmd";
 import { getCurrentPathname } from "../routes";
 
 export enum PatcherActionType {
@@ -268,30 +268,6 @@ export const renamePatcherOnRemote = (patcher: PatcherExportRecord, newName: str
 				message: "Please check the console for further details."
 			}));
 			console.error(err);
-		}
-	};
-
-export const downloadPatcherFromRemote = (patcher: PatcherExportRecord): AppThunk =>
-	async (dispatch, getState) => {
-		try {
-
-			const pkgResult = await createPackageOnRunner(patcher);
-			const hash = await readFileFromRunnerCmd(pkgResult.filename, RunnerFileType.Package);
-			dispatch(showNotification({
-				level: NotificationLevel.success,
-				title: "Finished Download",
-				message: `Patcher ${patcher.name} has been downloaded successfully (hash: ${hash})`
-			}));
-
-		} catch (err) {
-			if (isUserAbortedError(err)) return; // User Aborted File Destination chooser
-
-			dispatch(showNotification({
-				level: NotificationLevel.error,
-				title: `Error while trying to download patcher ${patcher.name}`,
-				message: "Please check the console for further details."
-			}));
-			console.log(err);
 		}
 	};
 
