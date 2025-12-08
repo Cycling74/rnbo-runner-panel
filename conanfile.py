@@ -7,7 +7,7 @@ class RNBORunnerPanelConan(ConanFile):
 	url = "https://github.com/Cycling74/rnbo-runner-panel"
 	settings = None
 	license = "MIT"
-	#compiler is always rustc, this package holds and executable and not something to be linked to
+	#compiler is always rustc, this package holds an executable and not something to be linked to
 	settings = { "os": ["Linux"], "arch": "armv8" }
 	exports_sources = "*", "!build","!out", "!node_modules", "!server/target"
 
