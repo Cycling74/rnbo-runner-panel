@@ -15,6 +15,7 @@ import { mdiUpload } from "@mdi/js";
 import { TableHeaderCell } from "../elements/tableHeaderCell";
 import { DataFileListItem } from "./item";
 import { SearchInput } from "../page/searchInput";
+import { getRunnerOrigin } from "../../selectors/appStatus";
 
 export const DataFileManagementView: FC = memo(function WrappedDataFileView() {
 
@@ -23,7 +24,11 @@ export const DataFileManagementView: FC = memo(function WrappedDataFileView() {
 	const [searchValue, setSearchValue] = useState<string>("");
 
 	const dispatch = useAppDispatch();
-	const [files] = useAppSelector((state: RootStateType) => [
+	const [
+		origin,
+		files
+	] = useAppSelector((state: RootStateType) => [
+		getRunnerOrigin(state),
 		getDataFilesSortedByName(state, sortOrder, searchValue)
 	]);
 
@@ -54,7 +59,7 @@ export const DataFileManagementView: FC = memo(function WrappedDataFileView() {
 					</ActionIcon>
 				</Tooltip>
 			</Group>
-			{ showUploadModal ? <DataFileUploadModal maxFileCount={ 10 } onClose={ uploadModalHandlers.close } onUploadSuccess={ onFileUploadSuccess } /> : null }
+			{ showUploadModal ? <DataFileUploadModal origin={ origin } maxFileCount={ 10 } onClose={ uploadModalHandlers.close } onUploadSuccess={ onFileUploadSuccess } /> : null }
 			<Table verticalSpacing="sm" maw="100%" layout="fixed" highlightOnHover>
 				<Table.Thead>
 					<Table.Tr>

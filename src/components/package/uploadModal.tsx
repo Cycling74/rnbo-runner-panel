@@ -8,14 +8,14 @@ import { useAppSelector } from "../../hooks/useAppDispatch";
 import { TableHeaderCell } from "../elements/tableHeaderCell";
 import { ResourceType, SystemInfoKey } from "../../lib/constants";
 import { FileDropZone, FileDropZoneProps } from "../page/fileDropZone";
-import { getRunnerInfoRecord } from "../../selectors/appStatus";
+import { getRunnerInfoRecord, getRunnerOrigin } from "../../selectors/appStatus";
 import { PackageInfoRecord } from "../../models/packageInfo";
 import { getPackageUploadConflicts, PackageUploadConflicts, readInfoFromPackageFile } from "../../lib/package";
 import { getDataFiles } from "../../selectors/datafiles";
 import { getPatcherExports } from "../../selectors/patchers";
 import { getGraphSets } from "../../selectors/sets";
 import { installPackageOnRunner } from "../../controller/cmd";
-import { uploadFileToRemote } from "../../actions/files";
+import { uploadFileToRemote } from "../../lib/files";
 import { RunnerFileType } from "../../lib/constants";
 
 const PACKAGE_MIME_TYPE: FileDropZoneProps["accept"] = {
@@ -265,12 +265,14 @@ export const PackageUploadModal: FC<PackageUploadModalProps> = memo(function Wra
 	const [uploadState, setUploadState] = useState<PackageUploadState>({ step: PackageUploadStep.Select });
 
 	const [
+		origin,
 		datafiles,
 		patcherExports,
 		graphSets,
 		rnboVersion,
 		targetId
 	] = useAppSelector((state) => [
+		getRunnerOrigin(state),
 		getDataFiles(state),
 		getPatcherExports(state),
 		getGraphSets(state),
@@ -305,7 +307,9 @@ export const PackageUploadModal: FC<PackageUploadModalProps> = memo(function Wra
 
 			setUploadState({ step: PackageUploadStep.Uploading, progress: 0 });
 
-			await uploadFileToRemote(RunnerFileType.Package, uploadState.file,
+			await uploadFileToRemote(
+				origin,
+				RunnerFileType.Package, uploadState.file,
 				(progress) => setUploadState({ step: PackageUploadStep.Uploading, progress })
 			);
 
@@ -318,7 +322,7 @@ export const PackageUploadModal: FC<PackageUploadModalProps> = memo(function Wra
 			console.error(err);
 			setUploadState({ error: err, step: PackageUploadStep.Error });
 		}
-	}, [setUploadState, uploadState]);
+	}, [origin, setUploadState, uploadState]);
 
 	const onCancel = useCallback(() => {
 		setUploadState({ step: PackageUploadStep.Select });

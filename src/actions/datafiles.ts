@@ -7,8 +7,9 @@ import { DialogResult, showConfirmDialog } from "../lib/dialogs";
 import { getDataFiles, getPendingDataFileByFilename } from "../selectors/datafiles";
 import { DataRefRecord } from "../models/dataref";
 import { getPatcherInstanceDataRef } from "../selectors/patchers";
-import { getFileListFromRemote, deleteFileFromRemote, downloadFileFromRemote } from "./files";
+import { getFileListFromRemote, deleteFileFromRemote, downloadFileFromRemote } from "../lib/files";
 import { RunnerFileType } from "../lib/constants";
+import { getRunnerOrigin } from "../selectors/appStatus";
 
 export enum DataFilesActionType {
 	SET_ALL = "SET_DATAFILES",
@@ -123,9 +124,9 @@ export const updateDataFiles = (paths: string[]): AppThunk =>
 	};
 
 export const triggerDataFileListRefresh = (init: boolean = false): AppThunk =>
-	async (dispatch) => {
+	async (dispatch, getState) => {
 		try {
-			const list = await getFileListFromRemote(RunnerFileType.DataFile);
+			const list = await getFileListFromRemote(getRunnerOrigin(getState()), RunnerFileType.DataFile);
 			const files = list.items.filter(f => !f.dir).map(f => f.name);
 			dispatch(
 				init
@@ -143,7 +144,7 @@ export const triggerDataFileListRefresh = (init: boolean = false): AppThunk =>
 	};
 
 export const deleteDataFileOnRemote = (file: DataFileRecord): AppThunk =>
-	async (dispatch) => {
+	async (dispatch, getState) => {
 		try {
 
 			const dialogResult = await showConfirmDialog({
@@ -157,7 +158,7 @@ export const deleteDataFileOnRemote = (file: DataFileRecord): AppThunk =>
 				return;
 			}
 
-			await deleteFileFromRemote(RunnerFileType.DataFile, file.fileName);
+			await deleteFileFromRemote(getRunnerOrigin(getState()), RunnerFileType.DataFile, file.fileName);
 
 			dispatch(showNotification({
 				level: NotificationLevel.success,
@@ -176,9 +177,9 @@ export const deleteDataFileOnRemote = (file: DataFileRecord): AppThunk =>
 	};
 
 export const downloadDataFileFromRunner = (file: DataFileRecord): AppThunk =>
-	async (dispatch) => {
+	async (dispatch, getState) => {
 		try {
-			await downloadFileFromRemote(RunnerFileType.DataFile, file.fileName);
+			await downloadFileFromRemote(getRunnerOrigin(getState()), RunnerFileType.DataFile, file.fileName);
 		} catch (err) {
 			if (isUserAbortedError(err)) return; // User Aborted File Destination chooser
 

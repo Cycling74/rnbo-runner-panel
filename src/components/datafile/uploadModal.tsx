@@ -9,7 +9,7 @@ import { IconElement } from "../elements/icon";
 import { mdiAlertCircleOutline, mdiCheckCircleOutline, mdiClose, mdiFileMusic, mdiLoading, mdiProgressClock, mdiUpload } from "@mdi/js";
 import { FileDropZone } from "../page/fileDropZone";
 import { RunnerFileType } from "../../lib/constants";
-import { uploadFileToRemote } from "../../actions/files";
+import { uploadFileToRemote } from "../../lib/files";
 
 const AUDIO_MIME_TYPE: Record<string, string[]> = {
 	"audio/aiff": [".aif", ".aiff"],
@@ -113,6 +113,7 @@ enum UploadStep {
 }
 
 export type DataFileUploadModalProps = {
+	origin: string;
 	maxFileCount?: number;
 	onClose: () => any;
 	onUploadSuccess: (files: UploadFile[]) => any;
@@ -120,6 +121,7 @@ export type DataFileUploadModalProps = {
 
 
 export const DataFileUploadModal: FC<DataFileUploadModalProps> = memo(function WrappedDataFileUploadModal({
+	origin,
 	onClose,
 	onUploadSuccess,
 	maxFileCount = 1
@@ -152,6 +154,7 @@ export const DataFileUploadModal: FC<DataFileUploadModalProps> = memo(function W
 		for (const upload of uploads.valueSeq().toArray()) {
 			try {
 				await uploadFileToRemote(
+					origin,
 					RunnerFileType.DataFile, upload.file,
 					( progress ) => setUploads(up => up.set(upload.id, { ...upload, progress }))
 				);
@@ -167,7 +170,7 @@ export const DataFileUploadModal: FC<DataFileUploadModalProps> = memo(function W
 			setUploads(ImmuMap<UploadFile["id"], UploadFile>());
 			setStep(UploadStep.Select);
 		}
-	}, [setStep, uploads, setUploads, onUploadSuccess]);
+	}, [origin, setStep, uploads, setUploads, onUploadSuccess]);
 
 	const onTriggerClose = useCallback(() => {
 		if (step === UploadStep.Uploading) return;

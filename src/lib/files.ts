@@ -16,15 +16,15 @@ const fileTypeSubdir = (fileType: RunnerFileType): string => {
 
 export type progressCallback = (progress: number) => void;
 
-export const deleteFileFromRemote = async (fileType: RunnerFileType, fileName: string) => {
+export const deleteFileFromRemote = async (origin: string, fileType: RunnerFileType, fileName: string) => {
 	const subdir = fileTypeSubdir(fileType);
-	await axios.delete(`http://${window.location.host}/files/${subdir}/${fileName}`);
+	await axios.delete(`${origin}/files/${subdir}/${fileName}`);
 };
 
-export const getFileListFromRemote = async (fileType: RunnerFileType) => {
+export const getFileListFromRemote = async (origin: string, fileType: RunnerFileType) => {
 	const subdir = fileTypeSubdir(fileType);
 	const { data }: { data: FileList } = await axios.get(
-		`http://${window.location.host}/files/${subdir}/`,
+		`${origin}/files/${subdir}/`,
 		{
 			headers: { Accept: "application/json" }
 		}
@@ -32,19 +32,19 @@ export const getFileListFromRemote = async (fileType: RunnerFileType) => {
 	return data;
 };
 
-export const downloadFileFromRemote = async (fileType: RunnerFileType, fileName: string) => {
+export const downloadFileFromRemote = async (origin: string, fileType: RunnerFileType, fileName: string) => {
 	const subdir = fileTypeSubdir(fileType);
 	const link = document.createElement("a");
-	link.href = `http://${window.location.host}/files/${subdir}/${fileName}`;
+	link.href = `${origin}/files/${subdir}/${fileName}`;
 	link.download = fileName;
 	document.body.appendChild(link);
 	link.click();
 	document.body.removeChild(link);
 };
 
-export const uploadFileToRemote = async (fileType: RunnerFileType, upload: FileWithPath, onProgress?: progressCallback) => {
+export const uploadFileToRemote = async (origin: string, fileType: RunnerFileType, upload: FileWithPath, onProgress?: progressCallback) => {
 	const subdir = fileTypeSubdir(fileType);
-	await axios.put(`http://${window.location.host}/files/${subdir}/${upload.name}`, upload, {
+	await axios.put(`${origin}/files/${subdir}/${upload.name}`, upload, {
 		headers: {
 			"Content-Type": upload.type
 		},
