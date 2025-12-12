@@ -8,6 +8,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "changeset": "changeset",
     "lint": "eslint ./src --report-unused-disable-directives --max-warnings 5",
     "prepackage-debian": "npm run build",
     "package-debian": "node scripts/package-linux.mjs --debian ./debian/",
@@ -18,6 +19,7 @@
     "preversion": "eslint ./src --report-unused-disable-directives --max-warnings 5"
   },
   "dependencies": {
+    "@changesets/cli": "^2.29.8",
     "@dagrejs/dagre": "^1.1.4",
     "@mantine/core": "^7.10.2",
     "@mantine/dropzone": "^7.10.2",
