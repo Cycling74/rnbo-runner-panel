@@ -10,10 +10,11 @@ export const getAppStatus = (state: RootStateType): AppStatus => state.appStatus
 export const getAppStatusError = (state: RootStateType): Error | undefined => state.appStatus.error;
 
 export const getShowEndpointInfoModal = (state: RootStateType): boolean => state.appStatus.showEndpointInfo;
-export const getRunnerEndpoint = (state: RootStateType): { hostname: string; port: string; }  => state.appStatus.endpoint;
+export const getRunnerAPIEndpoint = (state: RootStateType): { hostname: string; port: string; }  => state.appStatus.endpoint;
 export const getRunnerOrigin = (state: RootStateType): string => {
 	const endpoint = state.appStatus.endpoint;
-	return `http://${endpoint.hostname}:${endpoint.port}`;
+	// Currently the Rust Server API Endpoint is served on port 3000
+	return `http://${endpoint.hostname}:3000`;
 };
 
 export const getRunnerInfoRecords = (state: RootStateType): ImmuMap<RunnerInfoRecord["id"], RunnerInfoRecord>  => state.appStatus.runnerInfo;

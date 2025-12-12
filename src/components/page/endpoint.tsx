@@ -3,7 +3,7 @@ import { ChangeEvent, FormEvent, FunctionComponent, MouseEvent, memo, useCallbac
 import { useAppDispatch, useAppSelector } from "../../hooks/useAppDispatch";
 import { RootStateType } from "../../lib/store";
 import { useIsMobileDevice } from "../../hooks/useIsMobileDevice";
-import { getAppStatus, getRunnerEndpoint, getShowEndpointInfoModal, getRunnerInfoRecords } from "../../selectors/appStatus";
+import { getAppStatus, getRunnerAPIEndpoint, getShowEndpointInfoModal, getRunnerInfoRecords } from "../../selectors/appStatus";
 import { hideEndpointInfo } from "../../actions/appStatus";
 import { AppStatus, JackInfoKey, SystemInfoKey } from "../../lib/constants";
 import { showSettings } from "../../actions/settings";
@@ -98,7 +98,7 @@ const EndpointInfo: FunctionComponent = memo(function WrappedSettings() {
 		runnerInfoRecords
 	] = useAppSelector((state: RootStateType) => [
 		getShowEndpointInfoModal(state),
-		getRunnerEndpoint(state),
+		getRunnerAPIEndpoint(state),
 		getAppStatus(state),
 		getRunnerInfoRecords(state)
 	]);
