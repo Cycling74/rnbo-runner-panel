@@ -9,8 +9,9 @@ import { PatcherExportRecord } from "../../models/patcher";
 import { TableHeaderCell } from "../elements/tableHeaderCell";
 import { PatcherItem } from "./item";
 import { SearchInput } from "../page/searchInput";
-import { PackageType } from "../../models/package";
-import { getPackageFromRemote } from "../../actions/packages";
+import { PackageType } from "../../lib/constants";
+import { getPackageFromRemote } from "../../lib/package";
+import { getRunnerOrigin } from "../../selectors/appStatus";
 
 export const PatcherManagementView: FC = memo(function WrappedPatcherView() {
 
@@ -20,9 +21,11 @@ export const PatcherManagementView: FC = memo(function WrappedPatcherView() {
 	const dispatch = useAppDispatch();
 
 	const [
+		origin,
 		hasPatchers,
 		patchers
 	] = useAppSelector((state: RootStateType) => [
+		getRunnerOrigin(state),
 		getHasPatcherExports(state),
 		getSortedPatcherExports(state, sortAttr, sortOrder, searchValue)
 	]);
@@ -44,8 +47,8 @@ export const PatcherManagementView: FC = memo(function WrappedPatcherView() {
 	}, [dispatch]);
 
 	const onDownloadPatcher = useCallback(async (patcher: PatcherExportRecord) => {
-		await getPackageFromRemote(PackageType.Patcher, patcher.name);
-	}, []);
+		await getPackageFromRemote(origin, PackageType.Patcher, patcher.name);
+	}, [origin]);
 
 	if (!hasPatchers) {
 		return (

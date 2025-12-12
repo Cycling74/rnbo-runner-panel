@@ -204,3 +204,9 @@ export enum RNBOJackPortPropertyKey {
 }
 
 export const UnsavedSetName = "(untitled)";
+
+export enum PackageType {
+	Set,
+	Patcher,
+	All
+}

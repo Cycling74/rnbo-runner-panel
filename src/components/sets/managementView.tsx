@@ -11,8 +11,9 @@ import { SearchInput } from "../page/searchInput";
 import { destroyGraphSetOnRemote, loadGraphSetOnRemote, overwriteGraphSetOnRemote, renameGraphSetOnRemote, triggerStartupGraphSetDialog } from "../../actions/sets";
 import { IconElement } from "../elements/icon";
 import { mdiStarCog } from "@mdi/js";
-import { PackageType } from "../../models/package";
-import { getPackageFromRemote } from "../../actions/packages";
+import { PackageType } from "../../lib/constants";
+import { getPackageFromRemote } from "../../lib/package";
+import { getRunnerOrigin } from "../../selectors/appStatus";
 
 const SetManagementView: FC = memo(function WrappedSetsView() {
 
@@ -21,10 +22,12 @@ const SetManagementView: FC = memo(function WrappedSetsView() {
 	const dispatch = useAppDispatch();
 
 	const [
+		origin,
 		sets,
 		currentSetId,
 		initialGraphSet
 	] = useAppSelector((state: RootStateType) => [
+		getRunnerOrigin(state),
 		getGraphSetsSortedByName(state, sortOrder, searchValue),
 		getCurrentGraphSetId(state),
 		getInitialGraphSet(state)
@@ -51,8 +54,8 @@ const SetManagementView: FC = memo(function WrappedSetsView() {
 	}, [dispatch]);
 
 	const onDownloadSet = useCallback(async (set: GraphSetRecord) => {
-		await getPackageFromRemote(PackageType.Set, set.name);
-	}, []);
+		await getPackageFromRemote(origin, PackageType.Set, set.name);
+	}, [origin]);
 
 	const onConfigureStartupSet = useCallback(() => {
 		dispatch(triggerStartupGraphSetDialog());

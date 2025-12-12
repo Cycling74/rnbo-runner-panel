@@ -7,6 +7,7 @@ import { DataFileRecord } from "../models/datafile";
 import { PatcherExportRecord } from "../models/patcher";
 import { GraphSetRecord } from "../models/set";
 import { PackageInfoRecord } from "../models/packageInfo";
+import { PackageType } from "../lib/constants";
 
 export async function readInfoFromPackageFile(file: File): Promise<RunnerPackageInfo> {
 
@@ -72,4 +73,26 @@ export const getPackageUploadConflicts = (
 			.filter(s => !!s)
 			.toArray() || []
 	};
+};
+
+export const getPackageFromRemote = async (origin: string, packageType: PackageType, itemName?: string) => {
+	const link = document.createElement("a");
+	let target;
+	switch (packageType) {
+		case PackageType.All:
+			target = "all";
+			break;
+		case PackageType.Patcher:
+			target = `patchers/${itemName!}`;
+			break;
+		case PackageType.Set:
+			target = `graphs/${itemName!}`;
+			break;
+		default:
+			throw new Error(`${packageType} download not implemented`);
+	}
+	link.href = `${origin}/packages/${target}`;
+	document.body.appendChild(link);
+	link.click();
+	document.body.removeChild(link);
 };
