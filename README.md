@@ -63,3 +63,16 @@ Once you've installed, you should then be able to load the panel in a web browse
 For instance, if your pi is at `10.0.0.210`, is named `c74rpi` and you have a computer on the same network as the pi,
 you should be able to view the panel with either of the following URLs:
 `http://10.0.0.210:3000` or `http://c74rpi.local:3000`
+
+## Release Notes / Changeset Management
+
+This repo uses [changeset](https://github.com/changesets/changesets) to manage versioning and release notes via Pull Requests. Please perform your work on branches and create a Pull Request to land them into the `develop` branch. Each pull request can thereby define and describe the changes with changsets messages, additionally a bot will highlight on the PR if there are changesets present for the work.
+
+To add a changeset to your branch run `npm run changeset` and follow the cli instructions. This will create a `.md` file in `.changeset`. Feel free to manually edit the descriptive text in the file whilst working on your branch.
+
+We accumulate changes on the `develop` branch with distinct `changeset` files describing the work that has happened. Once that work is ready for a release:
+
+1. Create a PR from `develop` to `main`
+2. The CI will run and ensure the work can be merged and successfully builds
+3. Once this PR gets merged to `main` it triggers a build and release
+4. A merge-back PR from `main` to `develop` is created in order to get the version bump and updated changelog onto the dev branch
