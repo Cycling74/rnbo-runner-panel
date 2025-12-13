@@ -408,3 +408,45 @@ pub fn file_routes() -> Vec<rocket::Route> {
 pub fn package_routes() -> Vec<rocket::Route> {
     rocket::routes![package::get, package::get_all]
 }
+
+#[cfg(test)]
+mod test {
+    use {
+        rocket::{Build, Rocket, http::Status, local::blocking::Client},
+        rocket_dyn_templates::Template,
+        std::{
+            collections::{HashMap, HashSet},
+            path::PathBuf,
+        },
+    };
+
+    //minimal server
+    fn rocket() -> Rocket<Build> {
+        let filetype_paths = HashMap::new();
+        let deleteable_filetypes = HashSet::new();
+        let package_dir: Option<PathBuf> = None;
+        rocket::build()
+            .mount("/files", super::file_routes())
+            .mount("/packages", super::package_routes())
+            .manage(crate::config::Config::new(
+                filetype_paths,
+                deleteable_filetypes,
+                package_dir,
+            ))
+            .attach(Template::fairing())
+    }
+
+    #[test]
+    fn filetype_list() {
+        let client = Client::tracked(rocket()).expect("valid rocket instance");
+        let response = client.get("/files/").dispatch();
+        assert_eq!(response.status(), Status::Ok);
+    }
+
+    #[test]
+    fn filetype_unknown() {
+        let client = Client::tracked(rocket()).expect("valid rocket instance");
+        let response = client.get("files/foo/").dispatch();
+        assert_eq!(response.status(), Status::BadRequest);
+    }
+}
