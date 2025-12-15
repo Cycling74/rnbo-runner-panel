@@ -1,6 +1,6 @@
-use rocket::serde::Serialize;
+use rocket::serde::{Deserialize, Serialize};
 
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize)]
 #[serde(crate = "rocket::serde")]
 pub struct FileListItem {
     pub name: String,
@@ -8,11 +8,11 @@ pub struct FileListItem {
     pub dir: bool,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize)]
 #[serde(crate = "rocket::serde")]
 pub struct FileList {
-    filetype: String,
-    items: Vec<FileListItem>,
+    pub filetype: String,
+    pub items: Vec<FileListItem>,
 }
 
 impl FileList {

@@ -117,7 +117,7 @@ mod file {
     ) -> Result<Status, Status> {
         let dir = state
             .deleteable_filetype_path(filetype)
-            .ok_or(Status::BadRequest)?;
+            .ok_or(Status::Unauthorized)?;
         let path = dir.join(name);
         if path.is_dir() {
             if &path == dir {
@@ -148,7 +148,7 @@ mod file {
         filetype: &str,
         name: PathBuf,
         mut file: TempFile<'_>,
-    ) -> Result<std::io::Result<()>, Status> {
+    ) -> Result<Status, Status> {
         let dir = state.filetype_path(filetype).ok_or(Status::BadRequest)?;
 
         let fullpath = if filetype == "packages" && name.starts_with("current/") {
@@ -172,7 +172,10 @@ mod file {
             .await
             .map_err(|_| Status::FailedDependency)?;
 
-        Ok(file.persist_to(fullpath).await)
+        file.persist_to(fullpath)
+            .await
+            .map_err(|_| Status::InternalServerError)?;
+        Ok(Status::Created)
     }
 }
 
@@ -412,41 +415,214 @@ pub fn package_routes() -> Vec<rocket::Route> {
 #[cfg(test)]
 mod test {
     use {
-        rocket::{Build, Rocket, http::Status, local::blocking::Client},
+        rocket::{
+            http::{Accept, ContentType, Status},
+            local::blocking::Client,
+        },
         rocket_dyn_templates::Template,
         std::{
             collections::{HashMap, HashSet},
-            path::PathBuf,
+            fs,
         },
+        tempdir::TempDir,
     };
 
+    struct Resources {
+        tempdir: TempDir,
+    }
+
+    impl Resources {
+        fn new() -> Self {
+            Self {
+                tempdir: TempDir::new("runner-panel").expect("to get temp dir"),
+            }
+        }
+    }
+
     //minimal server
-    fn rocket() -> Rocket<Build> {
-        let filetype_paths = HashMap::new();
-        let deleteable_filetypes = HashSet::new();
-        let package_dir: Option<PathBuf> = None;
-        rocket::build()
-            .mount("/files", super::file_routes())
-            .mount("/packages", super::package_routes())
-            .manage(crate::config::Config::new(
-                filetype_paths,
-                deleteable_filetypes,
-                package_dir,
-            ))
-            .attach(Template::fairing())
+    fn setup() -> (Client, Resources) {
+        use std::io::prelude::*;
+        let resources = Resources::new();
+        let mut filetype_paths = HashMap::new();
+        let mut deleteable_filetypes = HashSet::new();
+
+        let datafiles = resources.tempdir.path().join("datafiles");
+        let source_cache = resources.tempdir.path().join("source_cache");
+        let package_dir = resources.tempdir.path().join("packages");
+
+        let backup = resources.tempdir.path().join("backup");
+
+        fs::create_dir_all(&datafiles).expect("to create dir");
+        fs::create_dir_all(&source_cache).expect("to create dir");
+        fs::create_dir_all(&package_dir).expect("to create dir");
+        fs::create_dir_all(&backup).expect("to create dir");
+
+        filetype_paths.insert("datafiles".to_owned(), datafiles.clone());
+        filetype_paths.insert("source_cache".to_owned(), source_cache);
+        filetype_paths.insert("backup".to_owned(), backup.clone());
+        filetype_paths.insert("packages".to_owned(), package_dir.clone());
+
+        deleteable_filetypes.insert("datafiles".to_owned());
+        deleteable_filetypes.insert("packages".to_owned());
+
+        let f = datafiles.join("deleteme.txt");
+        let mut file = fs::File::create(&f).expect("to create");
+        file.write_all(b"Delete the world!").expect("to write");
+
+        let f = datafiles.join("second.txt");
+        let mut file = fs::File::create(&f).expect("to create");
+        file.write_all(b"Fourth World Vol. 1 Possible Musics")
+            .expect("to write");
+
+        let f = backup.join("nodelete.txt");
+        let mut file = fs::File::create(&f).expect("to create");
+        file.write_all(b"Cannot delete world!").expect("to write");
+
+        (
+            Client::tracked(
+                rocket::build()
+                    .mount("/files", super::file_routes())
+                    .mount("/packages", super::package_routes())
+                    .manage(crate::config::Config::new(
+                        filetype_paths,
+                        deleteable_filetypes,
+                        Some(package_dir),
+                    ))
+                    .attach(Template::fairing()),
+            )
+            .expect("valid rocket instance"),
+            resources,
+        )
     }
 
     #[test]
     fn filetype_list() {
-        let client = Client::tracked(rocket()).expect("valid rocket instance");
-        let response = client.get("/files/").dispatch();
+        let (client, _resources) = setup();
+
+        let response = client.get("/files/").header(Accept::HTML).dispatch();
         assert_eq!(response.status(), Status::Ok);
+        assert_eq!(response.content_type(), Some(ContentType::HTML));
     }
 
     #[test]
     fn filetype_unknown() {
-        let client = Client::tracked(rocket()).expect("valid rocket instance");
-        let response = client.get("files/foo/").dispatch();
+        let (client, _resources) = setup();
+        let response = client.get("/files/foo/").header(Accept::JSON).dispatch();
+        assert_eq!(response.status(), Status::NotFound);
+
+        let response = client.get("/files/foo/").header(Accept::HTML).dispatch();
+        assert_eq!(response.status(), Status::NotFound);
+    }
+
+    #[test]
+    fn filetype_known() {
+        let (client, _resources) = setup();
+
+        let response = client
+            .get("/files/datafiles/")
+            .header(Accept::JSON)
+            .dispatch();
+        assert_eq!(response.status(), Status::Ok);
+        assert_eq!(response.content_type(), Some(ContentType::JSON));
+
+        let list: Option<crate::filelist::FileList> = response.into_json();
+        assert!(list.is_some());
+
+        let list = list.unwrap();
+
+        assert_eq!(list.items.len(), 2);
+        assert_eq!(list.filetype.as_str(), "datafiles");
+        assert!(
+            list.items
+                .iter()
+                .find(|f| f.name.as_str() == "deleteme.txt")
+                .is_some()
+        );
+        assert!(
+            list.items
+                .iter()
+                .find(|f| f.name.as_str() == "second.txt")
+                .is_some()
+        );
+
+        let response = client
+            .get("/files/datafiles/")
+            .header(Accept::HTML)
+            .dispatch();
+        assert_eq!(response.status(), Status::Ok);
+        assert_eq!(response.content_type(), Some(ContentType::HTML));
+
+        let response = client.get("/files/datafiles/second.txt").dispatch();
+        assert_eq!(response.status(), Status::Ok);
+        assert_eq!(
+            response.into_string().unwrap().as_str(),
+            "Fourth World Vol. 1 Possible Musics"
+        );
+    }
+
+    #[test]
+    fn delete() {
+        let (client, resources) = setup();
+
+        let p = resources.tempdir.path().join("datafiles/deleteme.txt");
+        assert_eq!(Some(true), fs::exists(&p).ok());
+        let response = client.delete("/files/datafiles/deleteme.txt").dispatch();
+        assert_eq!(response.status(), Status::NoContent);
+        assert_eq!(Some(false), fs::exists(&p).ok());
+
+        let response = client
+            .get("/files/datafiles/")
+            .header(Accept::JSON)
+            .dispatch();
+        assert_eq!(response.status(), Status::Ok);
+        assert_eq!(response.content_type(), Some(ContentType::JSON));
+
+        let list: Option<crate::filelist::FileList> = response.into_json();
+        assert!(list.is_some());
+
+        let list = list.unwrap();
+
+        assert_eq!(list.items.len(), 1);
+        assert_eq!(list.filetype.as_str(), "datafiles");
+        assert!(
+            list.items
+                .iter()
+                .find(|f| f.name.as_str() == "deleteme.txt")
+                .is_none()
+        );
+        assert!(
+            list.items
+                .iter()
+                .find(|f| f.name.as_str() == "second.txt")
+                .is_some()
+        );
+
+        let p = resources.tempdir.path().join("backup/nodelete.txt");
+        assert_eq!(Some(true), fs::exists(&p).ok());
+        let response = client.delete("/files/backup/nodelete.txt").dispatch();
+        assert_eq!(response.status(), Status::Unauthorized);
+        assert_eq!(Some(true), fs::exists(&p).ok());
+    }
+
+    #[test]
+    fn put() {
+        let (client, resources) = setup();
+
+        let p = resources.tempdir.path().join("datafiles/blah.txt");
+        assert_eq!(Some(false), fs::exists(&p).ok());
+
+        let response = client
+            .put("/files/datafiles/blah.txt")
+            .body("FOO")
+            .dispatch();
+
+        assert_eq!(response.status(), Status::Created);
+        assert_eq!(Some(true), fs::exists(&p).ok());
+        let contents = fs::read_to_string(&p).expect("Should have been able to read the file");
+        assert_eq!("FOO", contents.as_str());
+
+        let response = client.put("/files/NOEXIST/blah.txt").body("FOO").dispatch();
+
         assert_eq!(response.status(), Status::BadRequest);
     }
 }
