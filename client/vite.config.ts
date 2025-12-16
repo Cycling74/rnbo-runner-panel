@@ -5,8 +5,8 @@ import webfontDownload from "vite-plugin-webfont-dl";
 import { nodePolyfills } from "vite-plugin-node-polyfills";
 import { readFileSync } from "fs";
 
-const licenseText = readFileSync(join(import.meta.dirname, "LICENSE.txt"), "utf-8");
-const pInfo = JSON.parse(readFileSync(join(import.meta.dirname, "package.json"), "utf-8"));
+const licenseText = readFileSync(join(import.meta.dirname, "../LICENSE.txt"), "utf-8");
+const pInfo = JSON.parse(readFileSync(join(import.meta.dirname, "../package.json"), "utf-8"));
 
 const banner = `
 /**

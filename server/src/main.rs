@@ -73,7 +73,7 @@ async fn main() -> Result<(), rocket::Error> {
             core::net::{IpAddr, Ipv4Addr},
             rocket::config::Config,
         };
-        let mut static_dir = PathBuf::from("../out");
+        let mut static_dir = PathBuf::from("../client/out");
 
         let mut config = Config::figment()
             .merge((Config::PORT, 3000))
