@@ -16,5 +16,5 @@ class RNBORunnerPanelConan(ConanFile):
 		self.run("npm run package-linux")
 
 	def package(self):
-		self.copy("bin/**", src="build/usr/")
-		self.copy("share/**", src="build/usr/")
+		self.copy("bin/**", src="build/linux-aarch64/usr/")
+		self.copy("share/**", src="build/linux-aarch64/usr/")
