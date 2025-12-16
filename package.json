@@ -8,16 +8,26 @@
     "predev": "mkdir -p ./client/out",
     "changeset": "changeset",
     "lint": "cd client && npm run lint",
+
     "build-client": "cd client && npm run build",
+
     "build-server-armv7": "cd server && cross build --target armv7-unknown-linux-gnueabihf --release",
     "build-server-aarch64": "cd server && cross build --target aarch64-unknown-linux-gnu --release",
+
     "prepackage-debian-armv7": "rm -rf ./build/debian-armv7 && mkdir -p ./build/ && cp -r ./config/debian ./build/debian-armv7 && npm run build-client && npm run build-server-armv7",
     "package-debian-armv7": "node scripts/package-linux.mjs --debian armhf ./build/debian-armv7 armv7-unknown-linux-gnueabihf",
+
+    "prepackage-debian-aarch64": "rm -rf ./build/debian-aarch64 && mkdir -p ./build/ && cp -r ./config/debian ./build/debian-aarch64 && npm run build-client && npm run build-server-aarch64",
+    "package-debian-aarch64": "node scripts/package-linux.mjs --debian arm64 ./build/debian-aarch64 aarch64-unknown-linux-gnu",
+
     "prepackage-linux": "npm run build && cd server && cross build --target aarch64-unknown-linux-gnu --release",
     "package-linux": "node scripts/package-linux.mjs arm64 ./build/ aarch64-unknown-linux-gnu",
+
     "package-conan": "node scripts/package-conan.mjs",
-    "preversion": "eslint ./client/src --report-unused-disable-directives --max-warnings 5",
+
+    "preversion": "npm run lint",
     "postversion": "node scripts/apply-version.mjs",
+
     "release": "changeset tag"
   },
   "devDependencies": {
