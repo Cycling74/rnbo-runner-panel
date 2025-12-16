@@ -58,7 +58,7 @@ jobs:
             aarch64-unknown-linux-gnu
             armv7-unknown-linux-gnueabihf
           profile: release
-        working-directory: ./server
+          source-dir: server
 
       - name: Build Debian Packages
         if: steps.changesets.outputs.published == 'true'
@@ -78,15 +78,7 @@ jobs:
         with:
           tag: v${{ steps.vstep.outputs.version }}
           token: ${{ secrets.GITHUB_TOKEN }}
-          artifacts: "*.deb"
-
-      - name: Upload deb file
-        if: steps.changesets.outputs.published == 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: deb
-          path: "*.deb"
-        working-directory: ./build
+          artifacts: "build/*.deb"
 
       - name: Create PR to merge back main to develop
         if: steps.changesets.outputs.published == 'true'
