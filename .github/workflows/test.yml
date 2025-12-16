@@ -16,5 +16,9 @@ jobs:
         run: npm ci
       - name: Run lint
         run: npm run lint
-      - name: build
-        run: npm run build
+      - name: build client
+        run: cd client && npm run build
+      - name: build server
+        run: cd server && cargo build
+      - name: test server
+        run: cd server && cargo test
