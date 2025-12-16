@@ -5,6 +5,7 @@
   "workspaces": ["client"],
   "scripts": {
     "dev": "concurrently 'cd ./client && npm run build-watch-dev' 'cd ./server && cargo run'",
+    "predev": "mkdir -p ./client/out",
     "changeset": "changeset",
     "lint": "cd client && npm run lint",
     "prepackage-debian": "npm run build && cd server && cross build --target armv7-unknown-linux-gnueabihf --release",
