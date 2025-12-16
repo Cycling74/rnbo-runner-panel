@@ -9,7 +9,7 @@ const { readFileSync, writeFileSync, rmSync, copySync } = fs;
 const debian = process.argv.includes("--debian");
 const arch = process.argv.at(-3);
 const outdir = process.argv.at(-2);
-const target = process.argv.at(-1);
+const serverbinary = process.argv.at(-1);
 
 const basedir = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const serverdir = join(basedir, "server");
@@ -21,7 +21,7 @@ rmSync(join(outdir, "usr"), { recursive: true, force: true });
 copySync(join(basedir, "client/out"), join(outdir, "usr", "share", name, "www"), { overwrite: true } );
 copySync(join(serverdir, "templates"), join(outdir, "usr", "share", name, "templates"), { overwrite: true } );
 copySync(join(serverdir, "Rocket.toml"), join(outdir, "usr", "share", name, "Rocket.toml"), { overwrite: true } );
-copySync(join(serverdir, "target", target, "release", name), join(outdir, "usr", "bin", name), { overwrite: true } );
+copySync(serverbinary, join(outdir, "usr", "bin", name), { overwrite: true } );
 
 // do debian specific packaging
 if (debian) {

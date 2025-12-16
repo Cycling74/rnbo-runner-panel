@@ -15,13 +15,13 @@
     "build-server-aarch64": "cd server && cross build --target aarch64-unknown-linux-gnu --release",
 
     "prepackage-debian-armv7": "rm -rf ./build/debian-armv7 && mkdir -p ./build/ && cp -r ./config/debian ./build/debian-armv7 && npm run build-client && npm run build-server-armv7",
-    "package-debian-armv7": "node scripts/package-linux.mjs --debian armhf ./build/debian-armv7 armv7-unknown-linux-gnueabihf",
+    "package-debian-armv7": "node scripts/package-linux.mjs --debian armhf ./build/debian-armv7 ./server/target/armv7-unknown-linux-gnueabihf/release/rnbo-runner-panel",
 
     "prepackage-debian-aarch64": "rm -rf ./build/debian-aarch64 && mkdir -p ./build/ && cp -r ./config/debian ./build/debian-aarch64 && npm run build-client && npm run build-server-aarch64",
-    "package-debian-aarch64": "node scripts/package-linux.mjs --debian arm64 ./build/debian-aarch64 aarch64-unknown-linux-gnu",
+    "package-debian-aarch64": "node scripts/package-linux.mjs --debian arm64 ./build/debian-aarch64 ./server/target/aarch64-unknown-linux-gnu/release/rnbo-runner-panel",
 
     "prepackage-linux": "npm run build-client && cd server && cross build --target aarch64-unknown-linux-gnu --release",
-    "package-linux": "node scripts/package-linux.mjs arm64 ./build/linux-aarch64/ aarch64-unknown-linux-gnu",
+    "package-linux": "node scripts/package-linux.mjs arm64 ./build/linux-aarch64/ ./server/target/aarch64-unknown-linux-gnu/release/rnbo-runner-panel",
 
     "package-conan": "node scripts/package-conan.mjs",
 
