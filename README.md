@@ -14,14 +14,23 @@ The RNBO Runner implements [OSCQuery](https://github.com/Vidvox/OSCQueryProposal
 
 ## Getting Started (Development)
 
-First, run the development server:
+### Dependencies
+
+* [npm](https://www.npmjs.com/package/npm)
+* [rust](https://doc.rust-lang.org/book/ch01-01-installation.html)
+
+### Running
+
+If you have the dependencies installed, you can install packages and run via:
 
 ```bash
 npm ci
 npm run dev
 ```
 
-Open the display URL in your browser to access the development server of the project.
+The first time this will take a while as it will need to download and build a number of rust packages.
+
+Once the server is built and running, open `http://localhost:3000` in your web browser.
 
 ## Hostname and Port
 
