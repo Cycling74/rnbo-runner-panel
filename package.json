@@ -2,7 +2,7 @@
   "name": "rnbo-runner-panel",
   "version": "2.1.1-beta.12",
   "private": true,
-  "workspaces": ["client"],
+  "workspaces": ["client", "server"],
   "scripts": {
     "dev": "concurrently 'cd ./client && npm run build-watch-dev' 'cd ./server && cargo run'",
     "predev": "mkdir -p ./client/out",
