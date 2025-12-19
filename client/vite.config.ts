@@ -26,7 +26,8 @@ export default defineConfig({
 				banner,
 				dir: normalize(join(import.meta.dirname, "out"))
 			}
-		}
+		},
+		emptyOutDir: true
 	},
 	plugins: [
 		nodePolyfills({
