@@ -27,6 +27,6 @@ jobs:
 
       # Server Build and Test
       - name: build server
-        run: cd server && cargo build
+        run: cargo build
       - name: test server
-        run: cd server && cargo test
+        run: cargo test
