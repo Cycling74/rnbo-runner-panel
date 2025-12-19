@@ -6,7 +6,6 @@
     "node": ">= 22"
   },
   "scripts": {
-    "predev": "mkdir -p ./out",
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint ./src --report-unused-disable-directives --max-warnings 5"
