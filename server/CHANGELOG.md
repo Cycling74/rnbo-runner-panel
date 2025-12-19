@@ -1,5 +1,12 @@
 # @rnbo-runner-panel/server
 
+## 2.2.0-beta.14
+
+### Patch Changes
+
+- a54d5ea: Migrate to a cargo workspace for rust project
+- 39956a0: #266 Ensure that the server's Cargo version gets bumped alongside any general version bump to @rnbo-runner-panel/server
+
 ## 2.2.0-beta.13
 
 ### Minor Changes

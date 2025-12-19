@@ -1,5 +1,11 @@
 # @rnbo-runner-panel/client
 
+## 2.2.0-beta.14
+
+### Patch Changes
+
+- 238d375: #266 Fix version display in About Screen
+
 ## 2.2.0-beta.13
 
 ### Minor Changes
