@@ -15,14 +15,7 @@ server does communicate with the runner via that same protocol, but the messagin
 
 You need [rust](https://rustup.rs/) which comes with `cargo`.
 
-There is a script that updates the `Cargo.toml` version when you run `npm version` at the top level.
-That requires `cargo-edit`:
-
-```
-cargo install cargo-edit
-```
-
-After that you can run:
+## Running
 
 ```
 cargo run
