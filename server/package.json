@@ -1,0 +1,9 @@
+{
+  "name": "@rnbo-runner-panel/server",
+  "version": "2.1.1-beta.12",
+  "scripts": {
+    "predev": "mkdir -p ../client/out",
+    "dev": "cargo run",
+    "version": "node ../scripts/apply-version.mjs && git add ./Cargo.toml ./Cargo.lock"
+  }
+}

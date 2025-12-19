@@ -1,8 +1,0 @@
-Package: rnbo-runner-panel
-Architecture: all
-Maintainer: Cycling '74 <web@cycling74.com>
-Description: Web-based control panel for the RNBO OSCQuery Runner
-Homepage: https://rnbo.cycling74.com/
-Depends: python3
-Recommends: rnbooscquery
-Breaks: rnbooscquery (<< 1.4.0)

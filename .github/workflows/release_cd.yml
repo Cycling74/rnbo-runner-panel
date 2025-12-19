@@ -47,11 +47,27 @@ jobs:
       - name: Build and Export Web Application
         if: steps.changesets.outputs.published == 'true'
         run: |
-          npm run build
+          npm run build:client
 
-      - name: Build Debian Package
+      - name: Build Server Binaries
         if: steps.changesets.outputs.published == 'true'
-        run: npm run package-debian
+        uses: zijiren233/cargo-cross@v1
+        with:
+          command: build
+          targets: |
+            aarch64-unknown-linux-gnu
+            armv7-unknown-linux-gnueabihf
+          profile: release
+          source-dir: server
+
+      - name: Build Debian Packages
+        if: steps.changesets.outputs.published == 'true'
+        run: |
+          mkdir -p ./build/
+          cp -r ./config/debian ./build/debian-armv7
+          cp -r ./config/debian ./build/debian-aarch64
+          node scripts/package-linux.mjs --debian armhf ./build/debian-armv7 ./server/target/armv7-unknown-linux-gnueabihf/release/rnbo-runner-panel
+          node scripts/package-linux.mjs --debian arm64 ./build/debian-aarch64 ./server/target/aarch64-unknown-linux-gnu/release/rnbo-runner-panel
         env:
           PKG_NAME: ${{ secrets.RNBO_DEB_PKG_NAME }}
           PKG_VERSION: ${{ steps.vstep.outputs.version }}
@@ -62,14 +78,7 @@ jobs:
         with:
           tag: v${{ steps.vstep.outputs.version }}
           token: ${{ secrets.GITHUB_TOKEN }}
-          artifacts: "*.deb"
-
-      - name: Upload deb file
-        if: steps.changesets.outputs.published == 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: deb
-          path: "*.deb"
+          artifacts: "build/*.deb"
 
       - name: Create PR to merge back main to develop
         if: steps.changesets.outputs.published == 'true'
