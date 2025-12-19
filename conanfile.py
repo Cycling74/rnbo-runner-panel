@@ -13,7 +13,7 @@ class RNBORunnerPanelConan(ConanFile):
 
 	def build(self):
 		self.run("npm ci")
-		self.run("npm run package-linux")
+		self.run("npm run package:linux")
 
 	def package(self):
 		self.copy("bin/**", src="build/linux-aarch64/usr/")

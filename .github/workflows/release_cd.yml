@@ -47,7 +47,7 @@ jobs:
       - name: Build and Export Web Application
         if: steps.changesets.outputs.published == 'true'
         run: |
-          npm run build-client
+          npm run build:client
 
       - name: Build Server Binaries
         if: steps.changesets.outputs.published == 'true'

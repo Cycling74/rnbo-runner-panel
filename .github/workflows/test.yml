@@ -23,7 +23,7 @@ jobs:
 
       # Client Build and Test
       - name: build client
-        run: npm run build-client
+        run: npm run build:client
 
       # Server Build and Test
       - name: build server
