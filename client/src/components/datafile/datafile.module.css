@@ -1,0 +1,4 @@
+.dataFileWrap {
+	height: 100%;
+	gap: var(--mantine-spacing-md);
+}

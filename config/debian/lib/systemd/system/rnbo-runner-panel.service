@@ -1,0 +1,19 @@
+[Unit]
+  Description=RNBO Runner Panel
+  After=multi-user.target
+  StartLimitIntervalSec=500
+  StartLimitBurst=5
+  StartLimitInterval=0
+
+[Service]
+  Type=idle
+  Environment="ROCKET_CONFIG=/usr/share/rnbo-runner-panel/Rocket.toml"
+  ExecStart=/usr/bin/rnbo-runner-panel --static-dir /usr/share/rnbo-runner-panel/www/ --template-dir /usr/share/rnbo-runner-panel/templates/
+  KillSignal=SIGINT
+  User=pi
+  Group=audio
+  Restart=on-failure
+  RestartSec=5s
+
+[Install]
+  WantedBy=multi-user.target

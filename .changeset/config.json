@@ -1,0 +1,17 @@
+{
+	"$schema": "https://unpkg.com/@changesets/config@3.1.2/schema.json",
+	"changelog": "@changesets/cli/changelog",
+	"commit": false,
+	"fixed": [
+		["@rnbo-runner-panel/client", "@rnbo-runner-panel/server"]
+	],
+	"linked": [],
+	"access": "restricted",
+	"baseBranch": "main",
+	"updateInternalDependencies": "patch",
+	"ignore": [],
+	"privatePackages": {
+		"version": true,
+		"tag": true
+	}
+}

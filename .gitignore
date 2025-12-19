@@ -8,12 +8,9 @@
 # testing
 /coverage
 
-# next.js
-/.next/
-/out/
-
-# production
-/build
+# Production Build
+out
+build
 
 # misc
 .DS_Store
@@ -34,6 +31,4 @@ yarn-error.log*
 .vercel
 
 # packaging
-/debian/DEBIAN/control
-/debian/usr/*
-*.deb
+/build/

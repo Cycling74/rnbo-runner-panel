@@ -1,20 +1,50 @@
 {
-  "extends": ["next", "next/core-web-vitals", "c74-ts"],
+	"extends": [
+		"plugin:jsx-a11y/recommended",
+		"plugin:react/recommended",
+		"plugin:react-hooks/recommended",
+		"plugin:@typescript-eslint/recommended",
+		"c74-ts"
+	],
+	"plugins": ["react", "jsx-a11y"],
 	"env": {
 		"browser": true
 	},
 	"rules": {
-    // disable the rule for all files
-    "@typescript-eslint/explicit-function-return-type": "off",
-		"@typescript-eslint/no-explicit-any": "off",
-		"no-shadow": "off",
-    "@typescript-eslint/no-shadow": "off",
-		"@next/next/no-img-element": "off",
 		"new-cap": [
-      "error", {
-        "capIsNewExceptionPattern": "^Immu*"
-      }
-    ]
-  },
-	"root": true
+			"error",
+			{
+				"capIsNewExceptionPattern": "^Immu*"
+			}
+		],
+		"no-constant-condition": [
+			"error",
+			{
+				"checkLoops": false
+			}
+		],
+		"no-shadow": "off",
+		"spaced-comment": [
+			"error",
+			"always",
+			{
+				"markers": [
+					"/"
+				]
+			}
+		],
+		"jsx-a11y/no-autofocus": "off",
+		"react/no-unknown-property": "off",
+		"react/prop-types": "off",
+		"react/react-in-jsx-scope": "off",
+		"@typescript-eslint/explicit-function-return-type": "off",
+		"@typescript-eslint/no-explicit-any": "off",
+		"@typescript-eslint/no-shadow": "off"
+	},
+	"root": true,
+	"settings": {
+		"react": {
+			"version": "detect"
+		}
+	}
 }

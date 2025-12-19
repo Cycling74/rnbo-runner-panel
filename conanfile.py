@@ -7,15 +7,14 @@ class RNBORunnerPanelConan(ConanFile):
 	url = "https://github.com/Cycling74/rnbo-runner-panel"
 	settings = None
 	license = "MIT"
-	no_copy_source = True
-
-	def export_sources(self):
-		self.copy("bin/**", src="build/usr/")
-		self.copy("share/**", src="build/usr/")
+	#compiler is always rustc, this package holds an executable and not something to be linked to
+	settings = { "os": ["Linux"], "arch": "armv8" }
+	exports_sources = "*", "!build","!out", "!node_modules", "!server/target"
 
 	def build(self):
-		#do nothing
-		return
+		self.run("npm ci")
+		self.run("npm run package:linux")
 
 	def package(self):
-		self.copy("*")
+		self.copy("bin/**", src="build/linux-aarch64/usr/")
+		self.copy("share/**", src="build/linux-aarch64/usr/")

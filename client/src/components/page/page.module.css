@@ -1,0 +1,118 @@
+.title {
+	margin-top: 0;
+	margin-bottom: 0;
+	height: 34px;
+	font-size: var(--mantine-font-size-xl);
+	line-height: 34px;
+}
+
+.sectionTitle {
+	margin: var(--mantine-spacing-md) 0;
+}
+
+.aboutText {
+	font-size: var(--mantine-font-size-sm);
+	width: 100%;
+}
+
+.appStatus {
+	align-items: center;
+	display: flex;
+	justify-content: center;
+	flex-direction: column;
+	gap: var(--mantine-spacing-md);
+	height: 100%;
+
+	&[data-status="connecting"],
+	&[data-status="initializingstate"],
+	&[data-status="reconnecting"],
+	&[data-status="resyncingstate"] {
+		color: var(--mantine-color-dimmed);
+	}
+
+	&[data-status="closed"] {
+		color: var(--mantine-color-yellow-7);
+	}
+
+	&[data-status="error"] {
+		color: var(--mantine-color-red-7);
+	}
+
+	h2 {
+		font-weight: 700;
+	}
+
+	p {
+		text-align: center;
+		padding: 0 var(--mantine-spacing-md);
+	}
+}
+
+
+.drawerSectionTitle {
+	margin: var(--mantine-spacing-md) 0;
+	font-size: var(--input-label-size, var(--mantine-font-size-sm));
+	font-weight: 700;
+}
+
+.transportTempoInput {
+	cursor: pointer;
+	user-select: none;
+}
+
+.transportTempoControl {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	width: 100%;
+
+	> button {
+		align-items: center;
+		appearance: none;
+		background-color: transparent;
+		border: none;
+		border-radius: 0;
+		border-inline-start: 0.0625rem solid var(--mantine-color-gray-4);
+		color: var(--mantine-color-text);
+		cursor: pointer;
+		display: flex;
+		flex: 0 0 50%;
+		height: 50%;
+		justify-content: center;
+		margin: 0;
+		padding: 0;
+	}
+
+	> button:last-of-type {
+		border-top: 0.0625rem solid var(--mantine-color-gray-4);
+	}
+}
+
+.fileDropZone {
+	border: 1px dashed var(--mantine-color-default-border);
+	border-radius: var(--dropzone-radius);
+	cursor: pointer;
+
+	&[data-idle]:hover {
+		background-color: var(--mantine-color-default-hover);
+	}
+
+	&[data-accept] {
+		background-color: var(--dropzone-accept-bg);
+		color: var(--dropzone-accept-color);
+  }
+
+	&[data-reject] {
+		background-color: var(--dropzone-reject-bg);
+		color: var(--dropzone-reject-color);
+	}
+
+
+}
+
+.fileDropGroup {
+	justify-content: center;
+	gap: var(--mantine-spacing-xl);
+	min-height: 200px;
+	pointer-events: none;
+}

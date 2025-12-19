@@ -1,0 +1,28 @@
+{
+	"compilerOptions": {
+		"tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
+		"target": "es2018",
+		"useDefineForClassFields": true,
+		"lib": [
+			"ESNext",
+			"DOM",
+			"DOM.Iterable"
+		],
+		"module": "ESNext",
+		"moduleResolution": "bundler",
+		"allowJs": true,
+		"skipLibCheck": true,
+		"strict": false,
+		"forceConsistentCasingInFileNames": true,
+		"noEmit": true,
+		"resolveJsonModule": true,
+		"allowImportingTsExtensions": true,
+		"jsx": "react-jsx",
+		"noImplicitAny": true,
+		"incremental": true
+	},
+	"include": [
+		"src",
+		"@types"
+	]
+}
