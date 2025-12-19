@@ -7,9 +7,10 @@
     "dev:server": "npm run dev --workspace=@rnbo-runner-panel/server",
 
     "changeset": "changeset",
-    "lint": "cd client && npm run lint",
 
-    "build-client": "cd client && npm run build",
+    "lint": "npm run lint --workspace=@rnbo-runner-panel/client",
+
+    "build-client": "npm run build --workspace=@rnbo-runner-panel/client",
 
     "build-server-armv7": "cd server && cross build --target armv7-unknown-linux-gnueabihf --release",
     "build-server-aarch64": "cd server && cross build --target aarch64-unknown-linux-gnu --release",

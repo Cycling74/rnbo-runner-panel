@@ -12,12 +12,20 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: 22
+
+      # Bootstrap
       - name: install dependencies
         run: npm ci
+
+      # Lint Repo
       - name: Run lint
         run: npm run lint
+
+      # Client Build and Test
       - name: build client
-        run: cd client && npm run build
+        run: npm run build-client
+
+      # Server Build and Test
       - name: build server
         run: cd server && cargo build
       - name: test server
