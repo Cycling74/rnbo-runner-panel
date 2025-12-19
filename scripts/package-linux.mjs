@@ -25,7 +25,7 @@ copySync(serverbinary, join(outdir, "usr", "bin", name), { overwrite: true } );
 
 // do debian specific packaging
 if (debian) {
-	const version = process.env.PKG_VERSION || readPkgInfoVersion(join(basedir, "package.json"));
+	const version = process.env.PKG_VERSION || readPkgInfoVersion(join(basedir, "server", "package.json"));
 
 	// add the version and architecture into the control file
 	const control = readFileSync(join(basedir, "config/debian/DEBIAN", "control.in"), "utf8").replace(/[\s\n]*$/, "") +

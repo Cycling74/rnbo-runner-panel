@@ -6,9 +6,9 @@
     "node": ">= 22"
   },
   "scripts": {
+    "predev": "mkdir -p ./out",
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "build-watch-dev": "vite build --mode development --watch --config ./vite.config.ts",
     "lint": "eslint ./src --report-unused-disable-directives --max-warnings 5"
   },
   "dependencies": {

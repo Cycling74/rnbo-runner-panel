@@ -1,6 +1,5 @@
 {
   "name": "rnbo-runner-panel",
-  "version": "2.1.1-beta.12",
   "private": true,
   "workspaces": ["client", "server"],
   "scripts": {
