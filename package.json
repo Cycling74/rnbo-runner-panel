@@ -3,8 +3,9 @@
   "private": true,
   "workspaces": ["client", "server"],
   "scripts": {
-    "dev": "concurrently 'cd ./client && npm run build-watch-dev' 'cd ./server && cargo run'",
-    "predev": "mkdir -p ./client/out",
+    "dev:client": "npm run dev --workspace=@rnbo-runner-panel/client",
+    "dev:server": "npm run dev --workspace=@rnbo-runner-panel/server",
+
     "changeset": "changeset",
     "lint": "cd client && npm run lint",
 
