@@ -29,7 +29,6 @@
     "release": "changeset tag"
   },
   "devDependencies": {
-    "@changesets/cli": "^2.29.8",
-    "concurrently": "^9.2.1"
+    "@changesets/cli": "^2.29.8"
   }
 }
