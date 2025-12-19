@@ -1,5 +1,5 @@
 {
-  "name": "rnbo-runner-panel-client",
+  "name": "@rnbo-runner-panel/client",
   "version": "2.1.1-beta.12",
   "private": true,
   "engines": {
