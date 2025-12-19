@@ -1,6 +1,10 @@
 import { ConnectionType } from "../models/graph";
 import { JackInfoKey, KnownPortGroup, RNBOJackPortPropertyKey, RunnerCmdResultCode, SystemInfoKey } from "./constants";
 
+declare global {
+	const __APP_VERSION__: string;
+}
+
 // See https://github.com/Microsoft/TypeScript/issues/1897
 export type AnyJson =
  | string

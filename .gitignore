@@ -32,3 +32,6 @@ yarn-error.log*
 
 # packaging
 /build/
+
+# rust
+/target/

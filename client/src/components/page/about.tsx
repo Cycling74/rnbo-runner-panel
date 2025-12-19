@@ -34,7 +34,7 @@ const AboutInfo: FunctionComponent = () => {
 				>
 					<IconElement path={ mdiGithub } />
 				</ActionIcon>
-				<Pill>v{ process.env.appVersion }</Pill>
+				<Pill>v{ __APP_VERSION__ }</Pill>
 			</Group>
 		</section>
 	);
