@@ -6,7 +6,7 @@ import { nodePolyfills } from "vite-plugin-node-polyfills";
 import { readFileSync } from "fs";
 
 const licenseText = readFileSync(join(import.meta.dirname, "../LICENSE.txt"), "utf-8");
-const pInfo = JSON.parse(readFileSync(join(import.meta.dirname, "../package.json"), "utf-8"));
+const pInfo = JSON.parse(readFileSync(join(import.meta.dirname, "./package.json"), "utf-8"));
 
 const banner = `
 /**
@@ -28,6 +28,9 @@ export default defineConfig({
 			}
 		},
 		emptyOutDir: true
+	},
+	define: {
+		__APP_VERSION__: `"${pInfo.version}"`
 	},
 	plugins: [
 		nodePolyfills({
