@@ -24,9 +24,6 @@
 
     "package-conan": "node scripts/package-conan.mjs",
 
-    "preversion": "npm run lint",
-    "postversion": "node scripts/apply-version.mjs",
-
     "release": "changeset tag"
   },
   "devDependencies": {
