@@ -20,7 +20,8 @@
     "prepackage:linux": "npm run build:client && cd server && cross build --target aarch64-unknown-linux-gnu --release",
     "package:linux": "node scripts/package-linux.mjs arm64 ./build/linux-aarch64/ ./server/target/aarch64-unknown-linux-gnu/release/rnbo-runner-panel",
     "package:conan": "node scripts/package-conan.mjs",
-    "release": "changeset tag"
+    "release": "changeset tag",
+    "version-packages": "changeset version && node ./scripts/apply-version.mjs"
   },
   "devDependencies": {
     "@changesets/cli": "^2.29.8"
