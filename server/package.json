@@ -4,6 +4,6 @@
   "scripts": {
     "predev": "mkdir -p ../client/out",
     "dev": "cargo run",
-    "version": "node ../scripts/apply-version.mjs && git add ./Cargo.toml"
+    "version": "node ../scripts/apply-version.mjs && git add ./Cargo.toml ./Cargo.lock"
   }
 }
