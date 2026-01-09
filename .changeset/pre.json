@@ -6,6 +6,7 @@
     "@rnbo-runner-panel/server": "2.1.1-beta.12"
   },
   "changesets": [
+    "fair-emus-rush",
     "great-candies-shine",
     "new-radios-sleep",
     "spotty-fans-roll",

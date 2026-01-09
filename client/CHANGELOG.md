@@ -1,5 +1,7 @@
 # @rnbo-runner-panel/client
 
+## 2.2.0-beta.15
+
 ## 2.2.0-beta.14
 
 ### Patch Changes

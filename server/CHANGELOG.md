@@ -1,5 +1,11 @@
 # @rnbo-runner-panel/server
 
+## 2.2.0-beta.15
+
+### Patch Changes
+
+- 3098668: Bugfix: Added tar content header for rnbopack files
+
 ## 2.2.0-beta.14
 
 ### Patch Changes
