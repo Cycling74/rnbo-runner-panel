@@ -12,7 +12,7 @@ mod file {
             Responder, State, delete,
             fs::{NamedFile, TempFile},
             get,
-            http::Status,
+            http::{ContentType, Status},
             put,
             serde::json::Json,
             uri,
@@ -30,6 +30,8 @@ mod file {
         HtmlListing(Template),
         #[response(status = 200)]
         File(NamedFile),
+        #[response(status = 200)]
+        PackageFile((ContentType, NamedFile)),
     }
 
     async fn get_impl(
@@ -71,7 +73,18 @@ mod file {
                 FileGet::HtmlListing(Template::render("filelist", context! { list }))
             })
         } else {
-            NamedFile::open(fullpath).await.ok().map(FileGet::File)
+            NamedFile::open(fullpath).await.ok().map(|f| {
+                //match extension
+                let e = f.path().extension().map(|e| {
+                    e.to_os_string()
+                        .into_string()
+                        .unwrap_or_else(|_| "".to_string())
+                });
+                match e {
+                    Some(e) if e == "rnbopack" => FileGet::PackageFile((ContentType::TAR, f)),
+                    _ => FileGet::File(f),
+                }
+            })
         }
     }
 
@@ -427,6 +440,8 @@ mod test {
         tempdir::TempDir,
     };
 
+    const CURRENT_RNBO_VERSION: &'static str = "1.2.3";
+
     struct Resources {
         tempdir: TempDir,
     }
@@ -449,12 +464,14 @@ mod test {
         let datafiles = resources.tempdir.path().join("datafiles");
         let source_cache = resources.tempdir.path().join("source_cache");
         let package_dir = resources.tempdir.path().join("packages");
+        let current_package_dir = package_dir.join(CURRENT_RNBO_VERSION);
 
         let backup = resources.tempdir.path().join("backup");
 
         fs::create_dir_all(&datafiles).expect("to create dir");
         fs::create_dir_all(&source_cache).expect("to create dir");
         fs::create_dir_all(&package_dir).expect("to create dir");
+        fs::create_dir_all(&current_package_dir).expect("to create dir");
         fs::create_dir_all(&backup).expect("to create dir");
 
         filetype_paths.insert("datafiles".to_owned(), datafiles.clone());
@@ -477,6 +494,10 @@ mod test {
         let f = backup.join("nodelete.txt");
         let mut file = fs::File::create(&f).expect("to create");
         file.write_all(b"Cannot delete world!").expect("to write");
+
+        let f = current_package_dir.join("foo.rnbopack");
+        let mut file = fs::File::create(&f).expect("to create");
+        file.write_all(b"not really a tar file").expect("to write");
 
         (
             Client::tracked(
@@ -558,6 +579,16 @@ mod test {
             response.into_string().unwrap().as_str(),
             "Fourth World Vol. 1 Possible Musics"
         );
+
+        let response = client
+            .get(format!(
+                "/files/packages/{}/foo.rnbopack",
+                CURRENT_RNBO_VERSION
+            ))
+            .header(Accept::HTML)
+            .dispatch();
+        assert_eq!(response.status(), Status::Ok);
+        assert_eq!(response.content_type(), Some(ContentType::TAR));
     }
 
     #[test]

@@ -18,7 +18,7 @@
     "prepackage:debian-aarch64": "rm -rf ./build/debian-aarch64 && mkdir -p ./build/ && cp -r ./config/debian ./build/debian-aarch64 && npm run build:client && npm run build:server-aarch64",
     "package:debian-aarch64": "node scripts/package-linux.mjs --debian arm64 ./build/debian-aarch64 ./target/aarch64-unknown-linux-gnu/release/rnbo-runner-panel",
     "prepackage:linux": "npm run build:client && cross build --target aarch64-unknown-linux-gnu --release",
-    "package:linux": "node scripts/package-linux.mjs arm64 ./build/linux-aarch64/ /target/aarch64-unknown-linux-gnu/release/rnbo-runner-panel",
+    "package:linux": "node scripts/package-linux.mjs arm64 ./build/linux-aarch64/ ./target/aarch64-unknown-linux-gnu/release/rnbo-runner-panel",
     "package:conan": "node scripts/package-conan.mjs",
     "release": "changeset tag",
     "version-packages": "changeset version && node ./scripts/apply-version.mjs"
