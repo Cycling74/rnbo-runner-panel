@@ -42,38 +42,24 @@ async fn main() -> Result<(), rocket::Error> {
     };
 
     let runner_config = RunnerConfig::read_or_default(&config_path);
-    let mut filetype_paths = HashMap::new();
-    let mut deleteable_filetypes = HashSet::new();
+    let filetype_paths = HashMap::from([
+        ("datafiles".to_string(), runner_config.datafile_dir()),
+        ("backup".to_string(), runner_config.backup_dir()),
+        (
+            "compile_cache".to_string(),
+            runner_config.compile_cache_dir(),
+        ),
+        ("source_cache".to_string(), runner_config.source_cache_dir()),
+        ("packages".to_string(), runner_config.package_dir()),
+    ]);
 
-    if let Some(path) = runner_config.datafile_dir {
-        filetype_paths.insert("datafiles".to_string(), path.to_owned());
-        deleteable_filetypes.insert("datafiles".to_string());
-    }
-
-    if let Some(path) = runner_config.backup_dir {
-        filetype_paths.insert("backup".to_string(), path.to_owned());
-    }
-
-    if let Some(path) = runner_config.compile_cache_dir {
-        filetype_paths.insert("compile_cache".to_string(), path.to_owned());
-    }
-
-    if let Some(path) = runner_config.source_cache_dir {
-        filetype_paths.insert("source_cache".to_string(), path.to_owned());
-    }
-
-    let package_dir = runner_config.package_dir.clone();
-    if let Some(path) = runner_config.package_dir {
-        filetype_paths.insert("packages".to_string(), path.to_owned());
-        deleteable_filetypes.insert("packages".to_string());
-    }
+    let deleteable_filetypes = HashSet::from(["packages".to_string(), "datafiles".to_string()]);
 
     {
         use {
             core::net::{IpAddr, Ipv4Addr},
             rocket::config::Config,
         };
-        let mut static_dir = PathBuf::from("../client/out");
 
         let mut config = Config::figment()
             .merge((Config::PORT, 3000))
@@ -81,9 +67,9 @@ async fn main() -> Result<(), rocket::Error> {
         if let Some(dir) = args.template_dir {
             config = config.merge(("template_dir", dir));
         }
-        if let Some(dir) = args.static_dir {
-            static_dir = dir;
-        }
+        let static_dir = args
+            .static_dir
+            .unwrap_or_else(|| PathBuf::from("../client/out"));
 
         rocket::build()
             .configure(config)
@@ -93,7 +79,7 @@ async fn main() -> Result<(), rocket::Error> {
             .manage(crate::config::Config::new(
                 filetype_paths,
                 deleteable_filetypes,
-                package_dir,
+                Some(runner_config.package_dir()),
             ))
             .attach(Template::fairing())
             .launch()

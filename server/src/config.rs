@@ -16,15 +16,22 @@ pub struct Config {
 
 #[derive(Deserialize, Default)]
 pub struct RunnerConfig {
-    pub backup_dir: Option<PathBuf>,
-    pub datafile_dir: Option<PathBuf>,
-    pub compile_cache_dir: Option<PathBuf>,
-    pub package_dir: Option<PathBuf>,
-    pub source_cache_dir: Option<PathBuf>,
+    backup_dir: Option<PathBuf>,
+    datafile_dir: Option<PathBuf>,
+    compile_cache_dir: Option<PathBuf>,
+    package_dir: Option<PathBuf>,
+    source_cache_dir: Option<PathBuf>,
     //pub save_dir: Option<PathBuf>,
 
     //file path
     //pub db_path: Option<PathBuf>,
+}
+
+fn rnbodir() -> PathBuf {
+    home::home_dir()
+        .expect("to get home directory")
+        .join("Documents")
+        .join("rnbo")
 }
 
 impl RunnerConfig {
@@ -39,6 +46,32 @@ impl RunnerConfig {
         } else {
             Self::default()
         }
+    }
+
+    pub fn backup_dir(&self) -> PathBuf {
+        self.backup_dir
+            .clone()
+            .unwrap_or_else(|| rnbodir().join("backup"))
+    }
+    pub fn datafile_dir(&self) -> PathBuf {
+        self.datafile_dir
+            .clone()
+            .unwrap_or_else(|| rnbodir().join("datafiles"))
+    }
+    pub fn compile_cache_dir(&self) -> PathBuf {
+        self.compile_cache_dir
+            .clone()
+            .unwrap_or_else(|| rnbodir().join("cache").join("so"))
+    }
+    pub fn source_cache_dir(&self) -> PathBuf {
+        self.source_cache_dir
+            .clone()
+            .unwrap_or_else(|| rnbodir().join("cache").join("src"))
+    }
+    pub fn package_dir(&self) -> PathBuf {
+        self.package_dir
+            .clone()
+            .unwrap_or_else(|| rnbodir().join("packages"))
     }
 }
 
