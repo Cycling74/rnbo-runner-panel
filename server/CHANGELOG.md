@@ -1,5 +1,11 @@
 # @rnbo-runner-panel/server
 
+## 2.2.0-beta.16
+
+### Patch Changes
+
+- 7073318: Add defaults for runner directores, fixing bug for package creation when package dir doesn't exist
+
 ## 2.2.0-beta.15
 
 ### Patch Changes
