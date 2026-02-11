@@ -59,7 +59,7 @@ export const DataFileManagementView: FC = memo(function WrappedDataFileView() {
 					</ActionIcon>
 				</Tooltip>
 			</Group>
-			{ showUploadModal ? <DataFileUploadModal origin={ origin } maxFileCount={ 10 } onClose={ uploadModalHandlers.close } onUploadSuccess={ onFileUploadSuccess } /> : null }
+			{ showUploadModal ? <DataFileUploadModal origin={ origin } maxFileCount={ 32 } onClose={ uploadModalHandlers.close } onUploadSuccess={ onFileUploadSuccess } /> : null }
 			<Table verticalSpacing="sm" maw="100%" layout="fixed" highlightOnHover>
 				<Table.Thead>
 					<Table.Tr>
