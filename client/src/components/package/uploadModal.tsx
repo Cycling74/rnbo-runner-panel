@@ -18,9 +18,7 @@ import { installPackageOnRunner } from "../../controller/cmd";
 import { uploadFileToRemote } from "../../lib/files";
 import { RunnerFileType } from "../../lib/constants";
 
-const PACKAGE_MIME_TYPE: FileDropZoneProps["accept"] = {
-	"application/x-tar": [".rnbopack"]
-};
+const PACKAGE_EXTENSION: string = "rnbopack";
 
 export type UploadFile = {
 	id: string;
@@ -316,6 +314,7 @@ export const PackageUploadModal: FC<PackageUploadModalProps> = memo(function Wra
 		try {
 			if (!files.length || files.length > 1) throw new Error("Please select a single file.");
 			const file = files[0];
+			if (file.name.split(".").pop() !== PACKAGE_EXTENSION) throw new Error(`${file.name} is not a ${PACKAGE_EXTENSION} file`);
 			const pkgInfo = PackageInfoRecord.fromDescription(await readInfoFromPackageFile(file));
 			setUploadState({
 				conflicts: getPackageUploadConflicts(pkgInfo, datafiles, patcherExports, graphSets),
@@ -367,7 +366,6 @@ export const PackageUploadModal: FC<PackageUploadModalProps> = memo(function Wra
 	switch (uploadState.step) {
 		case PackageUploadStep.Select: {
 			content = <FileDropZone
-				accept={ PACKAGE_MIME_TYPE }
 				maxFiles={ 1 }
 				fileIcon={ mdiPackage }
 				setFiles={ onSetPackageFile }
