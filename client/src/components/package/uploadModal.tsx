@@ -1,4 +1,4 @@
-import { Alert, Button, Center, Fieldset, Group, Modal, RingProgress, Stack, Table, Text, Textarea, TextInput } from "@mantine/core";
+import { Alert, Button, Center, Fieldset, Group, Modal, Paper, RingProgress, Stack, Table, Text } from "@mantine/core";
 import { FC, FormEvent, memo, ReactNode, useCallback, useState } from "react";
 import { useIsMobileDevice } from "../../hooks/useIsMobileDevice";
 import { FileWithPath } from "@mantine/dropzone";
@@ -54,6 +54,40 @@ const resourceTypeDisplay: Record<ResourceType, ReactNode> = {
 			<span>Graph</span>
 		</Group>
 	)
+};
+
+type InfoCardProps = {
+	title: string;
+	value: string;
+	error?: string;
+}
+
+const InfoCard: FC<InfoCardProps> = ({
+	title,
+	value,
+	error
+}) => {
+
+	return (
+		<Paper withBorder radius="sm" p="xs" style={{ borderColor: error ? "red" : null }}>
+			<Group align="center" gap="xs">
+				<Text c="dimmed" tt="uppercase" fw="bold" size="xs">
+					{ title }
+				</Text>
+			</Group>
+			<Text fw="bold" size="sm" mt="x">
+				{ value }
+			</Text>
+
+			{
+				error ? (
+					<Text c="red" fz="xs" component="div" >
+						{ error }
+					</Text>
+				) : null
+			}
+		</Paper>
+	);
 };
 
 const PackageContentItem: FC<PackageContentItemProps> = ({
@@ -118,31 +152,20 @@ const PackageUploadConfirmForm: FC<PackageUploadConfirmFormProps> = ({
 			<Stack gap="lg">
 				<Fieldset legend="Runner" >
 					<Stack gap="md">
-						<TextInput
-							label="Package Name"
-							name="name"
-							readOnly
-							value={ info.name }
-						/>
+						<InfoCard title="Package Name" value={ info.name } />
 						<Group grow>
-							<TextInput
-								label="RNBO Version"
-								name="rnbo_version"
-								readOnly
-								error={ !supportsRNBOVersion ? `The package does not match the runner's RNBO version: ${rnboVersion.oscValue}` : undefined }
+							<InfoCard
+								title="RNBO Version"
 								value={ info.rnbo_version }
+								error={ !supportsRNBOVersion ? `The package does not match the runner's RNBO version: ${rnboVersion.oscValue}` : undefined }
 							/>
-							<TextInput
-								label="Runner Version"
-								name="runner_version"
-								readOnly
+							<InfoCard
+								title="Runner Version"
 								value={ info.runner_version }
 							/>
 						</Group>
-						<Textarea
-							label="Supported Targets"
-							name="target_ids"
-							readOnly
+						<InfoCard
+							title="Supported Targets"
 							error={ !supportsTarget ? "The package does not support the runner's target id" : undefined }
 							value={ info.targets.keySeq().toArray().join("\n") }
 						/>
