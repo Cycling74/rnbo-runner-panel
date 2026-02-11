@@ -7,7 +7,7 @@ import { IconElement } from "../elements/icon";
 import { IconProps } from "@mdi/react/dist/IconProps";
 
 export type FileDropZoneProps = {
-	accept: DropzoneProps["accept"];
+	accept?: DropzoneProps["accept"];
 	fileIcon: IconProps["path"];
 	maxFiles: number;
 	setFiles: (files: FileWithPath[]) => void;
