@@ -37,7 +37,7 @@ const resourceTypeDisplay: Record<ResourceType, ReactNode> = {
 	[ResourceType.DataFile]: (
 		<Group gap={ 2 } align="center" >
 			<IconElement path={ mdiFileMusic } />
-			<span>Audio File</span>
+			<span>Data File</span>
 		</Group>
 	),
 	[ResourceType.Patcher]: (

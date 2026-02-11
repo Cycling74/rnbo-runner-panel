@@ -34,7 +34,7 @@ export const DataFileListItem: FC<DataFileListItemProps> = memo(function Wrapped
 						</ActionIcon>
 					</Menu.Target>
 					<Menu.Dropdown>
-						<Menu.Label>Audio File</Menu.Label>
+						<Menu.Label>Data File</Menu.Label>
 						<Menu.Item  leftSection={ <IconElement path={ mdiDownload }/> } onClick={ onTriggerDownload } >Download</Menu.Item>
 						<Menu.Divider />
 						<Menu.Item color="red" leftSection={ <IconElement path={ mdiTrashCan }/> } onClick={ onTriggerDelete } >Delete</Menu.Item>

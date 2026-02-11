@@ -11,7 +11,7 @@ import SetManagementView from "../sets/managementView";
 const tabs = [
 	{ icon: mdiGroup, value: ResourceType.Set, label: "Graphs" },
 	{ icon: mdiFileExport, value: ResourceType.Patcher, label: "Patchers" },
-	{ icon: mdiFileMusic, value: ResourceType.DataFile, label: "Audio Files" }
+	{ icon: mdiFileMusic, value: ResourceType.DataFile, label: "Data Files" }
 ];
 
 export const ResourceTabs = memo(function WrappedResourceTabs() {
