@@ -7,7 +7,7 @@ import { mdiAlertCircleOutline, mdiClose, mdiFileExport, mdiFileMusic, mdiGroup,
 import { useAppSelector } from "../../hooks/useAppDispatch";
 import { TableHeaderCell } from "../elements/tableHeaderCell";
 import { ResourceType, SystemInfoKey } from "../../lib/constants";
-import { FileDropZone, FileDropZoneProps } from "../page/fileDropZone";
+import { FileDropZone } from "../page/fileDropZone";
 import { getRunnerInfoRecord, getRunnerOrigin } from "../../selectors/appStatus";
 import { PackageInfoRecord } from "../../models/packageInfo";
 import { getPackageUploadConflicts, PackageUploadConflicts, readInfoFromPackageFile } from "../../lib/package";
