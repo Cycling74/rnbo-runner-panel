@@ -104,7 +104,14 @@ const PackageUploadConfirmForm: FC<PackageUploadConfirmFormProps> = ({
 		onSubmit();
 	}, [onSubmit]);
 
-	const supportsUpload = supportsRNBOVersion && supportsTarget;
+
+	const [
+		supportsUpload,
+		rnboVersion
+	] = useAppSelector((state) => [
+		supportsRNBOVersion && supportsTarget,
+		getRunnerInfoRecord(state, SystemInfoKey.RNBOVersion)
+	]);
 
 	return (
 		<form onSubmit={ onTriggerSubmit } >
@@ -122,7 +129,7 @@ const PackageUploadConfirmForm: FC<PackageUploadConfirmFormProps> = ({
 								label="RNBO Version"
 								name="rnbo_version"
 								readOnly
-								error={ !supportsRNBOVersion ? "The package does not match the runner's RNBO version" : undefined }
+								error={ !supportsRNBOVersion ? `The package does not match the runner's RNBO version: ${rnboVersion.oscValue}` : undefined }
 								value={ info.rnbo_version }
 							/>
 							<TextInput
