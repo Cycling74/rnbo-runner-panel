@@ -7,8 +7,7 @@ import { IconElement } from "../elements/icon";
 import classes from "./midi.module.css";
 import { formatMIDIMappingToDisplay, formatParamValueForDisplay } from "../../lib/util";
 import { EditableTableTextCell } from "../elements/editableTableCell";
-import { MIDIMetaMappingType } from "../../lib/constants";
-import { MIDIMetaMapping } from "../../lib/types";
+import { MIDIMetaMapping, MIDIMetaMappingType } from "../../lib/types";
 import { Link, useLocation } from "react-router";
 
 export type MIDIMappedParamProps = {
