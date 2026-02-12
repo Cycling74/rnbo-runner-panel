@@ -1,7 +1,8 @@
 import { Record as ImmuRecord } from "immutable";
 import { JsonMap, OSCQueryRNBOInstanceMessageInfo, OSCQueryRNBOInstanceMessages, OSCQueryRNBOInstanceMessageValue } from "../lib/types";
 import { PatcherInstanceRecord } from "./instance";
-import { parseMetaJSONString } from "../lib/util";
+import { parseMetaJSONString, midiMappingFromMeta } from "../lib/util";
+import { MIDIMetaMappingType } from "../lib/constants";
 
 export type MessagePortRecordProps = {
 	instanceId: string;
@@ -10,6 +11,9 @@ export type MessagePortRecordProps = {
 	metaString: string;
 	value: string;
 	path: string;
+	waitingForMidiMapping: boolean;
+	midiMappingType: false | MIDIMetaMappingType;
+	isMidiMapped: boolean;
 };
 
 
@@ -19,7 +23,10 @@ export class MessagePortRecord extends ImmuRecord<MessagePortRecordProps>({
 	meta: {},
 	metaString: "",
 	value: "",
-	path: ""
+	path: "",
+	waitingForMidiMapping: false,
+	isMidiMapped: false,
+	midiMappingType: false
 }) {
 
 	private static messagesArrayFromDescription(instanceId: PatcherInstanceRecord["id"], desc: OSCQueryRNBOInstanceMessageInfo, name: string): MessagePortRecord[] {
@@ -70,15 +77,24 @@ export class MessagePortRecord extends ImmuRecord<MessagePortRecordProps>({
 		} catch {
 			// ignore
 		}
+
+		const { isMidiMapped, midiMappingType } = midiMappingFromMeta(parsed);
+
 		return this.withMutations(p => {
 			return p
 				.set("meta", parsed)
-				.set("metaString", value);
+				.set("metaString", value)
+				.set("isMidiMapped", isMidiMapped)
+				.set("midiMappingType", midiMappingType);
 		});
 	}
 
 	public setValue(value: string): MessagePortRecord {
 		return this.set("value", value);
+	}
+
+	public setWaitingForMidiMapping(value: boolean): MessagePortRecord {
+		return this.set("waitingForMidiMapping", value);
 	}
 
 }
