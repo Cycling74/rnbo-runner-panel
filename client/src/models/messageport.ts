@@ -1,5 +1,5 @@
 import { Record as ImmuRecord } from "immutable";
-import { JsonMap, OSCQueryRNBOInstanceMessageInfo, OSCQueryRNBOInstanceMessages, OSCQueryRNBOInstanceMessageValue } from "../lib/types";
+import { JsonMap, OSCQueryRNBOInstanceMessageInfo, OSCQueryRNBOInstanceMessages, OSCQueryRNBOInstanceMessageValue, MessagePortMetaJsonMap } from "../lib/types";
 import { PatcherInstanceRecord } from "./instance";
 import { parseMetaJSONString, midiMappingFromMeta } from "../lib/util";
 import { MIDIMetaMappingType } from "../lib/constants";
@@ -7,7 +7,7 @@ import { MIDIMetaMappingType } from "../lib/constants";
 export type MessagePortRecordProps = {
 	instanceId: string;
 	tag: string;
-	meta: JsonMap;
+	meta: MessagePortMetaJsonMap;
 	metaString: string;
 	value: string;
 	path: string;
