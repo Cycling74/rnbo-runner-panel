@@ -1,5 +1,6 @@
 import { ActionBase, AppThunk } from "../lib/store";
 import { MIDIMetaMapping, OSCQueryRNBOInstance, OSCQueryRNBOInstanceDataRefs, OSCQueryRNBOInstancePresetEntries, OSCQueryRNBOInstancesState, OSCQueryRNBOPatchersState, OSCValue, ParameterMetaJsonMap } from "../lib/types";
+import { MIDIMetaMappingType } from "../lib/constants";
 import { PatcherInstanceRecord } from "../models/instance";
 import { getPatcherInstance, getPatcherInstanceParametersByInstanceId, getPatcherInstanceMessageInportsByInstanceId, getPatcherInstanceMesssageOutportsByInstanceId, getPatcherInstanceMessageInportByPath, getPatcherInstanceMessageOutportByPath, getPatcherInstanceMesssageOutportsByInstanceIdAndTag, getPatcherInstanceParameterByPath, getPatcherInstanceParametersByInstanceIdAndName, getPatcherInstanceMessageInportsByInstanceIdAndTag, getPatcherInstances, getPatcherInstanceMessageInports, getPatcherInstanceMessageOutports, getPatcherInstanceParameters, getPatcherInstanceDataRefs, getPatcherInstanceDataRefsByInstanceIdAndName, getPatcherInstanceDataRefByPath, getPatcherInstanceDataRefsByInstanceId } from "../selectors/patchers";
 import { getAppSetting } from "../selectors/settings";
@@ -16,7 +17,6 @@ import { DataRefRecord } from "../models/dataref";
 import { DataFileRecord } from "../models/datafile";
 import { PatcherExportRecord } from "../models/patcher";
 import { cloneJSON, dayjs, getUniqueName, InvalidMIDIFormatError, parseMIDIMappingDisplayValue, UnknownMIDIFormatError, validateDataRefExportFilename, validatePatcherInstanceAlias, validatePresetName } from "../lib/util";
-import { MIDIMetaMappingType } from "../lib/constants";
 import { DialogResult, showConfirmDialog, showTextInputDialog } from "../lib/dialogs";
 import { addPendingDataFile } from "./datafiles";
 import { getDataFileByFilename, getPendingDataFileByFilename } from "../selectors/datafiles";
@@ -1003,6 +1003,46 @@ export const restoreDefaultMessagePortMetaOnRemote = (_instance: PatcherInstance
 		oscQueryBridge.sendPacket(writePacket(message));
 	};
 
+
+export const activateMessagePortMIDIMappingFocus = (instance: PatcherInstanceRecord, port: MessagePortRecord): AppThunk =>
+	(dispatch, getState) => {
+
+		const state = getState();
+		const messageInports = getPatcherInstanceMessageInportsByInstanceId(state, instance.id);
+		dispatch(
+			setInstanceMessageInports(messageInports.valueSeq().toArray().map(p => p.setWaitingForMidiMapping(p.id === port.id)))
+		);
+
+	};
+
+export const clearMessagePortMIDIMappingOnRemote = (_instance: PatcherInstanceRecord, port: MessagePortRecord): AppThunk =>
+	async () => {
+
+		const dialogResult = await showConfirmDialog({
+			text: `Are you sure you want to remove the active MIDI mapping for ${port.name}?`,
+			actions: {
+				confirm: { label: "Remove MIDI Mapping" }
+			}
+		});
+
+		if (dialogResult === DialogResult.Cancel) {
+			// User Canceled, nothing to do
+			return;
+		}
+
+		const meta = cloneJSON(port.meta);
+		delete meta.midi;
+
+		const message = {
+			address: `${port.path}/meta`,
+			args: [
+				{ type: "s", value: JSON.stringify(meta) }
+			]
+		};
+
+		oscQueryBridge.sendPacket(writePacket(message));
+	};
+
 // Updates in response to remote OSCQuery Updates
 export const addInstance = (desc: OSCQueryRNBOInstance): AppThunk =>
 	(dispatch) => {
@@ -1260,8 +1300,12 @@ export const setInstanceWaitingForMidiMappingOnRemote = (id: PatcherInstanceReco
 			if (!instance) return;
 
 			dispatch(setInstance(instance.setWaitingForMapping(value)));
+
 			const params = getPatcherInstanceParametersByInstanceId(state, instance.id).valueSeq().map(p => p.setWaitingForMidiMapping(false));
 			dispatch(setInstanceParameters(params.toArray()));
+
+			const messageInports = getPatcherInstanceMessageInportsByInstanceId(state, instance.id);
+			dispatch(setInstanceMessageInports(messageInports.valueSeq().toArray().map(p => p.setWaitingForMidiMapping(false))));
 
 			try {
 				const message = {
@@ -1293,6 +1337,8 @@ export const updateInstanceMIDIReport = (instanceId: string, value: boolean): Ap
 			dispatch(setInstance(instance.setWaitingForMapping(value)));
 			const params = getPatcherInstanceParametersByInstanceId(state, instance.id).valueSeq().map(p => p.setWaitingForMidiMapping(false));
 			dispatch(setInstanceParameters(params.toArray()));
+			const messageInports = getPatcherInstanceMessageInportsByInstanceId(state, instance.id);
+			dispatch(setInstanceMessageInports(messageInports.valueSeq().toArray().map(p => p.setWaitingForMidiMapping(false))));
 		} catch (e) {
 			console.log(e);
 		}
@@ -1327,9 +1373,26 @@ export const updateInstanceMIDILastValue = (instanceId: string, value: string): 
 					parameters.push(param.setWaitingForMidiMapping(false));
 				}
 			});
-
 			dispatch(setInstanceParameters(parameters));
 
+			const messageInports: MessagePortRecord[] = [];
+			getPatcherInstanceMessageInportsByInstanceId(state, instance.id).forEach(port => {
+				if (port.waitingForMidiMapping) {
+					const meta = cloneJSON(port.meta);
+					meta.midi = midiMeta;
+
+					const message = {
+						address: `${port.path}/meta`,
+						args: [
+							{ type: "s", value: JSON.stringify(meta) }
+						]
+					};
+
+					oscQueryBridge.sendPacket(writePacket(message));
+					messageInports.push(port.setWaitingForMidiMapping(false));
+				}
+			});
+			dispatch(setInstanceMessageInports(messageInports));
 		} catch (e) {
 			console.log(e);
 		}
