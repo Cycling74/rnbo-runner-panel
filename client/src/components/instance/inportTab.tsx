@@ -1,13 +1,18 @@
 import { Map as ImmuMap } from "immutable";
-import { FunctionComponent, memo, useCallback, useState } from "react";
+import { FunctionComponent, MouseEvent, memo, useCallback, useEffect, useState } from "react";
 import { useAppDispatch } from "../../hooks/useAppDispatch";
 import MessageInportList from "../messages/inportList";
 import classes from "./instance.module.css";
 import { PatcherInstanceRecord } from "../../models/instance";
 import { triggerSendInstanceInportMessage, sendInstanceInportBang } from "../../actions/patchers";
 import { MessagePortRecord } from "../../models/messageport";
-import { restoreDefaultMessagePortMetaOnRemote, setInstanceMessagePortMetaOnRemote } from "../../actions/patchers";
-import { Group, Stack } from "@mantine/core";
+import { restoreDefaultMessagePortMetaOnRemote, setInstanceMessagePortMetaOnRemote,
+	setInstanceWaitingForMidiMappingOnRemote, clearMessagePortMIDIMappingOnRemote,
+	activateMessagePortMIDIMappingFocus
+} from "../../actions/patchers";
+import { ActionIcon, Group, Stack, Tooltip } from "@mantine/core";
+import { IconElement } from "../elements/icon";
+import { mdiMidiPort } from "@mdi/js";
 import { SearchInput } from "../page/searchInput";
 
 export type InstanceInportTabProps = {
@@ -39,10 +44,53 @@ const InstanceInportTab: FunctionComponent<InstanceInportTabProps> = memo(functi
 		dispatch(restoreDefaultMessagePortMetaOnRemote(instance, port));
 	}, [dispatch, instance]);
 
+	const onToggleMIDIMapping = useCallback((e: MouseEvent<HTMLButtonElement>) => {
+		e.currentTarget.blur();
+		dispatch(setInstanceWaitingForMidiMappingOnRemote(instance.id, !instance.waitingForMidiMapping));
+	}, [dispatch, instance]);
+
+	const onActivateInportMIDIMapping = useCallback((port: MessagePortRecord) => {
+		dispatch(activateMessagePortMIDIMappingFocus(instance, port));
+	}, [instance, dispatch]);
+
+	const onClearInportMidiMapping = useCallback((port: MessagePortRecord) => {
+		dispatch(clearMessagePortMIDIMappingOnRemote(instance, port));
+	}, [instance, dispatch]);
+
+	useEffect(() => {
+		const onKeyDown = (e: KeyboardEvent) => {
+			if (e.code === "Escape" && instance.waitingForMidiMapping && document.activeElement instanceof HTMLElement && document.activeElement.nodeName !== "INPUT") {
+				dispatch(setInstanceWaitingForMidiMappingOnRemote(instance.id, false));
+			}
+		};
+		document.addEventListener("keydown", onKeyDown);
+
+		return () => {
+			document.removeEventListener("keydown", onKeyDown);
+		};
+	}, [instance, dispatch]);
+
+	useEffect(() => {
+		return () => {
+			dispatch(setInstanceWaitingForMidiMappingOnRemote(instance.id, false));
+		};
+	}, [instance.id, dispatch]);
+
 	return (
 		<Stack gap="xs">
-			<Group justify="flex-end">
-				<SearchInput onSearch={ setSearchValue } />
+			<Group justify="space-between">
+				<Tooltip label={ instance.waitingForMidiMapping ? "Disable MIDI Mapping" : "Enable MIDI Mapping" } >
+					<ActionIcon
+						onClick={ onToggleMIDIMapping }
+						variant={ instance.waitingForMidiMapping ? "filled" : "default" }
+						color={ instance.waitingForMidiMapping ? "violet.4" : undefined }
+					>
+						<IconElement path={ mdiMidiPort } />
+					</ActionIcon>
+				</Tooltip>
+				<Group justify="flex-end">
+					<SearchInput onSearch={ setSearchValue } />
+				</Group>
 			</Group>
 			{
 				!messageInports.size ? (
@@ -56,6 +104,9 @@ const InstanceInportTab: FunctionComponent<InstanceInportTabProps> = memo(functi
 						onSendMessage={ onSendInportMessage }
 						onRestoreMetadata={ onRestoreDefaultPortMetadata }
 						onSaveMetadata={ onSavePortMetadata }
+						instanceIsMIDIMapping={ instance.waitingForMidiMapping }
+						onActivateMIDIMapping={ onActivateInportMIDIMapping }
+						onClearMIDIMapping={ onClearInportMidiMapping }
 					/>
 			}
 		</Stack>

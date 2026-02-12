@@ -2,14 +2,53 @@
 	break-inside: avoid-column;
 	page-break-inside: avoid;
 	padding-bottom: var(--mantine-spacing-xl);
+
+	&[data-instance-mapping="true"] {
+		cursor: pointer;
+		background-color: var(--port-mapping-bg-color);
+		&:hover {
+			background-color: var(--port-active-mapping-bg-color);
+		}
+
+		/*
+		> * {
+			pointer-events: none;
+		}
+		*/
+	}
+
+	&[data-port-mapping="true"] {
+		background-color: var(--port-active-mapping-bg-color);
+		border: 3px solid var(--port-active-mapping-outline);
+	}
 }
 
 .portItemLabel {
 	font-size: var(--mantine-font-size-sm);
-	font-weight: 700;
 	overflow: hidden;
 	text-overflow: ellipsis;
+	user-select: none;
 }
 
 .portList {
+	&[data-color-scheme="light"] {
+		--port-bg-color: transparent;
+		--port-mapping-bg-color: var(--mantine-color-violet-1);
+		--port-active-mapping-bg-color: var(--mantine-color-violet-2);
+		--port-active-mapping-outline: var(--mantine-color-violet-5);
+	}
+
+	&[data-color-scheme="dark"] {
+		--port-bg-color: transparent;
+		--port-mapping-bg-color: var(--mantine-color-violet-9);
+		--port-active-mapping-bg-color: var(--mantine-color-violet-4);
+		--port-active-mapping-outline: var(--mantine-color-violet-2);
+	}
+}
+
+.portItemMIDIIndicator {
+	--indicator-size: 8px;
+	--indicator-translate-x: 150%!important;
+	--indicator-translate-y: -40%!important;
+	--indicator-color: var(--mantine-color-violet-4);
 }
