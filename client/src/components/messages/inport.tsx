@@ -1,13 +1,13 @@
 import { FunctionComponent, memo, useCallback } from "react";
 import classes from "./ports.module.css";
-import { ActionIcon, Group, Indicator, Menu, Table, Text, Tooltip } from "@mantine/core";
+import { ActionIcon, Group, Indicator, Menu, Table, Tooltip } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { MessagePortRecord } from "../../models/messageport";
 import { MetaEditorModal } from "../meta/metaEditorModal";
 import { MetadataScope, MIDIMetaMappingType } from "../../lib/constants";
 import { IconElement } from "../elements/icon";
 import { mdiCodeBraces, mdiDotsVertical, mdiEraser, mdiRadioboxMarked, mdiSend } from "@mdi/js";
-import { formatMIDIMappingToDisplay, formatParamValueForDisplay } from "../../lib/util";
+import { formatMIDIMappingToDisplay } from "../../lib/util";
 
 interface MessageInportEntryProps {
 	port: MessagePortRecord;
@@ -81,21 +81,19 @@ const MessageInportEntry: FunctionComponent<MessageInportEntryProps> = memo(func
 				) : null
 			}
 			<Table.Td onClick={ onActivateMapping }>
-				<label htmlFor={ port.name } className={ classes.portItemLabel } >
-					<Group justify="space-between">
-						<Tooltip label={ indicatorText } disabled={ !indicatorText }>
-							<Indicator
-								position="middle-end"
-								disabled={ !indicatorText }
-								classNames={{ root: classes.portItemMIDIIndicator }}
-							>
-								<label htmlFor={ port.name } className={ classes.portItemLabel } >
-									{ port.name }
-								</label>
-							</Indicator>
-						</Tooltip>
-					</Group>
-				</label>
+				<Group justify="space-between">
+					<Tooltip label={ indicatorText } disabled={ !indicatorText }>
+						<Indicator
+							position="middle-end"
+							disabled={ !indicatorText }
+							classNames={{ root: classes.portItemMIDIIndicator }}
+						>
+							<label htmlFor={ port.name } className={ classes.portItemLabel } >
+								{ port.name }
+							</label>
+						</Indicator>
+					</Tooltip>
+				</Group>
 			</Table.Td>
 			<Table.Td>
 				<Group justify="flex-end" gap="xs">
