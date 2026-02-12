@@ -52,6 +52,10 @@ export type ParameterMetaJsonMap = JsonMap & {
 	midi?: MIDIMetaMapping;
 };
 
+export type MessagePortMetaJsonMap = JsonMap & {
+	midi?: MIDIMetaMapping;
+};
+
 export type DataRefMetaJsonMap = JsonMap;
 export type RunnerInfoKey = SystemInfoKey | JackInfoKey;
 
