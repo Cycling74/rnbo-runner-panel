@@ -1,13 +1,13 @@
-import { Alert, Button, Center, Fieldset, Group, Modal, RingProgress, Stack, Table, Text, Textarea, TextInput } from "@mantine/core";
+import { Alert, Button, Center, Fieldset, Group, Modal, Paper, RingProgress, Stack, Table, Text } from "@mantine/core";
 import { FC, FormEvent, memo, ReactNode, useCallback, useState } from "react";
 import { useIsMobileDevice } from "../../hooks/useIsMobileDevice";
 import { FileWithPath } from "@mantine/dropzone";
 import { IconElement } from "../elements/icon";
-import { mdiAlertCircleOutline, mdiClose, mdiFileExport, mdiFileMusic, mdiGroup, mdiLoading, mdiPackage, mdiUpload } from "@mdi/js";
+import { mdiAlertCircleOutline, mdiClose, mdiFileExport, mdiFileMusic, mdiGroup, mdiLoading, mdiPackageUp, mdiUpload } from "@mdi/js";
 import { useAppSelector } from "../../hooks/useAppDispatch";
 import { TableHeaderCell } from "../elements/tableHeaderCell";
 import { ResourceType, SystemInfoKey } from "../../lib/constants";
-import { FileDropZone, FileDropZoneProps } from "../page/fileDropZone";
+import { FileDropZone } from "../page/fileDropZone";
 import { getRunnerInfoRecord, getRunnerOrigin } from "../../selectors/appStatus";
 import { PackageInfoRecord } from "../../models/packageInfo";
 import { getPackageUploadConflicts, PackageUploadConflicts, readInfoFromPackageFile } from "../../lib/package";
@@ -18,9 +18,7 @@ import { installPackageOnRunner } from "../../controller/cmd";
 import { uploadFileToRemote } from "../../lib/files";
 import { RunnerFileType } from "../../lib/constants";
 
-const PACKAGE_MIME_TYPE: FileDropZoneProps["accept"] = {
-	"application/x-tar": [".rnbopack"]
-};
+const PACKAGE_EXTENSION: string = "rnbopack";
 
 export type UploadFile = {
 	id: string;
@@ -39,7 +37,7 @@ const resourceTypeDisplay: Record<ResourceType, ReactNode> = {
 	[ResourceType.DataFile]: (
 		<Group gap={ 2 } align="center" >
 			<IconElement path={ mdiFileMusic } />
-			<span>Audio File</span>
+			<span>Data File</span>
 		</Group>
 	),
 	[ResourceType.Patcher]: (
@@ -54,6 +52,40 @@ const resourceTypeDisplay: Record<ResourceType, ReactNode> = {
 			<span>Graph</span>
 		</Group>
 	)
+};
+
+type InfoCardProps = {
+	title: string;
+	value: string;
+	error?: string;
+}
+
+const InfoCard: FC<InfoCardProps> = ({
+	title,
+	value,
+	error
+}) => {
+
+	return (
+		<Paper withBorder radius="sm" p="xs" style={{ borderColor: error ? "red" : null }}>
+			<Group align="center" gap="xs">
+				<Text c="dimmed" tt="uppercase" fw="bold" size="xs">
+					{ title }
+				</Text>
+			</Group>
+			<Text fw="bold" size="sm" mt="x">
+				{ value }
+			</Text>
+
+			{
+				error ? (
+					<Text c="red" fz="xs" component="div" >
+						{ error }
+					</Text>
+				) : null
+			}
+		</Paper>
+	);
 };
 
 const PackageContentItem: FC<PackageContentItemProps> = ({
@@ -104,38 +136,34 @@ const PackageUploadConfirmForm: FC<PackageUploadConfirmFormProps> = ({
 		onSubmit();
 	}, [onSubmit]);
 
-	const supportsUpload = supportsRNBOVersion && supportsTarget;
+
+	const [
+		supportsUpload,
+		rnboVersion
+	] = useAppSelector((state) => [
+		supportsRNBOVersion && supportsTarget,
+		getRunnerInfoRecord(state, SystemInfoKey.RNBOVersion)
+	]);
 
 	return (
 		<form onSubmit={ onTriggerSubmit } >
 			<Stack gap="lg">
 				<Fieldset legend="Runner" >
 					<Stack gap="md">
-						<TextInput
-							label="Package Name"
-							name="name"
-							readOnly
-							value={ info.name }
-						/>
-						<Group grow>
-							<TextInput
-								label="RNBO Version"
-								name="rnbo_version"
-								readOnly
-								error={ !supportsRNBOVersion ? "The package does not match the runner's RNBO version" : undefined }
+						<InfoCard title="Package Name" value={ info.name } />
+						<Group grow align="flex-start">
+							<InfoCard
+								title="RNBO Version"
 								value={ info.rnbo_version }
+								error={ !supportsRNBOVersion ? `The package does not match the runner's RNBO version: ${rnboVersion.oscValue}` : undefined }
 							/>
-							<TextInput
-								label="Runner Version"
-								name="runner_version"
-								readOnly
+							<InfoCard
+								title="Runner Version"
 								value={ info.runner_version }
 							/>
 						</Group>
-						<Textarea
-							label="Supported Targets"
-							name="target_ids"
-							readOnly
+						<InfoCard
+							title="Supported Targets"
 							error={ !supportsTarget ? "The package does not support the runner's target id" : undefined }
 							value={ info.targets.keySeq().toArray().join("\n") }
 						/>
@@ -286,6 +314,7 @@ export const PackageUploadModal: FC<PackageUploadModalProps> = memo(function Wra
 		try {
 			if (!files.length || files.length > 1) throw new Error("Please select a single file.");
 			const file = files[0];
+			if (file.name.split(".").pop() !== PACKAGE_EXTENSION) throw new Error(`${file.name} is not a ${PACKAGE_EXTENSION} file`);
 			const pkgInfo = PackageInfoRecord.fromDescription(await readInfoFromPackageFile(file));
 			setUploadState({
 				conflicts: getPackageUploadConflicts(pkgInfo, datafiles, patcherExports, graphSets),
@@ -337,9 +366,8 @@ export const PackageUploadModal: FC<PackageUploadModalProps> = memo(function Wra
 	switch (uploadState.step) {
 		case PackageUploadStep.Select: {
 			content = <FileDropZone
-				accept={ PACKAGE_MIME_TYPE }
 				maxFiles={ 1 }
-				fileIcon={ mdiPackage }
+				fileIcon={ mdiPackageUp }
 				setFiles={ onSetPackageFile }
 			/>;
 			break;
