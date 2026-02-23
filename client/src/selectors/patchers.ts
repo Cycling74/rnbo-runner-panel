@@ -239,6 +239,15 @@ export const getPatcherInstanceMessageInportsByInstanceIdAndTag = createSelector
 	}
 );
 
+export const getPatcherInstanceMessageInportsWithMIDIMapping = createSelector(
+	[
+		getPatcherInstanceMessageInports
+	],
+	(ports): ImmuMap<MessagePortRecord["id"], MessagePortRecord> => {
+		return ports.filter(p => p.isMidiMapped);
+	}
+);
+
 export const getPatcherInstanceMessageOutports = (state: RootStateType): ImmuMap<MessagePortRecord["id"], MessagePortRecord> => state.patchers.instanceMessageOutports;
 
 export const getPatcherInstanceMessageOutport = createSelector(
@@ -327,5 +336,27 @@ export const getPatcherInstanceDataRefsByInstanceIdAndName = createSelector(
 	],
 	(refs, instanceId, name): DataRefRecord | undefined => {
 		return refs.find(r => r.instanceId === instanceId && r.name === name);
+	}
+);
+
+export const getPatcherInstanceItemsWithMIDIMapping = createSelector(
+	[
+		getPatcherInstanceMessageInports,
+		getPatcherInstanceParameters
+	],
+	(ports, parameters): ImmuMap<MessagePortRecord["id"], MessagePortRecord | ParameterRecord> => {
+		return ImmuMap<MessagePortRecord["id"], MessagePortRecord | ParameterRecord>().withMutations(map => {
+			ports.forEach(p => {
+				if (p.isMidiMapped) {
+					map.set(p.id, p);
+				}
+			});
+
+			parameters.forEach(p => {
+				if (p.isMidiMapped) {
+					map.set(p.id, p);
+				}
+			});
+		});
 	}
 );

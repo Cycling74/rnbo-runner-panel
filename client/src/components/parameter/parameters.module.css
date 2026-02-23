@@ -25,7 +25,7 @@
 		}
 	}
 
-	&[data-param-mappping="true"] {
+	&[data-param-mapping="true"] {
 		background-color: var(--parameter-active-mapping-bg-color);
 		outline-color: var(--parameter-active-mapping-outline);
 	}

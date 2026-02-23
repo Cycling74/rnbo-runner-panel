@@ -1,12 +1,13 @@
 import { FunctionComponent, memo, useCallback } from "react";
 import classes from "./ports.module.css";
-import { ActionIcon, Group, Menu, Table, Text, Tooltip } from "@mantine/core";
+import { ActionIcon, Group, Indicator, Menu, Table, Tooltip } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { MessagePortRecord } from "../../models/messageport";
 import { MetaEditorModal } from "../meta/metaEditorModal";
-import { MetadataScope } from "../../lib/constants";
+import { MetadataScope, MIDIMetaMappingType } from "../../lib/constants";
 import { IconElement } from "../elements/icon";
-import { mdiCodeBraces, mdiDotsVertical, mdiRadioboxMarked, mdiSend } from "@mdi/js";
+import { mdiCodeBraces, mdiDotsVertical, mdiEraser, mdiRadioboxMarked, mdiSend } from "@mdi/js";
+import { formatMIDIMappingToDisplay } from "../../lib/util";
 
 interface MessageInportEntryProps {
 	port: MessagePortRecord;
@@ -14,6 +15,9 @@ interface MessageInportEntryProps {
 	onSendMessage: (port: MessagePortRecord) => void;
 	onRestoreMetadata: (param: MessagePortRecord) => void;
 	onSaveMetadata: (param: MessagePortRecord, meta: string) => void;
+	onActivateMIDIMapping: (port: MessagePortRecord) => void;
+	onClearMIDIMapping: (port: MessagePortRecord) => void;
+	instanceIsMIDIMapping: boolean;
 }
 
 const MessageInportEntry: FunctionComponent<MessageInportEntryProps> = memo(function WrappedMessageInportEntry({
@@ -21,7 +25,10 @@ const MessageInportEntry: FunctionComponent<MessageInportEntryProps> = memo(func
 	onSendBang,
 	onSendMessage,
 	onSaveMetadata,
-	onRestoreMetadata
+	onRestoreMetadata,
+	onActivateMIDIMapping,
+	onClearMIDIMapping,
+	instanceIsMIDIMapping
 }) {
 
 	const [showMetaEditor, { toggle: toggleMetaEditor, close: closeMetaEditor }] = useDisclosure();
@@ -42,8 +49,25 @@ const MessageInportEntry: FunctionComponent<MessageInportEntryProps> = memo(func
 		onSendBang(port);
 	}, [onSendBang, port]);
 
+	const onActivateMapping = useCallback(() => {
+		if (port.waitingForMidiMapping || !instanceIsMIDIMapping) return;
+		onActivateMIDIMapping(port);
+	}, [port, instanceIsMIDIMapping, onActivateMIDIMapping]);
+
+	const onClearMapping = useCallback(() => {
+		onClearMIDIMapping(port);
+	}, [port, onClearMIDIMapping]);
+
+	const indicatorText = port.isMidiMapped
+		? formatMIDIMappingToDisplay(port.midiMappingType as MIDIMetaMappingType, port.meta.midi)
+		: null;
+
 	return (
-		<Table.Tr >
+		<Table.Tr
+			className={ classes.portItem }
+			data-instance-mapping={ instanceIsMIDIMapping }
+			data-port-mapping={ port.waitingForMidiMapping }
+		>
 			{
 				showMetaEditor ? (
 					<MetaEditorModal
@@ -56,12 +80,20 @@ const MessageInportEntry: FunctionComponent<MessageInportEntryProps> = memo(func
 					/>
 				) : null
 			}
-			<Table.Td>
-				<label htmlFor={ port.name } className={ classes.portItemLabel } >
-					<Text fz="sm" truncate="end">
-						{ port.name }
-					</Text>
-				</label>
+			<Table.Td onClick={ onActivateMapping }>
+				<Group justify="space-between">
+					<Tooltip label={ indicatorText } disabled={ !indicatorText }>
+						<Indicator
+							position="middle-end"
+							disabled={ !indicatorText }
+							classNames={{ root: classes.portItemMIDIIndicator }}
+						>
+							<label htmlFor={ port.name } className={ classes.portItemLabel } >
+								{ port.name }
+							</label>
+						</Indicator>
+					</Tooltip>
+				</Group>
 			</Table.Td>
 			<Table.Td>
 				<Group justify="flex-end" gap="xs">
@@ -87,6 +119,10 @@ const MessageInportEntry: FunctionComponent<MessageInportEntryProps> = memo(func
 							<Menu.Label>Inport</Menu.Label>
 							<Menu.Item leftSection={ <IconElement path={ mdiCodeBraces } /> } onClick={ toggleMetaEditor }>
 								Edit Metadata
+							</Menu.Item>
+							<Menu.Divider />
+							<Menu.Item leftSection={ <IconElement path={ mdiEraser } /> } onClick={ onClearMapping } disabled= { !port.isMidiMapped }>
+									Clear MIDI Mapping
 							</Menu.Item>
 						</Menu.Dropdown>
 					</Menu>

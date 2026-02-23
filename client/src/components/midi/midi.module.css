@@ -15,8 +15,8 @@
 	cursor: text;
 }
 
-.parameterValueColumnHeader,
-.parameterValueColumn {
+.destinationValueColumnHeader,
+.destinationValueColumn {
 	cursor: default;
 	display: none;
 	user-select: none;
@@ -59,7 +59,7 @@
 	}
 }
 
-.parameterNameColumnHeader {
+.destinationNameColumnHeader {
 	width: 120px;
 
 	@media (min-width: $mantine-breakpoint-md) {
@@ -67,7 +67,7 @@
 	}
 }
 
-.parameterNameColumn {
+.destinationNameColumn {
 	cursor: default;
 	overflow: hidden;
 	text-overflow: ellipsis;

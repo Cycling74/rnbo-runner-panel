@@ -1,5 +1,7 @@
 import { KeyboardEvent, memo } from "react";
-import { AnyJson, JsonMap, MIDIChannelPressureMetaMapping, MIDIControlChangeMetaMapping, MIDIKeypressMetaMapping, MIDIMetaMapping, MIDINoteMetaMapping, MIDIPitchBendMetaMapping, MIDIProgramChangeMetaMapping, OSCQueryStringValueRange, OSCQueryValueRange } from "./types";
+import { AnyJson, JsonMap, MIDIChannelPressureMetaMapping, MIDIControlChangeMetaMapping, MIDIKeypressMetaMapping,
+	MIDIMetaMapping, MIDINoteMetaMapping, MIDIPitchBendMetaMapping, MIDIProgramChangeMetaMapping, OSCQueryStringValueRange, OSCQueryValueRange,
+	ParameterMetaJsonMap, MessagePortMetaJsonMap } from "./types";
 import { MIDIMetaMappingType, nodePortHeight, nodePortSpacing, OnLoadGraphSetSetting, UnsavedSetName } from "./constants";
 
 import dayjs from "dayjs";
@@ -271,3 +273,29 @@ export const isUserAbortedError = (err: Error): boolean => {
 	if (err.name === "AbortError") return true;
 	return false;
 };
+
+export function midiMappingFromMeta(meta: ParameterMetaJsonMap | MessagePortMetaJsonMap): {
+	isMidiMapped: boolean,
+	midiMappingType: MIDIMetaMappingType | false
+} {
+	const isMidiMapped = typeof meta.midi === "object";
+	let midiMappingType: false | MIDIMetaMappingType;
+	if (!isMidiMapped) {
+		midiMappingType = false;
+	} else if (Object.hasOwn(meta.midi, "bend")) {
+		midiMappingType = MIDIMetaMappingType.PitchBend;
+	} else if (Object.hasOwn(meta.midi, "chanpress")) {
+		midiMappingType = MIDIMetaMappingType.ChannelPressure;
+	} else if (Object.hasOwn(meta.midi, "ctrl")) {
+		midiMappingType = MIDIMetaMappingType.ControlChange;
+	} else if (Object.hasOwn(meta.midi, "keypress")) {
+		midiMappingType = MIDIMetaMappingType.KeyPressure;
+	} else if (Object.hasOwn(meta.midi, "note")) {
+		midiMappingType = MIDIMetaMappingType.Note;
+	} else if (Object.hasOwn(meta.midi, "prgchg")) {
+		midiMappingType = MIDIMetaMappingType.ProgramChange;
+	} else {
+		midiMappingType = false;
+	}
+	return { isMidiMapped, midiMappingType };
+}

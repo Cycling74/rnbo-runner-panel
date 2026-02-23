@@ -39,7 +39,7 @@ export function withParameterMIDIActions(
 				className={ classes.paramWithMIDIMapping }
 				param={ param }
 				data-instance-mapping={ instanceIsMIDIMapping }
-				data-param-mappping={ param.waitingForMidiMapping }
+				data-param-mapping={ param.waitingForMidiMapping }
 				disabled={ instanceIsMIDIMapping }
 				onClick={ instanceIsMIDIMapping ? onTriggerActivateMIDIMapping : null }
 				menuItems={ [

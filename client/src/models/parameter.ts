@@ -1,7 +1,8 @@
 import { Record as ImmuRecord } from "immutable";
 import { OSCQueryRNBOInstance, OSCQueryRNBOInstanceParameterInfo, OSCQueryRNBOInstanceParameterValue, ParameterMetaJsonMap } from "../lib/types";
-import { instanceAndParamIndicesToSetViewEntry, parseMetaJSONString } from "../lib/util";
+import { instanceAndParamIndicesToSetViewEntry, parseMetaJSONString, midiMappingFromMeta } from "../lib/util";
 import { MIDIMetaMappingType } from "../lib/constants";
+
 
 export type ParameterRecordProps = {
 
@@ -131,25 +132,7 @@ export class ParameterRecord extends ImmuRecord<ParameterRecordProps>({
 			// ignore
 		}
 
-		const isMidiMapped = typeof parsed.midi === "object";
-		let midiMappingType: false | MIDIMetaMappingType;
-		if (!isMidiMapped) {
-			midiMappingType = false;
-		} else if (Object.hasOwn(parsed.midi, "bend")) {
-			midiMappingType = MIDIMetaMappingType.PitchBend;
-		} else if (Object.hasOwn(parsed.midi, "chanpress")) {
-			midiMappingType = MIDIMetaMappingType.ChannelPressure;
-		} else if (Object.hasOwn(parsed.midi, "ctrl")) {
-			midiMappingType = MIDIMetaMappingType.ControlChange;
-		} else if (Object.hasOwn(parsed.midi, "keypress")) {
-			midiMappingType = MIDIMetaMappingType.KeyPressure;
-		} else if (Object.hasOwn(parsed.midi, "note")) {
-			midiMappingType = MIDIMetaMappingType.Note;
-		} else if (Object.hasOwn(parsed.midi, "prgchg")) {
-			midiMappingType = MIDIMetaMappingType.ProgramChange;
-		} else {
-			midiMappingType = false;
-		}
+		const { isMidiMapped, midiMappingType } = midiMappingFromMeta(parsed);
 
 		return this.withMutations(p => {
 			return p
