@@ -1,5 +1,5 @@
 import { FC, useCallback } from "react";
-import { ActionIcon, Button, Group, Menu, Stack, Tooltip } from "@mantine/core";
+import { Button, Group, Menu, Stack, Tooltip } from "@mantine/core";
 import { PageTitle } from "../components/page/title";
 import { ResourceTabs } from "../components/resources/tabs";
 import { useDisclosure } from "@mantine/hooks";

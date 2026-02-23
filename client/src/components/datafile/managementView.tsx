@@ -9,7 +9,6 @@ import { Group, Stack, Table } from "@mantine/core";
 import { TableHeaderCell } from "../elements/tableHeaderCell";
 import { DataFileListItem } from "./item";
 import { SearchInput } from "../page/searchInput";
-import { getRunnerOrigin } from "../../selectors/appStatus";
 
 export const DataFileManagementView: FC = memo(function WrappedDataFileView() {
 
@@ -18,10 +17,8 @@ export const DataFileManagementView: FC = memo(function WrappedDataFileView() {
 
 	const dispatch = useAppDispatch();
 	const [
-		origin,
 		files
 	] = useAppSelector((state: RootStateType) => [
-		getRunnerOrigin(state),
 		getDataFilesSortedByName(state, sortOrder, searchValue)
 	]);
 
