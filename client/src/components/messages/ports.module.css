@@ -2,6 +2,9 @@
 	break-inside: avoid-column;
 	page-break-inside: avoid;
 	padding-bottom: var(--mantine-spacing-xl);
+	outline-color: transparent;
+	outline-style: solid;
+	outline-width: 3px;
 
 	&[data-instance-mapping="true"] {
 		cursor: pointer;
@@ -19,7 +22,7 @@
 
 	&[data-port-mapping="true"] {
 		background-color: var(--port-active-mapping-bg-color);
-		border: 3px solid var(--port-active-mapping-outline);
+		outline-color: var(--port-active-mapping-outline);
 	}
 }
 
