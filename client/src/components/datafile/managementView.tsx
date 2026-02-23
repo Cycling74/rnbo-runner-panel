@@ -1,17 +1,11 @@
 import { FC, memo, useCallback, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../../hooks/useAppDispatch";
-import { useDisclosure } from "@mantine/hooks";
 import { SortOrder } from "../../lib/constants";
 import { RootStateType } from "../../lib/store";
 import { getDataFilesSortedByName } from "../../selectors/datafiles";
 import { DataFileRecord } from "../../models/datafile";
 import { deleteDataFileOnRemote, downloadDataFileFromRunner } from "../../actions/datafiles";
-import { showNotification } from "../../actions/notifications";
-import { DataFileUploadModal, UploadFile } from "./uploadModal";
-import { NotificationLevel } from "../../models/notification";
-import { ActionIcon, Group, Stack, Table, Tooltip } from "@mantine/core";
-import { IconElement } from "../elements/icon";
-import { mdiUpload } from "@mdi/js";
+import { Group, Stack, Table } from "@mantine/core";
 import { TableHeaderCell } from "../elements/tableHeaderCell";
 import { DataFileListItem } from "./item";
 import { SearchInput } from "../page/searchInput";
@@ -19,7 +13,6 @@ import { getRunnerOrigin } from "../../selectors/appStatus";
 
 export const DataFileManagementView: FC = memo(function WrappedDataFileView() {
 
-	const [showUploadModal, uploadModalHandlers] = useDisclosure(false);
 	const [sortOrder, setSortOrder] = useState<SortOrder>(SortOrder.Asc);
 	const [searchValue, setSearchValue] = useState<string>("");
 
@@ -44,22 +37,11 @@ export const DataFileManagementView: FC = memo(function WrappedDataFileView() {
 		dispatch(downloadDataFileFromRunner(file));
 	}, [dispatch]);
 
-	const onFileUploadSuccess = useCallback((files: UploadFile[]) => {
-		dispatch(showNotification({ title: "Upload Complete", message: `Successfully uploaded ${files.length === 1 ? files[0].file.name : `${files.length} files`}`, level: NotificationLevel.success }));
-		uploadModalHandlers.close();
-	}, [uploadModalHandlers, dispatch]);
-
 	return (
 		<Stack gap={ 0 } >
 			<Group justify="flex-end" wrap="nowrap" gap="xs">
 				<SearchInput onSearch={ setSearchValue } />
-				<Tooltip label="Upload Files">
-					<ActionIcon variant="default" onClick={ uploadModalHandlers.open } >
-						<IconElement path={ mdiUpload } />
-					</ActionIcon>
-				</Tooltip>
 			</Group>
-			{ showUploadModal ? <DataFileUploadModal origin={ origin } maxFileCount={ 32 } onClose={ uploadModalHandlers.close } onUploadSuccess={ onFileUploadSuccess } /> : null }
 			<Table verticalSpacing="sm" maw="100%" layout="fixed" highlightOnHover>
 				<Table.Thead>
 					<Table.Tr>

@@ -3,7 +3,7 @@ import { FC, FormEvent, memo, ReactNode, useCallback, useState } from "react";
 import { useIsMobileDevice } from "../../hooks/useIsMobileDevice";
 import { FileWithPath } from "@mantine/dropzone";
 import { IconElement } from "../elements/icon";
-import { mdiAlertCircleOutline, mdiClose, mdiFileExport, mdiFileMusic, mdiGroup, mdiLoading, mdiPackage, mdiUpload } from "@mdi/js";
+import { mdiAlertCircleOutline, mdiClose, mdiFileExport, mdiFileMusic, mdiGroup, mdiLoading, mdiPackageUp, mdiUpload } from "@mdi/js";
 import { useAppSelector } from "../../hooks/useAppDispatch";
 import { TableHeaderCell } from "../elements/tableHeaderCell";
 import { ResourceType, SystemInfoKey } from "../../lib/constants";
@@ -367,7 +367,7 @@ export const PackageUploadModal: FC<PackageUploadModalProps> = memo(function Wra
 		case PackageUploadStep.Select: {
 			content = <FileDropZone
 				maxFiles={ 1 }
-				fileIcon={ mdiPackage }
+				fileIcon={ mdiPackageUp }
 				setFiles={ onSetPackageFile }
 			/>;
 			break;
