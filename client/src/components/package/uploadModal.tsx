@@ -151,7 +151,7 @@ const PackageUploadConfirmForm: FC<PackageUploadConfirmFormProps> = ({
 				<Fieldset legend="Runner" >
 					<Stack gap="md">
 						<InfoCard title="Package Name" value={ info.name } />
-						<Group grow>
+						<Group grow align="flex-start">
 							<InfoCard
 								title="RNBO Version"
 								value={ info.rnbo_version }
