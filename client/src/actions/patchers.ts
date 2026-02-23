@@ -997,37 +997,6 @@ export const clearMessagePortMIDIMappingOnRemote = (port: MessagePortRecord): Ap
 		oscQueryBridge.sendPacket(writePacket(message));
 	};
 
-export const setMessagePortMIDIMappingOnRemoteFromDisplayValue = (port: MessagePortRecord, value: string): AppThunk =>
-	(dispatch) => {
-		try {
-			const parsed = parseMIDIMappingDisplayValue(value);
-			dispatch(setMes(port, parsed.type, parsed.mapping));
-		} catch (err: unknown) {
-			let notification: { level: NotificationLevel; message: string; title: string };
-			if (err instanceof InvalidMIDIFormatError) {
-				notification = {
-					title: err.message,
-					message: `"${value}" is not a valid MIDI mapping value`,
-					level: NotificationLevel.error
-				};
-			} else if (err instanceof UnknownMIDIFormatError) {
-				notification = {
-					title: err.message,
-					message: `"${value}" is an unknown MIDI mapping format. Please use the port meta editor to set this mapping.`,
-					level: NotificationLevel.warn
-				};
-			} else {
-				notification = {
-					title: "Unexpected Error",
-					message: `Encountered an unexpected error while trying to set "${value}" as the MIDI mapping`,
-					level: NotificationLevel.error
-				};
-				console.error(err);
-			}
-			return void dispatch(showNotification(notification));
-		}
-	};
-
 // Updates in response to remote OSCQuery Updates
 export const addInstance = (desc: OSCQueryRNBOInstance): AppThunk =>
 	(dispatch) => {
