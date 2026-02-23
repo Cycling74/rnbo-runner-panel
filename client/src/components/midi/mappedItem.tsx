@@ -2,7 +2,7 @@ import { FC, memo, useCallback, useState } from "react";
 import { PatcherInstanceRecord } from "../../models/instance";
 import { ParameterRecord } from "../../models/parameter";
 import { ActionIcon, Group, Menu, Table, Tooltip } from "@mantine/core";
-import { mdiDotsVertical, mdiEraser, mdiPencil, mdiVectorSquare } from "@mdi/js";
+import { mdiDotsVertical, mdiEraser, mdiImport, mdiPencil, mdiTune, mdiVectorSquare } from "@mdi/js";
 import { IconElement } from "../elements/icon";
 import classes from "./midi.module.css";
 import { formatMIDIMappingToDisplay, formatParamValueForDisplay } from "../../lib/util";
@@ -10,17 +10,18 @@ import { EditableTableTextCell } from "../elements/editableTableCell";
 import { MIDIMetaMapping } from "../../lib/types";
 import { MIDIMetaMappingType } from "../../lib/constants";
 import { Link, useLocation } from "react-router";
+import { MessagePortRecord } from "../../models/messageport";
 
-export type MIDIMappedParamProps = {
+export type MIDIMappedItemProps = {
 	instance: PatcherInstanceRecord;
-	param: ParameterRecord;
-	onClearMIDIMapping: (param: ParameterRecord) => void;
-	onUpdateMIDIMapping: (param: ParameterRecord, value: string) => void;
+	item: ParameterRecord | MessagePortRecord;
+	onClearMIDIMapping: (param: ParameterRecord | MessagePortRecord) => void;
+	onUpdateMIDIMapping: (param: ParameterRecord | MessagePortRecord, value: string) => void;
 };
 
-const MIDIMappedParameter: FC<MIDIMappedParamProps> = memo(function WrappedMIDIMappedParam({
+const MIDIMappedItem: FC<MIDIMappedItemProps> = memo(function WrappedMIDIMappedParam({
 	instance,
-	param,
+	item,
 	onClearMIDIMapping,
 	onUpdateMIDIMapping
 }) {
@@ -33,12 +34,14 @@ const MIDIMappedParameter: FC<MIDIMappedParamProps> = memo(function WrappedMIDIM
 	}, [setIsEditingMapping]);
 
 	const onClearMapping = useCallback(() => {
-		onClearMIDIMapping(param);
-	}, [param, onClearMIDIMapping]);
+		onClearMIDIMapping(item);
+	}, [item, onClearMIDIMapping]);
 
 	const onUpdateMapping = useCallback((value: string) => {
-		onUpdateMIDIMapping(param, value);
-	}, [param, onUpdateMIDIMapping]);
+		onUpdateMIDIMapping(item, value);
+	}, [item, onUpdateMIDIMapping]);
+
+	const isParam = item instanceof ParameterRecord;
 
 	return (
 		<Table.Tr>
@@ -48,14 +51,21 @@ const MIDIMappedParameter: FC<MIDIMappedParamProps> = memo(function WrappedMIDIM
 				name="midi_source"
 				onChangeEditingState={ setIsEditingMapping }
 				onUpdate={ onUpdateMapping }
-				value={ formatMIDIMappingToDisplay(param.midiMappingType as MIDIMetaMappingType, param.meta.midi as MIDIMetaMapping) }
+				value={formatMIDIMappingToDisplay(item.midiMappingType as MIDIMetaMappingType, item.meta.midi as MIDIMetaMapping) }
 			/>
-			<Table.Td className={ classes.parameterNameColumn } >{ param.name }</Table.Td>
+			<Table.Td className={classes.destinationNameColumn } >
+				<Group gap="3" align="center">
+					<IconElement path={isParam ? mdiTune : mdiImport} size={0.65}/>
+					{ item.name }
+				</Group>
+			</Table.Td>
 			<Table.Td className={ classes.patcherInstanceColumn } >
 				<span className={ classes.patcherInstanceIndex } >{ instance.id }</span>
 				<span className={ classes.patcherInstanceName } >{ instance.displayName }</span>
 			</Table.Td>
-			<Table.Td className={ classes.parameterValueColumn } >{ formatParamValueForDisplay(param.value) }</Table.Td>
+			<Table.Td className={classes.destinationValueColumn} >
+				{ isParam ? formatParamValueForDisplay(item.value) : "-" }
+			</Table.Td>
 			<Table.Td className={ classes.actionColumn } >
 				<Group justify="flex-end">
 					<Menu position="bottom-end">
@@ -94,4 +104,4 @@ const MIDIMappedParameter: FC<MIDIMappedParamProps> = memo(function WrappedMIDIM
 	);
 });
 
-export default MIDIMappedParameter;
+export default MIDIMappedItem;

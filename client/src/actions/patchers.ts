@@ -1,5 +1,5 @@
 import { ActionBase, AppThunk } from "../lib/store";
-import { MIDIMetaMapping, OSCQueryRNBOInstance, OSCQueryRNBOInstanceDataRefs, OSCQueryRNBOInstancePresetEntries, OSCQueryRNBOInstancesState, OSCQueryRNBOPatchersState, OSCValue, ParameterMetaJsonMap } from "../lib/types";
+import { MessagePortMetaJsonMap, MIDIMetaMapping, OSCQueryRNBOInstance, OSCQueryRNBOInstanceDataRefs, OSCQueryRNBOInstancePresetEntries, OSCQueryRNBOInstancesState, OSCQueryRNBOPatchersState, OSCValue, ParameterMetaJsonMap } from "../lib/types";
 import { MIDIMetaMappingType } from "../lib/constants";
 import { PatcherInstanceRecord } from "../models/instance";
 import { getPatcherInstance, getPatcherInstanceParametersByInstanceId, getPatcherInstanceMessageInportsByInstanceId, getPatcherInstanceMesssageOutportsByInstanceId, getPatcherInstanceMessageInportByPath, getPatcherInstanceMessageOutportByPath, getPatcherInstanceMesssageOutportsByInstanceIdAndTag, getPatcherInstanceParameterByPath, getPatcherInstanceParametersByInstanceIdAndName, getPatcherInstanceMessageInportsByInstanceIdAndTag, getPatcherInstances, getPatcherInstanceMessageInports, getPatcherInstanceMessageOutports, getPatcherInstanceParameters, getPatcherInstanceDataRefs, getPatcherInstanceDataRefsByInstanceIdAndName, getPatcherInstanceDataRefByPath, getPatcherInstanceDataRefsByInstanceId } from "../selectors/patchers";
@@ -933,52 +933,6 @@ export const clearParameterMIDIMappingOnRemote = (param: ParameterRecord): AppTh
 		oscQueryBridge.sendPacket(writePacket(message));
 	};
 
-export const setParameterMIDIMappingOnRemote = (param: ParameterRecord, type: MIDIMetaMappingType, mapping: MIDIMetaMapping): AppThunk =>
-	() => {
-		const meta: ParameterMetaJsonMap = cloneJSON(param.meta);
-		meta.midi = { ...mapping };
-
-		const message = {
-			address: `${param.path}/meta`,
-			args: [
-				{ type: "s", value: JSON.stringify(meta) }
-			]
-		};
-
-		oscQueryBridge.sendPacket(writePacket(message));
-	};
-
-export const setParameterMIDIMappingOnRemoteFromDisplayValue = (param: ParameterRecord, value: string): AppThunk =>
-	(dispatch) => {
-		try {
-			const parsed = parseMIDIMappingDisplayValue(value);
-			dispatch(setParameterMIDIMappingOnRemote(param, parsed.type, parsed.mapping));
-		} catch (err: unknown) {
-			let notification: { level: NotificationLevel; message: string; title: string };
-			if (err instanceof InvalidMIDIFormatError) {
-				notification = {
-					title: err.message,
-					message: `"${value}" is not a valid MIDI mapping value`,
-					level: NotificationLevel.error
-				};
-			} else if (err instanceof UnknownMIDIFormatError) {
-				notification = {
-					title: err.message,
-					message: `"${value}" is an unknown MIDI mapping format. Please use the parameter meta editor to set this mapping.`,
-					level: NotificationLevel.warn
-				};
-			} else {
-				notification = {
-					title: "Unexpected Error",
-					message: `Encountered an unexpected error while trying to set "${value}" as the MIDI mapping`,
-					level: NotificationLevel.error
-				};
-				console.error(err);
-			}
-			return void dispatch(showNotification(notification));
-		}
-	};
-
 export const setInstanceMessagePortMetaOnRemote = (_instance: PatcherInstanceRecord, port: MessagePortRecord, value: string): AppThunk =>
 	() => {
 		const message = {
@@ -1015,7 +969,7 @@ export const activateMessagePortMIDIMappingFocus = (instance: PatcherInstanceRec
 
 	};
 
-export const clearMessagePortMIDIMappingOnRemote = (_instance: PatcherInstanceRecord, port: MessagePortRecord): AppThunk =>
+export const clearMessagePortMIDIMappingOnRemote = (port: MessagePortRecord): AppThunk =>
 	async () => {
 
 		const dialogResult = await showConfirmDialog({
@@ -1041,6 +995,37 @@ export const clearMessagePortMIDIMappingOnRemote = (_instance: PatcherInstanceRe
 		};
 
 		oscQueryBridge.sendPacket(writePacket(message));
+	};
+
+export const setMessagePortMIDIMappingOnRemoteFromDisplayValue = (port: MessagePortRecord, value: string): AppThunk =>
+	(dispatch) => {
+		try {
+			const parsed = parseMIDIMappingDisplayValue(value);
+			dispatch(setMes(port, parsed.type, parsed.mapping));
+		} catch (err: unknown) {
+			let notification: { level: NotificationLevel; message: string; title: string };
+			if (err instanceof InvalidMIDIFormatError) {
+				notification = {
+					title: err.message,
+					message: `"${value}" is not a valid MIDI mapping value`,
+					level: NotificationLevel.error
+				};
+			} else if (err instanceof UnknownMIDIFormatError) {
+				notification = {
+					title: err.message,
+					message: `"${value}" is an unknown MIDI mapping format. Please use the port meta editor to set this mapping.`,
+					level: NotificationLevel.warn
+				};
+			} else {
+				notification = {
+					title: "Unexpected Error",
+					message: `Encountered an unexpected error while trying to set "${value}" as the MIDI mapping`,
+					level: NotificationLevel.error
+				};
+				console.error(err);
+			}
+			return void dispatch(showNotification(notification));
+		}
 	};
 
 // Updates in response to remote OSCQuery Updates
@@ -1468,5 +1453,61 @@ export const updateInstanceDataRefMeta = (instanceId: string, name: DataRefRecor
 			dispatch(setInstanceDataRef(dataRef.setMeta(value)));
 		} catch (e) {
 			console.log(e);
+		}
+	};
+
+export const clearItemMIDIMappingOnRemote = (item: MessagePortRecord | ParameterRecord) => {
+	if (item instanceof MessagePortRecord) {
+		return clearMessagePortMIDIMappingOnRemote(item);
+	} else if (item instanceof ParameterRecord) {
+		return clearParameterMIDIMappingOnRemote(item);
+	}
+
+	throw new Error("MIDI Mapping for item is not supported", item);
+};
+
+export const setItemMIDIMappingOnRemote = (item: MessagePortRecord | ParameterRecord, type: MIDIMetaMappingType, mapping: MIDIMetaMapping): AppThunk =>
+	() => {
+		const meta: ParameterMetaJsonMap | MessagePortMetaJsonMap = cloneJSON(item.meta);
+		meta.midi = { ...mapping };
+
+		const message = {
+			address: `${item.path}/meta`,
+			args: [
+				{ type: "s", value: JSON.stringify(meta) }
+			]
+		};
+
+		oscQueryBridge.sendPacket(writePacket(message));
+	};
+
+export const setItemMIDIMappingOnRemoteFromDisplayValue = (item: MessagePortRecord | ParameterRecord, value: string): AppThunk =>
+	(dispatch) => {
+		try {
+			const parsed = parseMIDIMappingDisplayValue(value);
+			dispatch(setItemMIDIMappingOnRemote(item, parsed.type, parsed.mapping));
+		} catch (err: unknown) {
+			let notification: { level: NotificationLevel; message: string; title: string };
+			if (err instanceof InvalidMIDIFormatError) {
+				notification = {
+					title: err.message,
+					message: `"${value}" is not a valid MIDI mapping value`,
+					level: NotificationLevel.error
+				};
+			} else if (err instanceof UnknownMIDIFormatError) {
+				notification = {
+					title: err.message,
+					message: `"${value}" is an unknown MIDI mapping format. Please use the meta editor to set this mapping.`,
+					level: NotificationLevel.warn
+				};
+			} else {
+				notification = {
+					title: "Unexpected Error",
+					message: `Encountered an unexpected error while trying to set "${value}" as the MIDI mapping`,
+					level: NotificationLevel.error
+				};
+				console.error(err);
+			}
+			return void dispatch(showNotification(notification));
 		}
 	};

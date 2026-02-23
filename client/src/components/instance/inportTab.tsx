@@ -54,8 +54,8 @@ const InstanceInportTab: FunctionComponent<InstanceInportTabProps> = memo(functi
 	}, [instance, dispatch]);
 
 	const onClearInportMidiMapping = useCallback((port: MessagePortRecord) => {
-		dispatch(clearMessagePortMIDIMappingOnRemote(instance, port));
-	}, [instance, dispatch]);
+		dispatch(clearMessagePortMIDIMappingOnRemote(port));
+	}, [dispatch]);
 
 	useEffect(() => {
 		const onKeyDown = (e: KeyboardEvent) => {
