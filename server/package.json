@@ -1,6 +1,6 @@
 {
   "name": "@rnbo-runner-panel/server",
-  "version": "2.2.0-beta.16",
+  "version": "2.2.0-beta.17",
   "scripts": {
     "predev": "mkdir -p ../client/out",
     "dev": "cargo run"
