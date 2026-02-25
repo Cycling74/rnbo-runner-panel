@@ -1,5 +1,18 @@
 # @rnbo-runner-panel/client
 
+## 2.2.0-beta.17
+
+### Patch Changes
+
+- 2e855f9: Updated package info display to look less like text entry
+  Added runner RNBO version to error with package version mismatches
+- 2e855f9: Renamed "Audio File" to "Data File" and removed file/mime type restriction for upload
+  Also increased file count limit for upload
+- f051137: Consolidated upload triggers in single Upload button on Resources page
+- 7caa95b: Implement MIDI mapping for Inports
+- 2e855f9: Updated package drag area to look like you can drop .rnbopack
+- c65876f: #225 Enhanced MIDI Mapping view to support displaying mappings for Message Inports as well as Parameters.
+
 ## 2.2.0-beta.16
 
 ## 2.2.0-beta.15

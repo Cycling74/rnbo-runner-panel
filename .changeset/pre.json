@@ -6,12 +6,18 @@
     "@rnbo-runner-panel/server": "2.1.1-beta.12"
   },
   "changesets": [
+    "blue-mugs-mix",
     "chubby-planes-vanish",
     "fair-emus-rush",
     "great-candies-shine",
     "new-radios-sleep",
+    "sixty-groups-strive",
+    "some-roses-serve",
     "spotty-fans-roll",
     "tough-signs-admire",
+    "violet-pugs-know",
+    "wide-radios-lead",
+    "yellow-eagles-wink",
     "yummy-frogs-jump"
   ]
 }
