@@ -100,10 +100,10 @@ export enum ParamSize {
 	xl = "Extra-large"
 }
 
-export enum MIDIMappedParameterSortAttr {
+export enum MIDIMappedItemSortAttr {
 	MIDISource = "midi_source",
 	InstanceId = "instance_id",
-	ParameterName = "param_name"
+	Name = "name"
 }
 
 export enum MIDIMetaMappingType {

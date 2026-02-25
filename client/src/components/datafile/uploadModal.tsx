@@ -11,21 +11,6 @@ import { FileDropZone } from "../page/fileDropZone";
 import { RunnerFileType } from "../../lib/constants";
 import { uploadFileToRemote } from "../../lib/files";
 
-const AUDIO_MIME_TYPE: Record<string, string[]> = {
-	"audio/aiff": [".aif", ".aiff"],
-	"audio/x-aiff": [".aif", ".aiff"],
-	"audio/wav": [".wav"],
-	"audio/wave": [".wav"],
-	"audio/x-wav": [".wav"],
-	"audio/x-pn-wav": [".wav"],
-	"audio/flac": [".flac"],
-	"audio/x-flac": [".flac"],
-	"audio/mpeg": [".mp3"],
-	"audio/ogg": [".ogg"],
-	"video/ogg": [".ogg"] // for some reason dropzone is seeing .ogg audio as video/ogg
-	// TODO does libsndfile support other formats?
-};
-
 export type UploadFile = {
 	id: string;
 	file: FileWithPath;
@@ -196,7 +181,6 @@ export const DataFileUploadModal: FC<DataFileUploadModalProps> = memo(function W
 						{
 							step === UploadStep.Select ? (
 								<FileDropZone
-									accept={ AUDIO_MIME_TYPE }
 									fileIcon={ mdiFileMusic }
 									maxFiles={ maxFileCount }
 									setFiles={ onSetFiles }

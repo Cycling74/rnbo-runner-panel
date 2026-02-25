@@ -116,7 +116,7 @@ export const updateDataFiles = (paths: string[]): AppThunk =>
 		} catch (err) {
 			dispatch(showNotification({
 				level: NotificationLevel.error,
-				title: "Error while trying to update list of audio files",
+				title: "Error while trying to update list of data files",
 				message: "Please check the console for further details."
 			}));
 			console.log(err);
@@ -135,7 +135,7 @@ export const triggerDataFileListRefresh = (init: boolean = false): AppThunk =>
 			);
 		} catch (err) {
 			dispatch(showNotification({
-				title: "Error while requesting audio file list",
+				title: "Error while requesting data file list",
 				message: `${err.message} - Please check the console for more details`,
 				level: NotificationLevel.error
 			}));
@@ -169,7 +169,7 @@ export const deleteDataFileOnRemote = (file: DataFileRecord): AppThunk =>
 		} catch (err) {
 			dispatch(showNotification({
 				level: NotificationLevel.error,
-				title: `Error while trying to delete audio file ${file.id}`,
+				title: `Error while trying to delete data file ${file.id}`,
 				message: "Please check the console for further details."
 			}));
 			console.log(err);
