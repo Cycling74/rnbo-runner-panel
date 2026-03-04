@@ -1,5 +1,11 @@
 # @rnbo-runner-panel/server
 
+## 2.2.0-beta.20
+
+### Patch Changes
+
+- 6fcde57: #296 Fixed Release workflow to use correct git sha for release
+
 ## 2.2.0-beta.19
 
 ### Patch Changes
