@@ -4,7 +4,7 @@
 
 ### Patch Changes
 
-- 6fcde57: #291 Fixed Release workflow to use correct git sha for release
+- 6fcde57: #296 Fixed Release workflow to use correct git sha for release
 
 ## 2.2.0-beta.19
 
