@@ -1,5 +1,17 @@
 # @rnbo-runner-panel/client
 
+## 2.2.0-beta.19
+
+### Patch Changes
+
+- 760e85a: #296 Skip npm publishing in Release workflow as there is nothing to publish.
+
+## 2.2.0-beta.18
+
+### Patch Changes
+
+- de6e58e: #296 Fix Release version tagging in release workflow
+
 ## 2.2.0-beta.17
 
 ### Patch Changes
