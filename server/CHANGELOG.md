@@ -1,5 +1,11 @@
 # @rnbo-runner-panel/server
 
+## 2.2.0-beta.19
+
+### Patch Changes
+
+- 760e85a: #296 Skip npm publishing in Release workflow as there is nothing to publish.
+
 ## 2.2.0-beta.18
 
 ### Patch Changes
