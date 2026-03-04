@@ -20,7 +20,7 @@
     "prepackage:linux": "npm run build:client && cross build --target aarch64-unknown-linux-gnu --release",
     "package:linux": "node scripts/package-linux.mjs arm64 ./build/linux-aarch64/ ./target/aarch64-unknown-linux-gnu/release/rnbo-runner-panel",
     "package:conan": "node scripts/package-conan.mjs",
-    "release": "changeset publish",
+    "release": "echo 'Skipping publish'",
     "version-packages": "changeset version && node ./scripts/apply-version.mjs"
   },
   "devDependencies": {
