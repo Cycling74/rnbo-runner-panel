@@ -3,4 +3,4 @@
 "@rnbo-runner-panel/server": patch
 ---
 
-#291 Fixed Release workflow to use correct git sha for release
+#296 Fixed Release workflow to use correct git sha for release
