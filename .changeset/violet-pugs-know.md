@@ -2,4 +2,4 @@
 "@rnbo-runner-panel/client": patch
 ---
 
-Implement MIDI mapping for Inports
+#225 Implement MIDI mapping for Inports
