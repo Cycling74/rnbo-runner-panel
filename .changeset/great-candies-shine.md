@@ -3,4 +3,4 @@
 "@rnbo-runner-panel/server": minor
 ---
 
-Migrate to a rust based server backend
+#250 Migrate to a rust based server backend
