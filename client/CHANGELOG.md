@@ -1,5 +1,27 @@
 # @rnbo-runner-panel/client
 
+## 2.2.0
+
+### Minor Changes
+
+- 04d0bd7: #250 Migrate to a rust based server backend
+
+### Patch Changes
+
+- 2e855f9: #274 Updated package info display to look less like text entry
+  Added runner RNBO version to error with package version mismatches
+- 760e85a: #296 Skip npm publishing in Release workflow as there is nothing to publish.
+- 6fcde57: #296 Fixed Release workflow to use correct git sha for release
+- 923436b: Add changeset automation to create releases and remove private, publishing workflows in favor of distinct changelogs for both, the server as well as the client part of the rnbo-runner-panel.
+- de6e58e: #296 Fix Release version tagging in release workflow
+- 2e855f9: #273 Renamed "Audio File" to "Data File" and removed file/mime type restriction for upload
+  Also increased file count limit for upload
+- f051137: Consolidated upload triggers in single Upload button on Resources page
+- 238d375: #266 Fix version display in About Screen
+- 7caa95b: #225 Implement MIDI mapping for Inports
+- 2e855f9: Updated package drag area to look like you can drop .rnbopack
+- c65876f: #225 Enhanced MIDI Mapping view to support displaying mappings for Message Inports as well as Parameters.
+
 ## 2.2.0-beta.20
 
 ### Patch Changes

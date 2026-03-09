@@ -26,17 +26,23 @@ copySync(serverbinary, join(outdir, "usr", "bin", name), { overwrite: true } );
 // do debian specific packaging
 if (debian) {
 	const version = process.env.PKG_VERSION || readPkgInfoVersion(join(basedir, "server", "package.json"));
+	const debianversion = version.replace("-", "-0~");
+
+	// validate
+	if ((version.match(/\-/g) || []).length > 1 || version.match(/~/g)) {
+		throw new Error(`${version} is not compatibile with our debian versioning scheme`);
+	}
 
 	// add the version and architecture into the control file
 	const control = readFileSync(join(basedir, "config/debian/DEBIAN", "control.in"), "utf8").replace(/[\s\n]*$/, "") +
-		`\nVersion: ${version}` +
+		`\nVersion: ${debianversion}` +
 		`\nArchitecture: ${arch}` +
 		"\n"
 	;
 	writeFileSync(join(outdir, "DEBIAN", "control"), control);
 	rmSync(join(outdir, "DEBIAN", "control.in"));
 
-	const deb = `${name}_${version}_${arch}.deb`;
+	const deb = `${name}_${debianversion}_${arch}.deb`;
 	execSync(`dpkg-deb --build . ../${deb}`, { cwd: outdir });
 	console.log(`created ${deb}`);
 }
