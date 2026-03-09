@@ -1,5 +1,11 @@
 # @rnbo-runner-panel/client
 
+## 2.2.1
+
+### Patch Changes
+
+- 3c9cf63: #311 Update debian packaging script to coordinate our semver version with debian's notion of version ordering
+
 ## 2.2.0
 
 ### Minor Changes
