@@ -38,6 +38,7 @@ const patcherInstanceCoordinatesStore = new TempPatcherInstanceCoordinatesStore(
 
 export enum GraphActionType {
 
+	RESET_INSTANCE_NODES = "RESET_INSTANCE_NODES",
 	SET_NODE = "SET_NODE",
 	SET_NODES = "SET_NODES",
 	DELETE_NODE = "DELETE_NODE",
@@ -57,6 +58,11 @@ export enum GraphActionType {
 	SET_PORTS = "SET_PORTS",
 	DELETE_PORT = "DELETE_PORT",
 	DELETE_PORTS = "DELETE_PORTS",
+}
+
+export interface IResetGraphInstanceNodes extends ActionBase {
+	type: GraphActionType.RESET_INSTANCE_NODES;
+	payload: Record<string, never>;
 }
 
 export interface ISetGraphNode extends ActionBase {
@@ -171,11 +177,18 @@ export interface IDeleteGraphPorts extends ActionBase {
 	};
 }
 
-export type GraphAction = ISetGraphNode | ISetGraphNodes | IDeleteGraphNode | IDeleteGraphNodes
+export type GraphAction = ISetGraphNode | IResetGraphInstanceNodes | ISetGraphNodes | IDeleteGraphNode | IDeleteGraphNodes
 | ISetGraphNodePosition | ISetGraphNodePositions | IDeleteGraphNodePosition | IDeleteGraphNodePositions
 | ISetGraphConnection  | IDeleteGraphConnection | ISetGraphConnections  | IDeleteGraphConnections
 | ISetGraphPort | ISetGraphPorts | IDeleteGraphPort | IDeleteGraphPorts;
 
+
+export const resetInstanceNodes = (): IResetGraphInstanceNodes => {
+	return {
+		type: GraphActionType.RESET_INSTANCE_NODES,
+		payload: {}
+	};
+};
 
 export const setNode = (node: GraphNodeRecord): GraphAction => {
 	return {

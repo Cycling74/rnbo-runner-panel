@@ -25,6 +25,7 @@ import { getCurrentPathname } from "../routes";
 export enum PatcherActionType {
 	INIT_PATCHERS = "INIT_PATCHERS",
 
+	RESET_INSTANCES = "RESET_INSTANCES",
 	SET_INSTANCE = "SET_INSTANCE",
 	SET_INSTANCES = "SET_INSTANCES",
 	DELETE_INSTANCE = "DELETE_INSTANCE",
@@ -56,6 +57,11 @@ export interface IInitPatchers extends ActionBase {
 	payload: {
 		patchers: PatcherExportRecord[];
 	};
+}
+
+export interface IResetInstances extends ActionBase {
+	type: PatcherActionType.RESET_INSTANCES;
+	payload: Record<string, never>;
 }
 
 export interface ISetInstance extends ActionBase {
@@ -198,7 +204,7 @@ export interface IDeleteInstanceDataRefs extends ActionBase {
 	};
 }
 
-export type InstanceAction = IInitPatchers | ISetInstance | ISetInstances | IDeleteInstance | IDeleteInstances |
+export type InstanceAction = IInitPatchers | IResetInstances | ISetInstance | ISetInstances | IDeleteInstance | IDeleteInstances |
 ISetInstanceParameter | ISetInstanceParameters | IDeleteInstanceParameter | IDeleteInstanceParameters |
 ISetInstanceMessageInport | ISetInstanceMessageInports | IDeleteInstanceMessageInport | IDeleteInstanceMessageInports |
 ISetInstanceMessageOutport | ISetInstanceMessageOutports | IDeleteInstanceMessageOutport | IDeleteInstanceMessageOutports |
@@ -447,6 +453,13 @@ export const initInstances = (instanceInfo: OSCQueryRNBOInstancesState): AppThun
 		dispatch(setInstanceMessageOutports(instanceMessageOutports));
 		dispatch(setInstanceDataRefs(instanceDataRefs));
 	};
+
+export const resetInstances = (): IResetInstances => {
+	return {
+		type: PatcherActionType.RESET_INSTANCES,
+		payload: {}
+	};
+};
 
 // Trigger Events on Remote OSCQuery Runner
 export const changeAliasOnRemoteInstance = (instance: PatcherInstanceRecord): AppThunk =>

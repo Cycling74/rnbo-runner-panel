@@ -6,8 +6,8 @@ import { AppDispatch, store } from "../lib/store";
 import { ReconnectingWebsocket } from "../lib/reconnectingWs";
 import { AppStatus, JackInfoKey, RunnerCmdHighWaterMarkCount, RunnerCmdMethod, RunnerCmdResultCode, RunnerCmdWriteMethod, SystemInfoKey, WebSocketState } from "../lib/constants";
 import { OSCQueryRNBOState, OSCQueryRNBOInstance, OSCQueryRNBOPatchersState, OSCValue, OSCQueryRNBOInstancesMetaState, OSCQuerySetMeta, RunnerCmdResponse } from "../lib/types";
-import { deletePortAliases, initConnections, initPorts, setPortAliases, updateSetMetaFromRemote, updateSourcePortConnections, deletePortById, setPortProperties, addPort } from "../actions/graph";
-import { addInstance, deleteInstanceById, initInstances, initPatchers, removeInstanceDataRefByPath, updateInstanceDataRefMeta, updateInstanceDataRefs, updateInstanceParameterDisplayName, updateInstanceAlias } from "../actions/patchers";
+import { deletePortAliases, initConnections, initPorts, setPortAliases, updateSetMetaFromRemote, updateSourcePortConnections, deletePortById, setPortProperties, addPort, resetInstanceNodes } from "../actions/graph";
+import { addInstance, deleteInstanceById, initInstances, initPatchers, removeInstanceDataRefByPath, updateInstanceDataRefMeta, updateInstanceDataRefs, updateInstanceParameterDisplayName, updateInstanceAlias, resetInstances } from "../actions/patchers";
 import { initRunnerConfig, updateRunnerConfig } from "../actions/settings";
 import { initSets, setCurrentGraphSet, initSetPresets, setGraphSetPresetLatest, initSetViews, updateSetViewName, updateSetViewParameterList, deleteSetView, addSetView, updateSetViewOrder, setCurrentGraphSetDirtyState, setGraphSetInitialSet } from "../actions/sets";
 import { triggerDataFileListRefresh } from "../actions/datafiles";
@@ -601,6 +601,14 @@ export class OSCQueryBridgeControllerPrivate {
 	}
 
 	private async _processOSCMessage(packet: OSCMessage): Promise<void> {
+
+		if (packet.address === "/rnbo/inst/control/unload" && packet.args?.length === 1 && packet.args[0] as unknown as number === -1) {
+			// Unloading the graph so we have to reset the instance state
+			// as the runner is not tearing down things individually here
+			this.dispatch(resetInstanceNodes());
+			this.dispatch(resetInstances());
+			return;
+		}
 
 		if (packet.address === "/rnbo/jack/restart") {
 			return void this.dispatch(showNotification({ title: "Restarting Jack", message: "Please wait while the Jack server is being restarted with the updated audio configuration settings.", level: NotificationLevel.info }));
