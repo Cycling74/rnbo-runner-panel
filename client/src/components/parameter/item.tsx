@@ -139,6 +139,7 @@ const ParameterItem: FC<ParameterItemProps> = memo(function WrappedParameter({
 					>
 						<label htmlFor={ param.name } className={ classes.parameterItemLabel } >
 							{ displayName }
+							<span style={{ fontWeight: "normal" }}>{ `: ${formatParamValueForDisplay(value)}` }</span>
 						</label>
 					</Indicator>
 				</Tooltip>
