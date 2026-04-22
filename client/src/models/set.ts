@@ -5,14 +5,16 @@ import { ParameterRecord } from "./parameter";
 
 export type GraphSetRecordProps = {
 	name: string;
+	uuid: string | undefined;
 };
 
 export class GraphSetRecord extends ImmuRecord<GraphSetRecordProps>({
-	name: ""
+	name: "",
+	uuid: undefined
 }) {
 
-	public static fromDescription(name: string): GraphSetRecord {
-		return new GraphSetRecord({ name });
+	public static fromDescription(name: string, uuid?: string): GraphSetRecord {
+		return new GraphSetRecord({ name, uuid });
 	}
 
 	get id(): string {
