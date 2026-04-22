@@ -65,11 +65,11 @@ export const getPackageUploadConflicts = (
 			.filter(d => !!d)
 			.toArray() || [],
 		patchers: uploadInfo?.patchers
-			.map(pkgP => patcherExports.find(p => (p.name === pkgP.name && (p.uuid === undefined || pkgP.uuid === undefined || p.uuid !== pkgP.uuid)))?.name)
+			.map(pkgP => patcherExports.find(p => (p.name === pkgP.name && (!p.uuid || !pkgP.uuid || p.uuid !== pkgP.uuid)))?.name)
 			.filter(p => !!p)
 			.toArray() || [],
 		sets: uploadInfo?.sets
-			.map(pkgS => graphSets.find(s => s.name === pkgS.name)?.name)
+			.map(pkgS => graphSets.find(s => (s.name === pkgS.name && (!s.uuid || !pkgS.uuid || s.uuid !== pkgS.uuid)))?.name)
 			.filter(s => !!s)
 			.toArray() || []
 	};
