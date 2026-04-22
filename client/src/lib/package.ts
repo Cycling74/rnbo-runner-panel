@@ -47,24 +47,24 @@ export async function readInfoFromPackageFile(file: File): Promise<RunnerPackage
 	return info;
 }
 
-export enum PackageItemInstallStatus {
+export enum PackageItemUploadStatus {
 	Install,
 	Overwrite,
 	Skip
 }
 
-export type PackageInstallStatus = {
-	datafiles: Map<DataFileRecord["fileName"], PackageItemInstallStatus>;
-	patchers: Map<PatcherExportRecord["name"], PackageItemInstallStatus>;
-	sets: Map<GraphSetRecord["name"], PackageItemInstallStatus>;
+export type PackageUploadStatus = {
+	datafiles: Map<DataFileRecord["fileName"], PackageItemUploadStatus>;
+	patchers: Map<PatcherExportRecord["name"], PackageItemUploadStatus>;
+	sets: Map<GraphSetRecord["name"], PackageItemUploadStatus>;
 };
 
-export const getPackageInstallStatus = (
+export const getPackageUploadStatus = (
 	uploadInfo: PackageInfoRecord,
 	datafiles: ImmuMap<DataFileRecord["id"], DataFileRecord>,
 	patcherExports: ImmuMap<PatcherExportRecord["id"], PatcherExportRecord>,
 	graphSets: ImmuMap<GraphSetRecord["id"], GraphSetRecord>
-): PackageInstallStatus => {
+): PackageUploadStatus => {
 	const datafilestatus = new Map();
 	const patchersstatus = new Map();
 	const setsstatus = new Map();
@@ -72,24 +72,24 @@ export const getPackageInstallStatus = (
 	for (const e of uploadInfo?.datafiles || []) {
 		// datafiles don't yet have a uuid or md5, they're just skipped if they already exist
 		const existing = datafiles.find(d => d.fileName === e.name);
-		const s = existing ? PackageItemInstallStatus.Skip : PackageItemInstallStatus.Install;
+		const s = existing ? PackageItemUploadStatus.Skip : PackageItemUploadStatus.Install;
 		datafilestatus.set(e.name, s);
 	}
 
 	for (const e of uploadInfo?.patchers || []) {
-		let s = PackageItemInstallStatus.Install;
+		let s = PackageItemUploadStatus.Install;
 		const existing = patcherExports.find(d => d.name === e.name);
 		if (existing) {
-			s = (existing.uuid && e.uuid && e.uuid === existing.uuid) ? PackageItemInstallStatus.Skip : PackageItemInstallStatus.Overwrite;
+			s = (existing.uuid && e.uuid && e.uuid === existing.uuid) ? PackageItemUploadStatus.Skip : PackageItemUploadStatus.Overwrite;
 		}
 		patchersstatus.set(e.name, s);
 	}
 
 	for (const e of uploadInfo?.sets || []) {
-		let s = PackageItemInstallStatus.Install;
+		let s = PackageItemUploadStatus.Install;
 		const existing = graphSets.find(d => d.name === e.name);
 		if (existing) {
-			s = (existing.uuid && e.uuid && e.uuid === existing.uuid) ? PackageItemInstallStatus.Skip : PackageItemInstallStatus.Overwrite;
+			s = (existing.uuid && e.uuid && e.uuid === existing.uuid) ? PackageItemUploadStatus.Skip : PackageItemUploadStatus.Overwrite;
 		}
 		setsstatus.set(e.name, s);
 	}

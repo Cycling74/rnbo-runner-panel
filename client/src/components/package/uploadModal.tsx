@@ -10,7 +10,7 @@ import { ResourceType, SystemInfoKey } from "../../lib/constants";
 import { FileDropZone } from "../page/fileDropZone";
 import { getRunnerInfoRecord, getRunnerOrigin } from "../../selectors/appStatus";
 import { PackageInfoRecord } from "../../models/packageInfo";
-import { getPackageInstallStatus, PackageInstallStatus, PackageItemInstallStatus, readInfoFromPackageFile } from "../../lib/package";
+import { getPackageUploadStatus, PackageUploadStatus, PackageItemUploadStatus, readInfoFromPackageFile } from "../../lib/package";
 import { getDataFiles } from "../../selectors/datafiles";
 import { getPatcherExports } from "../../selectors/patchers";
 import { getGraphSets } from "../../selectors/sets";
@@ -28,7 +28,7 @@ export type UploadFile = {
 }
 
 type PackageContentItemProps = {
-	status?: PackageItemInstallStatus;
+	status?: PackageItemUploadStatus;
 	resourceType: ResourceType;
 	title: string;
 };
@@ -93,14 +93,14 @@ const PackageContentItem: FC<PackageContentItemProps> = ({
 	resourceType,
 	title
 }) => {
-	const isoverwrite = status === PackageItemInstallStatus.Overwrite;
+	const isoverwrite = status === PackageItemUploadStatus.Overwrite;
 	return (
 		<Table.Tr>
 			<Table.Td valign="top" >{ resourceTypeDisplay[resourceType] }</Table.Td>
 			<Table.Td valign="top" >
 				{ title }
 				{
-					status === PackageItemInstallStatus.Install ? null : (
+					status === PackageItemUploadStatus.Install ? null : (
 						<Text c={ isoverwrite ? "red" : "yellow" } fz="xs" component="div" >
 							<Group gap={ 2 } align="center">
 								<IconElement path={ isoverwrite ? mdiAlertCircleOutline : mdiInformationVariantCircleOutline } />
@@ -118,7 +118,7 @@ const PackageContentItem: FC<PackageContentItemProps> = ({
 };
 
 type PackageUploadConfirmFormProps = {
-	status: PackageInstallStatus;
+	status: PackageUploadStatus;
 	info: PackageInfoRecord;
 	onCancel: () => void;
 	onSubmit: () => void;
@@ -267,7 +267,7 @@ interface PackageUploadSelectState {
 
 interface PackageUploadConfirmState {
 	step: PackageUploadStep.Confirm;
-	status: PackageInstallStatus;
+	status: PackageUploadStatus;
 	pkgInfo: PackageInfoRecord;
 	file: File;
 }
@@ -325,7 +325,7 @@ export const PackageUploadModal: FC<PackageUploadModalProps> = memo(function Wra
 			if (file.name.split(".").pop() !== PACKAGE_EXTENSION) throw new Error(`${file.name} is not a ${PACKAGE_EXTENSION} file`);
 			const pkgInfo = PackageInfoRecord.fromDescription(await readInfoFromPackageFile(file));
 			setUploadState({
-				status: getPackageInstallStatus(pkgInfo, datafiles, patcherExports, graphSets),
+				status: getPackageUploadStatus(pkgInfo, datafiles, patcherExports, graphSets),
 				file,
 				pkgInfo,
 				step: PackageUploadStep.Confirm
