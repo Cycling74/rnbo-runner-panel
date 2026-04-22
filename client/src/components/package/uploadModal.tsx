@@ -31,6 +31,8 @@ type PackageContentItemProps = {
 	hasConflict: boolean;
 	resourceType: ResourceType;
 	title: string;
+	conflictText?: string;
+	conflictColor?: string;
 };
 
 const resourceTypeDisplay: Record<ResourceType, ReactNode> = {
@@ -91,7 +93,9 @@ const InfoCard: FC<InfoCardProps> = ({
 const PackageContentItem: FC<PackageContentItemProps> = ({
 	hasConflict,
 	resourceType,
-	title
+	title,
+	conflictText,
+	conflictColor
 }) => {
 	return (
 		<Table.Tr>
@@ -100,10 +104,10 @@ const PackageContentItem: FC<PackageContentItemProps> = ({
 				{ title }
 				{
 					hasConflict ? (
-						<Text c="red" fz="xs" component="div" >
+						<Text c={ conflictColor || "red" } fz="xs" component="div" >
 							<Group gap={ 2 } align="center">
 								<IconElement path={ mdiAlertCircleOutline } />
-								<span>An upload will overwrite the existing resource.</span>
+								<span>{ conflictText || "An upload will overwrite the existing resource." }</span>
 							</Group>
 						</Text>
 					) : null
@@ -187,6 +191,8 @@ const PackageUploadConfirmForm: FC<PackageUploadConfirmFormProps> = ({
 										hasConflict={ conflicts.datafiles.includes(df.name) }
 										resourceType={ ResourceType.DataFile }
 										title={ df.name }
+										conflictText="Datafile will not be overwritten"
+										conflictColor="yellow"
 									/>
 								))
 							}
