@@ -9,13 +9,15 @@ export type PatcherExportRecordProps = {
 	createdAt: Dayjs;
 	name: string;
 	io: [number, number, number, number];
+	uuid: string | undefined;
 }
 
 export class PatcherExportRecord extends ImmuRecord<PatcherExportRecordProps>({
 
 	createdAt: dayjs(),
 	name: "",
-	io: [0, 0, 0, 0]
+	io: [0, 0, 0, 0],
+	uuid: undefined
 
 }) {
 
@@ -23,7 +25,8 @@ export class PatcherExportRecord extends ImmuRecord<PatcherExportRecordProps>({
 		return new PatcherExportRecord({
 			createdAt: dayjs(desc.CONTENTS.created_at?.VALUE, "YYYY-MM-DD HH:mm:ss"),
 			name,
-			io: desc.CONTENTS.io.VALUE
+			io: desc.CONTENTS.io.VALUE,
+			uuid: desc.CONTENTS.uuid?.VALUE
 		});
 	}
 
