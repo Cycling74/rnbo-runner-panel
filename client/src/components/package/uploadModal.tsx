@@ -3,14 +3,14 @@ import { FC, FormEvent, memo, ReactNode, useCallback, useState } from "react";
 import { useIsMobileDevice } from "../../hooks/useIsMobileDevice";
 import { FileWithPath } from "@mantine/dropzone";
 import { IconElement } from "../elements/icon";
-import { mdiAlertCircleOutline, mdiClose, mdiFileExport, mdiFileMusic, mdiGroup, mdiLoading, mdiPackageUp, mdiUpload } from "@mdi/js";
+import { mdiAlertCircleOutline, mdiClose, mdiFileExport, mdiFileMusic, mdiGroup, mdiInformationVariantCircleOutline, mdiLoading, mdiPackageUp, mdiUpload } from "@mdi/js";
 import { useAppSelector } from "../../hooks/useAppDispatch";
 import { TableHeaderCell } from "../elements/tableHeaderCell";
 import { ResourceType, SystemInfoKey } from "../../lib/constants";
 import { FileDropZone } from "../page/fileDropZone";
 import { getRunnerInfoRecord, getRunnerOrigin } from "../../selectors/appStatus";
 import { PackageInfoRecord } from "../../models/packageInfo";
-import { getPackageUploadConflicts, PackageUploadConflicts, readInfoFromPackageFile } from "../../lib/package";
+import { getPackageInstallStatus, PackageInstallStatus, PackageItemInstallStatus, readInfoFromPackageFile } from "../../lib/package";
 import { getDataFiles } from "../../selectors/datafiles";
 import { getPatcherExports } from "../../selectors/patchers";
 import { getGraphSets } from "../../selectors/sets";
@@ -28,11 +28,9 @@ export type UploadFile = {
 }
 
 type PackageContentItemProps = {
-	hasConflict: boolean;
+	status?: PackageItemInstallStatus;
 	resourceType: ResourceType;
 	title: string;
-	conflictText?: string;
-	conflictColor?: string;
 };
 
 const resourceTypeDisplay: Record<ResourceType, ReactNode> = {
@@ -91,26 +89,28 @@ const InfoCard: FC<InfoCardProps> = ({
 };
 
 const PackageContentItem: FC<PackageContentItemProps> = ({
-	hasConflict,
+	status,
 	resourceType,
-	title,
-	conflictText,
-	conflictColor
+	title
 }) => {
+	const isoverwrite = status === PackageItemInstallStatus.Overwrite;
 	return (
 		<Table.Tr>
 			<Table.Td valign="top" >{ resourceTypeDisplay[resourceType] }</Table.Td>
 			<Table.Td valign="top" >
 				{ title }
 				{
-					hasConflict ? (
-						<Text c={ conflictColor || "red" } fz="xs" component="div" >
+					status === PackageItemInstallStatus.Install ? null : (
+						<Text c={ isoverwrite ? "red" : "yellow" } fz="xs" component="div" >
 							<Group gap={ 2 } align="center">
-								<IconElement path={ mdiAlertCircleOutline } />
-								<span>{ conflictText || "An upload will overwrite the existing resource." }</span>
+								<IconElement path={ isoverwrite ? mdiAlertCircleOutline : mdiInformationVariantCircleOutline } />
+								<span>{ isoverwrite ?
+									"An upload will overwrite the existing resource." :
+									"An upload skip overwriting this existing resource." }
+								</span>
 							</Group>
 						</Text>
-					) : null
+					)
 				}
 			</Table.Td>
 		</Table.Tr>
@@ -118,7 +118,7 @@ const PackageContentItem: FC<PackageContentItemProps> = ({
 };
 
 type PackageUploadConfirmFormProps = {
-	conflicts: PackageUploadConflicts;
+	status: PackageInstallStatus;
 	info: PackageInfoRecord;
 	onCancel: () => void;
 	onSubmit: () => void;
@@ -127,7 +127,7 @@ type PackageUploadConfirmFormProps = {
 };
 
 const PackageUploadConfirmForm: FC<PackageUploadConfirmFormProps> = ({
-	conflicts,
+	status,
 	info,
 	onCancel,
 	onSubmit,
@@ -188,11 +188,9 @@ const PackageUploadConfirmForm: FC<PackageUploadConfirmFormProps> = ({
 								info.datafiles.map(df => (
 									<PackageContentItem
 										key={ `df_${df.id}`}
-										hasConflict={ conflicts.datafiles.includes(df.name) }
+										status={ status.datafiles.get(df.name) }
 										resourceType={ ResourceType.DataFile }
 										title={ df.name }
-										conflictText="Datafile will not be overwritten"
-										conflictColor="yellow"
 									/>
 								))
 							}
@@ -200,7 +198,7 @@ const PackageUploadConfirmForm: FC<PackageUploadConfirmFormProps> = ({
 								info.patchers.map(patcher => (
 									<PackageContentItem
 										key={ `patcher_${patcher.id}`}
-										hasConflict={ conflicts.patchers.includes(patcher.name) }
+										status={ status.patchers.get(patcher.name) }
 										resourceType={ ResourceType.Patcher }
 										title={ patcher.name }
 									/>
@@ -210,7 +208,7 @@ const PackageUploadConfirmForm: FC<PackageUploadConfirmFormProps> = ({
 								info.sets.map(set => (
 									<PackageContentItem
 										key={ `set${set.id}`}
-										hasConflict={ conflicts.sets.includes(set.name) }
+										status={ status.sets.get(set.name) }
 										resourceType={ ResourceType.Set }
 										title={ set.name }
 									/>
@@ -269,7 +267,7 @@ interface PackageUploadSelectState {
 
 interface PackageUploadConfirmState {
 	step: PackageUploadStep.Confirm;
-	conflicts: PackageUploadConflicts;
+	status: PackageInstallStatus;
 	pkgInfo: PackageInfoRecord;
 	file: File;
 }
@@ -327,7 +325,7 @@ export const PackageUploadModal: FC<PackageUploadModalProps> = memo(function Wra
 			if (file.name.split(".").pop() !== PACKAGE_EXTENSION) throw new Error(`${file.name} is not a ${PACKAGE_EXTENSION} file`);
 			const pkgInfo = PackageInfoRecord.fromDescription(await readInfoFromPackageFile(file));
 			setUploadState({
-				conflicts: getPackageUploadConflicts(pkgInfo, datafiles, patcherExports, graphSets),
+				status: getPackageInstallStatus(pkgInfo, datafiles, patcherExports, graphSets),
 				file,
 				pkgInfo,
 				step: PackageUploadStep.Confirm
@@ -384,7 +382,7 @@ export const PackageUploadModal: FC<PackageUploadModalProps> = memo(function Wra
 		}
 		case PackageUploadStep.Confirm: {
 			content = <PackageUploadConfirmForm
-				conflicts={ uploadState.conflicts }
+				status={ uploadState.status }
 				info={ uploadState.pkgInfo }
 				onCancel={ onCancel }
 				onSubmit={ onSubmit }

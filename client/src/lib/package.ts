@@ -47,31 +47,57 @@ export async function readInfoFromPackageFile(file: File): Promise<RunnerPackage
 	return info;
 }
 
-export type PackageUploadConflicts = {
-	datafiles: Array<DataFileRecord["fileName"]>;
-	patchers: Array<PatcherExportRecord["name"]>;
-	sets: Array<GraphSetRecord["name"]>;
+export enum PackageItemInstallStatus {
+	Install,
+	Overwrite,
+	Skip
+}
+
+export type PackageInstallStatus = {
+	datafiles: Map<DataFileRecord["fileName"], PackageItemInstallStatus>;
+	patchers: Map<PatcherExportRecord["name"], PackageItemInstallStatus>;
+	sets: Map<GraphSetRecord["name"], PackageItemInstallStatus>;
 };
 
-export const getPackageUploadConflicts = (
+export const getPackageInstallStatus = (
 	uploadInfo: PackageInfoRecord,
 	datafiles: ImmuMap<DataFileRecord["id"], DataFileRecord>,
 	patcherExports: ImmuMap<PatcherExportRecord["id"], PatcherExportRecord>,
 	graphSets: ImmuMap<GraphSetRecord["id"], GraphSetRecord>
-): PackageUploadConflicts => {
+): PackageInstallStatus => {
+	const datafilestatus = new Map();
+	const patchersstatus = new Map();
+	const setsstatus = new Map();
+
+	for (const e of uploadInfo?.datafiles || []) {
+		// datafiles don't yet have a uuid or md5, they're just skipped if they already exist
+		const existing = datafiles.find(d => d.fileName === e.name);
+		const s = existing ? PackageItemInstallStatus.Skip : PackageItemInstallStatus.Install;
+		datafilestatus.set(e.name, s);
+	}
+
+	for (const e of uploadInfo?.patchers || []) {
+		let s = PackageItemInstallStatus.Install;
+		const existing = patcherExports.find(d => d.name === e.name);
+		if (existing) {
+			s = (existing.uuid && e.uuid && e.uuid === existing.uuid) ? PackageItemInstallStatus.Skip : PackageItemInstallStatus.Overwrite;
+		}
+		patchersstatus.set(e.name, s);
+	}
+
+	for (const e of uploadInfo?.sets || []) {
+		let s = PackageItemInstallStatus.Install;
+		const existing = graphSets.find(d => d.name === e.name);
+		if (existing) {
+			s = (existing.uuid && e.uuid && e.uuid === existing.uuid) ? PackageItemInstallStatus.Skip : PackageItemInstallStatus.Overwrite;
+		}
+		setsstatus.set(e.name, s);
+	}
+
 	return {
-		datafiles: uploadInfo?.datafiles
-			.map(pkgD => datafiles.find(d => d.fileName === pkgD.name)?.fileName)
-			.filter(d => !!d)
-			.toArray() || [],
-		patchers: uploadInfo?.patchers
-			.map(pkgP => patcherExports.find(p => (p.name === pkgP.name && (!p.uuid || !pkgP.uuid || p.uuid !== pkgP.uuid)))?.name)
-			.filter(p => !!p)
-			.toArray() || [],
-		sets: uploadInfo?.sets
-			.map(pkgS => graphSets.find(s => (s.name === pkgS.name && (!s.uuid || !pkgS.uuid || s.uuid !== pkgS.uuid)))?.name)
-			.filter(s => !!s)
-			.toArray() || []
+		datafiles: datafilestatus,
+		patchers: patchersstatus,
+		sets: setsstatus
 	};
 };
 
