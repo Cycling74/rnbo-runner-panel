@@ -674,7 +674,7 @@ export class OSCQueryBridgeControllerPrivate {
 
 		const setUUIDMatch = packet.address.match(setsUUIDMatcher);
 		if (setUUIDMatch) {
-			const uuid: string = (packet.args as unknown as [string])[0]
+			const uuid: string = (packet.args as unknown as [string])[0];
 			return void this.dispatch(updateSetUUID(setUUIDMatch.groups.name, uuid));
 		}
 
