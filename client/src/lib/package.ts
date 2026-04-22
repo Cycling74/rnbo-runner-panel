@@ -65,7 +65,7 @@ export const getPackageUploadConflicts = (
 			.filter(d => !!d)
 			.toArray() || [],
 		patchers: uploadInfo?.patchers
-			.map(pkgP => patcherExports.find(p => p.name === pkgP.name)?.name)
+			.map(pkgP => patcherExports.find(p => (p.name === pkgP.name && (p.uuid === undefined || pkgP.uuid === undefined || p.uuid !== pkgP.uuid)))?.name)
 			.filter(p => !!p)
 			.toArray() || [],
 		sets: uploadInfo?.sets
