@@ -389,6 +389,16 @@ export type OSCQueryRNBOPatchersState = OSCQueryBaseNode & {
 	CONTENTS: Record<string, OSCQueryRNBOPatcher>;
 };
 
+export type OSCQueryRNBOSet = OSCQueryBaseNode & {
+	CONTENTS: {
+		uuid: OSCQueryStringValue | undefined;
+	};
+}
+
+export type OSCQueryRNBOSetsState = OSCQueryBaseNode & {
+	CONTENTS: Record<string, OSCQueryRNBOSet>;
+};
+
 export type OSCQueryRNBOInstanceParameterValue = OSCQueryBaseNode & OSCQueryFloatValue & OSCQueryValueRange & {
 	CONTENTS: {
 		display_name: OSCQueryStringValue;
@@ -570,6 +580,7 @@ export type OSCQueryRNBOState = OSCQueryBaseNode & {
 		config: OSCQueryRNBOConfigState;
 		jack: OSCQueryRNBOJackState;
 		patchers: OSCQueryRNBOPatchersState;
+		sets: OSCQueryRNBOSetsState | undefined;
 		inst: OSCQueryRNBOInstancesState;
 		info: OSCQueryRNBOInfoState;
 	};
