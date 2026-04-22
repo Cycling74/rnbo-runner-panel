@@ -23,6 +23,7 @@ export enum SystemInfoKey {
 	CompilerVersion = "compiler_version",
 	DiskBytesAvailable = "disk_bytes_available",
 	RNBOVersion = "version",
+	RNBOCompatVersion = "rnbo_compatibility_version",
 	RunnerVersion = "runner_version",
 	SystemId = "system_id",
 	SystemName = "system_name",
