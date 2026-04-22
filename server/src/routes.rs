@@ -185,9 +185,17 @@ mod file {
             .await
             .map_err(|_| Status::FailedDependency)?;
 
-        file.persist_to(fullpath)
-            .await
-            .map_err(|_| Status::InternalServerError)?;
+        //persist_to doesn't work across filesystems, but it is faster
+        //so try that first and the fallback to copy_to
+        if let Err(e) = file.persist_to(&fullpath).await {
+            if e.kind() == std::io::ErrorKind::CrossesDevices {
+                file.copy_to(&fullpath)
+                    .await
+                    .map_err(|_| Status::InternalServerError)?;
+            } else {
+                return Err(Status::InternalServerError);
+            }
+        }
         Ok(Status::Created)
     }
 }
