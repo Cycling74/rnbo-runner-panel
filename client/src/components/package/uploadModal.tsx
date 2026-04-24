@@ -139,10 +139,12 @@ const PackageUploadConfirmForm: FC<PackageUploadConfirmFormProps> = ({
 
 	const [
 		supportsUpload,
-		rnboVersion
+		rnboVersion,
+		rnboCompatVersion
 	] = useAppSelector((state) => [
 		supportsRNBOVersion && supportsTarget,
-		getRunnerInfoRecord(state, SystemInfoKey.RNBOVersion)
+		getRunnerInfoRecord(state, SystemInfoKey.RNBOVersion),
+		getRunnerInfoRecord(state, SystemInfoKey.RNBOCompatVersion)
 	]);
 
 	return (
@@ -153,9 +155,9 @@ const PackageUploadConfirmForm: FC<PackageUploadConfirmFormProps> = ({
 						<InfoCard title="Package Name" value={ info.name } />
 						<Group grow align="flex-start">
 							<InfoCard
-								title="RNBO Version"
+								title={ rnboCompatVersion ? "RNBO Compatibility Version" : "RNBO Version" }
 								value={ info.rnbo_version }
-								error={ !supportsRNBOVersion ? `The package does not match the runner's RNBO version: ${rnboVersion.oscValue}` : undefined }
+								error={ !supportsRNBOVersion ? `The package does not match the runner's RNBO Compatibility version: ${(rnboCompatVersion || rnboVersion).oscValue}` : undefined }
 							/>
 							<InfoCard
 								title="Runner Version"
@@ -298,6 +300,7 @@ export const PackageUploadModal: FC<PackageUploadModalProps> = memo(function Wra
 		patcherExports,
 		graphSets,
 		rnboVersion,
+		rnboCompatVersion,
 		targetId
 	] = useAppSelector((state) => [
 		getRunnerOrigin(state),
@@ -305,6 +308,7 @@ export const PackageUploadModal: FC<PackageUploadModalProps> = memo(function Wra
 		getPatcherExports(state),
 		getGraphSets(state),
 		getRunnerInfoRecord(state, SystemInfoKey.RNBOVersion),
+		getRunnerInfoRecord(state, SystemInfoKey.RNBOCompatVersion),
 		getRunnerInfoRecord(state, SystemInfoKey.TargetId)
 	]);
 
@@ -378,7 +382,7 @@ export const PackageUploadModal: FC<PackageUploadModalProps> = memo(function Wra
 				info={ uploadState.pkgInfo }
 				onCancel={ onCancel }
 				onSubmit={ onSubmit }
-				supportsRNBOVersion={ uploadState.pkgInfo.supportsRNBOVersion(rnboVersion) }
+				supportsRNBOVersion={ uploadState.pkgInfo.supportsRNBOVersion(rnboCompatVersion || rnboVersion) }
 				supportsTarget={ uploadState.pkgInfo.supportsTarget(targetId) }
 			/>;
 			break;

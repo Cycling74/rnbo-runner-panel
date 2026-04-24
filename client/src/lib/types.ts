@@ -143,6 +143,7 @@ export type RunnerPackageInfo = {
 	name: string;
 	patchers: Array<RunnerPackagePatcherInfo>;
 	rnbo_version: string;
+	rnbo_compatibility_version?: string;
 	runner_version: string;
 	schema_version: 1;
 	sets: Array<RunnerPackageSetInfo>;
@@ -240,6 +241,7 @@ export type OSCQueryRNBOInfoState = OSCQueryBaseNode & {
 		[SystemInfoKey.CompilerVersion]: OSCQueryStringValue;
 		[SystemInfoKey.DiskBytesAvailable]: OSCQueryStringValue;
 		[SystemInfoKey.RNBOVersion]: OSCQueryStringValue;
+		[SystemInfoKey.RNBOCompatVersion]: OSCQueryStringValue | undefined;
 		[SystemInfoKey.RunnerVersion]: OSCQueryStringValue;
 		[SystemInfoKey.SystemId]: OSCQueryStringValue;
 		[SystemInfoKey.SystemName]: OSCQueryStringValue;
