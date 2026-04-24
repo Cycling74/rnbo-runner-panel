@@ -1,5 +1,11 @@
 # @rnbo-runner-panel/client
 
+## 2.3.0
+
+### Minor Changes
+
+- 0b2eba0: Add support for new rnbo compatibility version while installing package content
+
 ## 2.2.1
 
 ### Patch Changes
