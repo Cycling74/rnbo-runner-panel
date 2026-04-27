@@ -1,5 +1,11 @@
 # @rnbo-runner-panel/server
 
+## 2.3.0
+
+### Patch Changes
+
+- b1e132c: Fixed 500 with file PUT when tmp and dest are on different filesystems
+
 ## 2.2.1
 
 ### Patch Changes
