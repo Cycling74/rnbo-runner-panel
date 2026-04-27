@@ -1,9 +1,9 @@
-import { Alert, Button, Center, Fieldset, Group, Modal, Paper, RingProgress, Stack, Table, Text } from "@mantine/core";
+import { Alert, Badge, Button, Center, Fieldset, Group, Modal, Paper, RingProgress, Stack, Table, Text } from "@mantine/core";
 import { FC, FormEvent, memo, ReactNode, useCallback, useState } from "react";
 import { useIsMobileDevice } from "../../hooks/useIsMobileDevice";
 import { FileWithPath } from "@mantine/dropzone";
 import { IconElement } from "../elements/icon";
-import { mdiAlertCircleOutline, mdiClose, mdiFileExport, mdiFileMusic, mdiGroup, mdiInformationVariantCircleOutline, mdiLoading, mdiPackageUp, mdiUpload } from "@mdi/js";
+import { mdiClose, mdiEqual, mdiFileExport, mdiFileMusic, mdiGroup, mdiInformationOutline, mdiLoading, mdiPackageUp, mdiPlus, mdiReloadAlert, mdiUpload } from "@mdi/js";
 import { useAppSelector } from "../../hooks/useAppDispatch";
 import { TableHeaderCell } from "../elements/tableHeaderCell";
 import { ResourceType, SystemInfoKey } from "../../lib/constants";
@@ -33,23 +33,41 @@ type PackageContentItemProps = {
 	title: string;
 };
 
+const resourceStatusBadge: Record<PackageItemUploadStatus, ReactNode> = {
+	[PackageItemUploadStatus.Install]: (
+		<Badge leftSection={<IconElement path={mdiPlus} />} variant="light" size="sm" color="green">New</Badge>
+	),
+	[PackageItemUploadStatus.Skip]: (
+		<Badge leftSection={<IconElement path={mdiEqual} />} variant="light" size="sm" color="gray">Skip</Badge>
+	),
+	[PackageItemUploadStatus.Overwrite]: (
+		<Badge leftSection={<IconElement path={mdiReloadAlert} />} variant="light" size="sm" color="yellow">Overwrite</Badge>
+	)
+};
+
+const resourceTypeTitle: Record<ResourceType, string> = {
+	[ResourceType.DataFile]: "Data File",
+	[ResourceType.Patcher]: "Patcher",
+	[ResourceType.Set]: "Graph"
+};
+
 const resourceTypeDisplay: Record<ResourceType, ReactNode> = {
 	[ResourceType.DataFile]: (
 		<Group gap={ 2 } align="center" >
 			<IconElement path={ mdiFileMusic } />
-			<span>Data File</span>
+			<span>{ resourceTypeTitle[ResourceType.DataFile] }</span>
 		</Group>
 	),
 	[ResourceType.Patcher]: (
 		<Group gap={ 2 } align="center" >
 			<IconElement path={ mdiFileExport } />
-			<span>Patcher</span>
+			<span>{ resourceTypeTitle[ResourceType.Patcher] }</span>
 		</Group>
 	),
 	[ResourceType.Set]: (
 		<Group gap={ 2 } align="center" >
 			<IconElement path={ mdiGroup } />
-			<span>Graph</span>
+			<span>{ resourceTypeTitle[ResourceType.Set] }</span>
 		</Group>
 	)
 };
@@ -93,27 +111,53 @@ const PackageContentItem: FC<PackageContentItemProps> = ({
 	resourceType,
 	title
 }) => {
-	const isoverwrite = status === PackageItemUploadStatus.Overwrite;
+
 	return (
 		<Table.Tr>
+			<Table.Td valign="top" >{ resourceStatusBadge[status] }</Table.Td>
 			<Table.Td valign="top" >{ resourceTypeDisplay[resourceType] }</Table.Td>
 			<Table.Td valign="top" >
 				{ title }
-				{
-					status === PackageItemUploadStatus.Install ? null : (
-						<Text c={ isoverwrite ? "red" : "yellow" } fz="xs" component="div" >
-							<Group gap={ 2 } align="center">
-								<IconElement path={ isoverwrite ? mdiAlertCircleOutline : mdiInformationVariantCircleOutline } />
-								<span>{ isoverwrite ?
-									"An upload will overwrite the existing resource." :
-									"An upload skip overwriting this existing resource." }
-								</span>
-							</Group>
-						</Text>
-					)
-				}
 			</Table.Td>
 		</Table.Tr>
+	);
+};
+
+type StatusCounts = Record<PackageItemUploadStatus, number>;
+
+type PackageUploadSummaryProps = {
+	counts: StatusCounts;
+};
+
+const PackageUploadSummary: FC<PackageUploadSummaryProps> = ({
+	counts
+}) => {
+
+	return (
+		<Stack gap="sm">
+			<Group grow>
+				{
+					[
+						{
+							statusField: PackageItemUploadStatus.Install,
+							props: { color: "green", title: "New" }
+						},
+						{
+							statusField: PackageItemUploadStatus.Skip,
+							props: { color: "gray", title: "Skip" }
+						},
+						{
+							statusField: PackageItemUploadStatus.Overwrite,
+							props: { color: "yellow", title: "Will Overwrite" }
+						}
+					].map(({ statusField, props } ) => counts[statusField] === 0 ? null : (
+						<Alert { ...props } key={ statusField } p="xs" variant="light">
+							<Text fz="lg" fw="bold" c={ props.color } >{ counts[statusField] }</Text>
+						</Alert>
+					))
+				}
+			</Group>
+		</Stack >
 	);
 };
 
@@ -140,7 +184,6 @@ const PackageUploadConfirmForm: FC<PackageUploadConfirmFormProps> = ({
 		onSubmit();
 	}, [onSubmit]);
 
-
 	const [
 		supportsUpload,
 		rnboVersion,
@@ -150,6 +193,27 @@ const PackageUploadConfirmForm: FC<PackageUploadConfirmFormProps> = ({
 		getRunnerInfoRecord(state, SystemInfoKey.RNBOVersion),
 		getRunnerInfoRecord(state, SystemInfoKey.RNBOCompatVersion)
 	]);
+
+	const statusCounts: Record<PackageItemUploadStatus, number> = {
+		[PackageItemUploadStatus.Install]: 0,
+		[PackageItemUploadStatus.Skip]: 0,
+		[PackageItemUploadStatus.Overwrite]: 0
+	};
+
+	info.datafiles.forEach(df => {
+		const itemStatus = status.datafiles.get(df.name);
+		statusCounts[itemStatus]++;
+	});
+
+	info.patchers.forEach(p => {
+		const itemStatus = status.patchers.get(p.name);
+		statusCounts[itemStatus]++;
+	});
+
+	info.sets.forEach(s => {
+		const itemStatus = status.sets.get(s.name);
+		statusCounts[itemStatus]++;
+	});
 
 	return (
 		<form onSubmit={ onTriggerSubmit } >
@@ -175,47 +239,60 @@ const PackageUploadConfirmForm: FC<PackageUploadConfirmFormProps> = ({
 						/>
 					</Stack>
 				</Fieldset>
+				{
+					statusCounts[PackageItemUploadStatus.Overwrite] !== 0 ? (
+						<Alert color="yellow" variant="outline" title="Package includes Overwrites" icon={<IconElement path={mdiInformationOutline} />} >
+							{statusCounts[PackageItemUploadStatus.Overwrite]} existing {statusCounts[PackageItemUploadStatus.Overwrite] === 1 ? "resource" : "resources"} will be replaced.
+							<br/>
+							Review the details below before continuing. This action cannot be undone.
+						</Alert>
+					) : null
+				}
 				<Fieldset legend="Contents" >
-					<Table>
-						<Table.Thead>
-							<Table.Tr>
-								<TableHeaderCell width={ 150 } >Type</TableHeaderCell>
-								<TableHeaderCell >Name</TableHeaderCell>
-							</Table.Tr>
-						</Table.Thead>
-						<Table.Tbody>
-							{
-								info.datafiles.map(df => (
-									<PackageContentItem
-										key={ `df_${df.id}`}
-										status={ status.datafiles.get(df.name) }
-										resourceType={ ResourceType.DataFile }
-										title={ df.name }
-									/>
-								))
-							}
-							{
-								info.patchers.map(patcher => (
-									<PackageContentItem
-										key={ `patcher_${patcher.id}`}
-										status={ status.patchers.get(patcher.name) }
-										resourceType={ ResourceType.Patcher }
-										title={ patcher.name }
-									/>
-								))
-							}
-							{
-								info.sets.map(set => (
-									<PackageContentItem
-										key={ `set${set.id}`}
-										status={ status.sets.get(set.name) }
-										resourceType={ ResourceType.Set }
-										title={ set.name }
-									/>
-								))
-							}
-						</Table.Tbody>
-					</Table>
+					<Stack gap="md">
+						<PackageUploadSummary counts={statusCounts } />
+						<Table verticalSpacing="xs" horizontalSpacing="xs" >
+							<Table.Thead>
+								<Table.Tr>
+									<TableHeaderCell width={ 120 } >Status</TableHeaderCell>
+									<TableHeaderCell width={ 150 } >Type</TableHeaderCell>
+									<TableHeaderCell>Name</TableHeaderCell>
+								</Table.Tr>
+							</Table.Thead>
+							<Table.Tbody>
+								{
+									info.datafiles.map(df => (
+										<PackageContentItem
+											key={ `df_${df.id}`}
+											status={ status.datafiles.get(df.name) }
+											resourceType={ ResourceType.DataFile }
+											title={ df.name }
+										/>
+									))
+								}
+								{
+									info.patchers.map(patcher => (
+										<PackageContentItem
+											key={ `patcher_${patcher.id}`}
+											status={ status.patchers.get(patcher.name) }
+											resourceType={ ResourceType.Patcher }
+											title={ patcher.name }
+										/>
+									))
+								}
+								{
+									info.sets.map(set => (
+										<PackageContentItem
+											key={ `set${set.id}`}
+											status={ status.sets.get(set.name) }
+											resourceType={ ResourceType.Set }
+											title={ set.name }
+										/>
+									))
+								}
+							</Table.Tbody>
+						</Table>
+					</Stack>
 				</Fieldset>
 				{
 					!supportsUpload ? (
