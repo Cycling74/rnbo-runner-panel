@@ -48,6 +48,17 @@ export const sets = (state: SetState = {
 			};
 		}
 
+		case GraphSetActionType.UPDATE_SET: {
+			const { name, uuid } = action.payload;
+
+			return {
+				...state,
+				sets: state.sets.withMutations(map => {
+					map.set(name, GraphSetRecord.fromDescription(name, uuid));
+				})
+			};
+		}
+
 		case GraphSetActionType.INIT_SET_PRESETS: {
 			const { presets } = action.payload;
 

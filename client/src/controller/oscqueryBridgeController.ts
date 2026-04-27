@@ -5,11 +5,11 @@ import { initRunnerInfo, setRunnerInfoValue, setAppStatus, setConnectionEndpoint
 import { AppDispatch, store } from "../lib/store";
 import { ReconnectingWebsocket } from "../lib/reconnectingWs";
 import { AppStatus, JackInfoKey, RunnerCmdHighWaterMarkCount, RunnerCmdMethod, RunnerCmdResultCode, RunnerCmdWriteMethod, SystemInfoKey, WebSocketState } from "../lib/constants";
-import { OSCQueryRNBOState, OSCQueryRNBOInstance, OSCQueryRNBOPatchersState, OSCValue, OSCQueryRNBOInstancesMetaState, OSCQuerySetMeta, RunnerCmdResponse } from "../lib/types";
+import { OSCQueryRNBOState, OSCQueryRNBOInstance, OSCQueryRNBOPatchersState, OSCQueryRNBOSetsState, OSCValue, OSCQueryRNBOInstancesMetaState, OSCQuerySetMeta, RunnerCmdResponse } from "../lib/types";
 import { deletePortAliases, initConnections, initPorts, setPortAliases, updateSetMetaFromRemote, updateSourcePortConnections, deletePortById, setPortProperties, addPort } from "../actions/graph";
 import { addInstance, deleteInstanceById, initInstances, initPatchers, removeInstanceDataRefByPath, updateInstanceDataRefMeta, updateInstanceDataRefs, updateInstanceParameterDisplayName, updateInstanceAlias } from "../actions/patchers";
 import { initRunnerConfig, updateRunnerConfig } from "../actions/settings";
-import { initSets, setCurrentGraphSet, initSetPresets, setGraphSetPresetLatest, initSetViews, updateSetViewName, updateSetViewParameterList, deleteSetView, addSetView, updateSetViewOrder, setCurrentGraphSetDirtyState, setGraphSetInitialSet } from "../actions/sets";
+import { initSets, updateSetUUID, setCurrentGraphSet, initSetPresets, setGraphSetPresetLatest, initSetViews, updateSetViewName, updateSetViewParameterList, deleteSetView, addSetView, updateSetViewOrder, setCurrentGraphSetDirtyState, setGraphSetInitialSet } from "../actions/sets";
 import { triggerDataFileListRefresh } from "../actions/datafiles";
 import { sleep } from "../lib/util";
 import { getPatcherInstance } from "../selectors/patchers";
@@ -108,6 +108,8 @@ enum OSCQueryCommand {
 const portPropertiesPathMatcher = /^\/rnbo\/jack\/info\/ports\/properties\/(?<port>.+)$/;
 const portAliasPathMatcher = /^\/rnbo\/jack\/info\/ports\/aliases\/(?<port>.+)$/;
 const patchersPathMatcher = /^\/rnbo\/patchers/;
+const setsPathMatcher = /^\/rnbo\/sets\/(?<name>.+)$/;
+const setsUUIDMatcher = /^\/rnbo\/sets\/(?<name>.+)\/uuid$/;
 const instancePathMatcher = /^\/rnbo\/inst\/(?<id>\d+)$/;
 const instanceStatePathMatcher = /^\/rnbo\/inst\/(?<id>\d+)\/(?<content>params|messages\/in|messages\/out|presets|data_refs|config|midi\/last)\/(?<rest>\S+)/;
 const instancePresetPathMatcher = /^\/rnbo\/inst\/(?<id>\d+)\/presets\/(?<property>loaded|initial)$/;
@@ -128,6 +130,7 @@ const runnerInfoMatcher = /^\/rnbo\/info\/(?<name>[^/]+)$/;
 export class OSCQueryBridgeControllerPrivate {
 
 	private _hasIsActive: boolean = false;
+	private _hasSetsEndpoint: boolean = false;
 
 	private readonly cmdResponseChunkProcessor: RunnerCmdResponseProcessor = new RunnerCmdResponseProcessor();
 	private readonly cmdWriteStreamLock: Map<RunnerCmdWriteMethod, string> = new Map();
@@ -320,7 +323,13 @@ export class OSCQueryBridgeControllerPrivate {
 		this.dispatch(initPatchers(state.CONTENTS.patchers));
 
 		// Init Sets info
-		this.dispatch(initSets(state.CONTENTS.inst?.CONTENTS?.control?.CONTENTS?.sets?.CONTENTS?.load?.RANGE?.[0]?.VALS || []));
+		if (state.CONTENTS?.sets) {
+			this._hasSetsEndpoint = true;
+			this.dispatch(initSets(state.CONTENTS.sets));
+		} else {
+			this._hasSetsEndpoint = false;
+			this.dispatch(initSets(state.CONTENTS.inst?.CONTENTS?.control?.CONTENTS?.sets?.CONTENTS?.load?.RANGE?.[0]?.VALS || []));
+		}
 		this.dispatch(setGraphSetInitialSet(state.CONTENTS.inst?.CONTENTS?.control?.CONTENTS?.sets?.CONTENTS?.initial?.VALUE));
 		this.dispatch(setCurrentGraphSet(state.CONTENTS.inst?.CONTENTS?.control?.CONTENTS?.sets?.CONTENTS?.current?.CONTENTS?.name?.VALUE || ""));
 		this.dispatch(setCurrentGraphSetDirtyState(state.CONTENTS.inst?.CONTENTS?.control?.CONTENTS?.sets?.CONTENTS?.current?.CONTENTS?.dirty?.TYPE === "T"));
@@ -421,6 +430,12 @@ export class OSCQueryBridgeControllerPrivate {
 			return void this.dispatch(initPatchers(patcherInfo));
 		}
 
+		// Added Set
+		if (setsPathMatcher.test(path)) {
+			const setInfo = await this._requestState<OSCQueryRNBOSetsState>("/rnbo/sets");
+			return void this.dispatch(initSets(setInfo));
+		}
+
 		// Handle Set Views
 		const setViewMatch = path.match(setViewPathMatcher);
 		if (setViewMatch && setViewMatch.groups?.rest === undefined) {
@@ -484,6 +499,12 @@ export class OSCQueryBridgeControllerPrivate {
 		if (patchersPathMatcher.test(path)) {
 			const patcherInfo = await this._requestState<OSCQueryRNBOPatchersState>("/rnbo/patchers");
 			return void this.dispatch(initPatchers(patcherInfo));
+		}
+
+		// Removed Set
+		if (setsPathMatcher.test(path)) {
+			const setInfo = await this._requestState<OSCQueryRNBOSetsState>("/rnbo/sets");
+			return void this.dispatch(initSets(setInfo));
 		}
 
 		// Removed Set View
@@ -567,7 +588,7 @@ export class OSCQueryBridgeControllerPrivate {
 
 	private async _onAttributesChanged(data: any): Promise<void> {
 		// console.log("ATTRIBUTES_CHANGED", data);
-		if (data.FULL_PATH === "/rnbo/inst/control/sets/load" && data.RANGE !== undefined) {
+		if (!this._hasSetsEndpoint && data.FULL_PATH === "/rnbo/inst/control/sets/load" && data.RANGE !== undefined) {
 			const sets: Array<string> = data.RANGE?.[0]?.VALS || [];
 			this.dispatch(initSets(sets));
 		}
@@ -649,6 +670,12 @@ export class OSCQueryBridgeControllerPrivate {
 		if (setMetaMatch) {
 			const meta: OSCQuerySetMeta = deserializeSetMeta((packet.args as unknown as [string])[0]);
 			return void this.dispatch(updateSetMetaFromRemote(meta));
+		}
+
+		const setUUIDMatch = packet.address.match(setsUUIDMatcher);
+		if (setUUIDMatch) {
+			const uuid: string = (packet.args as unknown as [string])[0];
+			return void this.dispatch(updateSetUUID(setUUIDMatch.groups.name, uuid));
 		}
 
 		if (packet.address === "/rnbo/inst/control/sets/views/order") {

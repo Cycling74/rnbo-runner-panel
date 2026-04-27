@@ -47,31 +47,57 @@ export async function readInfoFromPackageFile(file: File): Promise<RunnerPackage
 	return info;
 }
 
-export type PackageUploadConflicts = {
-	datafiles: Array<DataFileRecord["fileName"]>;
-	patchers: Array<PatcherExportRecord["name"]>;
-	sets: Array<GraphSetRecord["name"]>;
+export enum PackageItemUploadStatus {
+	Install,
+	Overwrite,
+	Skip
+}
+
+export type PackageUploadStatus = {
+	datafiles: Map<DataFileRecord["fileName"], PackageItemUploadStatus>;
+	patchers: Map<PatcherExportRecord["name"], PackageItemUploadStatus>;
+	sets: Map<GraphSetRecord["name"], PackageItemUploadStatus>;
 };
 
-export const getPackageUploadConflicts = (
+export const getPackageUploadStatus = (
 	uploadInfo: PackageInfoRecord,
 	datafiles: ImmuMap<DataFileRecord["id"], DataFileRecord>,
 	patcherExports: ImmuMap<PatcherExportRecord["id"], PatcherExportRecord>,
 	graphSets: ImmuMap<GraphSetRecord["id"], GraphSetRecord>
-): PackageUploadConflicts => {
+): PackageUploadStatus => {
+	const datafilestatus = new Map();
+	const patchersstatus = new Map();
+	const setsstatus = new Map();
+
+	for (const e of uploadInfo?.datafiles || []) {
+		// datafiles don't yet have a uuid or md5, they're just skipped if they already exist
+		const existing = datafiles.find(d => d.fileName === e.name);
+		const s = existing ? PackageItemUploadStatus.Skip : PackageItemUploadStatus.Install;
+		datafilestatus.set(e.name, s);
+	}
+
+	for (const e of uploadInfo?.patchers || []) {
+		let s = PackageItemUploadStatus.Install;
+		const existing = patcherExports.find(d => d.name === e.name);
+		if (existing) {
+			s = (existing.uuid && e.uuid && e.uuid === existing.uuid) ? PackageItemUploadStatus.Skip : PackageItemUploadStatus.Overwrite;
+		}
+		patchersstatus.set(e.name, s);
+	}
+
+	for (const e of uploadInfo?.sets || []) {
+		let s = PackageItemUploadStatus.Install;
+		const existing = graphSets.find(d => d.name === e.name);
+		if (existing) {
+			s = (existing.uuid && e.uuid && e.uuid === existing.uuid) ? PackageItemUploadStatus.Skip : PackageItemUploadStatus.Overwrite;
+		}
+		setsstatus.set(e.name, s);
+	}
+
 	return {
-		datafiles: uploadInfo?.datafiles
-			.map(pkgD => datafiles.find(d => d.fileName === pkgD.name)?.fileName)
-			.filter(d => !!d)
-			.toArray() || [],
-		patchers: uploadInfo?.patchers
-			.map(pkgP => patcherExports.find(p => p.name === pkgP.name)?.name)
-			.filter(p => !!p)
-			.toArray() || [],
-		sets: uploadInfo?.sets
-			.map(pkgS => graphSets.find(s => s.name === pkgS.name)?.name)
-			.filter(s => !!s)
-			.toArray() || []
+		datafiles: datafilestatus,
+		patchers: patchersstatus,
+		sets: setsstatus
 	};
 };
 
