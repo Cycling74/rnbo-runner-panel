@@ -28,7 +28,10 @@ export class PackagePatcherInfoRecord extends ImmuRecord<PackagePatcherInfoRecor
 	created_at: "",
 	name: "",
 	patcher: "",
-	presets: ""
+	presets: "",
+	uuid: undefined,
+	rnbo_version: undefined,
+	rnbo_compat_version: undefined
 }) {
 
 	public static fromDescription(desc: RunnerPackagePatcherInfo): PackagePatcherInfoRecord {
@@ -52,7 +55,8 @@ export type PackageSetInfoRecordProps = RunnerPackageSetInfo;
 export class PackageSetInfoRecord extends ImmuRecord<PackageSetInfoRecordProps>({
 	created_at: "",
 	location: "",
-	name: ""
+	name: "",
+	uuid: undefined
 }) {
 
 	public static fromDescription(desc: RunnerPackageSetInfo): PackageSetInfoRecord {

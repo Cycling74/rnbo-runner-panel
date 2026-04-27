@@ -7,7 +7,7 @@ import { showNotification } from "./notifications";
 import { NotificationLevel } from "../models/notification";
 import { ParameterRecord } from "../models/parameter";
 import { getPatcherInstance, getPatcherInstanceParametersSortedByInstanceIdAndIndex } from "../selectors/patchers";
-import { OSCQueryRNBOSetView, OSCQueryRNBOSetViewState, OSCQueryValueType } from "../lib/types";
+import { OSCQueryRNBOSetView, OSCQueryRNBOSetViewState, OSCQueryValueType, OSCQueryRNBOSetsState } from "../lib/types";
 import { getCurrentGraphSet, getCurrentGraphSetId, getCurrentGraphSetIsDirty, getGraphPresets, getGraphSet, getGraphSets, getGraphSetsSortedByName, getGraphSetView, getGraphSetViews, getInitialGraphSet, getSelectedGraphSetView } from "../selectors/sets";
 import { clamp, getUniqueName, instanceAndParamIndicesToSetViewEntry, sleep, validateGraphSetName, validatePresetName, validateSetViewName } from "../lib/util";
 import { setInstanceWaitingForMidiMappingOnRemote } from "./patchers";
@@ -19,6 +19,7 @@ import { setRunnerConfig } from "./settings";
 
 export enum GraphSetActionType {
 	INIT_SETS = "INIT_SETS",
+	UPDATE_SET = "UPDATE_SET",
 
 	SET_SET_CURRENT = "SET_SET_CURRENT",
 	SET_SET_CURRENT_DIRTY = "SET_SET_CURRENT_DIRTY",
@@ -39,6 +40,14 @@ export interface IInitGraphSets extends ActionBase {
 	type: GraphSetActionType.INIT_SETS;
 	payload: {
 		sets: GraphSetRecord[]
+	}
+}
+
+export interface IUpdateGraphSet extends ActionBase {
+	type: GraphSetActionType.UPDATE_SET;
+	payload: {
+		name: string;
+		uuid: string;
 	}
 }
 
@@ -114,15 +123,33 @@ export interface ISetGraphSetViewOrder extends ActionBase {
 }
 
 
-export type GraphSetAction = IInitGraphSets | ISetGraphSetCurrent | ISetGraphSetCurrentDirty | ISetGraphSetInitial |
+export type GraphSetAction = IInitGraphSets | IUpdateGraphSet | ISetGraphSetCurrent | ISetGraphSetCurrentDirty | ISetGraphSetInitial |
 IInitGraphSetPresets | ISetGraphSetPresetsLatest |
 IInitGraphSetViews | ILoadGraphSetView | ISetGraphSetView | IDeleteGraphSetView | ISetGraphSetViewOrder;
 
-export const initSets = (names: string[]): GraphSetAction => {
+export const initSets = (entries: string[] | OSCQueryRNBOSetsState): GraphSetAction => {
+	let sets: GraphSetRecord[] = [];
+	if (Array.isArray(entries)) {
+		sets = entries.map(n => GraphSetRecord.fromDescription(n));
+	} else {
+		for (const [name, desc] of Object.entries(entries.CONTENTS || {})) {
+			sets.push(GraphSetRecord.fromDescription(name, desc.CONTENTS.uuid.VALUE));
+		}
+	}
 	return {
 		type: GraphSetActionType.INIT_SETS,
 		payload: {
-			sets: names.map(n => GraphSetRecord.fromDescription(n))
+			sets
+		}
+	};
+};
+
+export const updateSetUUID = (name: string, uuid: string): GraphSetAction => {
+	return {
+		type: GraphSetActionType.UPDATE_SET,
+		payload: {
+			name,
+			uuid
 		}
 	};
 };

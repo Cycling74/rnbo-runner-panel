@@ -122,12 +122,16 @@ export type RunnerPackagePatcherInfo = {
 	name: string;
 	patcher: string;
 	presets: string;
+	uuid: string | undefined;
+	rnbo_version: string | undefined;
+	rnbo_compat_version: string | undefined;
 };
 
 export type RunnerPackageSetInfo = {
 	created_at: string;
 	location: string;
 	name: string;
+	uuid: string | undefined;
 };
 
 export type RunnerPackageTargetInfo = {
@@ -376,12 +380,23 @@ export type OSCQueryRNBOPatcher = OSCQueryBaseNode & {
 	CONTENTS: {
 		io: OSCQueryListValue<"iiii", [number, number, number, number]>;
 		created_at: OSCQueryStringValue;
+		uuid: OSCQueryStringValue | undefined;
 		destroy: OSCQueryInfValue;
 	};
 }
 
 export type OSCQueryRNBOPatchersState = OSCQueryBaseNode & {
 	CONTENTS: Record<string, OSCQueryRNBOPatcher>;
+};
+
+export type OSCQueryRNBOSet = OSCQueryBaseNode & {
+	CONTENTS: {
+		uuid: OSCQueryStringValue | undefined;
+	};
+}
+
+export type OSCQueryRNBOSetsState = OSCQueryBaseNode & {
+	CONTENTS: Record<string, OSCQueryRNBOSet>;
 };
 
 export type OSCQueryRNBOInstanceParameterValue = OSCQueryBaseNode & OSCQueryFloatValue & OSCQueryValueRange & {
@@ -565,6 +580,7 @@ export type OSCQueryRNBOState = OSCQueryBaseNode & {
 		config: OSCQueryRNBOConfigState;
 		jack: OSCQueryRNBOJackState;
 		patchers: OSCQueryRNBOPatchersState;
+		sets: OSCQueryRNBOSetsState | undefined;
 		inst: OSCQueryRNBOInstancesState;
 		info: OSCQueryRNBOInfoState;
 	};
