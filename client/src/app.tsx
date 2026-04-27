@@ -1,5 +1,5 @@
 import { Provider } from "react-redux";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { RouterProvider } from "react-router";
 
 import { oscQueryBridge, parseConnectionQueryString } from "./controller/oscqueryBridgeController";
@@ -18,12 +18,15 @@ import TransportControl from "./components/page/transport";
 
 export const App = () => {
 
-	useEffect(() => {
-		oscQueryBridge.connect(parseConnectionQueryString(location.search?.slice(1)))
-			.catch((err): null => null); // handled internally
+	const [isSetup, setIsSetup] = useState<boolean>(false);
 
-		return () => oscQueryBridge.close();
-	}, []);
+	useEffect(() => {
+		if (isSetup) {
+			oscQueryBridge.connect(parseConnectionQueryString(location.search?.slice(1)))
+				.catch((err): null => null); // handled internally
+		}
+		setIsSetup(true);
+	}, [isSetup]);
 
 	return (
 		<>

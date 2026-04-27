@@ -37,6 +37,17 @@ export const patchers = (state: PatcherState = {
 			};
 		}
 
+		case PatcherActionType.RESET_INSTANCES: {
+			return {
+				...state,
+				instances: ImmuMap<PatcherInstanceRecord["id"], PatcherInstanceRecord>(),
+				instanceDataRefs: ImmuMap<DataRefRecord["id"], DataRefRecord>(),
+				instanceMessageInports: ImmuMap<MessagePortRecord["id"], MessagePortRecord>(),
+				instanceMessageOutports: ImmuMap<MessagePortRecord["id"], MessagePortRecord>(),
+				instanceParameters: ImmuMap<ParameterRecord["id"], ParameterRecord>()
+			};
+		}
+
 		case PatcherActionType.SET_INSTANCE: {
 			const { instance } = action.payload;
 

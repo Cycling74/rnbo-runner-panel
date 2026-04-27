@@ -32,6 +32,22 @@ export const graph = (state: GraphState = {
 
 	switch (action.type) {
 
+		case GraphActionType.RESET_INSTANCE_NODES: {
+			const nodeIds = state.patcherNodeIdByInstanceId.valueSeq().toArray();
+			const portIds = state.ports.filter(p => nodeIds.includes(p.nodeId)).keySeq().toArray();
+
+			return {
+				...state,
+				connections: state.connections
+					.filter(connection => !portIds.includes(connection.sourcePortId) && !portIds.includes(connection.sinkPortId)),
+				nodes: state.nodes.deleteAll(nodeIds),
+				nodePositions: state.nodePositions.deleteAll(nodeIds),
+				patcherNodeIdByInstanceId: ImmuMap<GraphNodeRecord["instanceId"], GraphNodeRecord["id"]>(),
+				ports: state.ports.deleteAll(portIds)
+
+			};
+		}
+
 		case GraphActionType.DELETE_NODE: {
 			const { node } = action.payload;
 			const portIds = state.ports.filter(p => p.nodeId === node.id).keySeq().toArray();
