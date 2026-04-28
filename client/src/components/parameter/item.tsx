@@ -131,15 +131,16 @@ const ParameterItem: FC<ParameterItemProps> = memo(function WrappedParameter({
 				) : null
 			}
 			<Group justify="space-between">
-				<Tooltip label={ indicatorText } disabled={ !indicatorText }>
+				<Tooltip label={ indicatorText } disabled={ !indicatorText } style={{ minWidth: 0, overflow: "hidden" }}>
 					<Indicator
 						position="middle-end"
 						disabled={ !indicatorText }
 						classNames={{ root: classes.parameterItemMIDIIndicator }}
+						style={{ overflow: "hidden", minWidth: 0 }}
 					>
 						<label htmlFor={ param.name } className={ classes.parameterItemLabel } >
-							{ displayName }
-							<span style={{ fontWeight: "normal" }}>{ `: ${formatParamValueForDisplay(value)}` }</span>
+							<span className={ classes.parameterItemLabelName }>{ displayName }</span>
+							<span className={ classes.parameterItemLabelValue }>{ formatParamValueForDisplay(value) }</span>
 						</label>
 					</Indicator>
 				</Tooltip>

@@ -51,11 +51,26 @@
 }
 
 .parameterItemLabel {
+	display: flex;
+	align-items: baseline;
+	gap: .5em;
 	font-size: var(--mantine-font-size-sm);
 	font-weight: 700;
 	overflow: hidden;
-	text-overflow: ellipsis;
 	user-select: none;
+}
+
+.parameterItemLabelName {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	min-width: 0;
+}
+
+.parameterItemLabelValue {
+	font-weight: 400;
+	white-space: nowrap;
+	flex-shrink: 0;
 }
 
 .markWrapper {
