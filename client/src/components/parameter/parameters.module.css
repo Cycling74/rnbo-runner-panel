@@ -54,6 +54,8 @@
 	display: flex;
 	align-items: baseline;
 	gap: .5em;
+	justify-content: space-between;
+	padding-right: calc(28px + var(--mantine-spacing-md));
 	font-size: var(--mantine-font-size-sm);
 	font-weight: 700;
 	overflow: hidden;
@@ -73,6 +75,10 @@
 	flex-shrink: 0;
 }
 
+.markLabel {
+	font-size: var(--mantine-font-size-xs);
+}
+
 .markWrapper {
 
 	&:first-child {
@@ -90,7 +96,11 @@
 
 .parameterItemMIDIIndicator {
 	--indicator-size: 8px;
-	--indicator-translate-x: 150%!important;
-	--indicator-translate-y: -40%!important;
+	--indicator-translate-x: 150% !important;
+	--indicator-translate-y: -40% !important;
 	--indicator-color: var(--mantine-color-violet-4);
+	max-width: 100%;
+	min-width: 0;
+	overflow: hidden;
+	width: 100%;
 }
