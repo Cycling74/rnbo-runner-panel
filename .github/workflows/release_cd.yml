@@ -80,6 +80,9 @@ jobs:
           commit: ${{ github.sha }}
           token: ${{ secrets.GITHUB_TOKEN }}
           artifacts: "build/*.deb"
+          body: |
+            - [Server Changelog](${{ github.server_url }}/${{ github.repository }}/blob/v${{ steps.vstep.outputs.version }}/server/CHANGELOG.md)
+            - [Client Changelog](${{ github.server_url }}/${{ github.repository }}/blob/v${{ steps.vstep.outputs.version }}/client/CHANGELOG.md)
 
       - name: Create PR to merge back main to develop
         if: steps.changesets.outputs.published == 'true'
