@@ -37,6 +37,19 @@ export const patchers = (state: PatcherState = {
 			};
 		}
 
+		case PatcherActionType.UPDATE_PATCHER: {
+			const { name, uuid } = action.payload;
+			return {
+				...state,
+				exports: state.exports.withMutations(map => {
+					const existing = map.get(name);
+					if (existing) {
+						map.set(name, existing.set("uuid", uuid));
+					}
+				})
+			};
+		}
+
 		case PatcherActionType.SET_INSTANCE: {
 			const { instance } = action.payload;
 

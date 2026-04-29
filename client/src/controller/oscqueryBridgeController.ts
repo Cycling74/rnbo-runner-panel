@@ -7,7 +7,7 @@ import { ReconnectingWebsocket } from "../lib/reconnectingWs";
 import { AppStatus, JackInfoKey, RunnerCmdHighWaterMarkCount, RunnerCmdMethod, RunnerCmdResultCode, RunnerCmdWriteMethod, SystemInfoKey, WebSocketState } from "../lib/constants";
 import { OSCQueryRNBOState, OSCQueryRNBOInstance, OSCQueryRNBOPatchersState, OSCQueryRNBOSetsState, OSCValue, OSCQueryRNBOInstancesMetaState, OSCQuerySetMeta, RunnerCmdResponse } from "../lib/types";
 import { deletePortAliases, initConnections, initPorts, setPortAliases, updateSetMetaFromRemote, updateSourcePortConnections, deletePortById, setPortProperties, addPort } from "../actions/graph";
-import { addInstance, deleteInstanceById, initInstances, initPatchers, removeInstanceDataRefByPath, updateInstanceDataRefMeta, updateInstanceDataRefs, updateInstanceParameterDisplayName, updateInstanceAlias } from "../actions/patchers";
+import { addInstance, deleteInstanceById, initInstances, initPatchers, updatePatcherUUID, removeInstanceDataRefByPath, updateInstanceDataRefMeta, updateInstanceDataRefs, updateInstanceParameterDisplayName, updateInstanceAlias } from "../actions/patchers";
 import { initRunnerConfig, updateRunnerConfig } from "../actions/settings";
 import { initSets, updateSetUUID, setCurrentGraphSet, initSetPresets, setGraphSetPresetLatest, initSetViews, updateSetViewName, updateSetViewParameterList, deleteSetView, addSetView, updateSetViewOrder, setCurrentGraphSetDirtyState, setGraphSetInitialSet } from "../actions/sets";
 import { triggerDataFileListRefresh } from "../actions/datafiles";
@@ -108,6 +108,7 @@ enum OSCQueryCommand {
 const portPropertiesPathMatcher = /^\/rnbo\/jack\/info\/ports\/properties\/(?<port>.+)$/;
 const portAliasPathMatcher = /^\/rnbo\/jack\/info\/ports\/aliases\/(?<port>.+)$/;
 const patchersPathMatcher = /^\/rnbo\/patchers/;
+const patchersUUIDMatcher = /^\/rnbo\/patchers\/(?<name>.+)\/uuid$/;
 const setsPathMatcher = /^\/rnbo\/sets\/(?<name>.+)$/;
 const setsUUIDMatcher = /^\/rnbo\/sets\/(?<name>.+)\/uuid$/;
 const instancePathMatcher = /^\/rnbo\/inst\/(?<id>\d+)$/;
@@ -676,6 +677,12 @@ export class OSCQueryBridgeControllerPrivate {
 		if (setUUIDMatch) {
 			const uuid: string = (packet.args as unknown as [string])[0];
 			return void this.dispatch(updateSetUUID(setUUIDMatch.groups.name, uuid));
+		}
+
+		const patcherUUIDMatch = packet.address.match(patchersUUIDMatcher);
+		if (patcherUUIDMatch) {
+			const uuid: string = (packet.args as unknown as [string])[0];
+			return void this.dispatch(updatePatcherUUID(patcherUUIDMatch.groups.name, uuid));
 		}
 
 		if (packet.address === "/rnbo/inst/control/sets/views/order") {

@@ -1,5 +1,11 @@
 # @rnbo-runner-panel/client
 
+## 2.3.1
+
+### Patch Changes
+
+- 051724d: Match package item UUIDs and detect/display install, skip, overwrite status on upload
+
 ## 2.3.0
 
 ### Minor Changes
