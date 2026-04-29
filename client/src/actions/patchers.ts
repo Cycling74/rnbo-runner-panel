@@ -24,6 +24,7 @@ import { getCurrentPathname } from "../routes";
 
 export enum PatcherActionType {
 	INIT_PATCHERS = "INIT_PATCHERS",
+	UPDATE_PATCHER = "UPDATE_PATCHER",
 
 	SET_INSTANCE = "SET_INSTANCE",
 	SET_INSTANCES = "SET_INSTANCES",
@@ -56,6 +57,14 @@ export interface IInitPatchers extends ActionBase {
 	payload: {
 		patchers: PatcherExportRecord[];
 	};
+}
+
+export interface IUpdatePatcher extends ActionBase {
+	type: PatcherActionType.UPDATE_PATCHER;
+	payload: {
+		name: string;
+		uuid: string;
+	}
 }
 
 export interface ISetInstance extends ActionBase {
@@ -198,7 +207,7 @@ export interface IDeleteInstanceDataRefs extends ActionBase {
 	};
 }
 
-export type InstanceAction = IInitPatchers | ISetInstance | ISetInstances | IDeleteInstance | IDeleteInstances |
+export type InstanceAction = IInitPatchers | IUpdatePatcher | ISetInstance | ISetInstances | IDeleteInstance | IDeleteInstances |
 ISetInstanceParameter | ISetInstanceParameters | IDeleteInstanceParameter | IDeleteInstanceParameters |
 ISetInstanceMessageInport | ISetInstanceMessageInports | IDeleteInstanceMessageInport | IDeleteInstanceMessageInports |
 ISetInstanceMessageOutport | ISetInstanceMessageOutports | IDeleteInstanceMessageOutport | IDeleteInstanceMessageOutports |
@@ -215,6 +224,16 @@ export const initPatchers = (patchersInfo: OSCQueryRNBOPatchersState): IInitPatc
 		type: PatcherActionType.INIT_PATCHERS,
 		payload: {
 			patchers
+		}
+	};
+};
+
+export const updatePatcherUUID = (name: string, uuid: string): InstanceAction => {
+	return {
+		type: PatcherActionType.UPDATE_PATCHER,
+		payload: {
+			name,
+			uuid
 		}
 	};
 };
