@@ -1,4 +1,4 @@
-import { FC, memo, useCallback, useEffect, useMemo, useState } from "react";
+import { FC, memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../../hooks/useAppDispatch";
 import { SortOrder } from "../../lib/constants";
 import { RootStateType } from "../../lib/store";
@@ -81,12 +81,15 @@ export const DataFileManagementView: FC<DataFileManagementViewProps> = memo(func
 	const tree = useTree();
 	const treeData = useMemo(() => buildTreeData(files.toArray(), sortOrder), [files, sortOrder]);
 
+	const prevSearchRef = useRef(searchValue);
 	useEffect(() => {
-		tree.setExpandedState(
-			searchValue
-				? Object.fromEntries(collectDirValues(treeData).map(v => [v, true]))
-				: {}
-		);
+		const prevSearch = prevSearchRef.current;
+		prevSearchRef.current = searchValue;
+		if (searchValue) {
+			tree.setExpandedState(Object.fromEntries(collectDirValues(treeData).map(v => [v, true])));
+		} else if (prevSearch !== searchValue) {
+			tree.setExpandedState({});
+		}
 	}, [searchValue, treeData]);
 
 	const onDeleteFile = useCallback((file: DataFileRecord) => {
