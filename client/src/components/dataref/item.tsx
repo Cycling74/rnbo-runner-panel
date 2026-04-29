@@ -87,7 +87,7 @@ const DataRefEntry: FunctionComponent<DataRefEntryProps> = memo(function Wrapped
 				name={ `${dataRef.name}.file` }
 				onChangeEditingState={ setIsEditingFile }
 				onUpdate={ onUpdateFile }
-				options={ options.toArray().map(f => ({ value: f.id, label: f.fileName })) }
+				options={ options.toArray().map(f => ({ value: f.id, label: f.id })) }
 				placeholder="No File Selected"
 				value={ dataFile?.id }
 			/>
