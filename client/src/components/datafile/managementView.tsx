@@ -8,18 +8,20 @@ import { deleteDataDirOnRemote, deleteDataFileOnRemote, downloadDataFileFromRunn
 import { ActionIcon, Group, Menu, RenderTreeNodePayload, Stack, Table, Text, Tree, TreeNodeData, useTree } from "@mantine/core";
 import { SearchInput } from "../page/searchInput";
 import { IconElement } from "../elements/icon";
+import { TableHeaderCell } from "../elements/tableHeaderCell";
 import { mdiChevronDown, mdiChevronRight, mdiDotsVertical, mdiDownload, mdiFolder, mdiTrashCan, mdiUpload } from "@mdi/js";
 
-function sortNodes(nodes: TreeNodeData[]): TreeNodeData[] {
+function sortNodes(nodes: TreeNodeData[], order: SortOrder): TreeNodeData[] {
+	const dir = order === SortOrder.Asc ? 1 : -1;
 	return nodes.sort((a, b) => {
 		const aIsDir = a.children !== undefined;
 		const bIsDir = b.children !== undefined;
 		if (aIsDir !== bIsDir) return aIsDir ? -1 : 1;
-		return (a.label as string).localeCompare(b.label as string);
-	}).map(node => node.children ? { ...node, children: sortNodes(node.children) } : node);
+		return (a.label as string).localeCompare(b.label as string) * dir;
+	}).map(node => node.children ? { ...node, children: sortNodes(node.children, order) } : node);
 }
 
-function buildTreeData(files: DataFileRecord[]): TreeNodeData[] {
+function buildTreeData(files: DataFileRecord[], order: SortOrder): TreeNodeData[] {
 	const dirMap = new Map<string, TreeNodeData>();
 	const root: TreeNodeData[] = [];
 
@@ -47,7 +49,7 @@ function buildTreeData(files: DataFileRecord[]): TreeNodeData[] {
 		}
 	}
 
-	return sortNodes(root);
+	return sortNodes(root, order);
 }
 
 function collectDirValues(nodes: TreeNodeData[]): string[] {
@@ -65,14 +67,19 @@ export type DataFileManagementViewProps = {
 export const DataFileManagementView: FC<DataFileManagementViewProps> = memo(function WrappedDataFileView({ onRequestUpload }) {
 
 	const [searchValue, setSearchValue] = useState<string>("");
+	const [sortOrder, setSortOrder] = useState<SortOrder>(SortOrder.Asc);
 
 	const dispatch = useAppDispatch();
 	const [files] = useAppSelector((state: RootStateType) => [
-		getDataFilesSortedByName(state, SortOrder.Asc, searchValue)
+		getDataFilesSortedByName(state, sortOrder, searchValue)
 	]);
 
+	const onToggleSort = useCallback(() => {
+		setSortOrder(o => o === SortOrder.Asc ? SortOrder.Desc : SortOrder.Asc);
+	}, []);
+
 	const tree = useTree();
-	const treeData = useMemo(() => buildTreeData(files.toArray()), [files]);
+	const treeData = useMemo(() => buildTreeData(files.toArray(), sortOrder), [files, sortOrder]);
 
 	useEffect(() => {
 		tree.setExpandedState(
@@ -169,7 +176,7 @@ export const DataFileManagementView: FC<DataFileManagementViewProps> = memo(func
 			<Table maw="100%" layout="fixed">
 				<Table.Thead>
 					<Table.Tr>
-						<Table.Th>Filename</Table.Th>
+						<TableHeaderCell onSort={ onToggleSort } sortKey="filename" sortOrder={ sortOrder } sorted>Filename</TableHeaderCell>
 						<Table.Th w={ 60 }></Table.Th>
 					</Table.Tr>
 				</Table.Thead>
