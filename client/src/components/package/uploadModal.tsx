@@ -423,7 +423,7 @@ export const PackageUploadModal: FC<PackageUploadModalProps> = memo(function Wra
 
 			await uploadFileToRemote(
 				origin,
-				RunnerFileType.Package, uploadState.file,
+				RunnerFileType.Package, uploadState.file, uploadState.file.name,
 				(progress) => setUploadState({ step: PackageUploadStep.Uploading, progress })
 			);
 
