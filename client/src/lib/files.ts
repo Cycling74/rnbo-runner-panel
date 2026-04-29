@@ -21,15 +21,36 @@ export const deleteFileFromRemote = async (origin: string, fileType: RunnerFileT
 	await axios.delete(`${origin}/files/${subdir}/${fileName}`);
 };
 
-export const getFileListFromRemote = async (origin: string, fileType: RunnerFileType) => {
+export const getFileListFromRemote = async (origin: string, fileType: RunnerFileType, subdirPath = "") => {
 	const subdir = fileTypeSubdir(fileType);
+	const path = subdirPath ? `${subdir}/${subdirPath}/` : `${subdir}/`;
 	const { data }: { data: FileList } = await axios.get(
-		`${origin}/files/${subdir}/`,
+		`${origin}/files/${path}`,
 		{
 			headers: { Accept: "application/json" }
 		}
 	);
 	return data;
+};
+
+export type FileEntry = { path: string; isDir: boolean };
+
+export const getAllFilesFromRemote = async (
+	origin: string, fileType: RunnerFileType, subdir = ""
+): Promise<FileEntry[]> => {
+	const list = await getFileListFromRemote(origin, fileType, subdir);
+	const results: FileEntry[] = [];
+	for (const item of list.items) {
+		const rel = subdir ? `${subdir}/${item.name}` : item.name;
+		if (item.dir) {
+			const sub = await getAllFilesFromRemote(origin, fileType, rel);
+			if (sub.length === 0) results.push({ path: rel, isDir: true });
+			else results.push(...sub);
+		} else {
+			results.push({ path: rel, isDir: false });
+		}
+	}
+	return results;
 };
 
 export const downloadFileFromRemote = async (origin: string, fileType: RunnerFileType, fileName: string) => {
@@ -42,9 +63,9 @@ export const downloadFileFromRemote = async (origin: string, fileType: RunnerFil
 	document.body.removeChild(link);
 };
 
-export const uploadFileToRemote = async (origin: string, fileType: RunnerFileType, upload: FileWithPath, onProgress?: progressCallback) => {
+export const uploadFileToRemote = async (origin: string, fileType: RunnerFileType, upload: FileWithPath, destPath: string, onProgress?: progressCallback) => {
 	const subdir = fileTypeSubdir(fileType);
-	await axios.put(`${origin}/files/${subdir}/${upload.name}`, upload, {
+	await axios.put(`${origin}/files/${subdir}/${destPath}`, upload, {
 		headers: {
 			"Content-Type": upload.type
 		},
