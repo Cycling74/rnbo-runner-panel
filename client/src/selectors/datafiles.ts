@@ -32,7 +32,7 @@ export const getDataFilesSortedByName = createSelector(
 			.valueSeq()
 			.filter(df => df.matchesQuery(query))
 			.sort((a, b) => {
-				return collator.compare(a.fileName.toLowerCase(), b.fileName.toLowerCase()) * (order === SortOrder.Asc ? 1 : -1);
+				return collator.compare(a.path.toLowerCase(), b.path.toLowerCase()) * (order === SortOrder.Asc ? 1 : -1);
 			});
 	}
 );
