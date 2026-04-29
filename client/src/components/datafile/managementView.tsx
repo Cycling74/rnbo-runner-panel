@@ -6,6 +6,7 @@ import { getDataFilesSortedByName } from "../../selectors/datafiles";
 import { DataFileRecord } from "../../models/datafile";
 import { deleteDataDirOnRemote, deleteDataFileOnRemote, downloadDataFileFromRunner } from "../../actions/datafiles";
 import { ActionIcon, Group, Menu, RenderTreeNodePayload, Stack, Table, Text, Tree, TreeNodeData, useTree } from "@mantine/core";
+import classes from "./datafile.module.css";
 import { SearchInput } from "../page/searchInput";
 import { IconElement } from "../elements/icon";
 import { TableHeaderCell } from "../elements/tableHeaderCell";
@@ -112,7 +113,7 @@ export const DataFileManagementView: FC<DataFileManagementViewProps> = memo(func
 		};
 		if (node.children !== undefined) {
 			return (
-				<Group { ...elementProps } justify="space-between" wrap="nowrap" w="100%" py="xs" style={ nodeStyle }>
+				<Group { ...elementProps } className={ classes.treeRow } justify="space-between" wrap="nowrap" w="100%" py="xs" style={ nodeStyle }>
 					<Group wrap="nowrap" gap={ 4 }>
 						{ hasChildren
 							? <IconElement path={ expanded ? mdiChevronDown : mdiChevronRight } size={ 0.8 } />
@@ -150,7 +151,7 @@ export const DataFileManagementView: FC<DataFileManagementViewProps> = memo(func
 		if (!file) return null;
 
 		return (
-			<Group { ...elementProps } justify="space-between" wrap="nowrap" w="100%" py="sm" style={ nodeStyle }>
+			<Group { ...elementProps } className={ classes.treeRow } justify="space-between" wrap="nowrap" w="100%" py="sm" style={ nodeStyle }>
 				<Text fz="sm" truncate="end" style={{ flex: 1, minWidth: 0 }}>
 					{ file.fileName }
 				</Text>
