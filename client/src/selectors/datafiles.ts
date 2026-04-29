@@ -21,6 +21,16 @@ export const getDataFileByFilename = createSelector(
 
 const collator = new Intl.Collator("en-US");
 
+function comparePaths(a: string, b: string): number {
+	const aParts = a.toLowerCase().split("/");
+	const bParts = b.toLowerCase().split("/");
+	for (let i = 0; i < Math.min(aParts.length, bParts.length); i++) {
+		const cmp = collator.compare(aParts[i], bParts[i]);
+		if (cmp !== 0) return cmp;
+	}
+	return aParts.length - bParts.length;
+}
+
 export const getDataFilesSortedByName = createSelector(
 	[
 		getDataFiles,
@@ -31,9 +41,7 @@ export const getDataFilesSortedByName = createSelector(
 		return files
 			.valueSeq()
 			.filter(df => df.matchesQuery(query))
-			.sort((a, b) => {
-				return collator.compare(a.path.toLowerCase(), b.path.toLowerCase()) * (order === SortOrder.Asc ? 1 : -1);
-			});
+			.sort((a, b) => comparePaths(a.path, b.path) * (order === SortOrder.Asc ? 1 : -1));
 	}
 );
 
