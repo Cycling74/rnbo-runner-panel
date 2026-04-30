@@ -138,7 +138,8 @@ const ParameterItem: FC<ParameterItemProps> = memo(function WrappedParameter({
 						classNames={{ root: classes.parameterItemMIDIIndicator }}
 					>
 						<label htmlFor={ param.name } className={ classes.parameterItemLabel } >
-							{ displayName }
+							<span className={ classes.parameterItemLabelName }>{ displayName }</span>
+							<span className={ classes.parameterItemLabelValue }>{ formatParamValueForDisplay(value) }</span>
 						</label>
 					</Indicator>
 				</Tooltip>
@@ -169,7 +170,7 @@ const ParameterItem: FC<ParameterItemProps> = memo(function WrappedParameter({
 				<Menu position="bottom-end" disabled={ disabled } >
 					<Menu.Target>
 						<Tooltip label="Open Parameter Menu" disabled={ disabled }>
-							<ActionIcon variant="subtle" color="gray" size="md" disabled={ disabled } >
+							<ActionIcon variant="subtle" color="gray" size={ 28 } disabled={ disabled } >
 								<IconElement path={ mdiDotsVertical } />
 							</ActionIcon>
 						</Tooltip>
