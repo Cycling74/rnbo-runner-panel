@@ -76,8 +76,8 @@ export const DataFileManagementView: FC<DataFileManagementViewProps> = memo(func
 	]);
 
 	const onToggleSort = useCallback(() => {
-		setSortOrder(o => o === SortOrder.Asc ? SortOrder.Desc : SortOrder.Asc);
-	}, []);
+		setSortOrder(sortOrder === SortOrder.Asc ? SortOrder.Desc : SortOrder.Asc);
+	}, [setSortOrder, sortOrder]);
 
 	const tree = useTree();
 	const treeData = useMemo(() => buildTreeData(files.toArray(), sortOrder), [files, sortOrder]);
