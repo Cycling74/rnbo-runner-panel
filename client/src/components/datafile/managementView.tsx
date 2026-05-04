@@ -91,7 +91,7 @@ export const DataFileManagementView: FC<DataFileManagementViewProps> = memo(func
 		} else if (prevSearch !== searchValue) {
 			tree.setExpandedState({});
 		}
-	}, [searchValue, treeData]);
+	}, [searchValue, treeData, tree]);
 
 	const onDeleteFile = useCallback((file: DataFileRecord) => {
 		dispatch(deleteDataFileOnRemote(file));
