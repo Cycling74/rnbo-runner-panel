@@ -9,7 +9,7 @@ import { IconProps } from "@mdi/react/dist/IconProps";
 export type FileDropZoneProps = {
 	accept?: DropzoneProps["accept"];
 	fileIcon: IconProps["path"];
-	maxFiles: number;
+	maxFiles?: number;
 	setFiles: (files: FileWithPath[]) => void;
 };
 
@@ -41,7 +41,13 @@ export const FileDropZone: FC<FileDropZoneProps> = memo(function WrappedFileDrop
 						Drag here or click to select
 					</Text>
 					<Text size="md" c="dimmed" inline mt="md">
-						Choose { maxFiles === 1 ? "a single file" : `up to ${maxFiles} files` }
+						{
+							maxFiles === 1
+								? "Choose a single file"
+								: maxFiles
+									? `Choose up to ${maxFiles} files`
+									: "Choose files or drop a folder"
+						}
 					</Text>
 				</div>
 			</Group>

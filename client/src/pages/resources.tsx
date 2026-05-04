@@ -1,4 +1,4 @@
-import { FC, useCallback } from "react";
+import { FC, useCallback, useState } from "react";
 import { Button, Group, Menu, Stack, Tooltip } from "@mantine/core";
 import { PageTitle } from "../components/page/title";
 import { ResourceTabs } from "../components/resources/tabs";
@@ -23,12 +23,20 @@ export const ResourcesPage: FC<Record<never, never>> = () => {
 	]);
 
 	const [showPackageUploadModal, packageUploadModalHandlers] = useDisclosure(false);
-	const [showDataFileUploadModal, dataFileUploadModalHandlers] = useDisclosure(false);
+	const [uploadPath, setUploadPath] = useState<string | null>(null);
+
+	const onRequestDataFileUpload = useCallback((path: string) => {
+		setUploadPath(path);
+	}, [setUploadPath]);
+
+	const onCloseDataFileUploadModal = useCallback(() => {
+		setUploadPath(null);
+	}, [setUploadPath]);
 
 	const onDataFileUploadSuccess = useCallback((files: UploadFile[]) => {
 		dispatch(showNotification({ title: "Upload Complete", message: `Successfully uploaded ${files.length === 1 ? files[0].file.name : `${files.length} files`}`, level: NotificationLevel.success }));
-		dataFileUploadModalHandlers.close();
-	}, [dataFileUploadModalHandlers, dispatch]);
+		setUploadPath(null);
+	}, [setUploadPath, dispatch]);
 
 	return (
 		<Stack gap="md" h="100%">
@@ -41,15 +49,15 @@ export const ResourcesPage: FC<Record<never, never>> = () => {
 						</Menu.Target>
 						<Menu.Dropdown>
 							<Menu.Label>Upload</Menu.Label>
-							<Menu.Item onClick={ dataFileUploadModalHandlers.open } leftSection={<IconElement path={ mdiFileMusic } /> } >Upload Data Files</Menu.Item>
+							<Menu.Item onClick={ () => onRequestDataFileUpload("") } leftSection={<IconElement path={ mdiFileMusic } /> } >Upload Data Files</Menu.Item>
 							<Menu.Item onClick={ packageUploadModalHandlers.open } leftSection={<IconElement path={ mdiPackageUp } /> }>Upload Package</Menu.Item>
 						</Menu.Dropdown>
 					</Menu>
 				</Tooltip>
 			</Group>
-			<ResourceTabs />
+			<ResourceTabs onRequestDataFileUpload={ onRequestDataFileUpload } />
 			{showPackageUploadModal ? <PackageUploadModal onClose={packageUploadModalHandlers.close} /> : null}
-			{showDataFileUploadModal ? <DataFileUploadModal origin={origin} maxFileCount={32} onClose={dataFileUploadModalHandlers.close} onUploadSuccess={onDataFileUploadSuccess} /> : null}
+			{uploadPath !== null ? <DataFileUploadModal origin={origin} uploadPath={uploadPath} onClose={onCloseDataFileUploadModal} onUploadSuccess={onDataFileUploadSuccess} /> : null}
 		</Stack>
 	);
 };

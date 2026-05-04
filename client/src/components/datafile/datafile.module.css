@@ -2,3 +2,11 @@
 	height: 100%;
 	gap: var(--mantine-spacing-md);
 }
+
+.treeRow:hover {
+	background-color: var(--mantine-color-gray-1);
+}
+
+[data-mantine-color-scheme="dark"] .treeRow:hover {
+	background-color: var(--mantine-color-dark-5);
+}

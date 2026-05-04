@@ -14,7 +14,11 @@ const tabs = [
 	{ icon: mdiFileMusic, value: ResourceType.DataFile, label: "Data Files" }
 ];
 
-export const ResourceTabs = memo(function WrappedResourceTabs() {
+export type ResourceTabsProps = {
+	onRequestDataFileUpload: (path: string) => void;
+};
+
+export const ResourceTabs = memo(function WrappedResourceTabs({ onRequestDataFileUpload }: ResourceTabsProps) {
 
 	const [activeTab, setActiveTab] = useState<ResourceType>(ResourceType.Set);
 	const onChangeTab = useCallback((v: ResourceType) => setActiveTab(v), [setActiveTab]);
@@ -33,7 +37,7 @@ export const ResourceTabs = memo(function WrappedResourceTabs() {
 				</Tabs.List>
 				<div className={ styles.tabContent } >
 					<Tabs.Panel value={ ResourceType.DataFile } >
-						<DataFileManagementView />
+						<DataFileManagementView onRequestUpload={ onRequestDataFileUpload } />
 					</Tabs.Panel>
 					<Tabs.Panel value={ ResourceType.Set }>
 						<SetManagementView />
