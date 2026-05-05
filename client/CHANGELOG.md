@@ -1,5 +1,12 @@
 # @rnbo-runner-panel/client
 
+## 2.3.2
+
+### Patch Changes
+
+- 2dfb7df: Update patcher UUIDs when they change, fixing package upload collision messaging
+- f681d00: Add changelog links to release workflow
+
 ## 2.3.1
 
 ### Patch Changes

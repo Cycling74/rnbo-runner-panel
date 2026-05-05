@@ -1,5 +1,11 @@
 # @rnbo-runner-panel/server
 
+## 2.3.2
+
+### Patch Changes
+
+- f681d00: Add changelog links to release workflow
+
 ## 2.3.1
 
 ## 2.3.0
