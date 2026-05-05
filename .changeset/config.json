@@ -1,6 +1,11 @@
 {
 	"$schema": "https://unpkg.com/@changesets/config@3.1.2/schema.json",
-	"changelog": "@changesets/cli/changelog",
+	"changelog": [
+		"@changesets/changelog-github",
+		{
+			"repo": "Cycling74/rnbo-runner-panel"
+		}
+	],
 	"commit": false,
 	"fixed": [
 		["@rnbo-runner-panel/client", "@rnbo-runner-panel/server"]
