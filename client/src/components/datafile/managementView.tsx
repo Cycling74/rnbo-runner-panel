@@ -61,6 +61,87 @@ function collectDirValues(nodes: TreeNodeData[]): string[] {
 	);
 }
 
+type DataFileDirNodeProps = {
+	node: TreeNodeData;
+	level: number;
+	expanded: boolean;
+	hasChildren: boolean;
+	elementProps: RenderTreeNodePayload["elementProps"];
+	onRequestUpload?: (path: string) => void;
+	onDeleteDir: (dirPath: string, dirName: string) => void;
+};
+
+const DataFileDirNode: FC<DataFileDirNodeProps> = memo(function WrappedDataFileDirNode({
+	node, level, expanded, hasChildren, elementProps, onRequestUpload, onDeleteDir
+}) {
+	return (
+		<Group { ...elementProps } className={ classes.treeRow } justify="space-between" wrap="nowrap" w="100%" py="xs" style={{ "--tree-level": level } as React.CSSProperties}>
+			<Group wrap="nowrap" gap={ 4 }>
+				{ hasChildren
+					? <IconElement path={ expanded ? mdiChevronDown : mdiChevronRight } size={ 0.8 } />
+					: <span className={ classes.treeNodeIndentPlaceholder } />
+				}
+				<IconElement path={ mdiFolder } size={ 0.9 } />
+				<Text fz="sm" fw={ 500 }>{ node.label as string }</Text>
+			</Group>
+			<Menu position="bottom-end">
+				<Menu.Target>
+					<ActionIcon
+						variant="subtle"
+						color="gray"
+						size="md"
+						onClick={ (e) => e.stopPropagation() }
+					>
+						<IconElement path={ mdiDotsVertical } />
+					</ActionIcon>
+				</Menu.Target>
+				<Menu.Dropdown>
+					<Menu.Label>Directory</Menu.Label>
+					{ onRequestUpload
+						? <Menu.Item leftSection={ <IconElement path={ mdiUpload } /> } onClick={ (e) => { e.stopPropagation(); onRequestUpload(node.value); } }>Upload here</Menu.Item>
+						: null
+					}
+					<Menu.Divider />
+					<Menu.Item color="red" leftSection={ <IconElement path={ mdiTrashCan } /> } onClick={ (e) => { e.stopPropagation(); onDeleteDir(node.value, node.label as string); } }>Delete</Menu.Item>
+				</Menu.Dropdown>
+			</Menu>
+		</Group>
+	);
+});
+
+type DataFileFileNodeProps = {
+	file: DataFileRecord;
+	level: number;
+	elementProps: RenderTreeNodePayload["elementProps"];
+	onDownload: (file: DataFileRecord) => void;
+	onDelete: (file: DataFileRecord) => void;
+};
+
+const DataFileFileNode: FC<DataFileFileNodeProps> = memo(function WrappedDataFileFileNode({
+	file, level, elementProps, onDownload, onDelete
+}) {
+	return (
+		<Group { ...elementProps } className={ classes.treeRow } justify="space-between" wrap="nowrap" w="100%" py="sm" style={{ "--tree-level": level } as React.CSSProperties}>
+			<Text fz="sm" truncate="end" className={ classes.treeNodeFileName }>
+				{ file.fileName }
+			</Text>
+			<Menu position="bottom-end">
+				<Menu.Target>
+					<ActionIcon variant="subtle" color="gray" size="md">
+						<IconElement path={ mdiDotsVertical } />
+					</ActionIcon>
+				</Menu.Target>
+				<Menu.Dropdown>
+					<Menu.Label>Data File</Menu.Label>
+					<Menu.Item leftSection={ <IconElement path={ mdiDownload } /> } onClick={ () => onDownload(file) }>Download</Menu.Item>
+					<Menu.Divider />
+					<Menu.Item color="red" leftSection={ <IconElement path={ mdiTrashCan } /> } onClick={ () => onDelete(file) }>Delete</Menu.Item>
+				</Menu.Dropdown>
+			</Menu>
+		</Group>
+	);
+});
+
 export type DataFileManagementViewProps = {
 	onRequestUpload?: (path: string) => void;
 };
@@ -105,70 +186,30 @@ export const DataFileManagementView: FC<DataFileManagementViewProps> = memo(func
 		dispatch(deleteDataDirOnRemote(dirPath, dirName));
 	}, [dispatch]);
 
-	const renderNode = useCallback(({ node, expanded, hasChildren, elementProps, level }: RenderTreeNodePayload) => {
-		const nodeStyle = {
-			paddingLeft: `calc(var(--mantine-spacing-xs) + ${level * 20}px)`,
-			paddingRight: "var(--mantine-spacing-xs)",
-			borderBottom: "1px solid var(--mantine-color-default-border)"
-		};
+	const renderNode = useCallback(({ node, level, expanded, hasChildren, elementProps }: RenderTreeNodePayload) => {
 		if (node.children !== undefined) {
 			return (
-				<Group { ...elementProps } className={ classes.treeRow } justify="space-between" wrap="nowrap" w="100%" py="xs" style={ nodeStyle }>
-					<Group wrap="nowrap" gap={ 4 }>
-						{ hasChildren
-							? <IconElement path={ expanded ? mdiChevronDown : mdiChevronRight } size={ 0.8 } />
-							: <span style={{ display: "inline-block", width: "0.8em" }} />
-						}
-						<IconElement path={ mdiFolder } size={ 0.9 } />
-						<Text fz="sm" fw={ 500 }>{ node.label as string }</Text>
-					</Group>
-					<Menu position="bottom-end">
-						<Menu.Target>
-							<ActionIcon
-								variant="subtle"
-								color="gray"
-								size="md"
-								onClick={ (e) => e.stopPropagation() }
-							>
-								<IconElement path={ mdiDotsVertical } />
-							</ActionIcon>
-						</Menu.Target>
-						<Menu.Dropdown>
-							<Menu.Label>Directory</Menu.Label>
-							{ onRequestUpload
-								? <Menu.Item leftSection={ <IconElement path={ mdiUpload } /> } onClick={ (e) => { e.stopPropagation(); onRequestUpload(node.value); } }>Upload here</Menu.Item>
-								: null
-							}
-							<Menu.Divider />
-							<Menu.Item color="red" leftSection={ <IconElement path={ mdiTrashCan } /> } onClick={ (e) => { e.stopPropagation(); onDeleteDir(node.value, node.label as string); } }>Delete</Menu.Item>
-						</Menu.Dropdown>
-					</Menu>
-				</Group>
+				<DataFileDirNode
+					node={ node }
+					level={ level }
+					expanded={ expanded }
+					hasChildren={ hasChildren }
+					elementProps={ elementProps }
+					onRequestUpload={ onRequestUpload }
+					onDeleteDir={ onDeleteDir }
+				/>
 			);
 		}
-
 		const file = files.find(f => f.id === node.value);
 		if (!file) return null;
-
 		return (
-			<Group { ...elementProps } className={ classes.treeRow } justify="space-between" wrap="nowrap" w="100%" py="sm" style={ nodeStyle }>
-				<Text fz="sm" truncate="end" style={{ flex: 1, minWidth: 0 }}>
-					{ file.fileName }
-				</Text>
-				<Menu position="bottom-end">
-					<Menu.Target>
-						<ActionIcon variant="subtle" color="gray" size="md">
-							<IconElement path={ mdiDotsVertical } />
-						</ActionIcon>
-					</Menu.Target>
-					<Menu.Dropdown>
-						<Menu.Label>Data File</Menu.Label>
-						<Menu.Item leftSection={ <IconElement path={ mdiDownload } /> } onClick={ () => onDownloadFile(file) }>Download</Menu.Item>
-						<Menu.Divider />
-						<Menu.Item color="red" leftSection={ <IconElement path={ mdiTrashCan } /> } onClick={ () => onDeleteFile(file) }>Delete</Menu.Item>
-					</Menu.Dropdown>
-				</Menu>
-			</Group>
+			<DataFileFileNode
+				file={ file }
+				level={ level }
+				elementProps={ elementProps }
+				onDownload={ onDownloadFile }
+				onDelete={ onDeleteFile }
+			/>
 		);
 	}, [files, onDeleteFile, onDownloadFile, onDeleteDir, onRequestUpload]);
 
