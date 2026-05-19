@@ -806,7 +806,7 @@ export const setInstanceDataRefValueOnRemote = (dataref: DataRefRecord, file?: D
 		const message = {
 			address: dataref.path,
 			args: [
-				{ type: "s", value: file?.fileName || "" } // no files unsets
+				{ type: "s", value: file?.path || "" } // no files unsets
 			]
 		};
 
