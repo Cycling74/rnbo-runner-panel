@@ -3,17 +3,18 @@
 	gap: var(--mantine-spacing-md);
 }
 
-.treeRow {
+.treeRowInner {
 	padding-left: calc(var(--mantine-spacing-xs) + calc(var(--tree-level, 0) * 20px));
+
 	padding-right: var(--mantine-spacing-xs);
 	border-bottom: 1px solid var(--mantine-color-default-border);
 }
 
-.treeRow:hover {
+.treeRowInner:hover {
 	background-color: var(--mantine-color-gray-1);
 }
 
-[data-mantine-color-scheme="dark"] .treeRow:hover {
+[data-mantine-color-scheme="dark"] .treeRowInner:hover {
 	background-color: var(--mantine-color-dark-5);
 }
 
