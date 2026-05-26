@@ -111,20 +111,20 @@ const DataFileDirNode: FC<DataFileDirNodeProps> = memo(function WrappedDataFileD
 });
 
 type DataFileFileNodeProps = {
-	file: DataFileRecord;
+	node: TreeNodeData;
 	elementProps: RenderTreeNodePayload["elementProps"];
-	onDownload: (file: DataFileRecord) => void;
-	onDelete: (file: DataFileRecord) => void;
+	onDownload: (id: TreeNodeData["value"]) => void;
+	onDelete: (file: TreeNodeData["value"]) => void;
 };
 
 const DataFileFileNode: FC<DataFileFileNodeProps> = memo(function WrappedDataFileFileNode({
-	file, elementProps, onDownload, onDelete
+	node, elementProps, onDownload, onDelete
 }) {
 	return (
 		<div { ...elementProps } >
 			<Group justify="space-between" wrap="nowrap" w="100%" py="sm" className={ classes.treeRowInner } >
 				<Text fz="sm" truncate="end" className={ classes.treeNodeFileName }>
-					{ file.fileName }
+					{ node.label }
 				</Text>
 				<Menu position="bottom-end">
 					<Menu.Target>
@@ -134,9 +134,9 @@ const DataFileFileNode: FC<DataFileFileNodeProps> = memo(function WrappedDataFil
 					</Menu.Target>
 					<Menu.Dropdown>
 						<Menu.Label>Data File</Menu.Label>
-						<Menu.Item leftSection={ <IconElement path={ mdiDownload } /> } onClick={ () => onDownload(file) }>Download</Menu.Item>
+						<Menu.Item leftSection={ <IconElement path={ mdiDownload } /> } onClick={ () => onDownload(node.value) }>Download</Menu.Item>
 						<Menu.Divider />
-						<Menu.Item color="red" leftSection={ <IconElement path={ mdiTrashCan } /> } onClick={ () => onDelete(file) }>Delete</Menu.Item>
+						<Menu.Item color="red" leftSection={ <IconElement path={ mdiTrashCan } /> } onClick={ () => onDelete(node.value) }>Delete</Menu.Item>
 					</Menu.Dropdown>
 				</Menu>
 			</Group>
@@ -176,13 +176,19 @@ export const DataFileManagementView: FC<DataFileManagementViewProps> = memo(func
 		}
 	}, [searchValue, treeData, tree]);
 
-	const onDeleteFile = useCallback((file: DataFileRecord) => {
-		dispatch(deleteDataFileOnRemote(file));
-	}, [dispatch]);
+	const onDeleteFile = useCallback((id: DataFileRecord["id"]) => {
+		const file = files.find(f => f.id === id);
+		if (!file) return;
 
-	const onDownloadFile = useCallback((file: DataFileRecord) => {
+		dispatch(deleteDataFileOnRemote(file));
+	}, [dispatch, files]);
+
+	const onDownloadFile = useCallback((id: DataFileRecord["id"]) => {
+		const file = files.find(f => f.id === id);
+		if (!file) return;
+
 		dispatch(downloadDataFileFromRunner(file));
-	}, [dispatch]);
+	}, [dispatch, files]);
 
 	const onDeleteDir = useCallback((dirPath: string, dirName: string) => {
 		dispatch(deleteDataDirOnRemote(dirPath, dirName));
@@ -201,17 +207,15 @@ export const DataFileManagementView: FC<DataFileManagementViewProps> = memo(func
 				/>
 			);
 		}
-		const file = files.find(f => f.id === node.value);
-		if (!file) return null;
 		return (
 			<DataFileFileNode
-				file={ file }
+				node={ node }
 				elementProps={ elementProps }
 				onDownload={ onDownloadFile }
 				onDelete={ onDeleteFile }
 			/>
 		);
-	}, [files, onDeleteFile, onDownloadFile, onDeleteDir, onRequestUpload]);
+	}, [onDeleteFile, onDownloadFile, onDeleteDir, onRequestUpload]);
 
 	return (
 		<Stack gap={ 0 } >
