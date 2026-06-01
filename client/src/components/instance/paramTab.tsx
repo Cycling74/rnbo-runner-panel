@@ -27,15 +27,19 @@ const ParameterListComponent: ComponentType<ParameterListProps<ParameterMIDIActi
 
 const collator = new Intl.Collator("en-US");
 const parameterComparators: Record<ParameterSortAttr, Record<SortOrder, (a: ParameterRecord, b: ParameterRecord) => number>> = {
-	[ParameterSortAttr.Index]: {
+	[ParameterSortAttr.DisplayOrder]: {
 		[SortOrder.Asc]: (a: ParameterRecord, b: ParameterRecord) => {
-			if (a.index < b.index) return -1;
-			if (a.index > b.index) return 1;
+			const ad = a.displayOrder || Number.MAX_VALUE;
+			const bd = b.displayOrder || Number.MAX_VALUE;
+			if (ad < bd) return -1;
+			if (ad > bd) return 1;
 			return collator.compare(a.label.toLowerCase(), b.label.toLowerCase());
 		},
 		[SortOrder.Desc]: (a: ParameterRecord, b: ParameterRecord) => {
-			if (a.index > b.index) return -1;
-			if (a.index < b.index) return 1;
+			const ad = a.displayOrder || Number.MAX_VALUE;
+			const bd = b.displayOrder || Number.MAX_VALUE;
+			if (ad > bd) return -1;
+			if (ad < bd) return 1;
 			return collator.compare(a.label.toLowerCase(), b.label.toLowerCase()) * -1;
 		}
 	},
