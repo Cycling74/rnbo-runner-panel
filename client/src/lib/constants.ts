@@ -122,7 +122,7 @@ export enum PatcherSortAttr {
 }
 
 export enum ParameterSortAttr {
-	Index = "displayorder",
+	DisplayOrder = "displayorder",
 	Name = "name"
 }
 

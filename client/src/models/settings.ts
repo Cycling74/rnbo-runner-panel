@@ -54,9 +54,9 @@ export const appSettingDefaults: Record<AppSetting, Omit<AppSettingRecordProps, 
 		value: true
 	},
 	[AppSetting.paramSortAttribute]: {
-		description: "Configure whether to sort device parameters by name or 'displayorder'",
+		description: "Configure whether to sort device parameters by name or 'display_order'",
 		tab: SettingsTab.UI,
-		options: [{ label: "Displayorder", value: ParameterSortAttr.Index }, { label: "Name", value: ParameterSortAttr.Name }],
+		options: [{ label: "Display Order", value: ParameterSortAttr.DisplayOrder }, { label: "Name", value: ParameterSortAttr.Name }],
 		title: "Parameter List: Sort Attribute",
 		type: AppSettingType.String,
 		value: ParameterSortAttr.Name
