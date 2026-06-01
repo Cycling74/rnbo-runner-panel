@@ -402,6 +402,7 @@ export type OSCQueryRNBOSetsState = OSCQueryBaseNode & {
 export type OSCQueryRNBOInstanceParameterValue = OSCQueryBaseNode & OSCQueryFloatValue & OSCQueryValueRange & {
 	CONTENTS: {
 		display_name: OSCQueryStringValue;
+		display_order?: OSCQueryIntValue;
 		index: OSCQueryIntValue;
 		meta: OSCQueryStringValue;
 		normalized: OSCQueryFloatValue & OSCQueryValueRange & { VALUE: number; }

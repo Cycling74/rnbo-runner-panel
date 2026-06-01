@@ -7,6 +7,7 @@ import { MIDIMetaMappingType } from "../lib/constants";
 export type ParameterRecordProps = {
 
 	displayName: string;
+	displayOrder: number | undefined;
 	enumVals: Array<string | number>;
 	index: number;
 	instanceId: string;
@@ -24,8 +25,8 @@ export type ParameterRecordProps = {
 	isMidiMapped: boolean;
 }
 export class ParameterRecord extends ImmuRecord<ParameterRecordProps>({
-
 	displayName: "",
+	displayOrder: undefined,
 	enumVals: [],
 	index: 0,
 	instanceId: "0",
@@ -55,6 +56,7 @@ export class ParameterRecord extends ImmuRecord<ParameterRecordProps>({
 			// use setMeta to consolidate midi mapping detection logic
 			result.push((new ParameterRecord({
 				displayName: paramInfo.CONTENTS.display_name?.VALUE || "",
+				displayOrder: paramInfo.CONTENTS.display_order?.VALUE,
 				enumVals: paramInfo.RANGE?.[0]?.VALS || [],
 				index: paramInfo.CONTENTS?.index?.VALUE || 0,
 				instanceId,
