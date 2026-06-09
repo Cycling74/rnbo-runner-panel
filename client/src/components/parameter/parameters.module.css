@@ -96,7 +96,7 @@
 
 .parameterItemMIDIIndicator {
 	--indicator-size: 8px;
-	--indicator-translate-x: 150% !important;
+	--indicator-translate-x: -130% !important;
 	--indicator-translate-y: -40% !important;
 	--indicator-color: var(--mantine-color-violet-4);
 	max-width: 100%;
