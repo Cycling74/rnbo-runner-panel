@@ -12,7 +12,7 @@ mod file {
             Responder, State, delete,
             fs::{NamedFile, TempFile},
             get,
-            http::{ContentType, Status},
+            http::{ContentType, Header, Status},
             put,
             serde::json::Json,
             uri,
@@ -21,6 +21,19 @@ mod file {
         serde::Deserialize,
         std::path::{Path, PathBuf},
     };
+
+    // Custom responder for package files so we can attach a Content-Disposition
+    // header. Without it, browsers (notably Safari) derive the saved file's
+    // extension from the MIME type (application/x-tar -> .tar) instead of the
+    // .rnbopack name from the URL. The first field is the response body, the
+    // remaining fields are emitted as headers.
+    #[derive(Responder)]
+    #[response(status = 200)]
+    pub struct PackageFileResponse {
+        file: NamedFile,
+        content_type: ContentType,
+        disposition: Header<'static>,
+    }
 
     #[derive(Responder)]
     pub enum FileGet {
@@ -31,7 +44,7 @@ mod file {
         #[response(status = 200)]
         File(NamedFile),
         #[response(status = 200)]
-        PackageFile((ContentType, NamedFile)),
+        PackageFile(PackageFileResponse),
     }
 
     async fn get_impl(
@@ -81,7 +94,34 @@ mod file {
                         .unwrap_or_else(|_| "".to_string())
                 });
                 match e {
-                    Some(e) if e == "rnbopack" => FileGet::PackageFile((ContentType::TAR, f)),
+                    Some(e) if e == "rnbopack" => {
+                        let name = f
+                            .path()
+                            .file_name()
+                            .and_then(|n| n.to_str())
+                            .unwrap_or("package.rnbopack");
+                        // Escape the filename for use in a quoted Content-Disposition
+                        // value: drop control characters (which could otherwise inject
+                        // headers or produce a malformed response) and escape `\` and
+                        // `"` per the RFC 6266 quoted-string grammar.
+                        let escaped: String = name
+                            .chars()
+                            .filter(|c| !c.is_control())
+                            .flat_map(|c| match c {
+                                '"' | '\\' => vec!['\\', c],
+                                _ => vec![c],
+                            })
+                            .collect();
+                        let disposition = Header::new(
+                            "Content-Disposition",
+                            format!("attachment; filename=\"{escaped}\""),
+                        );
+                        FileGet::PackageFile(PackageFileResponse {
+                            file: f,
+                            content_type: ContentType::TAR,
+                            disposition,
+                        })
+                    }
                     _ => FileGet::File(f),
                 }
             })
