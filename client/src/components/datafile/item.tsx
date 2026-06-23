@@ -1,4 +1,4 @@
-import { ActionIcon, Menu, Table, Text } from "@mantine/core";
+import { ActionIcon, Group, Menu, Text } from "@mantine/core";
 import { DataFileRecord } from "../../models/datafile";
 import { FC, memo, useCallback } from "react";
 import { IconElement } from "../elements/icon";
@@ -20,27 +20,23 @@ export const DataFileListItem: FC<DataFileListItemProps> = memo(function Wrapped
 	const onTriggerDownload = useCallback(() => onDownload(dataFile), [onDownload, dataFile]);
 
 	return (
-		<Table.Tr>
-			<Table.Td>
-				<Text fz="sm" truncate="end">
-					{ dataFile.fileName }
-				</Text>
-			</Table.Td>
-			<Table.Td ta="center">
-				<Menu position="bottom-end" >
-					<Menu.Target>
-						<ActionIcon variant="subtle" color="gray" size="md">
-							<IconElement path={ mdiDotsVertical } />
-						</ActionIcon>
-					</Menu.Target>
-					<Menu.Dropdown>
-						<Menu.Label>Data File</Menu.Label>
-						<Menu.Item  leftSection={ <IconElement path={ mdiDownload }/> } onClick={ onTriggerDownload } >Download</Menu.Item>
-						<Menu.Divider />
-						<Menu.Item color="red" leftSection={ <IconElement path={ mdiTrashCan }/> } onClick={ onTriggerDelete } >Delete</Menu.Item>
-					</Menu.Dropdown>
-				</Menu>
-			</Table.Td>
-		</Table.Tr>
+		<Group justify="space-between" wrap="nowrap">
+			<Text fz="sm" truncate="end" style={{ flex: 1, minWidth: 0 }}>
+				{ dataFile.fileName }
+			</Text>
+			<Menu position="bottom-end" >
+				<Menu.Target>
+					<ActionIcon variant="subtle" color="gray" size="md">
+						<IconElement path={ mdiDotsVertical } />
+					</ActionIcon>
+				</Menu.Target>
+				<Menu.Dropdown>
+					<Menu.Label>Data File</Menu.Label>
+					<Menu.Item leftSection={ <IconElement path={ mdiDownload }/> } onClick={ onTriggerDownload } >Download</Menu.Item>
+					<Menu.Divider />
+					<Menu.Item color="red" leftSection={ <IconElement path={ mdiTrashCan }/> } onClick={ onTriggerDelete } >Delete</Menu.Item>
+				</Menu.Dropdown>
+			</Menu>
+		</Group>
 	);
 });
