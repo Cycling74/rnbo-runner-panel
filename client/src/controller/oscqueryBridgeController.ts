@@ -142,29 +142,53 @@ export class OSCQueryBridgeControllerPrivate {
 
 	private _ws: ReconnectingWebsocket | null = null;
 
-	private _requestState<T>(path: string): Promise<T> {
-		return new Promise<T>((resolve, reject) => {
-			let resolved = false;
-			const callback = (evt: MessageEvent): void => {
-				try {
-					if (resolved) return;
-					if (typeof evt.data !== "string") return;
-					const data = JSON.parse(evt.data);
+	// Pending OSCQuery node-description requests, keyed by path. Replies are
+	// routed by the single _onMessage listener (see below) rather than by
+	// registering a fresh "message" listener per request, which previously
+	// leaked listeners (MaxListenersExceededWarning) and could hang forever
+	// when an expected reply never arrived.
+	private _pendingStateRequests: Map<string, Array<{
+		resolve: (v: any) => void;
+		reject: (e: any) => void;
+		timer: ReturnType<typeof setTimeout>;
+	}>> = new Map();
 
-					if (data?.FULL_PATH === path) {
-						resolved = true;
-						this._ws.off("message", callback);
-						return void resolve(data as T);
+	private _requestState<T>(path: string, timeoutMs: number = 15000): Promise<T> {
+		return new Promise<T>((resolve, reject) => {
+
+			const waiters = this._pendingStateRequests.get(path) ?? [];
+
+			const waiter = {
+				resolve: resolve as (v: any) => void,
+				reject,
+				timer: setTimeout(() => {
+					// Remove just this waiter and surface a timeout so a missing
+					// reply fails loudly instead of hanging silently.
+					const current = this._pendingStateRequests.get(path);
+					if (current) {
+						const idx = current.indexOf(waiter);
+						if (idx !== -1) current.splice(idx, 1);
+						if (current.length === 0) this._pendingStateRequests.delete(path);
 					}
-				} catch (err) {
-					resolved = true;
-					this._ws.off("message", callback);
-					return void reject(err);
-				}
+					reject(new Error(`Timed out waiting for state of "${path}"`));
+				}, timeoutMs)
 			};
-			this._ws.on("message", callback);
+
+			waiters.push(waiter);
+			this._pendingStateRequests.set(path, waiters);
+
 			this._ws.send(path);
 		});
+	}
+
+	private _rejectAllPendingStateRequests(reason: Error): void {
+		for (const waiters of this._pendingStateRequests.values()) {
+			for (const waiter of waiters) {
+				clearTimeout(waiter.timer);
+				waiter.reject(reason);
+			}
+		}
+		this._pendingStateRequests.clear();
 	}
 
 	private get dispatch(): AppDispatch {
@@ -355,6 +379,7 @@ export class OSCQueryBridgeControllerPrivate {
 	}
 
 	private _onClose = (evt: ErrorEvent) => {
+		this._rejectAllPendingStateRequests(new Error("The connection to the RNBO Runner was closed"));
 		this.dispatch(setAppStatus(AppStatus.Closed, new Error("The connection to the RNBO Runner was closed")));
 	};
 
@@ -376,6 +401,18 @@ export class OSCQueryBridgeControllerPrivate {
 
 			if (typeof evt.data === "string") {
 				const data = JSON.parse(evt.data);
+
+				// Route OSCQuery node-description replies to any pending
+				// _requestState waiters for this path.
+				if (typeof data.FULL_PATH === "string" && this._pendingStateRequests.has(data.FULL_PATH)) {
+					const waiters = this._pendingStateRequests.get(data.FULL_PATH);
+					this._pendingStateRequests.delete(data.FULL_PATH);
+					for (const waiter of waiters) {
+						clearTimeout(waiter.timer);
+						waiter.resolve(data);
+					}
+				}
+
 				const isCommand = typeof data.COMMAND === "string" && ["string", "object"].includes(typeof data.DATA);
 
 				// console.log("command", data);
@@ -920,6 +957,7 @@ export class OSCQueryBridgeControllerPrivate {
 	}
 
 	public close(): void {
+		this._rejectAllPendingStateRequests(new Error("The connection to the RNBO Runner was closed"));
 		this._ws?.close();
 		this._ws?.removeAllListeners();
 		this._ws = null;
