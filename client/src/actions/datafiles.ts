@@ -7,7 +7,7 @@ import { DialogResult, showConfirmDialog } from "../lib/dialogs";
 import { getDataFiles, getPendingDataFileByFilename } from "../selectors/datafiles";
 import { DataRefRecord } from "../models/dataref";
 import { getPatcherInstanceDataRef } from "../selectors/patchers";
-import { getFileListFromRemote, deleteFileFromRemote, downloadFileFromRemote } from "../lib/files";
+import { FileEntry, getAllFilesFromRemote, deleteFileFromRemote, downloadFileFromRemote } from "../lib/files";
 import { RunnerFileType } from "../lib/constants";
 import { getRunnerOrigin } from "../selectors/appStatus";
 
@@ -42,11 +42,11 @@ export type DataFileAction = ISetDataFiles |
 ISetPendingDataFile | IDeletePendingDataFile;
 
 
-export const initDataFiles = (paths: string[]): ISetDataFiles => {
+export const initDataFiles = (entries: FileEntry[]): ISetDataFiles => {
 	return {
 		type: DataFilesActionType.SET_ALL,
 		payload: {
-			files: paths.map(p => DataFileRecord.fromDescription(p))
+			files: entries.map(e => DataFileRecord.fromDescription(e.path, e.isDir))
 		}
 	};
 };
@@ -69,12 +69,12 @@ export const deletePendingDataFile = (file: PendingDataFileRecord): DataFileActi
 	};
 };
 
-export const updateDataFiles = (paths: string[]): AppThunk =>
+export const updateDataFiles = (entries: FileEntry[]): AppThunk =>
 	(dispatch, getState) => {
 		try {
 
 			const state = getState();
-			const files = paths.map(p => DataFileRecord.fromDescription(p));
+			const files = entries.map(e => DataFileRecord.fromDescription(e.path, e.isDir));
 			const currentFiles = getDataFiles(state);
 
 			const newFiles: Array<DataFileRecord> = [];
@@ -85,19 +85,22 @@ export const updateDataFiles = (paths: string[]): AppThunk =>
 				}
 			}
 
+			// notification logic only applies to actual files, not directory entries
+			const newFileEntries = newFiles.filter(f => !f.isDir);
+
 			if (
-				newFiles.length === 1 &&
-				/^\d{6}T\d{6}-captured\.wav$/.test(newFiles[0].fileName) &&
-				newFiles[0].fileName.startsWith(dayjs().format("YYMMDDT"))
+				newFileEntries.length === 1 &&
+				/^\d{6}T\d{6}-captured\.wav$/.test(newFileEntries[0].fileName) &&
+				newFileEntries[0].fileName.startsWith(dayjs().format("YYMMDDT"))
 			) {
 				dispatch(showNotification({
 					level: NotificationLevel.success,
 					title: "Saved Recording",
-					message: `Recording has been saved successfully to ${newFiles[0].fileName}`
+					message: `Recording has been saved successfully to ${newFileEntries[0].fileName}`
 				}));
 			}
 
-			for (const fulfilledFile of newFiles.map(f => getPendingDataFileByFilename(state, f.fileName)).filter(pf => !!pf)) {
+			for (const fulfilledFile of newFileEntries.map(f => getPendingDataFileByFilename(state, f.fileName)).filter(pf => !!pf)) {
 				const dataRef = getPatcherInstanceDataRef(state, fulfilledFile.dataRefId);
 				if (dataRef) {
 					dispatch(showNotification({
@@ -126,8 +129,7 @@ export const updateDataFiles = (paths: string[]): AppThunk =>
 export const triggerDataFileListRefresh = (init: boolean = false): AppThunk =>
 	async (dispatch, getState) => {
 		try {
-			const list = await getFileListFromRemote(getRunnerOrigin(getState()), RunnerFileType.DataFile);
-			const files = list.items.filter(f => !f.dir).map(f => f.name);
+			const files = await getAllFilesFromRemote(getRunnerOrigin(getState()), RunnerFileType.DataFile);
 			dispatch(
 				init
 					? initDataFiles(files)
@@ -158,7 +160,7 @@ export const deleteDataFileOnRemote = (file: DataFileRecord): AppThunk =>
 				return;
 			}
 
-			await deleteFileFromRemote(getRunnerOrigin(getState()), RunnerFileType.DataFile, file.fileName);
+			await deleteFileFromRemote(getRunnerOrigin(getState()), RunnerFileType.DataFile, file.path);
 
 			dispatch(showNotification({
 				level: NotificationLevel.success,
@@ -176,10 +178,39 @@ export const deleteDataFileOnRemote = (file: DataFileRecord): AppThunk =>
 		}
 	};
 
+export const deleteDataDirOnRemote = (dirPath: string, dirName: string): AppThunk =>
+	async (dispatch, getState) => {
+		try {
+			const dialogResult = await showConfirmDialog({
+				text: `Are you sure you want to delete the directory "${dirName}" and all its contents from the device?`,
+				actions: {
+					confirm: { label: "Delete Directory", color: "red" }
+				}
+			});
+
+			if (dialogResult === DialogResult.Cancel) return;
+
+			await deleteFileFromRemote(getRunnerOrigin(getState()), RunnerFileType.DataFile, dirPath);
+
+			dispatch(showNotification({
+				level: NotificationLevel.success,
+				title: "Directory Deleted",
+				message: `Successfully deleted ${dirName} from the device`
+			}));
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: `Error while trying to delete directory ${dirName}`,
+				message: "Please check the console for further details."
+			}));
+			console.log(err);
+		}
+	};
+
 export const downloadDataFileFromRunner = (file: DataFileRecord): AppThunk =>
 	async (dispatch, getState) => {
 		try {
-			await downloadFileFromRemote(getRunnerOrigin(getState()), RunnerFileType.DataFile, file.fileName);
+			await downloadFileFromRemote(getRunnerOrigin(getState()), RunnerFileType.DataFile, file.path);
 		} catch (err) {
 			if (isUserAbortedError(err)) return; // User Aborted File Destination chooser
 

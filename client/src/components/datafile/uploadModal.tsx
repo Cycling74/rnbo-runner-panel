@@ -14,6 +14,7 @@ import { uploadFileToRemote } from "../../lib/files";
 export type UploadFile = {
 	id: string;
 	file: FileWithPath;
+	destPath: string;
 	progress: number;
 	error?: Error;
 }
@@ -53,7 +54,7 @@ export const FileUploadRow: FC<FileUploadRowProps> = ({
 		<Table.Tr key={ upload.file.name } >
 			<Table.Td>
 				<Text fz="sm" truncate="end">
-					{ upload.file.name }
+					{ upload.destPath }
 				</Text>
 				{
 					upload.error ? <Text c="red" size="xs">{ upload.error.message }</Text> : null
@@ -99,7 +100,7 @@ enum UploadStep {
 
 export type DataFileUploadModalProps = {
 	origin: string;
-	maxFileCount?: number;
+	uploadPath?: string;
 	onClose: () => any;
 	onUploadSuccess: (files: UploadFile[]) => any;
 };
@@ -109,7 +110,7 @@ export const DataFileUploadModal: FC<DataFileUploadModalProps> = memo(function W
 	origin,
 	onClose,
 	onUploadSuccess,
-	maxFileCount = 1
+	uploadPath = ""
 }) {
 	const [uploads, setUploads] = useState<ImmuMap<UploadFile["id"], UploadFile>>(ImmuMap<UploadFile["id"], UploadFile>());
 	const [step, setStep] = useState<UploadStep>(UploadStep.Select);
@@ -119,13 +120,15 @@ export const DataFileUploadModal: FC<DataFileUploadModalProps> = memo(function W
 	const onSetFiles = useCallback((files: FileWithPath[]) => {
 		setUploads(ImmuMap<UploadFile["id"], UploadFile>().withMutations(m => {
 			for (const file of files) {
-				const f = { id: v4(), file, progress: 0 };
+				const relativePath = (file.path || file.name).replace(/^\//, "");
+				const destPath = uploadPath ? `${uploadPath}/${relativePath}` : relativePath;
+				const f = { id: v4(), file, destPath, progress: 0 };
 				m.set(f.id, f);
 			}
 		}));
 
 		setStep(UploadStep.Confirm);
-	}, [setUploads, setStep]);
+	}, [setUploads, setStep, uploadPath]);
 
 	const onCancel = useCallback(() => {
 		setStep(UploadStep.Select);
@@ -140,7 +143,7 @@ export const DataFileUploadModal: FC<DataFileUploadModalProps> = memo(function W
 			try {
 				await uploadFileToRemote(
 					origin,
-					RunnerFileType.DataFile, upload.file,
+					RunnerFileType.DataFile, upload.file, upload.destPath,
 					( progress ) => setUploads(up => up.set(upload.id, { ...upload, progress }))
 				);
 			} catch (err) {
@@ -182,7 +185,6 @@ export const DataFileUploadModal: FC<DataFileUploadModalProps> = memo(function W
 							step === UploadStep.Select ? (
 								<FileDropZone
 									fileIcon={ mdiFileMusic }
-									maxFiles={ maxFileCount }
 									setFiles={ onSetFiles }
 								/>
 							) : null
@@ -193,7 +195,7 @@ export const DataFileUploadModal: FC<DataFileUploadModalProps> = memo(function W
 									<Table verticalSpacing="sm" highlightOnHover>
 										<Table.Thead>
 											<Table.Tr>
-												<Table.Th>Filename</Table.Th>
+												<Table.Th>Destination</Table.Th>
 												<Table.Th>Size</Table.Th>
 												<Table.Th></Table.Th>
 											</Table.Tr>
