@@ -112,7 +112,7 @@ const patchersUUIDMatcher = /^\/rnbo\/patchers\/(?<name>.+)\/uuid$/;
 const setsPathMatcher = /^\/rnbo\/sets\/(?<name>.+)$/;
 const setsUUIDMatcher = /^\/rnbo\/sets\/(?<name>.+)\/uuid$/;
 const instancePathMatcher = /^\/rnbo\/inst\/(?<id>\d+)$/;
-const instanceStatePathMatcher = /^\/rnbo\/inst\/(?<id>\d+)\/(?<content>params|messages\/in|messages\/out|presets|data_refs|config|midi\/last)\/(?<rest>\S+)/;
+const instanceStatePathMatcher = /^\/rnbo\/inst\/(?<id>\d+)\/(?<content>params|messages\/in|messages\/out|presets|data_refs|config|midi\/last)\/(?<rest>.+)/;
 const instancePresetPathMatcher = /^\/rnbo\/inst\/(?<id>\d+)\/presets\/(?<property>loaded|initial)$/;
 const connectionsPathMatcher = /^\/rnbo\/jack\/connections\/(?<type>audio|midi)\/(?<id>.+)$/;
 const setMetaPathMatcher = /^\/rnbo\/inst\/control\/sets\/meta/;
@@ -596,6 +596,7 @@ export class OSCQueryBridgeControllerPrivate {
 			!instInfoMatch.groups.rest.endsWith("/normalized") &&
 			!instInfoMatch.groups.rest.endsWith("/display_name")
 		) {
+			// TODO should we just detect if there is a "/" in the `.rest` ?
 			return void this.dispatch(removeInstanceParameterByPath(path));
 		}
 
