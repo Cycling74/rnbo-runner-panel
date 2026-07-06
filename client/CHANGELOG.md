@@ -1,5 +1,15 @@
 # @rnbo-runner-panel/client
 
+## 2.3.3
+
+### Patch Changes
+
+- 72b24e9: Fix bug where parameter display order wasn't being used for sorting when it said it was.
+
+  re #341
+
+- 71d0c00: Show current parameter value inline in the parameter label. Reduced font size of slider mark labels for better visual balance.
+
 ## 2.3.2
 
 ### Patch Changes
