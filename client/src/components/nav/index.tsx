@@ -8,7 +8,7 @@ import { RootStateType } from "../../lib/store";
 import { getShowSettingsModal } from "../../selectors/settings";
 import { ExternalNavLink, NavLink } from "./link";
 import { getFirstPatcherNodeInstanceId } from "../../selectors/graph";
-import { mdiChartSankeyVariant, mdiCog, mdiHelpCircle, mdiMidiPort, mdiVectorSquare, mdiTableEye, mdiDatabaseCog } from "@mdi/js";
+import { mdiChartSankeyVariant, mdiCog, mdiHelpCircle, mdiMidiPort, mdiVectorSquare, mdiTableEye, mdiDatabaseCog, mdiCastAudio } from "@mdi/js";
 
 const AppNav: FunctionComponent = memo(function WrappedNav() {
 
@@ -47,6 +47,11 @@ const AppNav: FunctionComponent = memo(function WrappedNav() {
 						icon={ mdiMidiPort }
 						label="MIDI Mappings"
 						pathname="/midimappings"
+					/>
+					<NavLink
+						icon={ mdiCastAudio }
+						label="Link Audio"
+						pathname="/linkaudio"
 					/>
 				</Stack>
 				<Stack className={ classes.navMenu } >

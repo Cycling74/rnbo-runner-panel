@@ -196,6 +196,7 @@ export const knownPortGroupDisplayNames: ImmuMap<string, string> = ImmuMap({
 
 export enum RNBOJackPortPropertyKey {
 	InstanceId = "rnbo-instance-id",
+	Order = "http://jackaudio.org/metadata/order",
 	Physical = "physical",
 	PortGroup = "http://jackaudio.org/metadata/port-group",
 	PrettyName = "http://jackaudio.org/metadata/pretty-name",
