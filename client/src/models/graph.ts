@@ -85,6 +85,13 @@ export class GraphPortRecord extends ImmuRecord<GraphPortProps> ({
 			this.portName.replace(/\((capture|playback)_[0-9]+\)/, "");
 	}
 
+	// Optional explicit sort order (JACK "order" metadata). Undefined when not set.
+	public get order(): number | undefined {
+		const v = this.properties[RNBOJackPortPropertyKey.Order];
+		const n = typeof v === "number" ? v : (typeof v === "string" ? parseInt(v, 10) : NaN);
+		return Number.isNaN(n) ? undefined : n;
+	}
+
 	public get instanceId(): string | undefined {
 		return this.properties[RNBOJackPortPropertyKey.InstanceId] !== undefined
 			? `${this.properties[RNBOJackPortPropertyKey.InstanceId]}`

@@ -3,6 +3,7 @@ import { combineReducers } from "redux";
 import { appStatus } from "./appStatus";
 import { datafiles } from "./datafiles";
 import { editor } from "./editor";
+import { linkAudio } from "./linkAudio";
 import { patchers } from "./patchers";
 import { graph } from "./graph";
 import { nofitications } from "./notifications";
@@ -16,6 +17,7 @@ export const rootReducer = combineReducers({
 	datafiles,
 	editor,
 	graph,
+	linkAudio,
 	nofitications,
 	patchers,
 	recording,

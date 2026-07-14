@@ -7,6 +7,7 @@ import { MIDIMappingsPage } from "./pages/midimappings";
 import { ResourcesPage } from "./pages/resources";
 import { SetViewsPage } from "./pages/setviews";
 import { GraphEditorPage } from "./pages/graphEditor";
+import { LinkAudioPage } from "./pages/linkAudio";
 
 export const router = createHashRouter([
 	{
@@ -15,6 +16,7 @@ export const router = createHashRouter([
 			{ index: true, Component: GraphEditorPage },
 			{ path: "/instances/:id", Component: InstancePage },
 			{ path: "/midimappings", Component: MIDIMappingsPage },
+			{ path: "/linkaudio", Component: LinkAudioPage },
 			{ path: "/resources", Component: ResourcesPage },
 			{ path: "/setviews", Component: SetViewsPage }
 

@@ -283,6 +283,7 @@ export type OSCQueryRNBOInstancesConfig = OSCQueryBaseNode & {
 
 export type RNBOJackPortProperties = {
 	[RNBOJackPortPropertyKey.InstanceId]?: number;
+	[RNBOJackPortPropertyKey.Order]?: number | string;
 	[RNBOJackPortPropertyKey.Physical]?: true;
 	[RNBOJackPortPropertyKey.PortGroup]?: KnownPortGroup | string;
 	[RNBOJackPortPropertyKey.PrettyName]?: string;
@@ -364,6 +365,45 @@ export type OSCQueryRNBOJackInfoState =  OSCQueryBaseNode & {
 	};
 };
 
+export type OSCQueryRNBOJackLinkAudioSourceSlot = OSCQueryBaseNode & {
+	CONTENTS: {
+		name: OSCQueryStringValue;
+		select: OSCQueryListValue;
+		status: OSCQueryStringValue;
+	};
+};
+
+export type OSCQueryRNBOJackLinkAudioSinkSlot = OSCQueryBaseNode & {
+	CONTENTS: {
+		name: OSCQueryStringValue;
+	};
+};
+
+export type OSCQueryRNBOJackLinkAudio = OSCQueryBaseNode & {
+	CONTENTS: {
+		available: OSCQueryBooleanValue;
+		channels: OSCQueryStringValue;
+		sources: OSCQueryBaseNode & {
+			CONTENTS: {
+				count: OSCQueryIntValue;
+				[index: string]: OSCQueryRNBOJackLinkAudioSourceSlot | OSCQueryIntValue;
+			};
+		};
+		sinks: OSCQueryBaseNode & {
+			CONTENTS: {
+				count: OSCQueryIntValue;
+				[index: string]: OSCQueryRNBOJackLinkAudioSinkSlot | OSCQueryIntValue;
+			};
+		};
+	};
+};
+
+export type OSCQueryRNBOJackLink = OSCQueryBaseNode & {
+	CONTENTS: {
+		audio: OSCQueryRNBOJackLinkAudio;
+	};
+};
+
 export type OSCQueryRNBOJackState = OSCQueryBaseNode & {
 	CONTENTS: {
 		active: OSCQueryBooleanValue;
@@ -373,6 +413,7 @@ export type OSCQueryRNBOJackState = OSCQueryBaseNode & {
 		control: any;
 		record?: OSCQueryRNBOJackRecord;
 		transport?: OSCQueryRNBOJackTransport;
+		link?: OSCQueryRNBOJackLink;
 	};
 };
 
