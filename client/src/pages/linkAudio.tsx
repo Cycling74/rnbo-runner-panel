@@ -1,5 +1,5 @@
 import { FC, useCallback, useEffect, useState } from "react";
-import { Alert, Divider, NumberInput, Paper, Select, Stack, Text, TextInput } from "@mantine/core";
+import { Alert, Divider, Group, NumberInput, Paper, Select, Stack, Text, TextInput } from "@mantine/core";
 import { useAppDispatch, useAppSelector } from "../hooks/useAppDispatch";
 import { RootStateType } from "../lib/store";
 import { PageTitle } from "../components/page/title";
@@ -186,19 +186,21 @@ export const LinkAudioPage: FC<Record<never, never>> = () => {
 			<Divider />
 
 			<Stack gap="sm" >
-				<div>
-					<Text fw={ 600 } >Sources</Text>
-					<Text size="xs" c="dimmed" >Incoming from Link</Text>
-				</div>
-				<NumberInput
-					label="Number of source channels"
-					min={ 0 }
-					max={ MAX_LINK_AUDIO_PAIRS }
-					value={ sourceCount }
-					onChange={ onSourceCount }
-					allowDecimal={ false }
-					style={{ maxWidth: 220 }}
-				/>
+				<Group justify="space-between" align="flex-end" wrap="nowrap" >
+					<div>
+						<Text fw={ 600 } >Sources</Text>
+						<Text size="xs" c="dimmed" >Incoming from Link</Text>
+					</div>
+					<NumberInput
+						label="Channels"
+						min={ 0 }
+						max={ MAX_LINK_AUDIO_PAIRS }
+						value={ sourceCount }
+						onChange={ onSourceCount }
+						allowDecimal={ false }
+						style={{ width: 120 }}
+					/>
+				</Group>
 				{
 					sources.valueSeq().sortBy(s => s.index).map(source => (
 						<LinkAudioSourceRow key={ source.id } source={ source } peers={ peers } />
@@ -209,19 +211,21 @@ export const LinkAudioPage: FC<Record<never, never>> = () => {
 			<Divider />
 
 			<Stack gap="sm" >
-				<div>
-					<Text fw={ 600 } >Sinks</Text>
-					<Text size="xs" c="dimmed" >Outgoing to Link</Text>
-				</div>
-				<NumberInput
-					label="Number of sink channels"
-					min={ 0 }
-					max={ MAX_LINK_AUDIO_PAIRS }
-					value={ sinkCount }
-					onChange={ onSinkCount }
-					allowDecimal={ false }
-					style={{ maxWidth: 220 }}
-				/>
+				<Group justify="space-between" align="flex-end" wrap="nowrap" >
+					<div>
+						<Text fw={ 600 } >Sinks</Text>
+						<Text size="xs" c="dimmed" >Outgoing to Link</Text>
+					</div>
+					<NumberInput
+						label="Channels"
+						min={ 0 }
+						max={ MAX_LINK_AUDIO_PAIRS }
+						value={ sinkCount }
+						onChange={ onSinkCount }
+						allowDecimal={ false }
+						style={{ width: 120 }}
+					/>
+				</Group>
 				{
 					sinks.valueSeq().sortBy(s => s.index).map(sink => (
 						<LinkAudioSinkRow key={ sink.id } sink={ sink } />
