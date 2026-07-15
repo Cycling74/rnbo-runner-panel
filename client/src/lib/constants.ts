@@ -184,7 +184,8 @@ export enum KnownPortGroup {
 	SystemRecordSink = "rnbo-graph-record-sink",
 	UserGraphSrc = "rnbo-graph-user-src",
 	UserGraphSink = "rnbo-graph-user-sink",
-	Hidden = "rnbo-graph-hidden"
+	Hidden = "rnbo-graph-hidden",
+	LinkAudio = "jack-link-audio"
 }
 
 export const knownPortGroupDisplayNames: ImmuMap<string, string> = ImmuMap({
