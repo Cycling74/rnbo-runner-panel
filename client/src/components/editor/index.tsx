@@ -14,7 +14,7 @@ import GraphEdge, { RNBOGraphEdgeType } from "./edge";
 import { ActionIcon, Tooltip, useMantineColorScheme } from "@mantine/core";
 import { IconElement } from "../elements/icon";
 import { mdiFitToScreen, mdiLock, mdiLockOpen, mdiMinus, mdiPlus, mdiSitemap } from "@mdi/js";
-import { maxEditorZoom, minEditorZoom } from "../../lib/constants";
+import { KnownPortGroup, maxEditorZoom, minEditorZoom } from "../../lib/constants";
 import { EditorNodeDesc } from "../../selectors/graph";
 import { getHotkeyHandler } from "@mantine/hooks";
 import { useLocation, useNavigate } from "react-router";
@@ -94,8 +94,13 @@ const GraphEditor: FunctionComponent<GraphEditorProps> = memo(function WrappedFl
 	}, [connections, nodeInfo, onEdgesChange, onNodesChange]);
 
 	const onNodeDoubleClick = useCallback((e: React.MouseEvent, node: Node<NodeDataProps>) => {
-		if (node.type !== NodeType.Patcher) return;
-		navigate({ pathname: `/instances/${encodeURIComponent(node.data.node.instanceId)}`, search });
+		if (node.type === NodeType.Patcher) {
+			navigate({ pathname: `/instances/${encodeURIComponent(node.data.node.instanceId)}`, search });
+			return;
+		}
+		if (node.data.node.id === KnownPortGroup.LinkAudio) {
+			navigate({ pathname: "/linkaudio", search });
+		}
 	}, [search, navigate]);
 
 	const onDeleteNode = useCallback((node: GraphNodeRecord) => {
