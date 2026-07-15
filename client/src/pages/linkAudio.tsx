@@ -4,10 +4,11 @@ import { useAppDispatch, useAppSelector } from "../hooks/useAppDispatch";
 import { RootStateType } from "../lib/store";
 import { PageTitle } from "../components/page/title";
 import {
-	getLinkAudioAvailable, getLinkAudioPeers, getLinkAudioSinkCount, getLinkAudioSinks,
+	getLinkAudioAvailable, getLinkAudioPeerName, getLinkAudioPeers, getLinkAudioSinkCount, getLinkAudioSinks,
 	getLinkAudioSourceCount, getLinkAudioSources
 } from "../selectors/linkAudio";
 import {
+	setLinkAudioPeerNameOnRemote,
 	setLinkAudioSinkCountOnRemote, setLinkAudioSinkNameOnRemote,
 	setLinkAudioSourceCountOnRemote, setLinkAudioSourceSelectOnRemote
 } from "../actions/linkAudio";
@@ -111,6 +112,7 @@ export const LinkAudioPage: FC<Record<never, never>> = () => {
 	const dispatch = useAppDispatch();
 	const [
 		available,
+		peerName,
 		peers,
 		sourceCount,
 		sinkCount,
@@ -118,12 +120,17 @@ export const LinkAudioPage: FC<Record<never, never>> = () => {
 		sinks
 	] = useAppSelector((state: RootStateType) => [
 		getLinkAudioAvailable(state),
+		getLinkAudioPeerName(state),
 		getLinkAudioPeers(state),
 		getLinkAudioSourceCount(state),
 		getLinkAudioSinkCount(state),
 		getLinkAudioSources(state),
 		getLinkAudioSinks(state)
 	]);
+
+	const onPeerName = useCallback((name: string) => {
+		dispatch(setLinkAudioPeerNameOnRemote(name));
+	}, [dispatch]);
 
 	const onSourceCount = useCallback((value: string | number) => {
 		const n = typeof value === "number" ? value : parseInt(value, 10);
@@ -162,6 +169,21 @@ export const LinkAudioPage: FC<Record<never, never>> = () => {
 					</Alert>
 				) : null
 			}
+
+			<Stack gap="sm" >
+				<div>
+					<Text fw={ 600 } >Link name</Text>
+					<Text size="xs" c="dimmed" >Identifies this device in Ableton Live and to other Link peers. Clear to use the hostname.</Text>
+				</div>
+				<LinkAudioNameInput
+					label=""
+					placeholder="hostname"
+					value={ peerName }
+					onCommit={ onPeerName }
+				/>
+			</Stack>
+
+			<Divider />
 
 			<Stack gap="sm" >
 				<div>

@@ -383,6 +383,7 @@ export type OSCQueryRNBOJackLinkAudio = OSCQueryBaseNode & {
 	CONTENTS: {
 		available: OSCQueryBooleanValue;
 		channels: OSCQueryStringValue;
+		peer_name: OSCQueryStringValue;
 		sources: OSCQueryBaseNode & {
 			CONTENTS: {
 				count: OSCQueryIntValue;

@@ -5,6 +5,7 @@ import { LinkAudioPeerInfo, LinkAudioSinkRecord, LinkAudioSourceRecord } from ".
 export interface LinkAudioState {
 	available: boolean;
 	peers: LinkAudioPeerInfo[];
+	peerName: string;
 	sourceCount: number;
 	sinkCount: number;
 	sources: ImmuOrderedMap<string, LinkAudioSourceRecord>;
@@ -14,6 +15,7 @@ export interface LinkAudioState {
 const defaultState: LinkAudioState = {
 	available: false,
 	peers: [],
+	peerName: "",
 	sourceCount: 0,
 	sinkCount: 0,
 	sources: ImmuOrderedMap<string, LinkAudioSourceRecord>(),
@@ -25,8 +27,8 @@ export const linkAudio = (state: LinkAudioState = defaultState, action: LinkAudi
 	switch (action.type) {
 
 		case LinkAudioActionType.INIT: {
-			const { available, peers, sourceCount, sinkCount, sources, sinks } = action.payload;
-			return { available, peers, sourceCount, sinkCount, sources, sinks };
+			const { available, peers, peerName, sourceCount, sinkCount, sources, sinks } = action.payload;
+			return { available, peers, peerName, sourceCount, sinkCount, sources, sinks };
 		}
 
 		case LinkAudioActionType.SET_AVAILABLE: {
@@ -35,6 +37,10 @@ export const linkAudio = (state: LinkAudioState = defaultState, action: LinkAudi
 
 		case LinkAudioActionType.SET_PEERS: {
 			return { ...state, peers: action.payload.peers };
+		}
+
+		case LinkAudioActionType.SET_PEER_NAME: {
+			return { ...state, peerName: action.payload.peerName };
 		}
 
 		case LinkAudioActionType.SET_SOURCE_COUNT: {

@@ -27,7 +27,7 @@ import { showNotification } from "../actions/notifications";
 import { NotificationLevel } from "../models/notification";
 import { initTransport, updateTransportStatus } from "../actions/transport";
 import {
-	initLinkAudio, setLinkAudioAvailable, setLinkAudioPeers,
+	initLinkAudio, setLinkAudioAvailable, setLinkAudioPeers, setLinkAudioPeerName,
 	setLinkAudioSourceCount, setLinkAudioSinkCount,
 	updateLinkAudioSource, updateLinkAudioSink
 } from "../actions/linkAudio";
@@ -720,6 +720,9 @@ export class OSCQueryBridgeControllerPrivate {
 		}
 		if (packet.address === `${linkAudioPath}/channels`) {
 			return void this.dispatch(setLinkAudioPeers((packet.args as unknown as [string])?.[0] || "[]"));
+		}
+		if (packet.address === `${linkAudioPath}/peer_name`) {
+			return void this.dispatch(setLinkAudioPeerName((packet.args as unknown as [string])?.[0] || ""));
 		}
 		if (packet.address === `${linkAudioPath}/sources/count`) {
 			return void this.dispatch(setLinkAudioSourceCount((packet.args as unknown as [number])?.[0] || 0));

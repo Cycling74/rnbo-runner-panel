@@ -15,6 +15,7 @@ export enum LinkAudioActionType {
 	INIT = "INIT_LINK_AUDIO",
 	SET_AVAILABLE = "SET_LINK_AUDIO_AVAILABLE",
 	SET_PEERS = "SET_LINK_AUDIO_PEERS",
+	SET_PEER_NAME = "SET_LINK_AUDIO_PEER_NAME",
 	SET_SOURCE_COUNT = "SET_LINK_AUDIO_SOURCE_COUNT",
 	SET_SINK_COUNT = "SET_LINK_AUDIO_SINK_COUNT",
 	UPDATE_SOURCE = "UPDATE_LINK_AUDIO_SOURCE",
@@ -26,6 +27,7 @@ export interface IInitLinkAudio extends ActionBase {
 	payload: {
 		available: boolean;
 		peers: LinkAudioPeerInfo[];
+		peerName: string;
 		sourceCount: number;
 		sinkCount: number;
 		sources: ImmuOrderedMap<string, LinkAudioSourceRecord>;
@@ -36,6 +38,11 @@ export interface IInitLinkAudio extends ActionBase {
 export interface ISetLinkAudioAvailable extends ActionBase {
 	type: LinkAudioActionType.SET_AVAILABLE;
 	payload: { available: boolean; };
+}
+
+export interface ISetLinkAudioPeerName extends ActionBase {
+	type: LinkAudioActionType.SET_PEER_NAME;
+	payload: { peerName: string; };
 }
 
 export interface ISetLinkAudioPeers extends ActionBase {
@@ -64,7 +71,7 @@ export interface IUpdateLinkAudioSink extends ActionBase {
 }
 
 export type LinkAudioAction = IInitLinkAudio | ISetLinkAudioAvailable | ISetLinkAudioPeers
-| ISetLinkAudioSourceCount | ISetLinkAudioSinkCount | IUpdateLinkAudioSource | IUpdateLinkAudioSink;
+| ISetLinkAudioPeerName | ISetLinkAudioSourceCount | ISetLinkAudioSinkCount | IUpdateLinkAudioSource | IUpdateLinkAudioSink;
 
 const oscLinkAudioPrefix = "/rnbo/jack/link/audio";
 
@@ -73,6 +80,7 @@ const isIndexKey = (key: string): boolean => /^\d+$/.test(key);
 export const initLinkAudio = (info?: OSCQueryRNBOJackLinkAudio): LinkAudioAction => {
 	const available = info?.CONTENTS?.available?.TYPE === OSCQueryValueType.True;
 	const peers = parseLinkAudioChannels(info?.CONTENTS?.channels?.VALUE as string | undefined);
+	const peerName = (info?.CONTENTS?.peer_name?.VALUE as string | undefined) || "";
 
 	const sourcesContents: Record<string, any> = info?.CONTENTS?.sources?.CONTENTS || {};
 	const sinksContents: Record<string, any> = info?.CONTENTS?.sinks?.CONTENTS || {};
@@ -107,7 +115,7 @@ export const initLinkAudio = (info?: OSCQueryRNBOJackLinkAudio): LinkAudioAction
 
 	return {
 		type: LinkAudioActionType.INIT,
-		payload: { available, peers, sourceCount, sinkCount, sources, sinks }
+		payload: { available, peers, peerName, sourceCount, sinkCount, sources, sinks }
 	};
 };
 
@@ -119,6 +127,11 @@ export const setLinkAudioAvailable = (available: boolean): LinkAudioAction => ({
 export const setLinkAudioPeers = (channelsJson: string): LinkAudioAction => ({
 	type: LinkAudioActionType.SET_PEERS,
 	payload: { peers: parseLinkAudioChannels(channelsJson) }
+});
+
+export const setLinkAudioPeerName = (peerName: string): LinkAudioAction => ({
+	type: LinkAudioActionType.SET_PEER_NAME,
+	payload: { peerName }
 });
 
 export const setLinkAudioSourceCount = (count: number): LinkAudioAction => ({
@@ -156,6 +169,14 @@ export const setLinkAudioSinkCountOnRemote = (count: number): AppThunk =>
 		oscQueryBridge.sendPacket(writePacket({
 			address: `${oscLinkAudioPrefix}/sinks/count`,
 			args: [{ type: "i", value: Math.max(0, Math.round(count)) }]
+		}));
+	};
+
+export const setLinkAudioPeerNameOnRemote = (name: string): AppThunk =>
+	() => {
+		oscQueryBridge.sendPacket(writePacket({
+			address: `${oscLinkAudioPrefix}/peer_name`,
+			args: [{ type: "s", value: name }]
 		}));
 	};
 
