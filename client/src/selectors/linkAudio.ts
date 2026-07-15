@@ -6,6 +6,8 @@ export const getLinkAudioAvailable = (state: RootStateType): boolean => state.li
 
 export const getLinkAudioPeers = (state: RootStateType): LinkAudioPeerInfo[] => state.linkAudio.peers;
 
+export const getLinkAudioPeerName = (state: RootStateType): string => state.linkAudio.peerName;
+
 export const getLinkAudioSourceCount = (state: RootStateType): number => state.linkAudio.sourceCount;
 
 export const getLinkAudioSinkCount = (state: RootStateType): number => state.linkAudio.sinkCount;
