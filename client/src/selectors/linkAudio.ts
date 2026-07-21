@@ -4,6 +4,8 @@ import { LinkAudioPeerInfo, LinkAudioSinkRecord, LinkAudioSourceRecord } from ".
 
 export const getLinkAudioAvailable = (state: RootStateType): boolean => state.linkAudio.available;
 
+export const getLinkEnabled = (state: RootStateType): boolean => state.linkAudio.linkEnabled;
+
 export const getLinkAudioPeers = (state: RootStateType): LinkAudioPeerInfo[] => state.linkAudio.peers;
 
 export const getLinkAudioPeerName = (state: RootStateType): string => state.linkAudio.peerName;

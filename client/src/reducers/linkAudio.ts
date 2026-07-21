@@ -4,6 +4,7 @@ import { LinkAudioPeerInfo, LinkAudioSinkRecord, LinkAudioSourceRecord } from ".
 
 export interface LinkAudioState {
 	available: boolean;
+	linkEnabled: boolean;
 	peers: LinkAudioPeerInfo[];
 	peerName: string;
 	latencyMs: number;
@@ -16,6 +17,7 @@ export interface LinkAudioState {
 
 const defaultState: LinkAudioState = {
 	available: false,
+	linkEnabled: true,
 	peers: [],
 	peerName: "",
 	latencyMs: 100,
@@ -32,7 +34,9 @@ export const linkAudio = (state: LinkAudioState = defaultState, action: LinkAudi
 
 		case LinkAudioActionType.INIT: {
 			const { available, peers, peerName, latencyMs, syncToIncoming, sourceCount, sinkCount, sources, sinks } = action.payload;
-			return { available, peers, peerName, latencyMs, syncToIncoming, sourceCount, sinkCount, sources, sinks };
+			// linkEnabled comes from the sibling /rnbo/jack/link/enabled node (not the audio
+			// subtree parsed here), so preserve it across the audio-subtree re-init.
+			return { ...state, available, peers, peerName, latencyMs, syncToIncoming, sourceCount, sinkCount, sources, sinks };
 		}
 
 		case LinkAudioActionType.SET_AVAILABLE: {
@@ -61,6 +65,10 @@ export const linkAudio = (state: LinkAudioState = defaultState, action: LinkAudi
 
 		case LinkAudioActionType.SET_SYNC_TO_INCOMING: {
 			return { ...state, syncToIncoming: action.payload.syncToIncoming };
+		}
+
+		case LinkAudioActionType.SET_LINK_ENABLED: {
+			return { ...state, linkEnabled: action.payload.linkEnabled };
 		}
 
 		case LinkAudioActionType.UPDATE_SOURCE: {

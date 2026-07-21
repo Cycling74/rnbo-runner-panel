@@ -407,6 +407,7 @@ export type OSCQueryRNBOJackLinkAudio = OSCQueryBaseNode & {
 
 export type OSCQueryRNBOJackLink = OSCQueryBaseNode & {
 	CONTENTS: {
+		enabled: OSCQueryBooleanValue;
 		audio: OSCQueryRNBOJackLinkAudio;
 	};
 };
