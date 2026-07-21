@@ -711,6 +711,9 @@ export class OSCQueryBridgeControllerPrivate {
 			if (packet.args?.length) return void this.dispatch(updateTransportStatus({ rolling: (packet.args as unknown as [boolean])?.[0] }));
 		}
 
+		if (packet.address === "/rnbo/jack/transport/linksync") {
+			if (packet.args?.length) return void this.dispatch(updateTransportStatus({ linkSync: (packet.args as unknown as [boolean])?.[0] }));
+		}
 		if (packet.address === "/rnbo/jack/transport/sync") {
 			if (packet.args?.length) return void this.dispatch(updateTransportStatus({ sync: (packet.args as unknown as [boolean])?.[0] }));
 		}

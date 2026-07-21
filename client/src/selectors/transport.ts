@@ -7,3 +7,5 @@ export const getTransportControlState = (state: RootStateType): Pick<RootStateTy
 	rolling: state.transport.rolling,
 	sync: state.transport.sync
 });
+
+export const getTransportLinkSync = (state: RootStateType): boolean => state.transport.linkSync;

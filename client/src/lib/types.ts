@@ -342,6 +342,7 @@ export type OSCQueryRNBOJackTransport = OSCQueryBaseNode & {
 		bpm: OSCQueryFloatValue;
 		rolling: OSCQueryBooleanValue;
 		sync: OSCQueryBooleanValue;
+		linksync: OSCQueryBooleanValue;
 	}
 }
 
