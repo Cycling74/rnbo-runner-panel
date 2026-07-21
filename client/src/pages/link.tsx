@@ -118,7 +118,7 @@ const LinkAudioSinkRow: FC<{ sink: LinkAudioSinkRecord; }> = ({ sink }) => {
 	);
 };
 
-export const LinkAudioPage: FC<Record<never, never>> = () => {
+export const LinkPage: FC<Record<never, never>> = () => {
 
 	const dispatch = useAppDispatch();
 	const [

@@ -98,7 +98,7 @@ const GraphEditor: FunctionComponent<GraphEditorProps> = memo(function WrappedFl
 			navigate({ pathname: `/instances/${encodeURIComponent(node.data.node.instanceId)}`, search });
 			return;
 		}
-		if (node.data.node.id === KnownPortGroup.LinkAudio) {
+		if (node.data.node.id === KnownPortGroup.Link) {
 			navigate({ pathname: "/link", search });
 		}
 	}, [search, navigate]);
