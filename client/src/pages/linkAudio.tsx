@@ -190,7 +190,7 @@ export const LinkAudioPage: FC<Record<never, never>> = () => {
 	if (!available) {
 		return (
 			<Stack gap="md" >
-				<PageTitle>Link Audio</PageTitle>
+				<PageTitle>Link</PageTitle>
 				{ linkMasterSwitch }
 				<Alert color="yellow" title="Link Audio is not available" >
 					<Text size="sm" >
@@ -206,7 +206,7 @@ export const LinkAudioPage: FC<Record<never, never>> = () => {
 
 	return (
 		<Stack gap="lg" >
-			<PageTitle>Link Audio</PageTitle>
+			<PageTitle>Link</PageTitle>
 
 			{ linkMasterSwitch }
 
