@@ -16,7 +16,7 @@ export const router = createHashRouter([
 			{ index: true, Component: GraphEditorPage },
 			{ path: "/instances/:id", Component: InstancePage },
 			{ path: "/midimappings", Component: MIDIMappingsPage },
-			{ path: "/linkaudio", Component: LinkAudioPage },
+			{ path: "/link", Component: LinkAudioPage },
 			{ path: "/resources", Component: ResourcesPage },
 			{ path: "/setviews", Component: SetViewsPage }
 

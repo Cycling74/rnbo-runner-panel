@@ -99,7 +99,7 @@ const GraphEditor: FunctionComponent<GraphEditorProps> = memo(function WrappedFl
 			return;
 		}
 		if (node.data.node.id === KnownPortGroup.LinkAudio) {
-			navigate({ pathname: "/linkaudio", search });
+			navigate({ pathname: "/link", search });
 		}
 	}, [search, navigate]);
 
