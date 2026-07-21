@@ -10,6 +10,8 @@ export const getLinkAudioPeerName = (state: RootStateType): string => state.link
 
 export const getLinkAudioLatencyMs = (state: RootStateType): number => state.linkAudio.latencyMs;
 
+export const getLinkAudioSyncToIncoming = (state: RootStateType): boolean => state.linkAudio.syncToIncoming;
+
 export const getLinkAudioSourceCount = (state: RootStateType): number => state.linkAudio.sourceCount;
 
 export const getLinkAudioSinkCount = (state: RootStateType): number => state.linkAudio.sinkCount;

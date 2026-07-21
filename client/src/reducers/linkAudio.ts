@@ -7,6 +7,7 @@ export interface LinkAudioState {
 	peers: LinkAudioPeerInfo[];
 	peerName: string;
 	latencyMs: number;
+	syncToIncoming: boolean;
 	sourceCount: number;
 	sinkCount: number;
 	sources: ImmuOrderedMap<string, LinkAudioSourceRecord>;
@@ -18,6 +19,7 @@ const defaultState: LinkAudioState = {
 	peers: [],
 	peerName: "",
 	latencyMs: 100,
+	syncToIncoming: true,
 	sourceCount: 0,
 	sinkCount: 0,
 	sources: ImmuOrderedMap<string, LinkAudioSourceRecord>(),
@@ -29,8 +31,8 @@ export const linkAudio = (state: LinkAudioState = defaultState, action: LinkAudi
 	switch (action.type) {
 
 		case LinkAudioActionType.INIT: {
-			const { available, peers, peerName, latencyMs, sourceCount, sinkCount, sources, sinks } = action.payload;
-			return { available, peers, peerName, latencyMs, sourceCount, sinkCount, sources, sinks };
+			const { available, peers, peerName, latencyMs, syncToIncoming, sourceCount, sinkCount, sources, sinks } = action.payload;
+			return { available, peers, peerName, latencyMs, syncToIncoming, sourceCount, sinkCount, sources, sinks };
 		}
 
 		case LinkAudioActionType.SET_AVAILABLE: {
@@ -55,6 +57,10 @@ export const linkAudio = (state: LinkAudioState = defaultState, action: LinkAudi
 
 		case LinkAudioActionType.SET_LATENCY_MS: {
 			return { ...state, latencyMs: action.payload.latencyMs };
+		}
+
+		case LinkAudioActionType.SET_SYNC_TO_INCOMING: {
+			return { ...state, syncToIncoming: action.payload.syncToIncoming };
 		}
 
 		case LinkAudioActionType.UPDATE_SOURCE: {

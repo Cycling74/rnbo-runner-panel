@@ -19,6 +19,7 @@ export enum LinkAudioActionType {
 	SET_SOURCE_COUNT = "SET_LINK_AUDIO_SOURCE_COUNT",
 	SET_SINK_COUNT = "SET_LINK_AUDIO_SINK_COUNT",
 	SET_LATENCY_MS = "SET_LINK_AUDIO_LATENCY_MS",
+	SET_SYNC_TO_INCOMING = "SET_LINK_AUDIO_SYNC_TO_INCOMING",
 	UPDATE_SOURCE = "UPDATE_LINK_AUDIO_SOURCE",
 	UPDATE_SINK = "UPDATE_LINK_AUDIO_SINK"
 }
@@ -30,6 +31,7 @@ export interface IInitLinkAudio extends ActionBase {
 		peers: LinkAudioPeerInfo[];
 		peerName: string;
 		latencyMs: number;
+		syncToIncoming: boolean;
 		sourceCount: number;
 		sinkCount: number;
 		sources: ImmuOrderedMap<string, LinkAudioSourceRecord>;
@@ -67,6 +69,11 @@ export interface ISetLinkAudioLatencyMs extends ActionBase {
 	payload: { latencyMs: number; };
 }
 
+export interface ISetLinkAudioSyncToIncoming extends ActionBase {
+	type: LinkAudioActionType.SET_SYNC_TO_INCOMING;
+	payload: { syncToIncoming: boolean; };
+}
+
 export interface IUpdateLinkAudioSource extends ActionBase {
 	type: LinkAudioActionType.UPDATE_SOURCE;
 	payload: { index: number; changes: Partial<{ name: string; selectPeer: string; selectChannel: string; statusPeer: string; statusChannel: string; bufferedMs: number; dropouts: number; jitterMs: number; }>; };
@@ -79,7 +86,7 @@ export interface IUpdateLinkAudioSink extends ActionBase {
 
 export type LinkAudioAction = IInitLinkAudio | ISetLinkAudioAvailable | ISetLinkAudioPeers
 | ISetLinkAudioPeerName | ISetLinkAudioSourceCount | ISetLinkAudioSinkCount | ISetLinkAudioLatencyMs
-| IUpdateLinkAudioSource | IUpdateLinkAudioSink;
+| ISetLinkAudioSyncToIncoming | IUpdateLinkAudioSource | IUpdateLinkAudioSink;
 
 const oscLinkAudioPrefix = "/rnbo/jack/link/audio";
 
@@ -90,6 +97,7 @@ export const initLinkAudio = (info?: OSCQueryRNBOJackLinkAudio): LinkAudioAction
 	const peers = parseLinkAudioChannels(info?.CONTENTS?.channels?.VALUE as string | undefined);
 	const peerName = (info?.CONTENTS?.peer_name?.VALUE as string | undefined) || "";
 	const latencyMs = (info?.CONTENTS?.latency_ms?.VALUE as number | undefined) ?? 100;
+	const syncToIncoming = info?.CONTENTS?.sync_to_incoming?.TYPE !== OSCQueryValueType.False;
 
 	const sourcesContents: Record<string, any> = info?.CONTENTS?.sources?.CONTENTS || {};
 	const sinksContents: Record<string, any> = info?.CONTENTS?.sinks?.CONTENTS || {};
@@ -127,7 +135,7 @@ export const initLinkAudio = (info?: OSCQueryRNBOJackLinkAudio): LinkAudioAction
 
 	return {
 		type: LinkAudioActionType.INIT,
-		payload: { available, peers, peerName, latencyMs, sourceCount, sinkCount, sources, sinks }
+		payload: { available, peers, peerName, latencyMs, syncToIncoming, sourceCount, sinkCount, sources, sinks }
 	};
 };
 
@@ -159,6 +167,11 @@ export const setLinkAudioSinkCount = (count: number): LinkAudioAction => ({
 export const setLinkAudioLatencyMs = (latencyMs: number): LinkAudioAction => ({
 	type: LinkAudioActionType.SET_LATENCY_MS,
 	payload: { latencyMs }
+});
+
+export const setLinkAudioSyncToIncoming = (syncToIncoming: boolean): LinkAudioAction => ({
+	type: LinkAudioActionType.SET_SYNC_TO_INCOMING,
+	payload: { syncToIncoming }
 });
 
 export const updateLinkAudioSource = (index: number, changes: IUpdateLinkAudioSource["payload"]["changes"]): LinkAudioAction => ({
@@ -202,6 +215,17 @@ export const setLinkAudioLatencyMsOnRemote = (latencyMs: number): AppThunk =>
 		oscQueryBridge.sendPacket(writePacket({
 			address: `${oscLinkAudioPrefix}/latency_ms`,
 			args: [{ type: "f", value: Math.min(2000, Math.max(0, latencyMs)) }]
+		}));
+	};
+
+export const setLinkAudioSyncToIncomingOnRemote = (enabled: boolean): AppThunk =>
+	() => {
+		oscQueryBridge.sendPacket(writePacket({
+			address: `${oscLinkAudioPrefix}/sync_to_incoming`,
+			args: [{
+				value: enabled ? "true" : "false",
+				type: enabled ? OSCQueryValueType.True : OSCQueryValueType.False
+			}]
 		}));
 	};
 
