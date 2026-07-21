@@ -185,7 +185,8 @@ export enum KnownPortGroup {
 	UserGraphSrc = "rnbo-graph-user-src",
 	UserGraphSink = "rnbo-graph-user-sink",
 	Hidden = "rnbo-graph-hidden",
-	LinkAudio = "jack-link-audio"
+	// value is jtl's JACK port-group metadata string (a contract with jack_transport_link); keep it
+	Link = "jack-link-audio"
 }
 
 export const knownPortGroupDisplayNames: ImmuMap<string, string> = ImmuMap({
