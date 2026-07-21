@@ -85,6 +85,15 @@ const LinkAudioSourceRow: FC<{ source: LinkAudioSourceRecord; peers: LinkAudioPe
 				comboboxProps={{ withinPortal: true }}
 			/>
 			<Text size="xs" c={ source.connected ? "green" : "dimmed" } mt={ 4 } >{ statusText }</Text>
+			{
+				source.connected ? (
+					<Group gap="md" mt={ 2 } >
+						<Text size="xs" c="dimmed" >Buffer: { Math.round(source.bufferedMs) } ms</Text>
+						<Text size="xs" c="dimmed" >Jitter: { source.jitterMs.toFixed(1) } ms</Text>
+						<Text size="xs" c={ source.dropouts > 0 ? "red" : "dimmed" } >Dropouts: { source.dropouts }</Text>
+					</Group>
+				) : null
+			}
 		</Paper>
 	);
 };
@@ -141,6 +150,11 @@ export const LinkAudioPage: FC<Record<never, never>> = () => {
 		const n = typeof value === "number" ? value : parseInt(value, 10);
 		if (!Number.isNaN(n)) dispatch(setLinkAudioSinkCountOnRemote(n));
 	}, [dispatch]);
+
+	// Device-level receive-health summary, derived from the per-source records.
+	const connectedSources = sources.filter(s => s.connected).size;
+	const totalDropouts = sources.reduce((acc, s) => acc + s.dropouts, 0);
+	const maxJitter = sources.reduce((acc, s) => Math.max(acc, s.jitterMs), 0);
 
 	if (!available) {
 		return (
@@ -201,6 +215,26 @@ export const LinkAudioPage: FC<Record<never, never>> = () => {
 						style={{ width: 120 }}
 					/>
 				</Group>
+				{
+					sources.size > 0 ? (
+						<Paper withBorder p="sm" >
+							<Group gap="xl" >
+								<div>
+									<Text size="xs" c="dimmed" >Connected</Text>
+									<Text fw={ 600 } >{ connectedSources } / { sources.size }</Text>
+								</div>
+								<div>
+									<Text size="xs" c="dimmed" >Total dropouts</Text>
+									<Text fw={ 600 } c={ totalDropouts > 0 ? "red" : undefined } >{ totalDropouts }</Text>
+								</div>
+								<div>
+									<Text size="xs" c="dimmed" >Worst jitter</Text>
+									<Text fw={ 600 } >{ maxJitter.toFixed(1) } ms</Text>
+								</div>
+							</Group>
+						</Paper>
+					) : null
+				}
 				{
 					sources.valueSeq().sortBy(s => s.index).map(source => (
 						<LinkAudioSourceRow key={ source.id } source={ source } peers={ peers } />

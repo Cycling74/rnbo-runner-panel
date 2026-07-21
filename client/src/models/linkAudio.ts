@@ -21,6 +21,10 @@ export type LinkAudioSourceProps = {
 	// currently connected peer/channel (empty when unconnected)
 	statusPeer: string;
 	statusChannel: string;
+	// live receive health (from linkaudio/source-health, proxied by the runner)
+	bufferedMs: number;
+	dropouts: number;
+	jitterMs: number;
 };
 
 export class LinkAudioSourceRecord extends ImmuRecord<LinkAudioSourceProps>({
@@ -29,7 +33,10 @@ export class LinkAudioSourceRecord extends ImmuRecord<LinkAudioSourceProps>({
 	selectPeer: "",
 	selectChannel: "",
 	statusPeer: "",
-	statusChannel: ""
+	statusChannel: "",
+	bufferedMs: 0,
+	dropouts: 0,
+	jitterMs: 0
 }) {
 	get id(): string {
 		return `${this.index}`;
