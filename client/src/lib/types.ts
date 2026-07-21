@@ -370,6 +370,10 @@ export type OSCQueryRNBOJackLinkAudioSourceSlot = OSCQueryBaseNode & {
 		name: OSCQueryStringValue;
 		select: OSCQueryListValue;
 		status: OSCQueryStringValue;
+		buffered_ms: OSCQueryFloatValue;
+		dropouts: OSCQueryIntValue;
+		jitter_ms: OSCQueryFloatValue;
+		connected: OSCQueryBooleanValue;
 	};
 };
 

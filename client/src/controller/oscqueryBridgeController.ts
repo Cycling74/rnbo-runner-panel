@@ -129,7 +129,7 @@ const setsPresetsLoadPath = "/rnbo/inst/control/sets/presets/load";
 
 const linkAudioPath = "/rnbo/jack/link/audio";
 const linkAudioSlotMatcher = /^\/rnbo\/jack\/link\/audio\/(?<dir>sources|sinks)\/(?<index>\d+)(?<rest>\/\S+)?$/;
-const linkAudioValueMatcher = /^\/rnbo\/jack\/link\/audio\/(?<dir>sources|sinks)\/(?<index>\d+)\/(?<prop>name|select|status)$/;
+const linkAudioValueMatcher = /^\/rnbo\/jack\/link\/audio\/(?<dir>sources|sinks)\/(?<index>\d+)\/(?<prop>name|select|status|buffered_ms|dropouts|jitter_ms|connected)$/;
 
 const configPathMatcher = /^\/rnbo\/config\/(?<name>.+)$/;
 const jackConfigPathMatcher = /^\/rnbo\/jack\/config\/(?<name>.+)$/;
@@ -746,7 +746,14 @@ export class OSCQueryBridgeControllerPrivate {
 				} else if (prop === "status") {
 					const status = parseLinkAudioStatus((args[0] as string) || "");
 					return void this.dispatch(updateLinkAudioSource(index, { statusPeer: status.peer, statusChannel: status.channel }));
+				} else if (prop === "buffered_ms") {
+					return void this.dispatch(updateLinkAudioSource(index, { bufferedMs: typeof args[0] === "number" ? args[0] : 0 }));
+				} else if (prop === "dropouts") {
+					return void this.dispatch(updateLinkAudioSource(index, { dropouts: typeof args[0] === "number" ? args[0] : 0 }));
+				} else if (prop === "jitter_ms") {
+					return void this.dispatch(updateLinkAudioSource(index, { jitterMs: typeof args[0] === "number" ? args[0] : 0 }));
 				}
+				// "connected" is derived from status on the record; ignore the standalone node.
 			} else if (linkAudioValueMatch.groups.dir === "sinks" && prop === "name") {
 				return void this.dispatch(updateLinkAudioSink(index, { name: (args[0] as string) || "" }));
 			}

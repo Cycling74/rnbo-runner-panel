@@ -62,7 +62,7 @@ export interface ISetLinkAudioSinkCount extends ActionBase {
 
 export interface IUpdateLinkAudioSource extends ActionBase {
 	type: LinkAudioActionType.UPDATE_SOURCE;
-	payload: { index: number; changes: Partial<{ name: string; selectPeer: string; selectChannel: string; statusPeer: string; statusChannel: string; }>; };
+	payload: { index: number; changes: Partial<{ name: string; selectPeer: string; selectChannel: string; statusPeer: string; statusChannel: string; bufferedMs: number; dropouts: number; jitterMs: number; }>; };
 }
 
 export interface IUpdateLinkAudioSink extends ActionBase {
@@ -100,7 +100,10 @@ export const initLinkAudio = (info?: OSCQueryRNBOJackLinkAudio): LinkAudioAction
 			selectPeer: typeof sel[0] === "string" ? sel[0] as string : "",
 			selectChannel: typeof sel[1] === "string" ? sel[1] as string : "",
 			statusPeer: status.peer,
-			statusChannel: status.channel
+			statusChannel: status.channel,
+			bufferedMs: (slot?.CONTENTS?.buffered_ms?.VALUE as number | undefined) ?? 0,
+			dropouts: (slot?.CONTENTS?.dropouts?.VALUE as number | undefined) ?? 0,
+			jitterMs: (slot?.CONTENTS?.jitter_ms?.VALUE as number | undefined) ?? 0
 		}));
 	});
 
