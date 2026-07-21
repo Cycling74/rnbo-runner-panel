@@ -5,14 +5,14 @@ import { RootStateType } from "../lib/store";
 import { PageTitle } from "../components/page/title";
 import {
 	getLinkAudioAvailable, getLinkAudioLatencyMs, getLinkAudioPeerName, getLinkAudioPeers, getLinkAudioSinkCount, getLinkAudioSinks,
-	getLinkAudioSourceCount, getLinkAudioSources, getLinkAudioSyncToIncoming
+	getLinkAudioSourceCount, getLinkAudioSources, getLinkAudioSyncToIncoming, getLinkEnabled
 } from "../selectors/linkAudio";
 import {
 	setLinkAudioLatencyMsOnRemote,
 	setLinkAudioPeerNameOnRemote,
 	setLinkAudioSinkCountOnRemote, setLinkAudioSinkNameOnRemote,
 	setLinkAudioSourceCountOnRemote, setLinkAudioSourceSelectOnRemote,
-	setLinkAudioSyncToIncomingOnRemote
+	setLinkAudioSyncToIncomingOnRemote, setLinkEnabledOnRemote
 } from "../actions/linkAudio";
 import { LinkAudioPeerInfo, LinkAudioSinkRecord, LinkAudioSourceRecord } from "../models/linkAudio";
 
@@ -123,6 +123,7 @@ export const LinkAudioPage: FC<Record<never, never>> = () => {
 	const dispatch = useAppDispatch();
 	const [
 		available,
+		linkEnabled,
 		peerName,
 		peers,
 		latencyMs,
@@ -133,6 +134,7 @@ export const LinkAudioPage: FC<Record<never, never>> = () => {
 		sinks
 	] = useAppSelector((state: RootStateType) => [
 		getLinkAudioAvailable(state),
+		getLinkEnabled(state),
 		getLinkAudioPeerName(state),
 		getLinkAudioPeers(state),
 		getLinkAudioLatencyMs(state),
@@ -166,6 +168,20 @@ export const LinkAudioPage: FC<Record<never, never>> = () => {
 		dispatch(setLinkAudioSyncToIncomingOnRemote(e.currentTarget.checked));
 	}, [dispatch]);
 
+	const onLinkEnabled = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+		dispatch(setLinkEnabledOnRemote(e.currentTarget.checked));
+	}, [dispatch]);
+
+	// Master Link on/off — shown regardless of Link Audio availability so it's always reachable.
+	const linkMasterSwitch = (
+		<Switch
+			label="Link enabled"
+			description="Join the Ableton Link session. When off, other Link peers don't see this device and tempo sync + Link Audio are inactive; the device still runs its own local transport."
+			checked={ linkEnabled }
+			onChange={ onLinkEnabled }
+		/>
+	);
+
 	// Device-level receive-health summary, derived from the per-source records.
 	const connectedSources = sources.filter(s => s.connected).size;
 	const totalDropouts = sources.reduce((acc, s) => acc + s.dropouts, 0);
@@ -175,6 +191,7 @@ export const LinkAudioPage: FC<Record<never, never>> = () => {
 		return (
 			<Stack gap="md" >
 				<PageTitle>Link Audio</PageTitle>
+				{ linkMasterSwitch }
 				<Alert color="yellow" title="Link Audio is not available" >
 					<Text size="sm" >
 						<code>jack_transport_link</code> is not running, or it was started with Link Audio disabled.
@@ -190,6 +207,8 @@ export const LinkAudioPage: FC<Record<never, never>> = () => {
 	return (
 		<Stack gap="lg" >
 			<PageTitle>Link Audio</PageTitle>
+
+			{ linkMasterSwitch }
 
 			{
 				!hasPeers ? (

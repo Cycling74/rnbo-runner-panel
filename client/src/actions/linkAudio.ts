@@ -20,6 +20,7 @@ export enum LinkAudioActionType {
 	SET_SINK_COUNT = "SET_LINK_AUDIO_SINK_COUNT",
 	SET_LATENCY_MS = "SET_LINK_AUDIO_LATENCY_MS",
 	SET_SYNC_TO_INCOMING = "SET_LINK_AUDIO_SYNC_TO_INCOMING",
+	SET_LINK_ENABLED = "SET_LINK_ENABLED",
 	UPDATE_SOURCE = "UPDATE_LINK_AUDIO_SOURCE",
 	UPDATE_SINK = "UPDATE_LINK_AUDIO_SINK"
 }
@@ -74,6 +75,11 @@ export interface ISetLinkAudioSyncToIncoming extends ActionBase {
 	payload: { syncToIncoming: boolean; };
 }
 
+export interface ISetLinkEnabled extends ActionBase {
+	type: LinkAudioActionType.SET_LINK_ENABLED;
+	payload: { linkEnabled: boolean; };
+}
+
 export interface IUpdateLinkAudioSource extends ActionBase {
 	type: LinkAudioActionType.UPDATE_SOURCE;
 	payload: { index: number; changes: Partial<{ name: string; selectPeer: string; selectChannel: string; statusPeer: string; statusChannel: string; bufferedMs: number; dropouts: number; jitterMs: number; }>; };
@@ -86,7 +92,7 @@ export interface IUpdateLinkAudioSink extends ActionBase {
 
 export type LinkAudioAction = IInitLinkAudio | ISetLinkAudioAvailable | ISetLinkAudioPeers
 | ISetLinkAudioPeerName | ISetLinkAudioSourceCount | ISetLinkAudioSinkCount | ISetLinkAudioLatencyMs
-| ISetLinkAudioSyncToIncoming | IUpdateLinkAudioSource | IUpdateLinkAudioSink;
+| ISetLinkAudioSyncToIncoming | ISetLinkEnabled | IUpdateLinkAudioSource | IUpdateLinkAudioSink;
 
 const oscLinkAudioPrefix = "/rnbo/jack/link/audio";
 
@@ -174,6 +180,11 @@ export const setLinkAudioSyncToIncoming = (syncToIncoming: boolean): LinkAudioAc
 	payload: { syncToIncoming }
 });
 
+export const setLinkEnabled = (linkEnabled: boolean): LinkAudioAction => ({
+	type: LinkAudioActionType.SET_LINK_ENABLED,
+	payload: { linkEnabled }
+});
+
 export const updateLinkAudioSource = (index: number, changes: IUpdateLinkAudioSource["payload"]["changes"]): LinkAudioAction => ({
 	type: LinkAudioActionType.UPDATE_SOURCE,
 	payload: { index, changes }
@@ -222,6 +233,17 @@ export const setLinkAudioSyncToIncomingOnRemote = (enabled: boolean): AppThunk =
 	() => {
 		oscQueryBridge.sendPacket(writePacket({
 			address: `${oscLinkAudioPrefix}/sync_to_incoming`,
+			args: [{
+				value: enabled ? "true" : "false",
+				type: enabled ? OSCQueryValueType.True : OSCQueryValueType.False
+			}]
+		}));
+	};
+
+export const setLinkEnabledOnRemote = (enabled: boolean): AppThunk =>
+	() => {
+		oscQueryBridge.sendPacket(writePacket({
+			address: "/rnbo/jack/link/enabled",
 			args: [{
 				value: enabled ? "true" : "false",
 				type: enabled ? OSCQueryValueType.True : OSCQueryValueType.False

@@ -5,7 +5,7 @@ import { initRunnerInfo, setRunnerInfoValue, setAppStatus, setConnectionEndpoint
 import { AppDispatch, store } from "../lib/store";
 import { ReconnectingWebsocket } from "../lib/reconnectingWs";
 import { AppStatus, JackInfoKey, RunnerCmdHighWaterMarkCount, RunnerCmdMethod, RunnerCmdResultCode, RunnerCmdWriteMethod, SystemInfoKey, WebSocketState } from "../lib/constants";
-import { OSCQueryRNBOState, OSCQueryRNBOInstance, OSCQueryRNBOPatchersState, OSCQueryRNBOSetsState, OSCValue, OSCQueryRNBOInstancesMetaState, OSCQuerySetMeta, RunnerCmdResponse, OSCQueryRNBOJackLinkAudio } from "../lib/types";
+import { OSCQueryRNBOState, OSCQueryRNBOInstance, OSCQueryRNBOPatchersState, OSCQueryRNBOSetsState, OSCValue, OSCQueryRNBOInstancesMetaState, OSCQuerySetMeta, RunnerCmdResponse, OSCQueryRNBOJackLinkAudio, OSCQueryValueType } from "../lib/types";
 import { deletePortAliases, initConnections, initPorts, setPortAliases, updateSetMetaFromRemote, updateSourcePortConnections, deletePortById, setPortProperties, addPort } from "../actions/graph";
 import { addInstance, deleteInstanceById, initInstances, initPatchers, updatePatcherUUID, removeInstanceDataRefByPath, updateInstanceDataRefMeta, updateInstanceDataRefs, updateInstanceParameterDisplayName, updateInstanceAlias } from "../actions/patchers";
 import { initRunnerConfig, updateRunnerConfig } from "../actions/settings";
@@ -29,7 +29,7 @@ import { initTransport, updateTransportStatus } from "../actions/transport";
 import {
 	initLinkAudio, setLinkAudioAvailable, setLinkAudioPeers, setLinkAudioPeerName,
 	setLinkAudioSourceCount, setLinkAudioSinkCount, setLinkAudioLatencyMs, setLinkAudioSyncToIncoming,
-	updateLinkAudioSource, updateLinkAudioSink
+	setLinkEnabled, updateLinkAudioSource, updateLinkAudioSink
 } from "../actions/linkAudio";
 import { parseLinkAudioStatus } from "../models/linkAudio";
 import { deserializeSetMeta } from "../lib/meta";
@@ -328,8 +328,9 @@ export class OSCQueryBridgeControllerPrivate {
 		// Init Transport
 		this.dispatch(initTransport(state.CONTENTS.jack?.CONTENTS?.transport));
 
-		// Init Link Audio
+		// Init Link Audio (+ the sibling master Link on/off toggle)
 		this.dispatch(initLinkAudio(state.CONTENTS.jack?.CONTENTS?.link?.CONTENTS?.audio));
+		this.dispatch(setLinkEnabled(state.CONTENTS.jack?.CONTENTS?.link?.CONTENTS?.enabled?.TYPE !== OSCQueryValueType.False));
 
 		// Init Recording
 		this.dispatch(initStreamRecording(state.CONTENTS.jack?.CONTENTS?.record));
@@ -712,6 +713,11 @@ export class OSCQueryBridgeControllerPrivate {
 
 		if (packet.address === "/rnbo/jack/transport/sync") {
 			if (packet.args?.length) return void this.dispatch(updateTransportStatus({ sync: (packet.args as unknown as [boolean])?.[0] }));
+		}
+
+		// Master Link on/off (sibling of the audio subtree)
+		if (packet.address === "/rnbo/jack/link/enabled") {
+			return void this.dispatch(setLinkEnabled((packet.args as unknown as [boolean])?.[0] ?? true));
 		}
 
 		// Link Audio value updates
