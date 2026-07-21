@@ -1,17 +1,18 @@
-import { FC, useCallback, useEffect, useState } from "react";
-import { Alert, Divider, Group, NumberInput, Paper, Select, Stack, Text, TextInput } from "@mantine/core";
+import { ChangeEvent, FC, useCallback, useEffect, useState } from "react";
+import { Alert, Divider, Group, NumberInput, Paper, Select, Stack, Switch, Text, TextInput } from "@mantine/core";
 import { useAppDispatch, useAppSelector } from "../hooks/useAppDispatch";
 import { RootStateType } from "../lib/store";
 import { PageTitle } from "../components/page/title";
 import {
 	getLinkAudioAvailable, getLinkAudioLatencyMs, getLinkAudioPeerName, getLinkAudioPeers, getLinkAudioSinkCount, getLinkAudioSinks,
-	getLinkAudioSourceCount, getLinkAudioSources
+	getLinkAudioSourceCount, getLinkAudioSources, getLinkAudioSyncToIncoming
 } from "../selectors/linkAudio";
 import {
 	setLinkAudioLatencyMsOnRemote,
 	setLinkAudioPeerNameOnRemote,
 	setLinkAudioSinkCountOnRemote, setLinkAudioSinkNameOnRemote,
-	setLinkAudioSourceCountOnRemote, setLinkAudioSourceSelectOnRemote
+	setLinkAudioSourceCountOnRemote, setLinkAudioSourceSelectOnRemote,
+	setLinkAudioSyncToIncomingOnRemote
 } from "../actions/linkAudio";
 import { LinkAudioPeerInfo, LinkAudioSinkRecord, LinkAudioSourceRecord } from "../models/linkAudio";
 
@@ -125,6 +126,7 @@ export const LinkAudioPage: FC<Record<never, never>> = () => {
 		peerName,
 		peers,
 		latencyMs,
+		syncToIncoming,
 		sourceCount,
 		sinkCount,
 		sources,
@@ -134,6 +136,7 @@ export const LinkAudioPage: FC<Record<never, never>> = () => {
 		getLinkAudioPeerName(state),
 		getLinkAudioPeers(state),
 		getLinkAudioLatencyMs(state),
+		getLinkAudioSyncToIncoming(state),
 		getLinkAudioSourceCount(state),
 		getLinkAudioSinkCount(state),
 		getLinkAudioSources(state),
@@ -157,6 +160,10 @@ export const LinkAudioPage: FC<Record<never, never>> = () => {
 	const onLatencyMs = useCallback((value: string | number) => {
 		const n = typeof value === "number" ? value : parseFloat(value);
 		if (!Number.isNaN(n)) dispatch(setLinkAudioLatencyMsOnRemote(n));
+	}, [dispatch]);
+
+	const onSyncToIncoming = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+		dispatch(setLinkAudioSyncToIncomingOnRemote(e.currentTarget.checked));
 	}, [dispatch]);
 
 	// Device-level receive-health summary, derived from the per-source records.
@@ -212,6 +219,12 @@ export const LinkAudioPage: FC<Record<never, never>> = () => {
 					<Text fw={ 600 } >Receive buffer</Text>
 					<Text size="xs" c="dimmed" >Playout delay for incoming audio, in milliseconds (converted to beats at the current tempo). Higher absorbs more network jitter; lower reduces latency but risks dropouts.</Text>
 				</div>
+				<Switch
+					label="Sync to Incoming Audio"
+					description="Defer receive playout by the buffer below to sync to the incoming stream. When off, no streaming buffer is applied (lowest latency; hardware latency compensation still applies)."
+					checked={ syncToIncoming }
+					onChange={ onSyncToIncoming }
+				/>
 				<NumberInput
 					label="Buffer (ms)"
 					min={ 0 }
@@ -220,6 +233,7 @@ export const LinkAudioPage: FC<Record<never, never>> = () => {
 					value={ latencyMs }
 					onChange={ onLatencyMs }
 					allowDecimal={ false }
+					disabled={ !syncToIncoming }
 					style={{ width: 160 }}
 				/>
 			</Stack>
