@@ -4,10 +4,11 @@ import { useAppDispatch, useAppSelector } from "../hooks/useAppDispatch";
 import { RootStateType } from "../lib/store";
 import { PageTitle } from "../components/page/title";
 import {
-	getLinkAudioAvailable, getLinkAudioPeerName, getLinkAudioPeers, getLinkAudioSinkCount, getLinkAudioSinks,
+	getLinkAudioAvailable, getLinkAudioLatencyMs, getLinkAudioPeerName, getLinkAudioPeers, getLinkAudioSinkCount, getLinkAudioSinks,
 	getLinkAudioSourceCount, getLinkAudioSources
 } from "../selectors/linkAudio";
 import {
+	setLinkAudioLatencyMsOnRemote,
 	setLinkAudioPeerNameOnRemote,
 	setLinkAudioSinkCountOnRemote, setLinkAudioSinkNameOnRemote,
 	setLinkAudioSourceCountOnRemote, setLinkAudioSourceSelectOnRemote
@@ -123,6 +124,7 @@ export const LinkAudioPage: FC<Record<never, never>> = () => {
 		available,
 		peerName,
 		peers,
+		latencyMs,
 		sourceCount,
 		sinkCount,
 		sources,
@@ -131,6 +133,7 @@ export const LinkAudioPage: FC<Record<never, never>> = () => {
 		getLinkAudioAvailable(state),
 		getLinkAudioPeerName(state),
 		getLinkAudioPeers(state),
+		getLinkAudioLatencyMs(state),
 		getLinkAudioSourceCount(state),
 		getLinkAudioSinkCount(state),
 		getLinkAudioSources(state),
@@ -149,6 +152,11 @@ export const LinkAudioPage: FC<Record<never, never>> = () => {
 	const onSinkCount = useCallback((value: string | number) => {
 		const n = typeof value === "number" ? value : parseInt(value, 10);
 		if (!Number.isNaN(n)) dispatch(setLinkAudioSinkCountOnRemote(n));
+	}, [dispatch]);
+
+	const onLatencyMs = useCallback((value: string | number) => {
+		const n = typeof value === "number" ? value : parseFloat(value);
+		if (!Number.isNaN(n)) dispatch(setLinkAudioLatencyMsOnRemote(n));
 	}, [dispatch]);
 
 	// Device-level receive-health summary, derived from the per-source records.
@@ -194,6 +202,25 @@ export const LinkAudioPage: FC<Record<never, never>> = () => {
 					placeholder="hostname"
 					value={ peerName }
 					onCommit={ onPeerName }
+				/>
+			</Stack>
+
+			<Divider />
+
+			<Stack gap="sm" >
+				<div>
+					<Text fw={ 600 } >Receive buffer</Text>
+					<Text size="xs" c="dimmed" >Playout delay for incoming audio, in milliseconds (converted to beats at the current tempo). Higher absorbs more network jitter; lower reduces latency but risks dropouts.</Text>
+				</div>
+				<NumberInput
+					label="Buffer (ms)"
+					min={ 0 }
+					max={ 2000 }
+					step={ 10 }
+					value={ latencyMs }
+					onChange={ onLatencyMs }
+					allowDecimal={ false }
+					style={{ width: 160 }}
 				/>
 			</Stack>
 
