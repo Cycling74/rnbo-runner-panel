@@ -6,7 +6,7 @@ import { getShowTransportControl, getTransportControlState } from "../selectors/
 import { clamp } from "../lib/util";
 import { BPMRange } from "../lib/constants";
 
-export type PartialTransportStatus = Partial<{ bpm: number; rolling: boolean; sync: boolean; }>;
+export type PartialTransportStatus = Partial<{ bpm: number; rolling: boolean; sync: boolean; linkSync: boolean; }>;
 
 export enum TransportActionType {
 	INIT = "INIT_TRANSPORT",
@@ -65,7 +65,8 @@ export const initTransport = (info?: OSCQueryRNBOJackTransport) => {
 		payload: {
 			bpm: info?.CONTENTS?.bpm?.VALUE,
 			rolling: info?.CONTENTS?.rolling?.TYPE === OSCQueryValueType.True || false,
-			sync: info?.CONTENTS?.sync?.TYPE === OSCQueryValueType.True || false
+			sync: info?.CONTENTS?.sync?.TYPE === OSCQueryValueType.True || false,
+			linkSync: info?.CONTENTS?.linksync?.TYPE !== OSCQueryValueType.False
 		}
 	};
 };
@@ -104,6 +105,17 @@ export const toggleTransportSyncOnRemote = (): AppThunk =>
 	(dispatch, getState) => {
 		const state = getState();
 		dispatch(setTransportSyncOnRemote(!getTransportControlState(state).sync));
+	};
+
+export const setTransportLinkSyncOnRemote = (linkSync: boolean): AppThunk =>
+	() => {
+		oscQueryBridge.sendPacket(writePacket({
+			address: `${oscTransportPathPrefix}/linksync`,
+			args: [{
+				value: linkSync ? "true" : "false",
+				type: linkSync ? OSCQueryValueType.True : OSCQueryValueType.False
+			}]
+		}));
 	};
 
 

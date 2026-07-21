@@ -14,6 +14,8 @@ import {
 	setLinkAudioSourceCountOnRemote, setLinkAudioSourceSelectOnRemote,
 	setLinkAudioSyncToIncomingOnRemote, setLinkEnabledOnRemote
 } from "../actions/linkAudio";
+import { getTransportLinkSync } from "../selectors/transport";
+import { setTransportLinkSyncOnRemote } from "../actions/transport";
 import { LinkAudioPeerInfo, LinkAudioSinkRecord, LinkAudioSourceRecord } from "../models/linkAudio";
 
 const MAX_LINK_AUDIO_PAIRS = 64;
@@ -124,6 +126,7 @@ export const LinkPage: FC<Record<never, never>> = () => {
 	const [
 		available,
 		linkEnabled,
+		linkSync,
 		peerName,
 		peers,
 		latencyMs,
@@ -135,6 +138,7 @@ export const LinkPage: FC<Record<never, never>> = () => {
 	] = useAppSelector((state: RootStateType) => [
 		getLinkAudioAvailable(state),
 		getLinkEnabled(state),
+		getTransportLinkSync(state),
 		getLinkAudioPeerName(state),
 		getLinkAudioPeers(state),
 		getLinkAudioLatencyMs(state),
@@ -172,14 +176,28 @@ export const LinkPage: FC<Record<never, never>> = () => {
 		dispatch(setLinkEnabledOnRemote(e.currentTarget.checked));
 	}, [dispatch]);
 
-	// Master Link on/off — shown regardless of Link Audio availability so it's always reachable.
-	const linkMasterSwitch = (
-		<Switch
-			label="Link enabled"
-			description="Join the Ableton Link session. When off, other Link peers don't see this device and tempo sync + Link Audio are inactive; the device still runs its own local transport."
-			checked={ linkEnabled }
-			onChange={ onLinkEnabled }
-		/>
+	const onLinkSync = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+		dispatch(setTransportLinkSyncOnRemote(e.currentTarget.checked));
+	}, [dispatch]);
+
+	// Session-level Link controls — shown regardless of Link Audio availability (they apply
+	// whenever jack_transport_link is running, even with Link Audio disabled) so they stay reachable.
+	const linkSessionControls = (
+		<Stack gap="sm" >
+			<Switch
+				label="Link enabled"
+				description="Join the Ableton Link session. When off, other Link peers don't see this device and tempo sync + Link Audio are inactive; the device still runs its own local transport."
+				checked={ linkEnabled }
+				onChange={ onLinkEnabled }
+			/>
+			<Switch
+				label="Sync transport to Link"
+				description="Follow the shared Ableton Link tempo and beat grid on the JACK transport. When off, the transport runs on its own tempo and ignores the Link session's timeline."
+				checked={ linkSync }
+				onChange={ onLinkSync }
+				disabled={ !linkEnabled }
+			/>
+		</Stack>
 	);
 
 	// Device-level receive-health summary, derived from the per-source records.
@@ -191,7 +209,7 @@ export const LinkPage: FC<Record<never, never>> = () => {
 		return (
 			<Stack gap="md" >
 				<PageTitle>Link</PageTitle>
-				{ linkMasterSwitch }
+				{ linkSessionControls }
 				<Alert color="yellow" title="Link Audio is not available" >
 					<Text size="sm" >
 						<code>jack_transport_link</code> is not running, or it was started with Link Audio disabled.
@@ -208,7 +226,7 @@ export const LinkPage: FC<Record<never, never>> = () => {
 		<Stack gap="lg" >
 			<PageTitle>Link</PageTitle>
 
-			{ linkMasterSwitch }
+			{ linkSessionControls }
 
 			{
 				!hasPeers ? (
