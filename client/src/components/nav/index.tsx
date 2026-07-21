@@ -51,7 +51,7 @@ const AppNav: FunctionComponent = memo(function WrappedNav() {
 					<NavLink
 						icon={ mdiCastAudio }
 						label="Link"
-						pathname="/linkaudio"
+						pathname="/link"
 					/>
 				</Stack>
 				<Stack className={ classes.navMenu } >
