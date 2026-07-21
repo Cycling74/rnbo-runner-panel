@@ -1,4 +1,4 @@
-import { ChangeEvent, FC, useCallback, useEffect, useState } from "react";
+import { ChangeEvent, FC, FocusEvent, useCallback, useEffect, useState } from "react";
 import { Alert, Divider, Group, NumberInput, Paper, Select, Stack, Switch, Text, TextInput } from "@mantine/core";
 import { useAppDispatch, useAppSelector } from "../hooks/useAppDispatch";
 import { RootStateType } from "../lib/store";
@@ -34,6 +34,19 @@ const decodeSelect = (value: string): { peer: string; channel: string; } => {
 	return { peer: "", channel: "" };
 };
 
+// On mobile, focusing an input in the lower half of the page pops up the on-screen keyboard,
+// which can cover the focused field. Once the keyboard has animated in (~300ms), nudge the field
+// toward the middle of the viewport so it stays visible above the keyboard. "center" keeps the
+// input's label visible above it (unlike "start"). Touch devices only, so a mouse click on
+// desktop doesn't trigger an unwanted scroll.
+const scrollInputIntoView = (e: FocusEvent<HTMLInputElement>): void => {
+	if (!window.matchMedia("(pointer: coarse)").matches) return;
+	const el = e.currentTarget;
+	window.setTimeout(() => {
+		el.scrollIntoView({ behavior: "smooth", block: "center" });
+	}, 300);
+};
+
 // Text input that syncs from redux but only commits (sends OSC) on blur / Enter.
 const LinkAudioNameInput: FC<{ label: string; placeholder: string; value: string; onCommit: (v: string) => void; }> = ({ label, placeholder, value, onCommit }) => {
 	const [local, setLocal] = useState<string>(value);
@@ -44,6 +57,7 @@ const LinkAudioNameInput: FC<{ label: string; placeholder: string; value: string
 			placeholder={ placeholder }
 			value={ local }
 			onChange={ e => setLocal(e.currentTarget.value) }
+			onFocus={ scrollInputIntoView }
 			onBlur={ () => { if (local !== value) onCommit(local); } }
 			onKeyDown={ e => { if (e.key === "Enter") { e.currentTarget.blur(); } } }
 			style={{ flex: 1 }}
@@ -269,6 +283,7 @@ export const LinkPage: FC<Record<never, never>> = () => {
 					step={ 10 }
 					value={ latencyMs }
 					onChange={ onLatencyMs }
+					onFocus={ scrollInputIntoView }
 					allowDecimal={ false }
 					style={{ width: 160 }}
 				/>
@@ -288,6 +303,7 @@ export const LinkPage: FC<Record<never, never>> = () => {
 						max={ MAX_LINK_AUDIO_PAIRS }
 						value={ sourceCount }
 						onChange={ onSourceCount }
+						onFocus={ scrollInputIntoView }
 						allowDecimal={ false }
 						style={{ width: 120 }}
 					/>
@@ -333,6 +349,7 @@ export const LinkPage: FC<Record<never, never>> = () => {
 						max={ MAX_LINK_AUDIO_PAIRS }
 						value={ sinkCount }
 						onChange={ onSinkCount }
+						onFocus={ scrollInputIntoView }
 						allowDecimal={ false }
 						style={{ width: 120 }}
 					/>
