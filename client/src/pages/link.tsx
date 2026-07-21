@@ -194,6 +194,23 @@ export const LinkPage: FC<Record<never, never>> = () => {
 		dispatch(setTransportLinkSyncOnRemote(e.currentTarget.checked));
 	}, [dispatch]);
 
+	// While a text field is focused on a touch device, pad the bottom of the page. scrollInputIntoView
+	// centers the focused field, but a field near the bottom can't be lifted without content below it
+	// to scroll into view; this padding provides that room so bottom fields (e.g. Sinks / sink names)
+	// clear the on-screen keyboard. onFocus/onBlur bubble from any descendant field.
+	const [keyboardPad, setKeyboardPad] = useState<boolean>(false);
+	const onFieldFocusIn = useCallback((e: FocusEvent<HTMLDivElement>) => {
+		const t = e.target;
+		const isTextField =
+			(t instanceof HTMLInputElement && t.type !== "checkbox" && t.type !== "radio" && !t.readOnly)
+			|| t instanceof HTMLTextAreaElement;
+		if (isTextField && window.matchMedia("(pointer: coarse)").matches) setKeyboardPad(true);
+	}, []);
+	const onFieldFocusOut = useCallback((e: FocusEvent<HTMLDivElement>) => {
+		// keep the padding while focus moves between fields; drop it once focus leaves the page
+		if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setKeyboardPad(false);
+	}, []);
+
 	// Session-level Link controls — shown regardless of Link Audio availability (they apply
 	// whenever jack_transport_link is running, even with Link Audio disabled) so they stay reachable.
 	const linkSessionControls = (
@@ -237,7 +254,7 @@ export const LinkPage: FC<Record<never, never>> = () => {
 	const hasPeers = peers.length > 0;
 
 	return (
-		<Stack gap="lg" >
+		<Stack gap="lg" onFocus={ onFieldFocusIn } onBlur={ onFieldFocusOut } style={ keyboardPad ? { paddingBottom: "60vh" } : undefined } >
 			<PageTitle>Link</PageTitle>
 
 			{ linkSessionControls }
