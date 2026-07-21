@@ -221,7 +221,7 @@ export const LinkAudioPage: FC<Record<never, never>> = () => {
 				</div>
 				<Switch
 					label="Sync to Incoming Audio"
-					description="Defer playout by the buffer below so incoming audio and the local timeline (transport / MIDI clock, and generators locked to it) share one delayed timeline and stay phase-aligned. When off, no streaming buffer is applied (lowest latency; hardware latency compensation still applies)."
+					description="When on, the local timeline (transport / MIDI clock and generators locked to it) is delayed by the buffer below to match incoming audio, so they stay phase-aligned. When off, the local timeline runs live — incoming audio still plays (always buffered) but lags local generators by the buffer."
 					checked={ syncToIncoming }
 					onChange={ onSyncToIncoming }
 				/>
