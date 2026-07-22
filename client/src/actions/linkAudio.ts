@@ -103,7 +103,7 @@ export const initLinkAudio = (info?: OSCQueryRNBOJackLinkAudio): LinkAudioAction
 	const peers = parseLinkAudioChannels(info?.CONTENTS?.channels?.VALUE as string | undefined);
 	const peerName = (info?.CONTENTS?.peer_name?.VALUE as string | undefined) || "";
 	const latencyMs = (info?.CONTENTS?.latency_ms?.VALUE as number | undefined) ?? 100;
-	const syncToIncoming = info?.CONTENTS?.sync_to_incoming?.TYPE !== OSCQueryValueType.False;
+	const syncToIncoming = info?.CONTENTS?.sync_to_incoming?.TYPE === OSCQueryValueType.True;
 
 	const sourcesContents: Record<string, any> = info?.CONTENTS?.sources?.CONTENTS || {};
 	const sinksContents: Record<string, any> = info?.CONTENTS?.sinks?.CONTENTS || {};

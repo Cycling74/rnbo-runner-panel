@@ -1,6 +1,6 @@
 [package]
 name = "rnbo-runner-panel"
-version = "2.4.0-linkaudio.0"
+version = "2.4.0-linkaudio.1"
 edition = "2024"
 
 [dependencies]

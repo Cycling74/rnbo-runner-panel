@@ -1,6 +1,6 @@
 {
   "name": "@rnbo-runner-panel/server",
-  "version": "2.4.0-linkaudio.0",
+  "version": "2.4.0-linkaudio.1",
   "scripts": {
     "predev": "mkdir -p ../client/out",
     "dev": "cargo run"
