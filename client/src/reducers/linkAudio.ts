@@ -21,7 +21,7 @@ const defaultState: LinkAudioState = {
 	peers: [],
 	peerName: "",
 	latencyMs: 100,
-	syncToIncoming: true,
+	syncToIncoming: false,
 	sourceCount: 0,
 	sinkCount: 0,
 	sources: ImmuOrderedMap<string, LinkAudioSourceRecord>(),
