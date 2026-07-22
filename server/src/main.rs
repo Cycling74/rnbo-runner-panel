@@ -61,9 +61,21 @@ async fn main() -> Result<(), rocket::Error> {
             rocket::config::Config,
         };
 
+        let temp_dir = runner_config.temp_dir();
+        if runner_config.temp_dir_is_default() {
+            // best-effort: ignore errors (e.g. dir doesn't exist yet).
+            // Rocket's TempFile cleans up after each successful upload, but a
+            // crash/power-loss mid-upload can orphan spool files. Since the default
+            // location is used exclusively by us and no upload is in flight at
+            // startup, it's safe to wipe. Custom dirs are never touched.
+            let _ = std::fs::remove_dir_all(&temp_dir);
+        }
+        std::fs::create_dir_all(&temp_dir).expect("to create upload temp dir");
+
         let mut config = Config::figment()
             .merge((Config::PORT, 3000))
-            .merge((Config::ADDRESS, IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0))));
+            .merge((Config::ADDRESS, IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0))))
+            .merge((Config::TEMP_DIR, temp_dir));
         if let Some(dir) = args.template_dir {
             config = config.merge(("template_dir", dir));
         }
