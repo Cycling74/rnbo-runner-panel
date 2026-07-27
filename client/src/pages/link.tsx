@@ -69,7 +69,7 @@ const LinkAudioSourceRow: FC<{ source: LinkAudioSourceRecord; peers: LinkAudioPe
 	const dispatch = useAppDispatch();
 
 	const options: Array<{ value: string; label: string; }> = [{ value: SELECT_AUTO, label: "Auto (first available)" }];
-	peers.forEach(p => p.channels.forEach(ch => options.push({ value: encodeSelect(p.peer, ch), label: `${p.peer} — ${ch}` })));
+	peers.forEach(p => p.channels.forEach(ch => options.push({ value: encodeSelect(p.peer, ch), label: `${p.peer} / ${ch}` })));
 
 	const currentValue = (source.selectPeer.length || source.selectChannel.length)
 		? encodeSelect(source.selectPeer, source.selectChannel)
@@ -77,7 +77,7 @@ const LinkAudioSourceRow: FC<{ source: LinkAudioSourceRecord; peers: LinkAudioPe
 
 	// if the configured selection isn't currently advertised, still show it
 	if (currentValue !== SELECT_AUTO && !options.some(o => o.value === currentValue)) {
-		options.push({ value: currentValue, label: `${source.selectPeer} — ${source.selectChannel} (offline)` });
+		options.push({ value: currentValue, label: `${source.selectPeer} / ${source.selectChannel} (offline)` });
 	}
 
 	const onSelect = useCallback((value: string | null) => {
@@ -90,13 +90,13 @@ const LinkAudioSourceRow: FC<{ source: LinkAudioSourceRecord; peers: LinkAudioPe
 	}, [dispatch, source.index]);
 
 	const statusText = source.connected
-		? `Connected: ${source.statusPeer || "?"} — ${source.statusChannel || "?"}`
+		? `Connected: ${source.statusPeer || "?"} / ${source.statusChannel || "?"}`
 		: "Not connected";
 
 	return (
 		<Paper withBorder p="sm" >
 			<Select
-				label={ `Source ${source.index + 1} — Link peer / channel` }
+				label={ `Source ${source.index + 1} — Link Peer / Channel` }
 				data={ options }
 				value={ currentValue }
 				onChange={ onSelect }
@@ -125,7 +125,7 @@ const LinkAudioSinkRow: FC<{ sink: LinkAudioSinkRecord; }> = ({ sink }) => {
 	return (
 		<Paper withBorder p="sm" >
 			<LinkAudioNameInput
-				label={ `Sink ${sink.index + 1} name (announced to Link)` }
+				label={ `Sink ${sink.index + 1} — Channel Name` }
 				placeholder={ `Send ${sink.index + 1}` }
 				value={ sink.name }
 				onCommit={ onName }
@@ -217,13 +217,13 @@ export const LinkPage: FC<Record<never, never>> = () => {
 		<Stack gap="sm" >
 			<Switch
 				label="Link enabled"
-				description="Join the Ableton Link session. When off, other Link peers don't see this device and tempo sync + Link Audio are inactive; the device still runs its own local transport."
+				description="Join the Ableton Link session. When off, other Link peers don't see this device, Link Audio is inactive and the device runs its own local transport."
 				checked={ linkEnabled }
 				onChange={ onLinkEnabled }
 			/>
 			<Switch
 				label="Sync transport to Link"
-				description="Follow the shared Ableton Link tempo and beat grid on the JACK transport. When off, the transport runs on its own tempo and ignores the Link session's timeline."
+				description="Follow the shared Ableton Link tempo and beat grid with JACK's transport. When off, the transport runs with its own tempo and ignores the Link session's timeline."
 				checked={ linkSync }
 				onChange={ onLinkSync }
 				disabled={ !linkEnabled }
@@ -270,7 +270,7 @@ export const LinkPage: FC<Record<never, never>> = () => {
 			<Stack gap="sm" >
 				<div>
 					<Text fw={ 600 } >Link name</Text>
-					<Text size="xs" c="dimmed" >Identifies this device in Ableton Live and to other Link peers. Clear to use the hostname.</Text>
+					<Text size="xs" c="dimmed" >Identifies this device to other Link peers. Clear to use the hostname.</Text>
 				</div>
 				<LinkAudioNameInput
 					label=""
