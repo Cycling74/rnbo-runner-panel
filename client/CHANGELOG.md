@@ -1,5 +1,11 @@
 # @rnbo-runner-panel/client
 
+## 2.4.1
+
+### Patch Changes
+
+- 402eae4: Fix MIDI indicator dot overflowing horizontally outside the parameter box. Thanks @fcana
+
 ## 2.4.0
 
 ### Minor Changes
