@@ -283,26 +283,28 @@ export const LinkPage: FC<Record<never, never>> = () => {
 			<Divider />
 
 			<Stack gap="sm" >
-				<div>
-					<Text fw={ 600 } >Receive buffer</Text>
-					<Text size="xs" c="dimmed" >Playout delay for incoming audio, in milliseconds (converted to beats at the current tempo). Higher absorbs more network jitter; lower reduces latency but risks dropouts.</Text>
-				</div>
+				<Group justify="space-between" align="flex-end" wrap="nowrap" >
+					<div>
+						<Text fw={ 600 } >Receive buffer</Text>
+						<Text size="xs" c="dimmed" >Playout delay for incoming audio, in milliseconds. Higher absorbs more network jitter; lower reduces latency but risks dropouts.</Text>
+					</div>
+					<NumberInput
+						label="Buffer (ms)"
+						min={ 0 }
+						max={ 2000 }
+						step={ 10 }
+						value={ latencyMs }
+						onChange={ onLatencyMs }
+						onFocus={ scrollInputIntoView }
+						allowDecimal={ false }
+						style={{ width: 120 }}
+					/>
+				</Group>
 				<Switch
 					label="Sync to Incoming Audio"
-					description="When on, the local timeline (transport / MIDI clock and generators locked to it) is delayed by the buffer below to match incoming audio, so they stay phase-aligned. When off, the local timeline runs live — incoming audio still plays (always buffered) but lags local generators by the buffer."
+					description="Delay the local transport timeline to align with incoming audio."
 					checked={ syncToIncoming }
 					onChange={ onSyncToIncoming }
-				/>
-				<NumberInput
-					label="Buffer (ms)"
-					min={ 0 }
-					max={ 2000 }
-					step={ 10 }
-					value={ latencyMs }
-					onChange={ onLatencyMs }
-					onFocus={ scrollInputIntoView }
-					allowDecimal={ false }
-					style={{ width: 160 }}
 				/>
 			</Stack>
 
