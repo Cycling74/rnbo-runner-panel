@@ -21,6 +21,7 @@ pub struct RunnerConfig {
     compile_cache_dir: Option<PathBuf>,
     package_dir: Option<PathBuf>,
     source_cache_dir: Option<PathBuf>,
+    temp_dir: Option<PathBuf>,
     //pub save_dir: Option<PathBuf>,
 
     //file path
@@ -32,6 +33,18 @@ fn rnbodir() -> PathBuf {
         .expect("to get home directory")
         .join("Documents")
         .join("rnbo")
+}
+
+fn xdg_cache_dir() -> PathBuf {
+    std::env::var_os("XDG_CACHE_HOME")
+        .map(PathBuf::from)
+        .filter(|p| p.is_absolute())
+        .unwrap_or_else(|| {
+            home::home_dir()
+                .expect("to get home directory")
+                .join(".cache")
+        })
+        .join("rnbo-runner-panel")
 }
 
 impl RunnerConfig {
@@ -72,6 +85,15 @@ impl RunnerConfig {
         self.package_dir
             .clone()
             .unwrap_or_else(|| rnbodir().join("packages"))
+    }
+    pub fn temp_dir(&self) -> PathBuf {
+        self.temp_dir
+            .clone()
+            .unwrap_or_else(|| xdg_cache_dir().join("tmp"))
+    }
+    /// true when no `temp_dir` was configured, so we're using our own default location
+    pub fn temp_dir_is_default(&self) -> bool {
+        self.temp_dir.is_none()
     }
 }
 

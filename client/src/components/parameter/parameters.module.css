@@ -96,8 +96,9 @@
 
 .parameterItemMIDIIndicator {
 	--indicator-size: 8px;
-	--indicator-translate-x: 150% !important;
-	--indicator-translate-y: -40% !important;
+	/* shifted by half the button size and then centered */
+	--indicator-translate-x: calc(-14px + 50%) !important;
+	--indicator-translate-y: -50% !important;
 	--indicator-color: var(--mantine-color-violet-4);
 	max-width: 100%;
 	min-width: 0;
