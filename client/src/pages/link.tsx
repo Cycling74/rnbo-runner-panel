@@ -285,8 +285,8 @@ export const LinkPage: FC<Record<never, never>> = () => {
 			<Stack gap="sm" >
 				<Group justify="space-between" align="flex-end" wrap="nowrap" >
 					<div>
-						<Text fw={ 600 } >Receive buffer</Text>
-						<Text size="xs" c="dimmed" >Playout delay for incoming audio, in milliseconds. Higher absorbs more network jitter; lower reduces latency but risks dropouts.</Text>
+						<Text fw={ 600 } >Latency</Text>
+						<Text size="xs" c="dimmed" >Larger absorbs network jitter, lower risks dropouts.</Text>
 					</div>
 					<NumberInput
 						label="Buffer (ms)"
