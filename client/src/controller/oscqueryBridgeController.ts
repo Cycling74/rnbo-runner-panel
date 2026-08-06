@@ -127,6 +127,15 @@ const setViewPathMatcher = /^\/rnbo\/inst\/control\/sets\/views\/list\/(?<id>\d+
 const setsPresetsLoadPath = "/rnbo/inst/control/sets/presets/load";
 
 const linkAudioPath = "/rnbo/jack/link/audio";
+const linkEnabledPath = "/rnbo/jack/link/enabled";
+const linkAudioAvailablePath = `${linkAudioPath}/available`;
+const linkAudioChannelsPath = `${linkAudioPath}/channels`;
+const linkAudioPeerNamePath = `${linkAudioPath}/peer_name`;
+const linkAudioLatencyMsPath = `${linkAudioPath}/latency_ms`;
+const linkAudioSyncToIncomingPath = `${linkAudioPath}/sync_to_incoming`;
+const linkAudioSourcesOrderPath = `${linkAudioPath}/sources/order`;
+const linkAudioSinksOrderPath = `${linkAudioPath}/sinks/order`;
+
 // Slot nodes are named after the slot key, not a positional index, and live under `list` so the
 // key can't be confused with a sibling command node ("add" and friends are siblings of `list`).
 // A rename changes the key, so it shows up as one node removed and another added — which the
@@ -722,31 +731,31 @@ export class OSCQueryBridgeControllerPrivate {
 		}
 
 		// Master Link on/off (sibling of the audio subtree)
-		if (packet.address === "/rnbo/jack/link/enabled") {
+		if (packet.address === linkEnabledPath) {
 			return void this.dispatch(setLinkEnabled((packet.args as unknown as [boolean])?.[0] ?? true));
 		}
 
 		// Link Audio value updates
-		if (packet.address === `${linkAudioPath}/available`) {
+		if (packet.address === linkAudioAvailablePath) {
 			return void this.dispatch(setLinkAudioAvailable((packet.args as unknown as [boolean])?.[0] || false));
 		}
-		if (packet.address === `${linkAudioPath}/channels`) {
+		if (packet.address === linkAudioChannelsPath) {
 			return void this.dispatch(setLinkAudioPeers((packet.args as unknown as [string])?.[0] || "[]"));
 		}
-		if (packet.address === `${linkAudioPath}/peer_name`) {
+		if (packet.address === linkAudioPeerNamePath) {
 			return void this.dispatch(setLinkAudioPeerName((packet.args as unknown as [string])?.[0] || ""));
 		}
-		if (packet.address === `${linkAudioPath}/latency_ms`) {
+		if (packet.address === linkAudioLatencyMsPath) {
 			return void this.dispatch(setLinkAudioLatencyMs((packet.args as unknown as [number])?.[0] ?? 100));
 		}
-		if (packet.address === `${linkAudioPath}/sync_to_incoming`) {
+		if (packet.address === linkAudioSyncToIncomingPath) {
 			return void this.dispatch(setLinkAudioSyncToIncoming((packet.args as unknown as [boolean])?.[0] ?? false));
 		}
-		if (packet.address === `${linkAudioPath}/sources/order`) {
+		if (packet.address === linkAudioSourcesOrderPath) {
 			const args = (packet.args as unknown as OSCValue[]) || [];
 			return void this.dispatch(setLinkAudioSourceOrder(args.filter(a => typeof a === "string") as string[]));
 		}
-		if (packet.address === `${linkAudioPath}/sinks/order`) {
+		if (packet.address === linkAudioSinksOrderPath) {
 			const args = (packet.args as unknown as OSCValue[]) || [];
 			return void this.dispatch(setLinkAudioSinkOrder(args.filter(a => typeof a === "string") as string[]));
 		}
