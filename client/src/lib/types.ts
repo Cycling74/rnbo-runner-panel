@@ -366,6 +366,60 @@ export type OSCQueryRNBOJackInfoState =  OSCQueryBaseNode & {
 	};
 };
 
+// Per-slot children are keyed by the slot key jack_transport_link publishes (12 hex chars),
+// alongside the add/remove/order commands.
+export type OSCQueryRNBOJackLinkAudioSourceSlot = OSCQueryBaseNode & {
+	CONTENTS: {
+		peer: OSCQueryStringValue;
+		channel: OSCQueryStringValue;
+		buffered_ms: OSCQueryFloatValue;
+		dropouts: OSCQueryIntValue;
+		unmappable: OSCQueryIntValue;
+		jitter_ms: OSCQueryFloatValue;
+		connected: OSCQueryBooleanValue;
+		receiving: OSCQueryBooleanValue;
+	};
+};
+
+export type OSCQueryRNBOJackLinkAudioSinkSlot = OSCQueryBaseNode & {
+	CONTENTS: {
+		name: OSCQueryStringValue;
+	};
+};
+
+export type OSCQueryRNBOJackLinkAudio = OSCQueryBaseNode & {
+	CONTENTS: {
+		available: OSCQueryBooleanValue;
+		channels: OSCQueryStringValue;
+		peer_name: OSCQueryStringValue;
+		latency_ms: OSCQueryFloatValue;
+		sync_to_incoming: OSCQueryBooleanValue;
+		sources: OSCQueryBaseNode & {
+			CONTENTS: {
+				add: OSCQueryListValue;
+				remove: OSCQueryListValue;
+				order: OSCQueryListValue;
+				[key: string]: OSCQueryRNBOJackLinkAudioSourceSlot | OSCQueryListValue;
+			};
+		};
+		sinks: OSCQueryBaseNode & {
+			CONTENTS: {
+				add: OSCQueryStringValue;
+				remove: OSCQueryStringValue;
+				order: OSCQueryListValue;
+				[key: string]: OSCQueryRNBOJackLinkAudioSinkSlot | OSCQueryStringValue | OSCQueryListValue;
+			};
+		};
+	};
+};
+
+export type OSCQueryRNBOJackLink = OSCQueryBaseNode & {
+	CONTENTS: {
+		enabled: OSCQueryBooleanValue;
+		audio: OSCQueryRNBOJackLinkAudio;
+	};
+};
+
 export type OSCQueryRNBOJackState = OSCQueryBaseNode & {
 	CONTENTS: {
 		active: OSCQueryBooleanValue;
@@ -375,6 +429,7 @@ export type OSCQueryRNBOJackState = OSCQueryBaseNode & {
 		control: any;
 		record?: OSCQueryRNBOJackRecord;
 		transport?: OSCQueryRNBOJackTransport;
+		link?: OSCQueryRNBOJackLink;
 	};
 };
 

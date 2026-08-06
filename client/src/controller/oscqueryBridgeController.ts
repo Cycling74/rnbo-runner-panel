@@ -5,7 +5,7 @@ import { initRunnerInfo, setRunnerInfoValue, setAppStatus, setConnectionEndpoint
 import { AppDispatch, store } from "../lib/store";
 import { ReconnectingWebsocket } from "../lib/reconnectingWs";
 import { AppStatus, JackInfoKey, RunnerCmdHighWaterMarkCount, RunnerCmdMethod, RunnerCmdResultCode, RunnerCmdWriteMethod, SystemInfoKey, WebSocketState } from "../lib/constants";
-import { OSCQueryRNBOState, OSCQueryRNBOInstance, OSCQueryRNBOPatchersState, OSCQueryRNBOSetsState, OSCValue, OSCQueryRNBOInstancesMetaState, OSCQuerySetMeta, RunnerCmdResponse } from "../lib/types";
+import { OSCQueryRNBOState, OSCQueryRNBOInstance, OSCQueryRNBOPatchersState, OSCQueryRNBOSetsState, OSCValue, OSCQueryRNBOInstancesMetaState, OSCQuerySetMeta, RunnerCmdResponse, OSCQueryRNBOJackLinkAudio, OSCQueryValueType } from "../lib/types";
 import { deletePortAliases, initConnections, initPorts, setPortAliases, updateSetMetaFromRemote, updateSourcePortConnections, deletePortById, setPortProperties, addPort } from "../actions/graph";
 import { addInstance, deleteInstanceById, initInstances, initPatchers, updatePatcherUUID, removeInstanceDataRefByPath, updateInstanceDataRefMeta, updateInstanceDataRefs, updateInstanceParameterDisplayName, updateInstanceAlias } from "../actions/patchers";
 import { initRunnerConfig, updateRunnerConfig } from "../actions/settings";
@@ -26,6 +26,11 @@ import {
 import { showNotification } from "../actions/notifications";
 import { NotificationLevel } from "../models/notification";
 import { initTransport, updateTransportStatus } from "../actions/transport";
+import {
+	initLinkAudio, setLinkAudioAvailable, setLinkAudioPeers, setLinkAudioPeerName,
+	setLinkAudioSourceOrder, setLinkAudioSinkOrder, setLinkAudioLatencyMs, setLinkAudioSyncToIncoming,
+	setLinkEnabled, updateLinkAudioSource, updateLinkAudioSink
+} from "../actions/linkAudio";
 import { deserializeSetMeta } from "../lib/meta";
 import { initStreamRecording, updateStreamRecordingActiveState, updateStreamRecordingCapturedTime } from "../actions/recording";
 
@@ -120,6 +125,13 @@ const setViewPathMatcher = /^\/rnbo\/inst\/control\/sets\/views\/list\/(?<id>\d+
 
 // TODO const setsPresetsCurrentNamePath = "/rnbo/inst/control/sets/current/name";
 const setsPresetsLoadPath = "/rnbo/inst/control/sets/presets/load";
+
+const linkAudioPath = "/rnbo/jack/link/audio";
+// Slot nodes are named after the slot key (hex), not a positional index. A rename changes the
+// key, so it shows up as one node removed and another added — which the path-added/removed
+// handlers already turn into a subtree re-read.
+const linkAudioSlotMatcher = /^\/rnbo\/jack\/link\/audio\/(?<dir>sources|sinks)\/(?<key>[0-9a-f]{12})(?<rest>\/\S+)?$/;
+const linkAudioValueMatcher = /^\/rnbo\/jack\/link\/audio\/(?<dir>sources|sinks)\/(?<key>[0-9a-f]{12})\/(?<prop>peer|channel|name|connected|receiving|buffered_ms|dropouts|unmappable|jitter_ms)$/;
 
 const configPathMatcher = /^\/rnbo\/config\/(?<name>.+)$/;
 const jackConfigPathMatcher = /^\/rnbo\/jack\/config\/(?<name>.+)$/;
@@ -318,6 +330,10 @@ export class OSCQueryBridgeControllerPrivate {
 		// Init Transport
 		this.dispatch(initTransport(state.CONTENTS.jack?.CONTENTS?.transport));
 
+		// Init Link Audio (+ the sibling master Link on/off toggle)
+		this.dispatch(initLinkAudio(state.CONTENTS.jack?.CONTENTS?.link?.CONTENTS?.audio));
+		this.dispatch(setLinkEnabled(state.CONTENTS.jack?.CONTENTS?.link?.CONTENTS?.enabled?.TYPE !== OSCQueryValueType.False));
+
 		// Init Recording
 		this.dispatch(initStreamRecording(state.CONTENTS.jack?.CONTENTS?.record));
 
@@ -448,6 +464,12 @@ export class OSCQueryBridgeControllerPrivate {
 
 	private async _onPathAdded(path: string): Promise<void> {
 
+		// Link Audio slot (sources/<N> or sinks/<N>) added -> re-read the subtree
+		if (linkAudioSlotMatcher.test(path)) {
+			const info = await this._requestState<OSCQueryRNBOJackLinkAudio>(linkAudioPath);
+			return void this.dispatch(initLinkAudio(info));
+		}
+
 		// Handle Instances and Patcher Nodes first
 		const instanceMatch = path.match(instancePathMatcher);
 		if (instanceMatch?.groups?.id !== undefined) {
@@ -532,6 +554,12 @@ export class OSCQueryBridgeControllerPrivate {
 	}
 
 	private async _onPathRemoved(path: string): Promise<void> {
+
+		// Link Audio slot (sources/<N> or sinks/<N>) removed -> re-read the subtree
+		if (linkAudioSlotMatcher.test(path)) {
+			const info = await this._requestState<OSCQueryRNBOJackLinkAudio>(linkAudioPath);
+			return void this.dispatch(initLinkAudio(info));
+		}
 
 		// Removed Patcher
 		if (patchersPathMatcher.test(path)) {
@@ -690,6 +718,64 @@ export class OSCQueryBridgeControllerPrivate {
 		}
 		if (packet.address === "/rnbo/jack/transport/sync") {
 			if (packet.args?.length) return void this.dispatch(updateTransportStatus({ sync: (packet.args as unknown as [boolean])?.[0] }));
+		}
+
+		// Master Link on/off (sibling of the audio subtree)
+		if (packet.address === "/rnbo/jack/link/enabled") {
+			return void this.dispatch(setLinkEnabled((packet.args as unknown as [boolean])?.[0] ?? true));
+		}
+
+		// Link Audio value updates
+		if (packet.address === `${linkAudioPath}/available`) {
+			return void this.dispatch(setLinkAudioAvailable((packet.args as unknown as [boolean])?.[0] || false));
+		}
+		if (packet.address === `${linkAudioPath}/channels`) {
+			return void this.dispatch(setLinkAudioPeers((packet.args as unknown as [string])?.[0] || "[]"));
+		}
+		if (packet.address === `${linkAudioPath}/peer_name`) {
+			return void this.dispatch(setLinkAudioPeerName((packet.args as unknown as [string])?.[0] || ""));
+		}
+		if (packet.address === `${linkAudioPath}/latency_ms`) {
+			return void this.dispatch(setLinkAudioLatencyMs((packet.args as unknown as [number])?.[0] ?? 100));
+		}
+		if (packet.address === `${linkAudioPath}/sync_to_incoming`) {
+			return void this.dispatch(setLinkAudioSyncToIncoming((packet.args as unknown as [boolean])?.[0] ?? false));
+		}
+		if (packet.address === `${linkAudioPath}/sources/order`) {
+			const args = (packet.args as unknown as OSCValue[]) || [];
+			return void this.dispatch(setLinkAudioSourceOrder(args.filter(a => typeof a === "string") as string[]));
+		}
+		if (packet.address === `${linkAudioPath}/sinks/order`) {
+			const args = (packet.args as unknown as OSCValue[]) || [];
+			return void this.dispatch(setLinkAudioSinkOrder(args.filter(a => typeof a === "string") as string[]));
+		}
+		const linkAudioValueMatch = packet.address.match(linkAudioValueMatcher);
+		if (linkAudioValueMatch?.groups) {
+			const key = linkAudioValueMatch.groups.key;
+			const prop = linkAudioValueMatch.groups.prop;
+			const args = (packet.args as unknown as OSCValue[]) || [];
+			if (linkAudioValueMatch.groups.dir === "sources") {
+				if (prop === "peer") {
+					return void this.dispatch(updateLinkAudioSource(key, { peer: typeof args[0] === "string" ? args[0] : "" }));
+				} else if (prop === "channel") {
+					return void this.dispatch(updateLinkAudioSource(key, { channel: typeof args[0] === "string" ? args[0] : "" }));
+				} else if (prop === "connected") {
+					return void this.dispatch(updateLinkAudioSource(key, { connected: (packet.args as unknown as [boolean])?.[0] === true }));
+				} else if (prop === "receiving") {
+					return void this.dispatch(updateLinkAudioSource(key, { receiving: (packet.args as unknown as [boolean])?.[0] === true }));
+				} else if (prop === "buffered_ms") {
+					return void this.dispatch(updateLinkAudioSource(key, { bufferedMs: typeof args[0] === "number" ? args[0] : 0 }));
+				} else if (prop === "unmappable") {
+					return void this.dispatch(updateLinkAudioSource(key, { unmappable: typeof args[0] === "number" ? args[0] : 0 }));
+				} else if (prop === "dropouts") {
+					return void this.dispatch(updateLinkAudioSource(key, { dropouts: typeof args[0] === "number" ? args[0] : 0 }));
+				} else if (prop === "jitter_ms") {
+					return void this.dispatch(updateLinkAudioSource(key, { jitterMs: typeof args[0] === "number" ? args[0] : 0 }));
+				}
+			} else if (linkAudioValueMatch.groups.dir === "sinks" && prop === "name") {
+				return void this.dispatch(updateLinkAudioSink(key, { name: (args[0] as string) || "" }));
+			}
+			return;
 		}
 
 		if (packet.address === "/rnbo/inst/control/sets/initial") {
