@@ -374,7 +374,7 @@ export type OSCQueryRNBOJackLinkAudioSourceSlot = OSCQueryBaseNode & {
 		channel: OSCQueryStringValue;
 		buffered_ms: OSCQueryFloatValue;
 		dropouts: OSCQueryIntValue;
-		unmappable: OSCQueryIntValue;
+		arrival_offset_ms: OSCQueryFloatValue;
 		jitter_ms: OSCQueryFloatValue;
 		connected: OSCQueryBooleanValue;
 		receiving: OSCQueryBooleanValue;

@@ -27,10 +27,10 @@ export type LinkAudioSourceProps = {
 	// live receive telemetry (from linkaudio/source-status, proxied by the runner)
 	bufferedMs: number;
 	dropouts: number;
-	// buffers that arrived but were stamped in a different Link session, so they can't be
-	// beat-aligned and are discarded. Nonzero means audio is reaching us and being thrown
-	// away — no latency setting can fix it.
-	unmappable: number;
+	// measured delay between the live beat and where the newest arrived buffer begins. Latency
+	// has to exceed this for anything to play, so it's what an unexpectedly large required
+	// buffer should be compared against.
+	arrivalOffsetMs: number;
 	jitterMs: number;
 };
 
@@ -42,7 +42,7 @@ export class LinkAudioSourceRecord extends ImmuRecord<LinkAudioSourceProps>({
 	receiving: false,
 	bufferedMs: 0,
 	dropouts: 0,
-	unmappable: 0,
+	arrivalOffsetMs: 0,
 	jitterMs: 0
 }) {
 	get id(): string {

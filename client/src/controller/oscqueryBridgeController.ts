@@ -131,7 +131,7 @@ const linkAudioPath = "/rnbo/jack/link/audio";
 // key, so it shows up as one node removed and another added — which the path-added/removed
 // handlers already turn into a subtree re-read.
 const linkAudioSlotMatcher = /^\/rnbo\/jack\/link\/audio\/(?<dir>sources|sinks)\/(?<key>[0-9a-f]{12})(?<rest>\/\S+)?$/;
-const linkAudioValueMatcher = /^\/rnbo\/jack\/link\/audio\/(?<dir>sources|sinks)\/(?<key>[0-9a-f]{12})\/(?<prop>peer|channel|name|connected|receiving|buffered_ms|dropouts|unmappable|jitter_ms)$/;
+const linkAudioValueMatcher = /^\/rnbo\/jack\/link\/audio\/(?<dir>sources|sinks)\/(?<key>[0-9a-f]{12})\/(?<prop>peer|channel|name|connected|receiving|buffered_ms|dropouts|arrival_offset_ms|jitter_ms)$/;
 
 const configPathMatcher = /^\/rnbo\/config\/(?<name>.+)$/;
 const jackConfigPathMatcher = /^\/rnbo\/jack\/config\/(?<name>.+)$/;
@@ -765,8 +765,8 @@ export class OSCQueryBridgeControllerPrivate {
 					return void this.dispatch(updateLinkAudioSource(key, { receiving: (packet.args as unknown as [boolean])?.[0] === true }));
 				} else if (prop === "buffered_ms") {
 					return void this.dispatch(updateLinkAudioSource(key, { bufferedMs: typeof args[0] === "number" ? args[0] : 0 }));
-				} else if (prop === "unmappable") {
-					return void this.dispatch(updateLinkAudioSource(key, { unmappable: typeof args[0] === "number" ? args[0] : 0 }));
+				} else if (prop === "arrival_offset_ms") {
+					return void this.dispatch(updateLinkAudioSource(key, { arrivalOffsetMs: typeof args[0] === "number" ? args[0] : 0 }));
 				} else if (prop === "dropouts") {
 					return void this.dispatch(updateLinkAudioSource(key, { dropouts: typeof args[0] === "number" ? args[0] : 0 }));
 				} else if (prop === "jitter_ms") {

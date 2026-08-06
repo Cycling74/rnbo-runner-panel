@@ -81,7 +81,7 @@ export interface ISetLinkEnabled extends ActionBase {
 
 export interface IUpdateLinkAudioSource extends ActionBase {
 	type: LinkAudioActionType.UPDATE_SOURCE;
-	payload: { key: string; changes: Partial<{ peer: string; channel: string; connected: boolean; receiving: boolean; bufferedMs: number; dropouts: number; unmappable: number; jitterMs: number; }>; };
+	payload: { key: string; changes: Partial<{ peer: string; channel: string; connected: boolean; receiving: boolean; bufferedMs: number; dropouts: number; arrivalOffsetMs: number; jitterMs: number; }>; };
 }
 
 export interface IUpdateLinkAudioSink extends ActionBase {
@@ -127,7 +127,7 @@ export const initLinkAudio = (info?: OSCQueryRNBOJackLinkAudio): LinkAudioAction
 			receiving: slot?.CONTENTS?.receiving?.TYPE === OSCQueryValueType.True,
 			bufferedMs: (slot?.CONTENTS?.buffered_ms?.VALUE as number | undefined) ?? 0,
 			dropouts: (slot?.CONTENTS?.dropouts?.VALUE as number | undefined) ?? 0,
-			unmappable: (slot?.CONTENTS?.unmappable?.VALUE as number | undefined) ?? 0,
+			arrivalOffsetMs: (slot?.CONTENTS?.arrival_offset_ms?.VALUE as number | undefined) ?? 0,
 			jitterMs: (slot?.CONTENTS?.jitter_ms?.VALUE as number | undefined) ?? 0
 		}));
 	});

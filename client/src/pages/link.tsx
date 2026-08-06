@@ -105,17 +105,16 @@ const LinkAudioSourceRow: FC<{
 					<Text fw={ 500 } >{ source.label }</Text>
 					<Text size="xs" c={ statusColor } mt={ 4 } >{ statusText }</Text>
 					{
-						// A connected source that isn't rendering produces pure silence, and the
-						// dropout count stays at 0 (it only counts starves once playback has
-						// started) — so say so, and name the actual cause. `unmappable` counts
-						// buffers that did arrive but carried a beat stamp from another Link
-						// session, which no Latency value can fix.
+						// A connected source that isn't rendering produces pure silence while the
+						// dropout count stays at 0, since dropouts are only counted once playback
+						// has started. Say so, and quote the measured arrival offset, which is the
+						// actionable number.
 						silent ? (
 							<Text size="xs" c="dimmed" mt={ 2 } >
 								{
-									source.unmappable > 0
-										? "Audio is arriving but is stamped for a different Link session, so it can't be beat-aligned. Check that this device and the sender are in the same Link session (Link enabled on both, same network)."
-										: "No audio is arriving yet. If the sender is playing, the playout buffer may be too small for this network — raise Latency above."
+									source.arrivalOffsetMs > 0
+										? `Audio is arriving ${Math.round(source.arrivalOffsetMs)} ms behind the live beat, so Latency has to be above that for any of it to play. If that seems high, check the sender's own latency and "sync to incoming audio" settings — a sender that delays its transport stamps its outgoing audio with the delayed beat, and you pay for it here.`
+										: "No audio is arriving yet. Check that the sender is actually playing, and that it and this device are in the same Link session."
 								}
 							</Text>
 						) : null
@@ -125,6 +124,7 @@ const LinkAudioSourceRow: FC<{
 							<Group gap="md" mt={ 2 } align="center" >
 								<Text size="xs" c="dimmed" >Buffer: { Math.round(source.bufferedMs) } ms</Text>
 								<Text size="xs" c="dimmed" >Jitter: { source.jitterMs.toFixed(1) } ms</Text>
+								<Text size="xs" c="dimmed" >Behind: { Math.round(source.arrivalOffsetMs) } ms</Text>
 								<Group gap={ 4 } wrap="nowrap" align="center" >
 									<Text size="xs" c={ source.dropouts > 0 ? "red" : "dimmed" } >Dropouts: { source.dropouts }</Text>
 									<Tooltip label="Reset dropout count" >
