@@ -283,6 +283,7 @@ export type OSCQueryRNBOInstancesConfig = OSCQueryBaseNode & {
 
 export type RNBOJackPortProperties = {
 	[RNBOJackPortPropertyKey.InstanceId]?: number;
+	[RNBOJackPortPropertyKey.Order]?: number | string;
 	[RNBOJackPortPropertyKey.Physical]?: true;
 	[RNBOJackPortPropertyKey.PortGroup]?: KnownPortGroup | string;
 	[RNBOJackPortPropertyKey.PrettyName]?: string;
