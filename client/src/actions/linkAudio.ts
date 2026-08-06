@@ -95,10 +95,6 @@ export type LinkAudioAction = IInitLinkAudio | ISetLinkAudioAvailable | ISetLink
 
 const oscLinkAudioPrefix = "/rnbo/jack/link/audio";
 
-// Slot child nodes are named after the slot key: exactly 12 lowercase hex chars. Matching the
-// length matters — it's what keeps the sibling command nodes ("add" is all hex digits) out.
-const isSlotKey = (key: string): boolean => /^[0-9a-f]{12}$/.test(key);
-
 const asStringList = (value: unknown): string[] =>
 	Array.isArray(value) ? value.filter(v => typeof v === "string") as string[] : [];
 
@@ -116,9 +112,14 @@ export const initLinkAudio = (info?: OSCQueryRNBOJackLinkAudio): LinkAudioAction
 	const sourceOrder = asStringList((sourcesContents.order as { VALUE?: unknown } | undefined)?.VALUE);
 	const sinkOrder = asStringList((sinksContents.order as { VALUE?: unknown } | undefined)?.VALUE);
 
+	// Every child of `list` is a slot — the commands are siblings of the container, not of the
+	// slots, so there's nothing here to filter out.
+	const sourceSlots: Record<string, any> = sourcesContents.list?.CONTENTS || {};
+	const sinkSlots: Record<string, any> = sinksContents.list?.CONTENTS || {};
+
 	let sources = ImmuOrderedMap<string, LinkAudioSourceRecord>();
-	Object.keys(sourcesContents).filter(isSlotKey).forEach(key => {
-		const slot = sourcesContents[key];
+	Object.keys(sourceSlots).forEach(key => {
+		const slot = sourceSlots[key];
 		sources = sources.set(key, new LinkAudioSourceRecord({
 			key,
 			peer: (slot?.CONTENTS?.peer?.VALUE as string | undefined) || "",
@@ -133,8 +134,8 @@ export const initLinkAudio = (info?: OSCQueryRNBOJackLinkAudio): LinkAudioAction
 	});
 
 	let sinks = ImmuOrderedMap<string, LinkAudioSinkRecord>();
-	Object.keys(sinksContents).filter(isSlotKey).forEach(key => {
-		const slot = sinksContents[key];
+	Object.keys(sinkSlots).forEach(key => {
+		const slot = sinkSlots[key];
 		sinks = sinks.set(key, new LinkAudioSinkRecord({
 			key,
 			name: (slot?.CONTENTS?.name?.VALUE as string | undefined) || ""
@@ -299,7 +300,7 @@ export const resetLinkAudioSourceDropoutsOnRemote = (key?: string): AppThunk =>
 	() => {
 		oscQueryBridge.sendPacket(writePacket({
 			address: key
-				? `${oscLinkAudioPrefix}/sources/${key}/reset_dropouts`
+				? `${oscLinkAudioPrefix}/sources/list/${key}/reset_dropouts`
 				: `${oscLinkAudioPrefix}/sources/reset_dropouts`,
 			args: []
 		}));
@@ -309,7 +310,7 @@ export const resetLinkAudioSourceDropoutsOnRemote = (key?: string): AppThunk =>
 export const setLinkAudioSinkNameOnRemote = (key: string, name: string): AppThunk =>
 	() => {
 		oscQueryBridge.sendPacket(writePacket({
-			address: `${oscLinkAudioPrefix}/sinks/${key}/name`,
+			address: `${oscLinkAudioPrefix}/sinks/list/${key}/name`,
 			args: [{ type: "s", value: name }]
 		}));
 	};

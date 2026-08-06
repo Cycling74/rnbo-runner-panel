@@ -366,8 +366,9 @@ export type OSCQueryRNBOJackInfoState =  OSCQueryBaseNode & {
 	};
 };
 
-// Per-slot children are keyed by the slot key jack_transport_link publishes (12 hex chars),
-// alongside the add/remove/order commands.
+// Per-slot nodes live under `list`, keyed by the slot key jack_transport_link publishes. The
+// container keeps them out of the same namespace as the add/remove/order commands, so the key
+// format stays a runner/jtl detail rather than something the web ui has to recognize.
 export type OSCQueryRNBOJackLinkAudioSourceSlot = OSCQueryBaseNode & {
 	CONTENTS: {
 		peer: OSCQueryStringValue;
@@ -399,7 +400,11 @@ export type OSCQueryRNBOJackLinkAudio = OSCQueryBaseNode & {
 				add: OSCQueryListValue;
 				remove: OSCQueryListValue;
 				order: OSCQueryListValue;
-				[key: string]: OSCQueryRNBOJackLinkAudioSourceSlot | OSCQueryListValue;
+				list: OSCQueryBaseNode & {
+					CONTENTS: {
+						[key: string]: OSCQueryRNBOJackLinkAudioSourceSlot;
+					};
+				};
 			};
 		};
 		sinks: OSCQueryBaseNode & {
@@ -407,7 +412,11 @@ export type OSCQueryRNBOJackLinkAudio = OSCQueryBaseNode & {
 				add: OSCQueryStringValue;
 				remove: OSCQueryStringValue;
 				order: OSCQueryListValue;
-				[key: string]: OSCQueryRNBOJackLinkAudioSinkSlot | OSCQueryStringValue | OSCQueryListValue;
+				list: OSCQueryBaseNode & {
+					CONTENTS: {
+						[key: string]: OSCQueryRNBOJackLinkAudioSinkSlot;
+					};
+				};
 			};
 		};
 	};

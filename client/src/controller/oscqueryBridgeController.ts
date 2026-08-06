@@ -127,11 +127,12 @@ const setViewPathMatcher = /^\/rnbo\/inst\/control\/sets\/views\/list\/(?<id>\d+
 const setsPresetsLoadPath = "/rnbo/inst/control/sets/presets/load";
 
 const linkAudioPath = "/rnbo/jack/link/audio";
-// Slot nodes are named after the slot key (hex), not a positional index. A rename changes the
-// key, so it shows up as one node removed and another added — which the path-added/removed
-// handlers already turn into a subtree re-read.
-const linkAudioSlotMatcher = /^\/rnbo\/jack\/link\/audio\/(?<dir>sources|sinks)\/(?<key>[0-9a-f]{12})(?<rest>\/\S+)?$/;
-const linkAudioValueMatcher = /^\/rnbo\/jack\/link\/audio\/(?<dir>sources|sinks)\/(?<key>[0-9a-f]{12})\/(?<prop>peer|channel|name|connected|receiving|buffered_ms|dropouts|arrival_offset_ms|jitter_ms)$/;
+// Slot nodes are named after the slot key, not a positional index, and live under `list` so the
+// key can't be confused with a sibling command node ("add" and friends are siblings of `list`).
+// A rename changes the key, so it shows up as one node removed and another added — which the
+// path-added/removed handlers already turn into a subtree re-read.
+const linkAudioSlotMatcher = /^\/rnbo\/jack\/link\/audio\/(?<dir>sources|sinks)\/list\/(?<key>[^/]+)(?<rest>\/\S+)?$/;
+const linkAudioValueMatcher = /^\/rnbo\/jack\/link\/audio\/(?<dir>sources|sinks)\/list\/(?<key>[^/]+)\/(?<prop>peer|channel|name|connected|receiving|buffered_ms|dropouts|arrival_offset_ms|jitter_ms)$/;
 
 const configPathMatcher = /^\/rnbo\/config\/(?<name>.+)$/;
 const jackConfigPathMatcher = /^\/rnbo\/jack\/config\/(?<name>.+)$/;
@@ -464,7 +465,7 @@ export class OSCQueryBridgeControllerPrivate {
 
 	private async _onPathAdded(path: string): Promise<void> {
 
-		// Link Audio slot (sources/<N> or sinks/<N>) added -> re-read the subtree
+		// Link Audio slot (sources/list/<key> or sinks/list/<key>) added -> re-read the subtree
 		if (linkAudioSlotMatcher.test(path)) {
 			const info = await this._requestState<OSCQueryRNBOJackLinkAudio>(linkAudioPath);
 			return void this.dispatch(initLinkAudio(info));
@@ -555,7 +556,7 @@ export class OSCQueryBridgeControllerPrivate {
 
 	private async _onPathRemoved(path: string): Promise<void> {
 
-		// Link Audio slot (sources/<N> or sinks/<N>) removed -> re-read the subtree
+		// Link Audio slot (sources/list/<key> or sinks/list/<key>) removed -> re-read the subtree
 		if (linkAudioSlotMatcher.test(path)) {
 			const info = await this._requestState<OSCQueryRNBOJackLinkAudio>(linkAudioPath);
 			return void this.dispatch(initLinkAudio(info));
