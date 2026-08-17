@@ -15,7 +15,9 @@ export enum PortDirection {
 
 export enum NodeType {
 	Patcher = "patcher",
-	System = "system"
+	System = "system",
+	// a jack_transport_link port group — all local sinks, or one peer's sources
+	LinkAudio = "link-audio"
 }
 
 export type NodePositionProps = {
@@ -78,6 +80,23 @@ export class GraphPortRecord extends ImmuRecord<GraphPortProps> ({
 
 	public get isPatcherInstancePort(): boolean {
 		return this.properties[RNBOJackPortPropertyKey.InstanceId] !== undefined;
+	}
+
+	public get isLinkAudioPort(): boolean {
+		return this.properties[RNBOJackPortPropertyKey.LinkAudioSlot] !== undefined;
+	}
+
+	// jack_transport_link slot key. Look it up among the Link Audio sinks when this is a sink port
+	// (jtl sinks are JACK inputs) and among the sources otherwise — sink and source slot keys are
+	// derived from separate hash spaces, so the key alone doesn't identify a slot.
+	public get linkAudioSlot(): string | undefined {
+		return this.properties[RNBOJackPortPropertyKey.LinkAudioSlot];
+	}
+
+	public get nodeType(): NodeType {
+		if (this.isPatcherInstancePort) return NodeType.Patcher;
+		if (this.isLinkAudioPort) return NodeType.LinkAudio;
+		return NodeType.System;
 	}
 
 	public get displayName(): string {

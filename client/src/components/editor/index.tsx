@@ -14,7 +14,7 @@ import GraphEdge, { RNBOGraphEdgeType } from "./edge";
 import { ActionIcon, Tooltip, useMantineColorScheme } from "@mantine/core";
 import { IconElement } from "../elements/icon";
 import { mdiFitToScreen, mdiLock, mdiLockOpen, mdiMinus, mdiPlus, mdiSitemap } from "@mdi/js";
-import { KnownPortGroup, maxEditorZoom, minEditorZoom } from "../../lib/constants";
+import { maxEditorZoom, minEditorZoom } from "../../lib/constants";
 import { EditorNodeDesc } from "../../selectors/graph";
 import { getHotkeyHandler } from "@mantine/hooks";
 import { useLocation, useNavigate } from "react-router";
@@ -41,7 +41,8 @@ export type GraphEditorProps = {
 
 const nodeTypes: Record<NodeType, ComponentType<EditorNodeProps>> = {
 	[NodeType.Patcher]: EditorPatcherNode,
-	[NodeType.System]: EditorSystemNode
+	[NodeType.System]: EditorSystemNode,
+	[NodeType.LinkAudio]: EditorSystemNode
 };
 
 const edgeTypes: Record<typeof RNBOGraphEdgeType, ComponentType<EditorEdgeProps>> = {
@@ -98,7 +99,7 @@ const GraphEditor: FunctionComponent<GraphEditorProps> = memo(function WrappedFl
 			navigate({ pathname: `/instances/${encodeURIComponent(node.data.node.instanceId)}`, search });
 			return;
 		}
-		if (node.data.node.id === KnownPortGroup.Link) {
+		if (node.type === NodeType.LinkAudio) {
 			navigate({ pathname: "/link", search });
 		}
 	}, [search, navigate]);

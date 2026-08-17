@@ -154,9 +154,11 @@ export const getEditorNodesAndPorts = createSelector(
 
 				const desc: EditorNodeDesc = {
 					node,
-					displayName: node.type === NodeType.System
-						? knownPortGroupDisplayNames.get(node.id) || node.id
-						: instances.get(node.instanceId)?.displayName || node.id,
+					// only a patcher node names itself after an instance; everything else (system port
+					// groups, Link Audio groups) falls back to its port-group id
+					displayName: node.type === NodeType.Patcher
+						? instances.get(node.instanceId)?.displayName || node.id
+						: knownPortGroupDisplayNames.get(node.id) || node.id,
 					...ports,
 					contentHeight,
 					x: position?.x || 0,

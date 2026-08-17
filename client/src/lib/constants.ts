@@ -184,9 +184,7 @@ export enum KnownPortGroup {
 	SystemRecordSink = "rnbo-graph-record-sink",
 	UserGraphSrc = "rnbo-graph-user-src",
 	UserGraphSink = "rnbo-graph-user-sink",
-	Hidden = "rnbo-graph-hidden",
-	// value is jtl's JACK port-group metadata string (a contract with jack_transport_link); keep it
-	Link = "jack-link-audio"
+	Hidden = "rnbo-graph-hidden"
 }
 
 export const knownPortGroupDisplayNames: ImmuMap<string, string> = ImmuMap({
@@ -198,6 +196,11 @@ export const knownPortGroupDisplayNames: ImmuMap<string, string> = ImmuMap({
 
 export enum RNBOJackPortPropertyKey {
 	InstanceId = "rnbo-instance-id",
+	// set by jack_transport_link on each of its Link Audio ports, carrying that port's slot key.
+	// Presence marks the port as Link Audio — the port group is a display string ("Link: <peer>")
+	// and can't be matched on. The value joins back to a LinkAudioSourceRecord/LinkAudioSinkRecord;
+	// which of the two is decided by the port direction, since the two key spaces are separate.
+	LinkAudioSlot = "http://www.x37v.info/jack/metadata/link/audio/slot",
 	Order = "http://jackaudio.org/metadata/order",
 	Physical = "physical",
 	PortGroup = "http://jackaudio.org/metadata/port-group",
