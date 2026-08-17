@@ -73,7 +73,8 @@ export enum SettingsTab {
 	Control = "control",
 	Instance = "instance",
 	Recording = "recording",
-	Audio = "audio"
+	Audio = "audio",
+	Link = "link"
 }
 
 export enum Orientation {

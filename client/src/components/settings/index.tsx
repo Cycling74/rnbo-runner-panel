@@ -12,6 +12,7 @@ import { AppSetting, AppSettingRecord, AppSettingType } from "../../models/setti
 import { ConfigKey, ConfigRecord } from "../../models/config";
 import { OSCQueryValueType } from "../../lib/types";
 import AboutInfo from "../page/about";
+import { LinkSettingsPanel } from "./linkPanel";
 import classes from "./settings.module.css";
 import { IconElement } from "../elements/icon";
 import { mdiArrowLeft, mdiRestart } from "@mdi/js";
@@ -182,6 +183,9 @@ const Settings: FunctionComponent = memo(function WrappedSettings() {
 					label: "Apply Configuration"
 				}
 			]
+		},
+		[SettingsTab.Link]: {
+			title: "Link"
 		}
 	};
 
@@ -245,6 +249,14 @@ const Settings: FunctionComponent = memo(function WrappedSettings() {
 									items={ activeTab === SettingsTab.Recording ? settingsItems : [] }
 									{ ...tabConfigByTab[SettingsTab.Recording] }
 								/>
+								{
+									// Link settings are backed by state.linkAudio rather than by app settings
+									// or the runner config, so this tab is hand-built instead of driven by
+									// SettingsTabPanel's generic item list.
+								}
+								<Tabs.Panel value={ SettingsTab.Link } >
+									<LinkSettingsPanel />
+								</Tabs.Panel>
 							</Stack>
 						</Tabs>
 						<Group mt="xl" justify="center">
