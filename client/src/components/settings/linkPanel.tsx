@@ -1,7 +1,8 @@
 import { ChangeEvent, FC, ReactNode, memo, useCallback } from "react";
-import { Alert, Button, Group, NumberInput, Paper, Stack, Switch, Text, Tooltip } from "@mantine/core";
+import { Alert, Button, NumberInput, Paper, Stack, Switch, Text, Tooltip } from "@mantine/core";
 import { mdiRestart } from "@mdi/js";
 import classes from "./settings.module.css";
+import linkClasses from "./linkPanel.module.css";
 import { IconElement } from "../elements/icon";
 import { LinkAudioNameInput, scrollInputIntoView } from "../linkAudio/nameInput";
 import { useAppDispatch, useAppSelector } from "../../hooks/useAppDispatch";
@@ -152,8 +153,8 @@ export const LinkSettingsPanel: FC<Record<never, never>> = memo(function Wrapped
 								</div>
 							</div>
 							<Paper withBorder p="sm" >
-								<Group justify="space-between" align="center" wrap="nowrap" >
-									<Group gap="xl" wrap="nowrap" >
+								<div className={ linkClasses.health } >
+									<div className={ linkClasses.healthStats } >
 										<div>
 											<Text size="xs" c="dimmed" >Connected</Text>
 											<Text fw={ 600 } >{ connectedSources } / { sources.length }</Text>
@@ -166,20 +167,20 @@ export const LinkSettingsPanel: FC<Record<never, never>> = memo(function Wrapped
 											<Text size="xs" c="dimmed" >Worst jitter</Text>
 											<Text fw={ 600 } >{ maxJitter.toFixed(1) } ms</Text>
 										</div>
-									</Group>
+									</div>
 									<Tooltip label="Zero every Receive's dropout count, to measure from now" >
 										<Button
+											className={ linkClasses.healthReset }
 											variant="default"
 											size="compact-sm"
 											leftSection={ <IconElement path={ mdiRestart } /> }
 											onClick={ onResetAllDropouts }
 											disabled={ !sources.length }
-											style={{ flex: "0 0 auto" }}
 										>
 											Reset dropouts
 										</Button>
 									</Tooltip>
-								</Group>
+								</div>
 							</Paper>
 						</Stack>
 					</>
