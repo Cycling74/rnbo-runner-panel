@@ -224,6 +224,17 @@ export const removeLinkAudioSourceOnRemote = (peer: string, channel: string): Ap
 		}));
 	};
 
+// jack_transport_link's source/remove accepts either (peer, channel) or a bare slot key. Removing
+// by key avoids re-deriving an identity we already hold, which matters when tearing down a whole
+// device whose channels may have gone off the network.
+export const removeLinkAudioSourceByKeyOnRemote = (key: string): AppThunk =>
+	() => {
+		oscQueryBridge.sendPacket(writePacket({
+			address: `${oscLinkAudioPrefix}/sources/remove`,
+			args: [{ type: "s", value: key }]
+		}));
+	};
+
 export const setLinkAudioSourceOrderOnRemote = (keys: string[]): AppThunk =>
 	() => {
 		oscQueryBridge.sendPacket(writePacket({

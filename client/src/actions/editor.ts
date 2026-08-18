@@ -11,6 +11,7 @@ import { setConnection, setNode, setNodePosition, setNodePositions, unloadPatche
 import { getGraphEditorInstance, getGraphEditorLockedState } from "../selectors/editor";
 import { triggerSetMetaUpdateOnRemote, updateSetMetaOnRemoteFromNodes } from "./meta";
 import { DialogResult, showConfirmDialog } from "../lib/dialogs";
+import { removeLinkDeviceOnRemote } from "./linkDevices";
 import { getPatcherInstance } from "../selectors/patchers";
 import { changeAliasOnRemoteInstance } from "./patchers";
 
@@ -139,6 +140,13 @@ export const removeEditorNodeById = (id: GraphNode["id"], updateSetMeta = true):
 
 			if (!node) {
 				throw new Error(`Node with id ${id} does not exist.`);
+			}
+
+			// a Link node isn't a loaded device -- deleting it means dropping the channels it
+			// stands for, which has its own confirm and its own remote calls
+			if (node.type === NodeType.LinkAudio) {
+				dispatch(removeLinkDeviceOnRemote(node.id));
+				return;
 			}
 
 			// only patcher nodes back a loaded device; nothing else is unloadable
