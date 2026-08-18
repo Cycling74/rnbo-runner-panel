@@ -1,10 +1,35 @@
-.patcherMenuSection {
+.menuSection {
 	display: flex;
 	flex-direction: column;
 	max-height: inherit;
 }
 
-.patcherMenuSectionList {
+/* A rule above every section but the first, so it's obvious where one ends and the next begins. */
+.menuSection + .menuSection {
+	border-top: 1px solid var(--mantine-color-default-border);
+	margin-top: calc(0.5 * var(--mantine-spacing-xs));
+	padding-top: calc(0.5 * var(--mantine-spacing-xs));
+}
+
+.menuSectionList {
 	flex: 1;
 	overflow: auto;
+}
+
+/* Top level section heading ("Patchers", "Link") -- deliberately louder than the peer labels
+   nested underneath it, which use plain Menu.Label styling. */
+.sectionLabel {
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
+	font-weight: 700;
+}
+
+/* One peer's channels, indented so they read as contents of the Link section rather than as
+   another section of their own. */
+.peerGroup {
+	padding-left: var(--mantine-spacing-xs);
+}
+
+.sectionEmpty {
+	padding: calc(0.5 * var(--mantine-spacing-xs)) var(--mantine-spacing-sm) var(--mantine-spacing-xs);
 }

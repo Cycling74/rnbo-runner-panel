@@ -50,8 +50,8 @@ const AddPatcherInstanceMenuSection: FC<AddPatcherInstanceMenuSectionProps> = me
 
 	if (!list.length) {
 		return (
-			<div className={ classes.patcherMenuSection } >
-				<Menu.Label>Patchers</Menu.Label>
+			<div className={ classes.menuSection } >
+				<Menu.Label className={ classes.sectionLabel } >Patchers</Menu.Label>
 				<Alert title="No Patcher available" variant="light" color="yellow">
 					<Text size="xs">
 						Please <Anchor inherit target="_blank" href="https://rnbo.cycling74.com/learn/export-targets-overview">export a RNBO patcher</Anchor> to load on the runner.
@@ -64,9 +64,9 @@ const AddPatcherInstanceMenuSection: FC<AddPatcherInstanceMenuSectionProps> = me
 	// Flat list, unchanged from before grouping existed.
 	if (!groups) {
 		return (
-			<div className={ classes.patcherMenuSection } >
-				<Menu.Label>Patchers</Menu.Label>
-				<div className={ classes.patcherMenuSectionList } >
+			<div className={ classes.menuSection } >
+				<Menu.Label className={ classes.sectionLabel } >Patchers</Menu.Label>
+				<div className={ classes.menuSectionList } >
 					{ list.map(p => <PatcherMenuEntry key={ p.id } patcher={ p } onLoad={ onLoadPatcherInstance } />) }
 				</div>
 			</div>
@@ -80,7 +80,7 @@ const AddPatcherInstanceMenuSection: FC<AddPatcherInstanceMenuSectionProps> = me
 	// open while navigating between levels.
 	if (current) {
 		return (
-			<div className={ classes.patcherMenuSection } >
+			<div className={ classes.menuSection } >
 				<Menu.Item
 					closeMenuOnClick={ false }
 					leftSection={ <IconElement path={ mdiChevronLeft } /> }
@@ -88,8 +88,8 @@ const AddPatcherInstanceMenuSection: FC<AddPatcherInstanceMenuSectionProps> = me
 				>
 					All Patchers
 				</Menu.Item>
-				<Menu.Label>{ current.label }</Menu.Label>
-				<div className={ classes.patcherMenuSectionList } >
+				<Menu.Label className={ classes.sectionLabel } >{ current.label }</Menu.Label>
+				<div className={ classes.menuSectionList } >
 					{ current.patchers.map(p => <PatcherMenuEntry key={ p.id } patcher={ p } onLoad={ onLoadPatcherInstance } />) }
 				</div>
 			</div>
@@ -97,9 +97,9 @@ const AddPatcherInstanceMenuSection: FC<AddPatcherInstanceMenuSectionProps> = me
 	}
 
 	return (
-		<div className={ classes.patcherMenuSection } >
-			<Menu.Label>Patchers</Menu.Label>
-			<div className={ classes.patcherMenuSectionList } >
+		<div className={ classes.menuSection } >
+			<Menu.Label className={ classes.sectionLabel } >Patchers</Menu.Label>
+			<div className={ classes.menuSectionList } >
 				{
 					groups.map(group => (
 						<Menu.Item
@@ -143,12 +143,12 @@ const AddLinkMenuSection: FC<AddLinkMenuSectionProps> = memo(function WrappedAdd
 	}, [peers, sources]);
 
 	return (
-		<div className={ classes.patcherMenuSection } >
-			<Menu.Label>Link</Menu.Label>
-			<div className={ classes.patcherMenuSectionList } >
+		<div className={ classes.menuSection } >
+			<Menu.Label className={ classes.sectionLabel } >Link</Menu.Label>
+			<div className={ classes.menuSectionList } >
 				{
 					available.length ? available.map(p => (
-						<div key={ p.peer } >
+						<div className={ classes.peerGroup } key={ p.peer } >
 							<Menu.Label>{ p.peer }</Menu.Label>
 							{
 								p.channels.map(ch => (
@@ -163,12 +163,11 @@ const AddLinkMenuSection: FC<AddLinkMenuSectionProps> = memo(function WrappedAdd
 							}
 						</div>
 					)) : (
-						<Menu.Item disabled >
+						<div className={ classes.sectionEmpty } >
 							<Text size="xs" c="dimmed" >No Receives available</Text>
-						</Menu.Item>
+						</div>
 					)
 				}
-				<Menu.Divider />
 				<Menu.Item leftSection={ <IconElement path={ mdiPlus } /> } onClick={ onAddSend } >
 					Add Send
 				</Menu.Item>
