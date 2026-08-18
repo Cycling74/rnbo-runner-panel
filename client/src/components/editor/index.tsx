@@ -16,6 +16,7 @@ import { IconElement } from "../elements/icon";
 import { mdiFitToScreen, mdiLock, mdiLockOpen, mdiMinus, mdiPlus, mdiSitemap } from "@mdi/js";
 import { maxEditorZoom, minEditorZoom } from "../../lib/constants";
 import { EditorNodeDesc } from "../../selectors/graph";
+import { linkDevicePath } from "../../lib/deviceRoutes";
 import { getHotkeyHandler } from "@mantine/hooks";
 import { useLocation, useNavigate } from "react-router";
 
@@ -100,7 +101,7 @@ const GraphEditor: FunctionComponent<GraphEditorProps> = memo(function WrappedFl
 			return;
 		}
 		if (node.type === NodeType.LinkAudio) {
-			navigate({ pathname: "/link", search });
+			navigate({ pathname: linkDevicePath(node.data.node.id), search });
 		}
 	}, [search, navigate]);
 
