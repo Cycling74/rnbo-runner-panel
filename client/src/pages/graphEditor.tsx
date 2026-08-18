@@ -26,6 +26,11 @@ import { mdiCamera, mdiContentSave } from "@mdi/js";
 import { initEditor, unmountEditor } from "../actions/editor";
 import { getGraphEditorLockedState } from "../selectors/editor";
 import { AddNodeMenu } from "../components/editor/addNodeMenu";
+import { AddSinkModal } from "../components/linkAudio/addSlot";
+import { getLinkAudioAvailable, getLinkAudioPeers, getLinkAudioSinksOrdered, getLinkAudioSourcesOrdered } from "../selectors/linkAudio";
+import { addLinkAudioSourceOnRemote } from "../actions/linkAudio";
+import { getAppSetting } from "../selectors/settings";
+import { AppSetting } from "../models/settings";
 import { GraphSetMenu } from "../components/editor/graphMenu";
 import { GraphSetTitle } from "../components/editor/setTitle";
 import { IconElement } from "../components/elements/icon";
@@ -43,7 +48,12 @@ export const GraphEditorPage: FC<Record<never, never>> = () => {
 		currentGraphSetId,
 		currentGraphSetIsDirty,
 		graphPresets,
-		editorLocked
+		editorLocked,
+		linkAvailable,
+		linkPeers,
+		linkSources,
+		linkSinks,
+		groupThresholdSetting
 	] = useAppSelector((state: RootStateType) => [
 		getSortedPatcherExports(state, PatcherSortAttr.Name, SortOrder.Asc),
 		getEditorNodesAndPorts(state),
@@ -53,14 +63,27 @@ export const GraphEditorPage: FC<Record<never, never>> = () => {
 		getCurrentGraphSetId(state),
 		getCurrentGraphSetIsDirty(state),
 		getGraphSetPresetsSortedByName(state, SortOrder.Asc),
-		getGraphEditorLockedState(state)
+		getGraphEditorLockedState(state),
+		getLinkAudioAvailable(state),
+		getLinkAudioPeers(state),
+		getLinkAudioSourcesOrdered(state),
+		getLinkAudioSinksOrdered(state),
+		getAppSetting(state, AppSetting.addNodeMenuGroupThreshold)
 	]);
 
 	const [presetDrawerIsOpen, { close: closePresetDrawer, toggle: togglePresetDrawer }] = useDisclosure();
+	// lives here rather than in the menu: a Mantine Menu.Dropdown unmounts its children when it
+	// closes, which a modal opened from inside it would not survive
+	const [addSinkIsOpen, { close: closeAddSink, open: openAddSink }] = useDisclosure();
 
 	// Instances
 	const onAddPatcherInstance = useCallback((patcher: PatcherExportRecord) => {
 		dispatch(loadPatcherNodeOnRemote(patcher));
+	}, [dispatch]);
+
+	// Link Audio
+	const onAddLinkReceive = useCallback((peer: string, channel: string) => {
+		dispatch(addLinkAudioSourceOnRemote(peer, channel));
 	}, [dispatch]);
 
 	// Editor
@@ -177,6 +200,12 @@ export const GraphEditorPage: FC<Record<never, never>> = () => {
 						<AddNodeMenu
 							onAddPatcherInstance={ onAddPatcherInstance }
 							patchers={ patchers }
+							groupThreshold={ groupThresholdSetting.value as number }
+							linkAvailable={ linkAvailable }
+							peers={ linkPeers }
+							sources={ linkSources }
+							onAddReceive={ onAddLinkReceive }
+							onAddSend={ openAddSink }
 						/>
 						<Tooltip label="Open Graph Preset Menu">
 							<ActionIcon onClick={ togglePresetDrawer } variant="default" size="lg" >
@@ -239,6 +268,11 @@ export const GraphEditorPage: FC<Record<never, never>> = () => {
 				onRenamePreset={ onRenamePreset }
 				onOverwritePreset={ onOverwritePreset }
 				presets={ graphPresets }
+			/>
+			<AddSinkModal
+				open={ addSinkIsOpen }
+				usedNames={ linkSinks.map(s => s.name) }
+				onClose={ closeAddSink }
 			/>
 		</>
 	);

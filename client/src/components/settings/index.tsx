@@ -25,6 +25,7 @@ type TabConfig = {
 
 const settingUITypeByAppSettingType: Record<AppSettingType, SettingsItemType> = {
 	[AppSettingType.Boolean]: SettingsItemType.OnOff,
+	[AppSettingType.Numeric]: SettingsItemType.Numeric,
 	[AppSettingType.String]: SettingsItemType.Select,
 	[AppSettingType.Switch]: SettingsItemType.Switch
 };
@@ -84,6 +85,8 @@ const SettingsTabPanel: FunctionComponent<SettingsTabPanelProps> = memo(function
 						items.map(item => item instanceof AppSettingRecord
 							? ({
 								description: item.description,
+								max: item.max,
+								min: item.min,
 								name: item.id,
 								options: item.options,
 								onChange: onChangeSetting,

@@ -24,7 +24,7 @@ export const loadSettingsState = (): ImmuOrderedMap<AppSetting, AppSettingRecord
 			map.set(id, new AppSettingRecord({
 				id,
 				...appSettingDefaults[id],
-				value: storedData[id] || appSettingDefaults[id].value
+				value: storedData[id] ?? appSettingDefaults[id].value
 			}));
 		}
 	});
