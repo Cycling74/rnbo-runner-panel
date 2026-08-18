@@ -1,6 +1,6 @@
 import { FC, FocusEvent, useCallback, useState } from "react";
-import { Alert, Button, Group, Stack, Text } from "@mantine/core";
-import { mdiChartSankeyVariant, mdiPlus } from "@mdi/js";
+import { ActionIcon, Alert, Button, Group, Menu, Stack, Text, Tooltip } from "@mantine/core";
+import { mdiChartSankeyVariant, mdiDotsVertical, mdiPlus, mdiTrashCan } from "@mdi/js";
 import { Link, useLocation, useNavigate, useParams } from "react-router";
 import { useAppDispatch, useAppSelector } from "../hooks/useAppDispatch";
 import { RootStateType } from "../lib/store";
@@ -18,6 +18,7 @@ import { setLinkAudioSinkOrderOnRemote, setLinkAudioSourceOrderOnRemote } from "
 import { LinkAudioSinkRow, LinkAudioSourceRow } from "../components/linkAudio/rows";
 import { AddSinkModal } from "../components/linkAudio/addSlot";
 import { swappedWithin } from "../lib/linkAudio";
+import { removeLinkDeviceOnRemote } from "../actions/linkDevices";
 import { getAppStatus } from "../selectors/appStatus";
 import { AppStatus } from "../lib/constants";
 
@@ -55,6 +56,12 @@ export const LinkDevicePage: FC<Record<never, never>> = () => {
 	const onChangeDevice = useCallback((pathname: string) => {
 		navigate({ pathname, search });
 	}, [navigate, search]);
+
+	// same confirm and the same fan-out as deleting the node in the graph; that thunk routes back
+	// to the graph once it's done, since this page is about to have no device behind it
+	const onDeleteDevice = useCallback(() => {
+		dispatch(removeLinkDeviceOnRemote(nodeId));
+	}, [dispatch, nodeId]);
 
 	// A device's slots are a subset of one global order list, so a move here has to be spliced
 	// back into that list rather than replacing it.
@@ -123,9 +130,9 @@ export const LinkDevicePage: FC<Record<never, never>> = () => {
 						onChangeDevice={ onChangeDevice }
 					/>
 				</div>
-				{
-					isSend ? (
-						<Group style={{ flex: "0" }} wrap="nowrap" gap="xs" >
+				<Group style={{ flex: "0" }} wrap="nowrap" gap="xs" >
+					{
+						isSend ? (
 							<Button
 								leftSection={ <IconElement path={ mdiPlus } /> }
 								variant="default"
@@ -133,9 +140,24 @@ export const LinkDevicePage: FC<Record<never, never>> = () => {
 							>
 								Add Send
 							</Button>
-						</Group>
-					) : null
-				}
+						) : null
+					}
+					<Menu position="bottom-end" >
+						<Menu.Target>
+							<Tooltip label="Open Link Actions" >
+								<ActionIcon variant="default" size="lg" >
+									<IconElement path={ mdiDotsVertical } />
+								</ActionIcon>
+							</Tooltip>
+						</Menu.Target>
+						<Menu.Dropdown>
+							<Menu.Label>Link Actions</Menu.Label>
+							<Menu.Item color="red" leftSection={ <IconElement path={ mdiTrashCan } /> } onClick={ onDeleteDevice } >
+								Delete Device
+							</Menu.Item>
+						</Menu.Dropdown>
+					</Menu>
+				</Group>
 			</Group>
 
 			{
