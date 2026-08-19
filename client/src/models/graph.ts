@@ -1,7 +1,7 @@
 
 import { Record as ImmuRecord, Set as ImmuSet } from "immutable";
 import { RNBOJackPortProperties } from "../lib/types";
-import { KnownPortGroup, RNBOJackPortPropertyKey } from "../lib/constants";
+import { KnownPortGroup, isKnownPortGroup, RNBOJackPortPropertyKey } from "../lib/constants";
 
 export enum ConnectionType {
 	Audio = "audio",
@@ -83,14 +83,21 @@ export class GraphPortRecord extends ImmuRecord<GraphPortProps> ({
 	}
 
 	public get isLinkAudioPort(): boolean {
-		return this.properties[RNBOJackPortPropertyKey.LinkAudioSlot] !== undefined;
+		return this.linkAudioSlot !== undefined;
 	}
 
 	// jack_transport_link slot key. Look it up among the Link Audio sinks when this is a sink port
 	// (jtl sinks are JACK inputs) and among the sources otherwise — sink and source slot keys are
 	// derived from separate hash spaces, so the key alone doesn't identify a slot.
+	//
+	// A port in one of the runner's own groups never has one, whatever its metadata says. JACK
+	// keys metadata by port UUID, recycles those UUIDs, and keeps the properties of a port that
+	// went away — so a slot key left behind by a jtl port lands on whichever port claims that UUID
+	// next. That is how the record sink came to carry a Send's slot key and show up as a Link node.
 	public get linkAudioSlot(): string | undefined {
-		return this.properties[RNBOJackPortPropertyKey.LinkAudioSlot];
+		return isKnownPortGroup(this.properties[RNBOJackPortPropertyKey.PortGroup])
+			? undefined
+			: this.properties[RNBOJackPortPropertyKey.LinkAudioSlot];
 	}
 
 	public get nodeType(): NodeType {

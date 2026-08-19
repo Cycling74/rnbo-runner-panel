@@ -195,6 +195,11 @@ export const knownPortGroupDisplayNames: ImmuMap<string, string> = ImmuMap({
 	[KnownPortGroup.Hidden]: "Hidden"
 });
 
+// The runner sets these groups on its own ports; every other group in the graph comes from some
+// other JACK client (a patcher instance, jack_transport_link, ...).
+export const isKnownPortGroup = (group: string | undefined): boolean =>
+	group !== undefined && knownPortGroupDisplayNames.has(group);
+
 export enum RNBOJackPortPropertyKey {
 	InstanceId = "rnbo-instance-id",
 	// set by jack_transport_link on each of its Link Audio ports, carrying that port's slot key.
