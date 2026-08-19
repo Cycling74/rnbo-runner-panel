@@ -1,7 +1,18 @@
+/* The dropdown body scrolls as one region. On a phone there is rarely room for the Patchers and
+   the Link section together, and letting each section scroll on its own left the last items
+   (notably "Add Send") drawn outside the dropdown. */
+.menuScroll {
+	display: flex;
+	flex-direction: column;
+	overflow-y: auto;
+	overscroll-behavior: contain;
+}
+
 .menuSection {
 	display: flex;
 	flex-direction: column;
-	max-height: inherit;
+	/* never shrink below the content -- the scroll container above handles what doesn't fit */
+	flex: 0 0 auto;
 }
 
 /* A rule above every section but the first, so it's obvious where one ends and the next begins. */
@@ -12,8 +23,8 @@
 }
 
 .menuSectionList {
-	flex: 1;
-	overflow: auto;
+	display: flex;
+	flex-direction: column;
 }
 
 /* Top level section heading ("Patchers", "Link") -- deliberately louder than the peer labels

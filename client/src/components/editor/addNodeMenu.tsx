@@ -1,4 +1,4 @@
-import { FC, memo, useCallback, useMemo, useRef, useState } from "react";
+import { FC, memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { PatcherExportRecord } from "../../models/patcher";
 import { Seq } from "immutable";
 import { ActionIcon, Alert, Anchor, Menu, Text, Tooltip, useMantineTheme } from "@mantine/core";
@@ -205,14 +205,35 @@ export const AddNodeMenu: FC<AddNodeMenuProps> = memo(function WrappedAddNodeMen
 	const [addNodeMenuIsOpen, { close: closeMenu, open: openMenu }] = useDisclosure();
 	const [openGroup, setOpenGroup] = useState<string | null>(null);
 
-	const onTriggerOpen = useCallback(() => {
+	// Fit the dropdown between the trigger and the bottom of the screen. visualViewport is the area
+	// actually visible on a phone -- it accounts for the browser chrome and an on-screen keyboard,
+	// which innerHeight does not.
+	const measureMaxHeight = useCallback(() => {
 		if (!dropdownRef.current) return;
 
 		const { bottom } = dropdownRef.current.getBoundingClientRect();
-		setMaxDropdownMenuHeight(`calc(${window.innerHeight}px - ${bottom}px - 2 * ${theme.spacing.md}`);
-		openMenu();
+		const viewportHeight = window.visualViewport?.height ?? window.innerHeight;
+		setMaxDropdownMenuHeight(`calc(${viewportHeight}px - ${bottom}px - 2 * ${theme.spacing.md})`);
+	}, [setMaxDropdownMenuHeight, dropdownRef, theme.spacing.md]);
 
-	}, [setMaxDropdownMenuHeight, openMenu, dropdownRef, theme.spacing.md]);
+	const onTriggerOpen = useCallback(() => {
+		measureMaxHeight();
+		openMenu();
+	}, [measureMaxHeight, openMenu]);
+
+	// the mobile browser chrome collapsing, a rotation or an on-screen keyboard all change the
+	// available height while the menu is open
+	useEffect(() => {
+		if (!addNodeMenuIsOpen) return () => {};
+
+		const viewport = window.visualViewport;
+		viewport?.addEventListener("resize", measureMaxHeight);
+		window.addEventListener("resize", measureMaxHeight);
+		return () => {
+			viewport?.removeEventListener("resize", measureMaxHeight);
+			window.removeEventListener("resize", measureMaxHeight);
+		};
+	}, [addNodeMenuIsOpen, measureMaxHeight]);
 
 	// always reopen at the top level rather than wherever the last drill-down left off
 	const onCloseMenu = useCallback(() => {
@@ -230,7 +251,7 @@ export const AddNodeMenu: FC<AddNodeMenuProps> = memo(function WrappedAddNodeMen
 				</Tooltip>
 			</Menu.Target>
 			<Menu.Dropdown>
-				<div style={{ maxHeight: maxDropdownMenuHeight }}>
+				<div className={ classes.menuScroll } style={{ maxHeight: maxDropdownMenuHeight }}>
 					<AddPatcherInstanceMenuSection
 						onLoadPatcherInstance={ onAddPatcherInstance }
 						patchers={ patchers }
