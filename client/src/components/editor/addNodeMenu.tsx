@@ -120,6 +120,9 @@ const AddPatcherInstanceMenuSection: FC<AddPatcherInstanceMenuSectionProps> = me
 type AddLinkMenuSectionProps = {
 	peers: LinkAudioPeerInfo[];
 	sources: LinkAudioSourceRecord[];
+	// the peer the user has drilled into, or null at the top level
+	openPeer: string | null;
+	onOpenPeer: (peer: string | null) => void;
 	onAddReceive: (peer: string, channel: string) => void;
 	onAddSend: () => void;
 };
@@ -129,6 +132,8 @@ type AddLinkMenuSectionProps = {
 const AddLinkMenuSection: FC<AddLinkMenuSectionProps> = memo(function WrappedAddLinkSection({
 	peers,
 	sources,
+	openPeer,
+	onOpenPeer,
 	onAddReceive,
 	onAddSend
 }) {
@@ -142,26 +147,54 @@ const AddLinkMenuSection: FC<AddLinkMenuSectionProps> = memo(function WrappedAdd
 			.filter(p => p.channels.length);
 	}, [peers, sources]);
 
+	// A peer that went away while drilled into it drops us back to the peer list rather than showing
+	// an empty page.
+	const current = openPeer === null ? null : available.find(p => p.peer === openPeer);
+
+	// Same drill-down as the patcher categories: one peer at a time, so a peer with many channels
+	// can't push the rest of the menu off the screen.
+	if (current) {
+		return (
+			<div className={ classes.menuSection } >
+				<Menu.Item
+					closeMenuOnClick={ false }
+					leftSection={ <IconElement path={ mdiChevronLeft } /> }
+					onClick={ () => onOpenPeer(null) }
+				>
+					All Peers
+				</Menu.Item>
+				<Menu.Label className={ classes.sectionLabel } >{ current.peer }</Menu.Label>
+				<div className={ classes.menuSectionList } >
+					{
+						current.channels.map(ch => (
+							<Menu.Item
+								key={ ch }
+								leftSection={ <IconElement path={ mdiCastAudio } /> }
+								onClick={ () => onAddReceive(current.peer, ch) }
+							>
+								{ ch }
+							</Menu.Item>
+						))
+					}
+				</div>
+			</div>
+		);
+	}
+
 	return (
 		<div className={ classes.menuSection } >
 			<Menu.Label className={ classes.sectionLabel } >Link</Menu.Label>
 			<div className={ classes.menuSectionList } >
 				{
 					available.length ? available.map(p => (
-						<div className={ classes.peerGroup } key={ p.peer } >
-							<Menu.Label>{ p.peer }</Menu.Label>
-							{
-								p.channels.map(ch => (
-									<Menu.Item
-										key={ `${p.peer}/${ch}` }
-										leftSection={ <IconElement path={ mdiCastAudio } /> }
-										onClick={ () => onAddReceive(p.peer, ch) }
-									>
-										{ ch }
-									</Menu.Item>
-								))
-							}
-						</div>
+						<Menu.Item
+							key={ p.peer }
+							closeMenuOnClick={ false }
+							rightSection={ <IconElement path={ mdiChevronRight } /> }
+							onClick={ () => onOpenPeer(p.peer) }
+						>
+							{ p.peer } <Text span size="xs" c="dimmed" >({ p.channels.length })</Text>
+						</Menu.Item>
 					)) : (
 						<div className={ classes.sectionEmpty } >
 							<Text size="xs" c="dimmed" >No Receives available</Text>
@@ -175,6 +208,9 @@ const AddLinkMenuSection: FC<AddLinkMenuSectionProps> = memo(function WrappedAdd
 		</div>
 	);
 });
+
+// Which section the open drill-down belongs to, plus the category or peer name within it.
+type OpenGroup = { section: "patchers" | "link"; label: string };
 
 export type AddNodeMenuProps = {
 	onAddPatcherInstance: (patcher: PatcherExportRecord) => void;
@@ -203,7 +239,18 @@ export const AddNodeMenu: FC<AddNodeMenuProps> = memo(function WrappedAddNodeMen
 	const theme = useMantineTheme();
 	const [maxDropdownMenuHeight, setMaxDropdownMenuHeight] = useState<string>("0px");
 	const [addNodeMenuIsOpen, { close: closeMenu, open: openMenu }] = useDisclosure();
-	const [openGroup, setOpenGroup] = useState<string | null>(null);
+
+	// Both sections drill down into the same single slot: whatever the user opened is the only thing
+	// on screen, and the sections it came from replace the whole menu contents.
+	const [openGroup, setOpenGroup] = useState<OpenGroup | null>(null);
+
+	const onOpenPatcherGroup = useCallback((label: string | null) => {
+		setOpenGroup(label === null ? null : { section: "patchers", label });
+	}, [setOpenGroup]);
+
+	const onOpenPeer = useCallback((peer: string | null) => {
+		setOpenGroup(peer === null ? null : { section: "link", label: peer });
+	}, [setOpenGroup]);
 
 	// Fit the dropdown between the trigger and the bottom of the screen. visualViewport is the area
 	// actually visible on a phone -- it accounts for the browser chrome and an on-screen keyboard,
@@ -252,20 +299,26 @@ export const AddNodeMenu: FC<AddNodeMenuProps> = memo(function WrappedAddNodeMen
 			</Menu.Target>
 			<Menu.Dropdown>
 				<div className={ classes.menuScroll } style={{ maxHeight: maxDropdownMenuHeight }}>
-					<AddPatcherInstanceMenuSection
-						onLoadPatcherInstance={ onAddPatcherInstance }
-						patchers={ patchers }
-						groupThreshold={ groupThreshold }
-						openGroup={ openGroup }
-						onOpenGroup={ setOpenGroup }
-					/>
+					{
+						openGroup === null || openGroup.section === "patchers" ? (
+							<AddPatcherInstanceMenuSection
+								onLoadPatcherInstance={ onAddPatcherInstance }
+								patchers={ patchers }
+								groupThreshold={ groupThreshold }
+								openGroup={ openGroup === null ? null : openGroup.label }
+								onOpenGroup={ onOpenPatcherGroup }
+							/>
+						) : null
+					}
 					{
 						// hide the whole section rather than show an empty one when
 						// jack_transport_link isn't running
-						linkAvailable && openGroup === null ? (
+						linkAvailable && (openGroup === null || openGroup.section === "link") ? (
 							<AddLinkMenuSection
 								peers={ peers }
 								sources={ sources }
+								openPeer={ openGroup === null ? null : openGroup.label }
+								onOpenPeer={ onOpenPeer }
 								onAddReceive={ onAddReceive }
 								onAddSend={ onAddSend }
 							/>

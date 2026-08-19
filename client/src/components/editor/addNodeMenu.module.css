@@ -35,12 +35,6 @@
 	font-weight: 700;
 }
 
-/* One peer's channels, indented so they read as contents of the Link section rather than as
-   another section of their own. */
-.peerGroup {
-	padding-left: var(--mantine-spacing-xs);
-}
-
 .sectionEmpty {
 	padding: calc(0.5 * var(--mantine-spacing-xs)) var(--mantine-spacing-sm) var(--mantine-spacing-xs);
 }
