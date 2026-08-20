@@ -11,12 +11,13 @@ import { linkDeviceValue } from "../lib/deviceRoutes";
 import { getPatcherInstances } from "../selectors/patchers";
 import { getLinkDevice, getLinkDevices, LinkDeviceKind } from "../selectors/linkDevices";
 import {
+	getLinkAudioPeers,
 	getLinkAudioSinkOrder, getLinkAudioSinks,
 	getLinkAudioSourceOrder, getLinkAudioSources
 } from "../selectors/linkAudio";
 import { setLinkAudioSinkOrderOnRemote, setLinkAudioSourceOrderOnRemote } from "../actions/linkAudio";
 import { LinkAudioSinkRow, LinkAudioSourceRow } from "../components/linkAudio/rows";
-import { AddSinkModal } from "../components/linkAudio/addSlot";
+import { AddSinkModal, AddSourceMenu } from "../components/linkAudio/addSlot";
 import { swappedWithin } from "../lib/linkAudio";
 import { removeLinkDeviceOnRemote } from "../actions/linkDevices";
 import { getAppStatus } from "../selectors/appStatus";
@@ -39,7 +40,8 @@ export const LinkDevicePage: FC<Record<never, never>> = () => {
 		sources,
 		sinks,
 		sourceOrder,
-		sinkOrder
+		sinkOrder,
+		peers
 	] = useAppSelector((state: RootStateType) => [
 		getAppStatus(state),
 		getLinkDevice(state, nodeId),
@@ -48,7 +50,8 @@ export const LinkDevicePage: FC<Record<never, never>> = () => {
 		getLinkAudioSources(state),
 		getLinkAudioSinks(state),
 		getLinkAudioSourceOrder(state),
-		getLinkAudioSinkOrder(state)
+		getLinkAudioSinkOrder(state),
+		getLinkAudioPeers(state)
 	]);
 
 	const [addSinkOpen, setAddSinkOpen] = useState<boolean>(false);
@@ -116,6 +119,12 @@ export const LinkDevicePage: FC<Record<never, never>> = () => {
 
 	const deviceSinks = isSend ? device.slotKeys.map(k => sinks.get(k)).filter(Boolean) : [];
 	const deviceSources = !isSend ? device.slotKeys.map(k => sources.get(k)).filter(Boolean) : [];
+
+	// Which peer this device receives from, taken from a slot rather than by parsing the node id --
+	// the node id is a display string. Every slot in a Receive device shares one peer. An identity
+	// the session isn't advertising right now has nothing to offer, so the menu comes up empty.
+	const devicePeer = deviceSources[0]?.peer;
+	const devicePeerInfo = devicePeer === undefined ? undefined : peers.find(p => p.peer === devicePeer);
 	// validate against every Send name, not just this device's, since the names share one space
 	const allSinkNames = sinks.valueSeq().toArray().map(s => s.name);
 
@@ -140,7 +149,12 @@ export const LinkDevicePage: FC<Record<never, never>> = () => {
 							>
 								Add Send
 							</Button>
-						) : null
+						) : (
+							<AddSourceMenu
+								peers={ devicePeerInfo ? [devicePeerInfo] : [] }
+								sources={ sources.valueSeq().toArray() }
+							/>
+						)
 					}
 					<Menu position="bottom-end" >
 						<Menu.Target>
@@ -189,7 +203,7 @@ export const LinkDevicePage: FC<Record<never, never>> = () => {
 				) : (
 					<Stack gap="sm" >
 						<Text size="xs" c="dimmed" >
-							Channels received from this peer. Add more from the Add Node menu in the graph editor.
+							Channels received from this peer. Add Receive offers the rest of what it advertises.
 						</Text>
 						{
 							deviceSources.map((source, i) => (

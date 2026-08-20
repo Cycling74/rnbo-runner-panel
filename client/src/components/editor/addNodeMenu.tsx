@@ -3,7 +3,7 @@ import { PatcherExportRecord } from "../../models/patcher";
 import { Seq } from "immutable";
 import { ActionIcon, Alert, Anchor, Menu, Text, Tooltip, useMantineTheme } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
-import { mdiCastAudio, mdiChevronLeft, mdiChevronRight, mdiPlus, mdiPlusBoxOutline } from "@mdi/js";
+import { mdiCastAudio, mdiCheck, mdiChevronLeft, mdiChevronRight, mdiPlus, mdiPlusBoxOutline } from "@mdi/js";
 import { IconElement } from "../elements/icon";
 import { groupPatchersByName } from "../../lib/patcherGroups";
 import { LinkAudioPeerInfo, LinkAudioSourceRecord } from "../../models/linkAudio";
@@ -127,8 +127,9 @@ type AddLinkMenuSectionProps = {
 	onAddSend: () => void;
 };
 
-// Receives already in the graph are left out entirely -- this menu is a list of things you can
-// add, so a channel you already have has no row here.
+// A channel already in the graph keeps its row, disabled and check-marked. Hiding them made the
+// peer's channel list change shape as you added to it, and left no way to tell "already have it"
+// apart from "the peer stopped advertising it".
 const AddLinkMenuSection: FC<AddLinkMenuSectionProps> = memo(function WrappedAddLinkSection({
 	peers,
 	sources,
@@ -139,12 +140,13 @@ const AddLinkMenuSection: FC<AddLinkMenuSectionProps> = memo(function WrappedAdd
 }) {
 
 	const available = useMemo(() => {
-		return peers
-			.map(p => ({
-				peer: p.peer,
-				channels: p.channels.filter(ch => !sources.some(s => s.peer === p.peer && s.channel === ch))
+		return peers.map(p => ({
+			peer: p.peer,
+			channels: p.channels.map(ch => ({
+				channel: ch,
+				added: sources.some(s => s.peer === p.peer && s.channel === ch)
 			}))
-			.filter(p => p.channels.length);
+		}));
 	}, [peers, sources]);
 
 	// A peer that went away while drilled into it drops us back to the peer list rather than showing
@@ -166,13 +168,15 @@ const AddLinkMenuSection: FC<AddLinkMenuSectionProps> = memo(function WrappedAdd
 				<Menu.Label className={ classes.sectionLabel } >{ current.peer }</Menu.Label>
 				<div className={ classes.menuSectionList } >
 					{
-						current.channels.map(ch => (
+						current.channels.map(({ channel, added }) => (
 							<Menu.Item
-								key={ ch }
+								key={ channel }
+								disabled={ added }
 								leftSection={ <IconElement path={ mdiCastAudio } /> }
-								onClick={ () => onAddReceive(current.peer, ch) }
+								rightSection={ added ? <IconElement path={ mdiCheck } /> : undefined }
+								onClick={ () => onAddReceive(current.peer, channel) }
 							>
-								{ ch }
+								{ channel }
 							</Menu.Item>
 						))
 					}
@@ -193,11 +197,20 @@ const AddLinkMenuSection: FC<AddLinkMenuSectionProps> = memo(function WrappedAdd
 							rightSection={ <IconElement path={ mdiChevronRight } /> }
 							onClick={ () => onOpenPeer(p.peer) }
 						>
-							{ p.peer } <Text span size="xs" c="dimmed" >({ p.channels.length })</Text>
+							{ p.peer }
+							{ " " }
+							<Text span size="xs" c="dimmed" >
+								{
+									// how many are still addable, since the rest are only there to be seen
+									p.channels.every(ch => ch.added)
+										? "(all added)"
+										: `(${p.channels.filter(ch => !ch.added).length} of ${p.channels.length})`
+								}
+							</Text>
 						</Menu.Item>
 					)) : (
 						<div className={ classes.sectionEmpty } >
-							<Text size="xs" c="dimmed" >No Receives available</Text>
+							<Text size="xs" c="dimmed" >No peers advertising channels</Text>
 						</div>
 					)
 				}
