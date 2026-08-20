@@ -129,6 +129,15 @@ export type EditorNodeDesc = EditorNodePorts & EditorNodeDimensions & EditorNode
 	node: GraphNodeRecord;
 };
 
+const portIdCollator = new Intl.Collator("en-US", { numeric: true });
+
+// JACK's order metadata first — that is where the port's owner wants it — then port id, so a node
+// whose ports carry no order at least lists them the same way every time.
+const byPortOrder = (a: GraphPortRecord, b: GraphPortRecord): number => {
+	const delta = (a.order ?? Number.MAX_SAFE_INTEGER) - (b.order ?? Number.MAX_SAFE_INTEGER);
+	return delta !== 0 ? delta : portIdCollator.compare(a.id, b.id);
+};
+
 export const getEditorNodesAndPorts = createSelector(
 	[
 		getNodes,
@@ -142,6 +151,15 @@ export const getEditorNodesAndPorts = createSelector(
 			if (port.isHidden) return;
 			if (!portMap.has(port.nodeId)) portMap.set(port.nodeId, { sinks: [], sources: [] });
 			portMap.get(port.nodeId)[port.direction === PortDirection.Sink ? "sinks" : "sources"].push(port);
+		});
+
+		// Sort explicitly: this port map is built from an Immutable.Map, which iterates in hash
+		// order rather than insertion order once it outgrows a handful of entries, so an unsorted
+		// node listed its ports in an order tied to nothing — a Link node's channels came out
+		// shuffled with the stereo pairs split, and rearranged again whenever a port was added.
+		portMap.forEach(({ sinks, sources }) => {
+			sinks.sort(byPortOrder);
+			sources.sort(byPortOrder);
 		});
 
 		return ImmuMap<GraphNodeRecord["id"], EditorNodeDesc>().withMutations(result => {
