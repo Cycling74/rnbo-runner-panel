@@ -231,6 +231,7 @@ export type AddNodeMenuProps = {
 	groupThreshold: number;
 
 	linkAvailable: boolean;
+	linkEnabled: boolean;
 	peers: LinkAudioPeerInfo[];
 	sources: LinkAudioSourceRecord[];
 	onAddReceive: (peer: string, channel: string) => void;
@@ -242,6 +243,7 @@ export const AddNodeMenu: FC<AddNodeMenuProps> = memo(function WrappedAddNodeMen
 	patchers,
 	groupThreshold,
 	linkAvailable,
+	linkEnabled,
 	peers,
 	sources,
 	onAddReceive,
@@ -325,8 +327,8 @@ export const AddNodeMenu: FC<AddNodeMenuProps> = memo(function WrappedAddNodeMen
 					}
 					{
 						// hide the whole section rather than show an empty one when
-						// jack_transport_link isn't running
-						linkAvailable && (openGroup === null || openGroup.section === "link") ? (
+						// jack_transport_link isn't running or Link is disabled
+						linkAvailable && linkEnabled && (openGroup === null || openGroup.section === "link") ? (
 							<AddLinkMenuSection
 								peers={ peers }
 								sources={ sources }

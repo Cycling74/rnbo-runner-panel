@@ -27,7 +27,7 @@ import { initEditor, unmountEditor } from "../actions/editor";
 import { getGraphEditorLockedState } from "../selectors/editor";
 import { AddNodeMenu } from "../components/editor/addNodeMenu";
 import { AddSinkModal } from "../components/linkAudio/addSlot";
-import { getLinkAudioAvailable, getLinkAudioPeers, getLinkAudioSinksOrdered, getLinkAudioSourcesOrdered } from "../selectors/linkAudio";
+import { getLinkAudioAvailable, getLinkAudioPeers, getLinkAudioSinksOrdered, getLinkAudioSourcesOrdered, getLinkEnabled } from "../selectors/linkAudio";
 import { addLinkAudioSourceOnRemote } from "../actions/linkAudio";
 import { getAppSetting } from "../selectors/settings";
 import { AppSetting } from "../models/settings";
@@ -50,6 +50,7 @@ export const GraphEditorPage: FC<Record<never, never>> = () => {
 		graphPresets,
 		editorLocked,
 		linkAvailable,
+		linkEnabled,
 		linkPeers,
 		linkSources,
 		linkSinks,
@@ -65,6 +66,7 @@ export const GraphEditorPage: FC<Record<never, never>> = () => {
 		getGraphSetPresetsSortedByName(state, SortOrder.Asc),
 		getGraphEditorLockedState(state),
 		getLinkAudioAvailable(state),
+		getLinkEnabled(state),
 		getLinkAudioPeers(state),
 		getLinkAudioSourcesOrdered(state),
 		getLinkAudioSinksOrdered(state),
@@ -202,6 +204,7 @@ export const GraphEditorPage: FC<Record<never, never>> = () => {
 							patchers={ patchers }
 							groupThreshold={ groupThresholdSetting.value as number }
 							linkAvailable={ linkAvailable }
+							linkEnabled={ linkEnabled }
 							peers={ linkPeers }
 							sources={ linkSources }
 							onAddReceive={ onAddLinkReceive }
