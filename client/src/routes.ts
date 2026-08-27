@@ -7,6 +7,7 @@ import { MIDIMappingsPage } from "./pages/midimappings";
 import { ResourcesPage } from "./pages/resources";
 import { SetViewsPage } from "./pages/setviews";
 import { GraphEditorPage } from "./pages/graphEditor";
+import { LinkDevicePage } from "./pages/linkDevice";
 
 export const router = createHashRouter([
 	{
@@ -14,6 +15,7 @@ export const router = createHashRouter([
 		children: [
 			{ index: true, Component: GraphEditorPage },
 			{ path: "/instances/:id", Component: InstancePage },
+			{ path: "/devices/link/:nodeId", Component: LinkDevicePage },
 			{ path: "/midimappings", Component: MIDIMappingsPage },
 			{ path: "/resources", Component: ResourcesPage },
 			{ path: "/setviews", Component: SetViewsPage }

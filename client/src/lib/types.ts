@@ -283,6 +283,8 @@ export type OSCQueryRNBOInstancesConfig = OSCQueryBaseNode & {
 
 export type RNBOJackPortProperties = {
 	[RNBOJackPortPropertyKey.InstanceId]?: number;
+	[RNBOJackPortPropertyKey.LinkAudioSlot]?: string;
+	[RNBOJackPortPropertyKey.Order]?: number | string;
 	[RNBOJackPortPropertyKey.Physical]?: true;
 	[RNBOJackPortPropertyKey.PortGroup]?: KnownPortGroup | string;
 	[RNBOJackPortPropertyKey.PrettyName]?: string;
@@ -341,6 +343,7 @@ export type OSCQueryRNBOJackTransport = OSCQueryBaseNode & {
 		bpm: OSCQueryFloatValue;
 		rolling: OSCQueryBooleanValue;
 		sync: OSCQueryBooleanValue;
+		linksync: OSCQueryBooleanValue;
 	}
 }
 
@@ -364,6 +367,69 @@ export type OSCQueryRNBOJackInfoState =  OSCQueryBaseNode & {
 	};
 };
 
+// Per-slot nodes live under `list`, keyed by the slot key jack_transport_link publishes. The
+// container keeps them out of the same namespace as the add/remove/order commands, so the key
+// format stays a runner/jtl detail rather than something the web ui has to recognize.
+export type OSCQueryRNBOJackLinkAudioSourceSlot = OSCQueryBaseNode & {
+	CONTENTS: {
+		peer: OSCQueryStringValue;
+		channel: OSCQueryStringValue;
+		buffered_ms: OSCQueryFloatValue;
+		dropouts: OSCQueryIntValue;
+		arrival_offset_ms: OSCQueryFloatValue;
+		jitter_ms: OSCQueryFloatValue;
+		connected: OSCQueryBooleanValue;
+		receiving: OSCQueryBooleanValue;
+	};
+};
+
+export type OSCQueryRNBOJackLinkAudioSinkSlot = OSCQueryBaseNode & {
+	CONTENTS: {
+		name: OSCQueryStringValue;
+	};
+};
+
+export type OSCQueryRNBOJackLinkAudio = OSCQueryBaseNode & {
+	CONTENTS: {
+		available: OSCQueryBooleanValue;
+		channels: OSCQueryStringValue;
+		peer_name: OSCQueryStringValue;
+		latency_ms: OSCQueryFloatValue;
+		sync_to_incoming: OSCQueryBooleanValue;
+		sources: OSCQueryBaseNode & {
+			CONTENTS: {
+				add: OSCQueryListValue;
+				remove: OSCQueryListValue;
+				order: OSCQueryListValue;
+				list: OSCQueryBaseNode & {
+					CONTENTS: {
+						[key: string]: OSCQueryRNBOJackLinkAudioSourceSlot;
+					};
+				};
+			};
+		};
+		sinks: OSCQueryBaseNode & {
+			CONTENTS: {
+				add: OSCQueryStringValue;
+				remove: OSCQueryStringValue;
+				order: OSCQueryListValue;
+				list: OSCQueryBaseNode & {
+					CONTENTS: {
+						[key: string]: OSCQueryRNBOJackLinkAudioSinkSlot;
+					};
+				};
+			};
+		};
+	};
+};
+
+export type OSCQueryRNBOJackLink = OSCQueryBaseNode & {
+	CONTENTS: {
+		enabled: OSCQueryBooleanValue;
+		audio: OSCQueryRNBOJackLinkAudio;
+	};
+};
+
 export type OSCQueryRNBOJackState = OSCQueryBaseNode & {
 	CONTENTS: {
 		active: OSCQueryBooleanValue;
@@ -373,6 +439,7 @@ export type OSCQueryRNBOJackState = OSCQueryBaseNode & {
 		control: any;
 		record?: OSCQueryRNBOJackRecord;
 		transport?: OSCQueryRNBOJackTransport;
+		link?: OSCQueryRNBOJackLink;
 	};
 };
 

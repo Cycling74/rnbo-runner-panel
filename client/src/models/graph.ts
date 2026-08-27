@@ -1,7 +1,7 @@
 
 import { Record as ImmuRecord, Set as ImmuSet } from "immutable";
 import { RNBOJackPortProperties } from "../lib/types";
-import { KnownPortGroup, RNBOJackPortPropertyKey } from "../lib/constants";
+import { KnownPortGroup, isKnownPortGroup, RNBOJackPortPropertyKey } from "../lib/constants";
 
 export enum ConnectionType {
 	Audio = "audio",
@@ -15,7 +15,9 @@ export enum PortDirection {
 
 export enum NodeType {
 	Patcher = "patcher",
-	System = "system"
+	System = "system",
+	// a jack_transport_link port group — all local sinks, or one peer's sources
+	LinkAudio = "link-audio"
 }
 
 export type NodePositionProps = {
@@ -80,9 +82,40 @@ export class GraphPortRecord extends ImmuRecord<GraphPortProps> ({
 		return this.properties[RNBOJackPortPropertyKey.InstanceId] !== undefined;
 	}
 
+	public get isLinkAudioPort(): boolean {
+		return this.linkAudioSlot !== undefined;
+	}
+
+	// jack_transport_link slot key. Look it up among the Link Audio sinks when this is a sink port
+	// (jtl sinks are JACK inputs) and among the sources otherwise — sink and source slot keys are
+	// derived from separate hash spaces, so the key alone doesn't identify a slot.
+	//
+	// A port in one of the runner's own groups never has one, whatever its metadata says. JACK
+	// keys metadata by port UUID, recycles those UUIDs, and keeps the properties of a port that
+	// went away — so a slot key left behind by a jtl port lands on whichever port claims that UUID
+	// next. That is how the record sink came to carry a Send's slot key and show up as a Link node.
+	public get linkAudioSlot(): string | undefined {
+		return isKnownPortGroup(this.properties[RNBOJackPortPropertyKey.PortGroup])
+			? undefined
+			: this.properties[RNBOJackPortPropertyKey.LinkAudioSlot];
+	}
+
+	public get nodeType(): NodeType {
+		if (this.isPatcherInstancePort) return NodeType.Patcher;
+		if (this.isLinkAudioPort) return NodeType.LinkAudio;
+		return NodeType.System;
+	}
+
 	public get displayName(): string {
 		return this.properties[RNBOJackPortPropertyKey.PrettyName] ||
 			this.portName.replace(/\((capture|playback)_[0-9]+\)/, "");
+	}
+
+	// Optional explicit sort order (JACK "order" metadata). Undefined when not set.
+	public get order(): number | undefined {
+		const v = this.properties[RNBOJackPortPropertyKey.Order];
+		const n = typeof v === "number" ? v : (typeof v === "string" ? parseInt(v, 10) : NaN);
+		return Number.isNaN(n) ? undefined : n;
 	}
 
 	public get instanceId(): string | undefined {

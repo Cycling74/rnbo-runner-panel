@@ -1,10 +1,40 @@
-.patcherMenuSection {
+/* The dropdown body scrolls as one region. On a phone there is rarely room for the Patchers and
+   the Link section together, and letting each section scroll on its own left the last items
+   (notably "Add Send") drawn outside the dropdown. */
+.menuScroll {
 	display: flex;
 	flex-direction: column;
-	max-height: inherit;
+	overflow-y: auto;
+	overscroll-behavior: contain;
 }
 
-.patcherMenuSectionList {
-	flex: 1;
-	overflow: auto;
+.menuSection {
+	display: flex;
+	flex-direction: column;
+	/* never shrink below the content -- the scroll container above handles what doesn't fit */
+	flex: 0 0 auto;
+}
+
+/* A rule above every section but the first, so it's obvious where one ends and the next begins. */
+.menuSection + .menuSection {
+	border-top: 1px solid var(--mantine-color-default-border);
+	margin-top: calc(0.5 * var(--mantine-spacing-xs));
+	padding-top: calc(0.5 * var(--mantine-spacing-xs));
+}
+
+.menuSectionList {
+	display: flex;
+	flex-direction: column;
+}
+
+/* Top level section heading ("Patchers", "Link") -- deliberately louder than the peer labels
+   nested underneath it, which use plain Menu.Label styling. */
+.sectionLabel {
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
+	font-weight: 700;
+}
+
+.sectionEmpty {
+	padding: calc(0.5 * var(--mantine-spacing-xs)) var(--mantine-spacing-sm) var(--mantine-spacing-xs);
 }

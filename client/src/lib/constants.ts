@@ -73,7 +73,8 @@ export enum SettingsTab {
 	Control = "control",
 	Instance = "instance",
 	Recording = "recording",
-	Audio = "audio"
+	Audio = "audio",
+	Link = "link"
 }
 
 export enum Orientation {
@@ -194,8 +195,19 @@ export const knownPortGroupDisplayNames: ImmuMap<string, string> = ImmuMap({
 	[KnownPortGroup.Hidden]: "Hidden"
 });
 
+// The runner sets these groups on its own ports; every other group in the graph comes from some
+// other JACK client (a patcher instance, jack_transport_link, ...).
+export const isKnownPortGroup = (group: string | undefined): boolean =>
+	group !== undefined && knownPortGroupDisplayNames.has(group);
+
 export enum RNBOJackPortPropertyKey {
 	InstanceId = "rnbo-instance-id",
+	// set by jack_transport_link on each of its Link Audio ports, carrying that port's slot key.
+	// Presence marks the port as Link Audio — the port group is a display string ("Link: <peer>")
+	// and can't be matched on. The value joins back to a LinkAudioSourceRecord/LinkAudioSinkRecord;
+	// which of the two is decided by the port direction, since the two key spaces are separate.
+	LinkAudioSlot = "http://www.x37v.info/jack/metadata/link/audio/slot",
+	Order = "http://jackaudio.org/metadata/order",
 	Physical = "physical",
 	PortGroup = "http://jackaudio.org/metadata/port-group",
 	PrettyName = "http://jackaudio.org/metadata/pretty-name",

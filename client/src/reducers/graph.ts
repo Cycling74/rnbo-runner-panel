@@ -13,10 +13,17 @@ export interface GraphState {
 const orderPortMap = (map: ImmuOrderedMap<GraphPortRecord["id"], GraphPortRecord>): ImmuOrderedMap<GraphPortRecord["id"], GraphPortRecord> => {
 	const collator = new Intl.Collator("en-US", { numeric: true, sensitivity: "case", caseFirst: "upper" });
 	return map.sort((pA, pB) => {
-		if (pA.type === pB.type) return collator.compare(pA.displayName, pB.displayName);
-		if (pA.type === ConnectionType.Audio) return -1;
-		if (pA.type === ConnectionType.MIDI) return 1;
-		return 0;
+		if (pA.type !== pB.type) {
+			if (pA.type === ConnectionType.Audio) return -1;
+			if (pA.type === ConnectionType.MIDI) return 1;
+			return 0;
+		}
+		// prefer an explicit order (JACK "order" metadata) when both ports provide one,
+		// otherwise fall back to the display name
+		const oA = pA.order;
+		const oB = pB.order;
+		if (oA !== undefined && oB !== undefined && oA !== oB) return oA - oB;
+		return collator.compare(pA.displayName, pB.displayName);
 	});
 };
 

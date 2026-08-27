@@ -129,6 +129,15 @@ export type EditorNodeDesc = EditorNodePorts & EditorNodeDimensions & EditorNode
 	node: GraphNodeRecord;
 };
 
+const portIdCollator = new Intl.Collator("en-US", { numeric: true });
+
+// JACK's order metadata first — that is where the port's owner wants it — then port id, so a node
+// whose ports carry no order at least lists them the same way every time.
+const byPortOrder = (a: GraphPortRecord, b: GraphPortRecord): number => {
+	const delta = (a.order ?? Number.MAX_SAFE_INTEGER) - (b.order ?? Number.MAX_SAFE_INTEGER);
+	return delta !== 0 ? delta : portIdCollator.compare(a.id, b.id);
+};
+
 export const getEditorNodesAndPorts = createSelector(
 	[
 		getNodes,
@@ -144,6 +153,15 @@ export const getEditorNodesAndPorts = createSelector(
 			portMap.get(port.nodeId)[port.direction === PortDirection.Sink ? "sinks" : "sources"].push(port);
 		});
 
+		// Sort explicitly: this port map is built from an Immutable.Map, which iterates in hash
+		// order rather than insertion order once it outgrows a handful of entries, so an unsorted
+		// node listed its ports in an order tied to nothing — a Link node's channels came out
+		// shuffled with the stereo pairs split, and rearranged again whenever a port was added.
+		portMap.forEach(({ sinks, sources }) => {
+			sinks.sort(byPortOrder);
+			sources.sort(byPortOrder);
+		});
+
 		return ImmuMap<GraphNodeRecord["id"], EditorNodeDesc>().withMutations(result => {
 			nodes.forEach(node => {
 				if (node.isHidden) return;
@@ -154,9 +172,11 @@ export const getEditorNodesAndPorts = createSelector(
 
 				const desc: EditorNodeDesc = {
 					node,
-					displayName: node.type === NodeType.System
-						? knownPortGroupDisplayNames.get(node.id) || node.id
-						: instances.get(node.instanceId)?.displayName || node.id,
+					// only a patcher node names itself after an instance; everything else (system port
+					// groups, Link Audio groups) falls back to its port-group id
+					displayName: node.type === NodeType.Patcher
+						? instances.get(node.instanceId)?.displayName || node.id
+						: knownPortGroupDisplayNames.get(node.id) || node.id,
 					...ports,
 					contentHeight,
 					x: position?.x || 0,

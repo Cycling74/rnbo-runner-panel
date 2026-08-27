@@ -7,7 +7,7 @@ import { toggleShowSettings } from "../../actions/settings";
 import { RootStateType } from "../../lib/store";
 import { getShowSettingsModal } from "../../selectors/settings";
 import { ExternalNavLink, NavLink } from "./link";
-import { getFirstPatcherNodeInstanceId } from "../../selectors/graph";
+import { getFirstDevicePath } from "../../selectors/linkDevices";
 import { mdiChartSankeyVariant, mdiCog, mdiHelpCircle, mdiMidiPort, mdiVectorSquare, mdiTableEye, mdiDatabaseCog } from "@mdi/js";
 
 const AppNav: FunctionComponent = memo(function WrappedNav() {
@@ -16,10 +16,10 @@ const AppNav: FunctionComponent = memo(function WrappedNav() {
 	const onToggleSettings = useCallback(() => dispatch(toggleShowSettings()), [dispatch]);
 	const [
 		settingsAreShown,
-		instanceId
+		devicePath
 	] = useAppSelector((state: RootStateType) => [
 		getShowSettingsModal(state),
-		getFirstPatcherNodeInstanceId(state)
+		getFirstDevicePath(state)
 	]);
 
 
@@ -33,10 +33,10 @@ const AppNav: FunctionComponent = memo(function WrappedNav() {
 						pathname="/"
 					/>
 					<NavLink
-						disabled={ instanceId === undefined }
+						disabled={ devicePath === undefined }
 						icon={ mdiVectorSquare }
 						label="Devices"
-						pathname={ `/instances/${encodeURIComponent(instanceId)}` }
+						pathname={ devicePath || "/" }
 					/>
 					<NavLink
 						icon={ mdiTableEye }

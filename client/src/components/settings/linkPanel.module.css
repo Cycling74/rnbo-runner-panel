@@ -1,0 +1,25 @@
+/* Stats over the button on a narrow screen, side by side once there's room. Matches the
+   breakpoint .item uses in settings.module.css so the panel changes shape all at once. */
+.health {
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+	gap: var(--mantine-spacing-sm);
+
+	@media (min-width: $mantine-breakpoint-sm) {
+		flex-direction: row;
+		align-items: center;
+		justify-content: space-between;
+	}
+}
+
+/* three stats wrap among themselves before the row does */
+.healthStats {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--mantine-spacing-xs) var(--mantine-spacing-xl);
+}
+
+.healthReset {
+	flex: 0 0 auto;
+}
