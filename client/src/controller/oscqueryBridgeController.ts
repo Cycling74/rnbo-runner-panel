@@ -700,6 +700,10 @@ export class OSCQueryBridgeControllerPrivate {
 			}
 		}
 
+		if (packet.address === "/rnbo/jack/transport/time_sig_available") {
+			if (packet.args?.length) return void this.dispatch(updateTransportStatus({ timeSignatureAvailable: (packet.args as unknown as [boolean])?.[0] }));
+		}
+
 		if (packet.address === "/rnbo/jack/transport/time_sig") {
 			if (packet.args?.length >= 2) {
 				const args = packet.args as unknown as [number, number];

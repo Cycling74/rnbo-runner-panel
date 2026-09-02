@@ -6,7 +6,7 @@ import { getShowTransportControl, getTransportControlState } from "../selectors/
 import { clamp } from "../lib/util";
 import { BPMRange, TimeSignatureRange } from "../lib/constants";
 
-export type PartialTransportStatus = Partial<{ bpm: number; rolling: boolean; sync: boolean; linksync: boolean; bar_beat: [number, number]; time_signature: [number, number] }>;
+export type PartialTransportStatus = Partial<{ bpm: number; rolling: boolean; sync: boolean; linksync: boolean; bar_beat: [number, number]; time_signature: [number, number]; barBeatAvailable: boolean; timeSignatureAvailable: boolean }>;
 
 export enum TransportActionType {
 	INIT = "INIT_TRANSPORT",
@@ -68,7 +68,16 @@ export const initTransport = (info?: OSCQueryRNBOJackTransport): IInitTransport 
 			sync: info?.CONTENTS?.sync?.TYPE === OSCQueryValueType.True || false,
 			linksync: info?.CONTENTS?.linksync?.TYPE === OSCQueryValueType.True || false,
 			bar_beat: info?.CONTENTS?.bar_beat?.VALUE || [0, 0],
-			time_signature: info?.CONTENTS?.time_sig?.VALUE || [4, 4]
+			time_signature: info?.CONTENTS?.time_sig?.VALUE || [4, 4],
+			// Capability gates, same node-presence trick the bridge already uses for is_active.
+			// An older runner has neither node, so the controls stay hidden rather than being
+			// offered inert: setting one would post to an address nothing is listening on.
+			barBeatAvailable: info?.CONTENTS?.bar_beat !== undefined,
+			// Node present but the runner reporting false means a jack_transport_link too old to
+			// understand /jacklink/timesig. A runner with time_sig but no availability node at all
+			// predates the gate and always supported it, hence the !== False rather than === True.
+			timeSignatureAvailable: info?.CONTENTS?.time_sig !== undefined
+				&& info?.CONTENTS?.time_sig_available?.TYPE !== OSCQueryValueType.False
 		}
 	};
 };

@@ -116,9 +116,11 @@ const TransportControl: FunctionComponent = memo(function WrappedTransport() {
 				<Modal.Header>
 					<Modal.Title>Transport Control</Modal.Title>
 					<Group gap="sm" wrap="nowrap">
-						<Text fz="sm" fw={ 500 } className={ classes.transportPosition } >
-							<span className={ classes.transportPositionBar } >{ controlState.bar_beat[0] }</span>{ ":" }<span className={ classes.transportPositionBeat } >{ controlState.bar_beat[1] }</span>
-						</Text>
+						{ controlState.barBeatAvailable ? (
+							<Text fz="sm" fw={ 500 } className={ classes.transportPosition } >
+								<span className={ classes.transportPositionBar } >{ controlState.bar_beat[0] }</span>{ ":" }<span className={ classes.transportPositionBeat } >{ controlState.bar_beat[1] }</span>
+							</Text>
+						) : null }
 						<Modal.CloseButton />
 					</Group>
 				</Modal.Header>
@@ -178,33 +180,35 @@ const TransportControl: FunctionComponent = memo(function WrappedTransport() {
 									</div>
 								}
 							/>
-							<Group gap={ 4 } align="center" wrap="nowrap">
-								<Text fz="xs" c="dimmed" >sig</Text>
-								<NumberInput
-									name="time_sig_numerator"
-									size="sm"
-									min={ TimeSignatureRange.Min }
-									max={ TimeSignatureRange.Max }
-									allowNegative={ false }
-									allowDecimal={ false }
-									hideControls
-									w={ 56 }
-									aria-label="Time signature beats per bar"
-									value={ controlState.time_signature[0] }
-									onChange={ onTimeSigNumeratorChange }
-								/>
-								<Text fz="sm">/</Text>
-								<Select
-									name="time_sig_denominator"
-									size="sm"
-									w={ 68 }
-									aria-label="Time signature beat type"
-									allowDeselect={ false }
-									data={ timeSignatureDenominatorOptions }
-									value={ String(controlState.time_signature[1]) }
-									onChange={ onTimeSigDenominatorChange }
-								/>
-							</Group>
+							{ controlState.timeSignatureAvailable ? (
+								<Group gap={ 4 } align="center" wrap="nowrap">
+									<Text fz="xs" c="dimmed" >sig</Text>
+									<NumberInput
+										name="time_sig_numerator"
+										size="sm"
+										min={ TimeSignatureRange.Min }
+										max={ TimeSignatureRange.Max }
+										allowNegative={ false }
+										allowDecimal={ false }
+										hideControls
+										w={ 56 }
+										aria-label="Time signature beats per bar"
+										value={ controlState.time_signature[0] }
+										onChange={ onTimeSigNumeratorChange }
+									/>
+									<Text fz="sm">/</Text>
+									<Select
+										name="time_sig_denominator"
+										size="sm"
+										w={ 68 }
+										aria-label="Time signature beat type"
+										allowDeselect={ false }
+										data={ timeSignatureDenominatorOptions }
+										value={ String(controlState.time_signature[1]) }
+										onChange={ onTimeSigDenominatorChange }
+									/>
+								</Group>
+							) : null }
 						</Group>
 					</Stack>
 				</Modal.Body>
