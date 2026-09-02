@@ -4,44 +4,59 @@ export interface TransportState {
 	bpm: number;
 	rolling: boolean;
 	sync: boolean;
+	linksync: boolean;
 	show: boolean;
+	bar_beat: [number, number];
+	time_signature: [number, number];
 }
 
 const transportDefaults = {
 	bpm: 100,
 	rolling: false,
-	sync: true
+	sync: true,
+	linksync: true,
+	bar_beat: [0, 0] as [number, number],
+	time_signature: [4, 4] as [number, number]
 };
 
 export const transport = (state: TransportState = {
 	bpm: transportDefaults.bpm,
 	rolling: transportDefaults.rolling,
 	sync: transportDefaults.sync,
-	show: false
+	linksync: transportDefaults.linksync,
+	show: false,
+	bar_beat: transportDefaults.bar_beat,
+	time_signature: transportDefaults.time_signature
 
 }, action: TransportAction): TransportState => {
 
 	switch (action.type) {
 
 		case TransportActionType.INIT: {
-			const { bpm, rolling, sync } = action.payload;
+			const { bpm, rolling, sync, linksync, bar_beat, time_signature } = action.payload;
 
 			return {
 				...state,
 				bpm: bpm || transportDefaults.bpm,
-				rolling: rolling || transportDefaults.rolling,
-				sync: sync || transportDefaults.sync
+				rolling: rolling === undefined ? transportDefaults.rolling : rolling,
+				sync: sync === undefined ? transportDefaults.sync : sync,
+				linksync: linksync === undefined ? transportDefaults.linksync : linksync,
+				bar_beat: bar_beat || transportDefaults.bar_beat,
+				time_signature: time_signature || transportDefaults.time_signature
 			};
 		}
 
 		case TransportActionType.UPDATE_TRANSPORT: {
-			const { bpm, rolling, sync } = action.payload;
+			const { bpm, rolling, sync, linksync, bar_beat, time_signature } = action.payload;
 
 			return {
 				...state,
 				bpm: bpm === undefined ? state.bpm : bpm,
 				rolling: rolling === undefined ? state.rolling : rolling,
-				sync: sync === undefined ? state.sync : sync
+				sync: sync === undefined ? state.sync : sync,
+				linksync: linksync === undefined ? state.linksync : linksync,
+				bar_beat: bar_beat === undefined ? state.bar_beat : bar_beat,
+				time_signature: time_signature === undefined ? state.time_signature : time_signature
 			};
 		}
 

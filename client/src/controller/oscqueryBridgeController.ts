@@ -689,6 +689,24 @@ export class OSCQueryBridgeControllerPrivate {
 			if (packet.args?.length) return void this.dispatch(updateTransportStatus({ sync: (packet.args as unknown as [boolean])?.[0] }));
 		}
 
+		if (packet.address === "/rnbo/jack/transport/linksync") {
+			if (packet.args?.length) return void this.dispatch(updateTransportStatus({ linksync: (packet.args as unknown as [boolean])?.[0] }));
+		}
+
+		if (packet.address === "/rnbo/jack/transport/bar_beat") {
+			if (packet.args?.length >= 2) {
+				const args = packet.args as unknown as [number, number];
+				return void this.dispatch(updateTransportStatus({ bar_beat: args }));
+			}
+		}
+
+		if (packet.address === "/rnbo/jack/transport/time_sig") {
+			if (packet.args?.length >= 2) {
+				const args = packet.args as unknown as [number, number];
+				return void this.dispatch(updateTransportStatus({ time_signature: args }));
+			}
+		}
+
 		if (packet.address === "/rnbo/inst/control/sets/initial") {
 			return void this.dispatch(setGraphSetInitialSet((packet.args as unknown as [string])?.[0] || undefined));
 		}
