@@ -4,9 +4,9 @@ import { ActionBase, AppThunk } from "../lib/store";
 import { OSCQueryRNBOJackTransport, OSCQueryValueType } from "../lib/types";
 import { getShowTransportControl, getTransportControlState } from "../selectors/transport";
 import { clamp } from "../lib/util";
-import { BPMRange } from "../lib/constants";
+import { BPMRange, TimeSignatureRange } from "../lib/constants";
 
-export type PartialTransportStatus = Partial<{ bpm: number; rolling: boolean; sync: boolean; linkSync: boolean; }>;
+export type PartialTransportStatus = Partial<{ bpm: number; rolling: boolean; sync: boolean; linkSync: boolean; bar_beat: [number, number]; time_signature: [number, number] }>;
 
 export enum TransportActionType {
 	INIT = "INIT_TRANSPORT",
@@ -59,14 +59,16 @@ export const toggleTransportControl = () : AppThunk =>
 		dispatch({ type: TransportActionType.SET_SHOW_TRANSPORT_CONTROL, payload: { show: !isShown } });
 	};
 
-export const initTransport = (info?: OSCQueryRNBOJackTransport) => {
+export const initTransport = (info?: OSCQueryRNBOJackTransport): IInitTransport => {
 	return {
 		type: TransportActionType.INIT,
 		payload: {
 			bpm: info?.CONTENTS?.bpm?.VALUE,
 			rolling: info?.CONTENTS?.rolling?.TYPE === OSCQueryValueType.True || false,
 			sync: info?.CONTENTS?.sync?.TYPE === OSCQueryValueType.True || false,
-			linkSync: info?.CONTENTS?.linksync?.TYPE !== OSCQueryValueType.False
+			linkSync: info?.CONTENTS?.linksync?.TYPE !== OSCQueryValueType.False,
+			bar_beat: info?.CONTENTS?.bar_beat?.VALUE || [0, 0],
+			time_signature: info?.CONTENTS?.time_sig?.VALUE || [4, 4]
 		}
 	};
 };
@@ -80,6 +82,17 @@ export const setTransportRollingOnRemote = (roll: boolean): AppThunk =>
 			args: [{
 				value: roll ? "true" : "false",
 				type: roll ? OSCQueryValueType.True : OSCQueryValueType.False
+			}]
+		}));
+	};
+
+export const resetTransportPositionOnRemote = (): AppThunk =>
+	() => {
+		oscQueryBridge.sendPacket(writePacket({
+			address: `${oscTransportPathPrefix}/position`,
+			args: [{
+				value: 0.0,
+				type: OSCQueryValueType.Float32
 			}]
 		}));
 	};
@@ -118,6 +131,12 @@ export const setTransportLinkSyncOnRemote = (linkSync: boolean): AppThunk =>
 		}));
 	};
 
+export const toggleTransportLinkSyncOnRemote = (): AppThunk =>
+	(dispatch, getState) => {
+		const state = getState();
+		dispatch(setTransportLinkSyncOnRemote(!getTransportControlState(state).linkSync));
+	};
+
 
 export const setTransportBPMOnRemote = (bpm: number): AppThunk =>
 	() => {
@@ -127,6 +146,23 @@ export const setTransportBPMOnRemote = (bpm: number): AppThunk =>
 				value: clamp(bpm, BPMRange.Min, BPMRange.Max),
 				type: OSCQueryValueType.Float32
 			}]
+		}));
+	};
+
+export const setTransportTimeSignatureOnRemote = (beatsPerBar: number, beatType: number): AppThunk =>
+	() => {
+		oscQueryBridge.sendPacket(writePacket({
+			address: `${oscTransportPathPrefix}/time_sig`,
+			args: [
+				{
+					value: clamp(beatsPerBar, TimeSignatureRange.Min, TimeSignatureRange.Max),
+					type: OSCQueryValueType.Int32
+				},
+				{
+					value: beatType,
+					type: OSCQueryValueType.Int32
+				}
+			]
 		}));
 	};
 
