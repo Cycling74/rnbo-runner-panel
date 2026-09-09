@@ -57,8 +57,8 @@ async fn main() -> Result<(), rocket::Error> {
 
     {
         use {
-            core::net::{IpAddr, Ipv4Addr},
-            rocket::config::Config,
+            core::net::{IpAddr, Ipv4Addr, Ipv6Addr},
+            rocket::{config::Config, error::ErrorKind},
         };
 
         let temp_dir = runner_config.temp_dir();
@@ -74,7 +74,6 @@ async fn main() -> Result<(), rocket::Error> {
 
         let mut config = Config::figment()
             .merge((Config::PORT, 3000))
-            .merge((Config::ADDRESS, IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0))))
             .merge((Config::TEMP_DIR, temp_dir));
         if let Some(dir) = args.template_dir {
             config = config.merge(("template_dir", dir));
@@ -83,19 +82,45 @@ async fn main() -> Result<(), rocket::Error> {
             .static_dir
             .unwrap_or_else(|| PathBuf::from("../client/out"));
 
-        rocket::build()
-            .configure(config)
-            .mount("/", FileServer::from(static_dir))
-            .mount("/files", crate::routes::file_routes())
-            .mount("/packages", crate::routes::package_routes())
-            .manage(crate::config::Config::new(
-                filetype_paths,
-                deleteable_filetypes,
-                Some(runner_config.package_dir()),
-            ))
-            .attach(Template::fairing())
+        let build_server = |address: IpAddr| {
+            rocket::build()
+                .configure(config.clone().merge((Config::ADDRESS, address)))
+                .mount("/", FileServer::from(static_dir.clone()))
+                .mount("/files", crate::routes::file_routes())
+                .mount("/packages", crate::routes::package_routes())
+                .manage(crate::config::Config::new(
+                    filetype_paths.clone(),
+                    deleteable_filetypes.clone(),
+                    Some(runner_config.package_dir()),
+                ))
+                .attach(Template::fairing())
+        };
+
+        // Serve on the IPv6 wildcard so the panel is reachable over IPv6 as well as
+        // IPv4. This matters for direct ethernet connections, where the only
+        // addresses either end has are link-local ones and mDNS hands the browser
+        // the AAAA record (http://<host>.local:3000).
+        //
+        // A `::` socket is dual-stack on the systems we ship to (Linux defaults to
+        // net.ipv6.bindv6only = 0, as does macOS), so IPv4 clients keep working and
+        // simply arrive as v4-mapped addresses. Rocket binds the socket itself and
+        // doesn't expose IPV6_V6ONLY, so on a kernel booted with IPv6 disabled the
+        // bind fails outright -- fall back to the IPv4 wildcard there rather than
+        // refusing to start.
+        if let Err(err) = build_server(IpAddr::V6(Ipv6Addr::UNSPECIFIED))
             .launch()
-            .await?;
+            .await
+        {
+            match err.kind() {
+                ErrorKind::Bind(e) => {
+                    eprintln!("failed to bind [::]:3000 ({e}), falling back to IPv4 only");
+                    build_server(IpAddr::V4(Ipv4Addr::UNSPECIFIED))
+                        .launch()
+                        .await?;
+                }
+                _ => return Err(err),
+            }
+        }
     }
     Ok(())
 }

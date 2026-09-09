@@ -1,4 +1,5 @@
 [default]
 port = 3000
-address = "0.0.0.0"
+# dual-stack wildcard: reachable over both IPv6 and IPv4 (v4-mapped)
+address = "::"
 limits = { form = "64 kB", json = "1 MiB", file = "10 GiB" }
