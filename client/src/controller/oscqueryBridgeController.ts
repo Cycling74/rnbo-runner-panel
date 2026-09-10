@@ -105,6 +105,20 @@ enum OSCQueryCommand {
 	ATTRIBUTES_CHANGED = "ATTRIBUTES_CHANGED"
 }
 
+// Liveness probe for an otherwise idle connection. Pulling a cable leaves an idle
+// TCP connection looking perfectly healthy -- no bytes are in flight, so neither
+// end notices the path is gone, the socket stays readyState OPEN and fires no
+// close event. Without this the UI keeps claiming Ready while talking to nothing,
+// and the reconnect logic never runs because nothing told it to.
+//
+// The probe path is one _init() already requires -- it reads state.CONTENTS.patchers
+// unguarded, unlike the optional nodes around it -- so a runner missing this node
+// would fail to initialise long before the heartbeat ran. Its reply is also small:
+// 67 bytes measured against a 1.4.5 runner, answered in 2ms.
+const HEARTBEAT_PATH = "/rnbo/patchers";
+const HEARTBEAT_INTERVAL_MS = 10000;
+const HEARTBEAT_TIMEOUT_MS = 5000;
+
 const portPropertiesPathMatcher = /^\/rnbo\/jack\/info\/ports\/properties\/(?<port>.+)$/;
 const portAliasPathMatcher = /^\/rnbo\/jack\/info\/ports\/aliases\/(?<port>.+)$/;
 const patchersPathMatcher = /^\/rnbo\/patchers/;
@@ -141,6 +155,10 @@ export class OSCQueryBridgeControllerPrivate {
 	}
 
 	private _ws: ReconnectingWebsocket | null = null;
+
+	private _heartbeatTimer: ReturnType<typeof setInterval> | null = null;
+	private _heartbeatEvents: AbortController | null = null;
+	private _lastMessageAt: number = 0;
 
 	// Pending OSCQuery node-description requests, keyed by path. Replies are
 	// routed by the single _onMessage listener (see below) rather than by
@@ -397,6 +415,7 @@ export class OSCQueryBridgeControllerPrivate {
 	};
 
 	private _onMessage = async (evt: MessageEvent): Promise<void> => {
+		this._lastMessageAt = Date.now();
 		try {
 
 			if (typeof evt.data === "string") {
@@ -930,6 +949,53 @@ export class OSCQueryBridgeControllerPrivate {
 		return this._ws?.readyState === WebSocketState.OPEN;
 	}
 
+	private _startHeartbeat(): void {
+		this._stopHeartbeat();
+		this._lastMessageAt = Date.now();
+		this._heartbeatTimer = setInterval(this._heartbeat, HEARTBEAT_INTERVAL_MS);
+
+		// Browsers throttle timers in hidden tabs to roughly once a minute, so the
+		// interval above effectively stops while the user is elsewhere and a
+		// disconnect can go undetected the whole time. Probe the moment the tab is
+		// shown again, rather than waiting for the next tick -- otherwise coming
+		// back to a dead connection costs another HEARTBEAT_INTERVAL_MS before we
+		// so much as ask.
+		this._heartbeatEvents = new AbortController();
+		const { signal } = this._heartbeatEvents;
+		window.addEventListener("online", this._heartbeat, { signal });
+		document.addEventListener("visibilitychange", this._onVisibilityChange, { signal });
+	}
+
+	private _onVisibilityChange = (): void => {
+		if (document.visibilityState === "visible") void this._heartbeat();
+	};
+
+	private _stopHeartbeat(): void {
+		if (this._heartbeatTimer) {
+			clearInterval(this._heartbeatTimer);
+			this._heartbeatTimer = null;
+		}
+		this._heartbeatEvents?.abort();
+		this._heartbeatEvents = null;
+	}
+
+	private _heartbeat = async (): Promise<void> => {
+		// Skip while connecting or reconnecting; that path reports itself.
+		if (this._ws?.readyState !== WebSocketState.OPEN) return;
+
+		// Traffic is proof of life, so a busy connection is never probed.
+		if (Date.now() - this._lastMessageAt < HEARTBEAT_INTERVAL_MS) return;
+
+		try {
+			await this._requestState(HEARTBEAT_PATH, HEARTBEAT_TIMEOUT_MS);
+		} catch {
+			// No reply in time. The socket still claims to be open, so drop it and
+			// let the reconnect path run -- which is also what finally moves the UI
+			// off Ready and onto Reconnecting.
+			this._ws?.reconnect();
+		}
+	};
+
 	public async connect({ hostname, port }: { hostname: string; port: string }): Promise<void> {
 
 		this._ws = new ReconnectingWebsocket({ hostname, port });
@@ -949,6 +1015,7 @@ export class OSCQueryBridgeControllerPrivate {
 			this._ws.on("message", this._onMessage);
 
 			await this._init();
+			this._startHeartbeat();
 		} catch (err) {
 			this.dispatch(setAppStatus(AppStatus.Error, new Error(`Failed to connect to start up: ${err.message}`)));
 			console.log(err);
@@ -958,6 +1025,7 @@ export class OSCQueryBridgeControllerPrivate {
 	}
 
 	public close(): void {
+		this._stopHeartbeat();
 		this._rejectAllPendingStateRequests(new Error("The connection to the RNBO Runner was closed"));
 		this._ws?.close();
 		this._ws?.removeAllListeners();
