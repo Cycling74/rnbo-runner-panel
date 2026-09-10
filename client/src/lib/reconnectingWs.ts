@@ -53,9 +53,7 @@ export class ReconnectingWebsocket extends EventEmitter {
 		this.maxRetryTimeout = maxRetryTimeout;
 	}
 
-	private _onClose = async (evt: CloseEvent): Promise<void> => {
-		if (!this.doReconnect) return void this.emit("close", evt);
-
+	private async _reconnect(): Promise<void> {
 		this.emit("reconnecting");
 		try {
 			await this.attemptConnect(this.maxReconnectRetries);
@@ -63,18 +61,16 @@ export class ReconnectingWebsocket extends EventEmitter {
 		} catch (err) {
 			this.emit("reconnect_failed", err);
 		}
+	}
+
+	private _onClose = async (evt: CloseEvent): Promise<void> => {
+		if (!this.doReconnect) return void this.emit("close", evt);
+		await this._reconnect();
 	};
 
 	private _onError = async (evt: ErrorEvent): Promise<void> => {
 		if (!this.doReconnect) return void this.emit("error", evt);
-
-		this.emit("reconnecting");
-		try {
-			await this.attemptConnect(this.maxReconnectRetries);
-			this.emit("reconnect");
-		} catch (err) {
-			this.emit("reconnect_failed", err);
-		}
+		await this._reconnect();
 	};
 
 	private _onMessage = (evt: MessageEvent) => {
@@ -198,6 +194,32 @@ export class ReconnectingWebsocket extends EventEmitter {
 
 	public async connect() {
 		await this.attemptConnect(this.maxRetries);
+	}
+
+	// Throw away the current socket and connect again. For a caller that has
+	// worked out the connection is dead by other means -- a heartbeat that went
+	// unanswered, say -- because a socket whose path has silently gone away stays
+	// readyState OPEN and fires no close event until TCP eventually gives up.
+	// Unlike close(), this leaves reconnection enabled. The listeners are dropped
+	// and the reconnect started directly rather than waiting on the close event,
+	// which a broken connection may take a long time to deliver.
+	public reconnect(): void {
+		if (!this.doReconnect || this.connecting) return;
+
+		const ws = this._ws;
+		if (ws) {
+			ws.removeEventListener("close", this._onClose);
+			ws.removeEventListener("error", this._onError);
+			ws.removeEventListener("message", this._onMessage);
+			this._ws = null;
+			try {
+				ws.close();
+			} catch {
+				// already gone; nothing to do
+			}
+		}
+
+		void this._reconnect();
 	}
 
 	public close(): void {
