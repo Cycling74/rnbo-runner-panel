@@ -15,9 +15,9 @@ import {
 	getLinkAudioSinkOrder, getLinkAudioSinks,
 	getLinkAudioSourceOrder, getLinkAudioSources
 } from "../selectors/linkAudio";
-import { setLinkAudioSinkOrderOnRemote, setLinkAudioSourceOrderOnRemote } from "../actions/linkAudio";
+import { setLinkAudioSinkOrderOnRemote, setLinkAudioSourceOrderOnRemote, triggerAddLinkAudioSinkOnRemote } from "../actions/linkAudio";
 import { LinkAudioSinkRow, LinkAudioSourceRow } from "../components/linkAudio/rows";
-import { AddSinkModal, AddSourceMenu } from "../components/linkAudio/addSlot";
+import { AddSourceMenu } from "../components/linkAudio/addSlot";
 import { swappedWithin } from "../lib/linkAudio";
 import { removeLinkDeviceOnRemote } from "../actions/linkDevices";
 import { getAppStatus } from "../selectors/appStatus";
@@ -54,7 +54,9 @@ export const LinkDevicePage: FC<Record<never, never>> = () => {
 		getLinkAudioPeers(state)
 	]);
 
-	const [addSinkOpen, setAddSinkOpen] = useState<boolean>(false);
+	const onAddSink = useCallback(() => {
+		dispatch(triggerAddLinkAudioSinkOnRemote());
+	}, [dispatch]);
 
 	const onChangeDevice = useCallback((pathname: string) => {
 		navigate({ pathname, search });
@@ -125,8 +127,6 @@ export const LinkDevicePage: FC<Record<never, never>> = () => {
 	// the session isn't advertising right now has nothing to offer, so the menu comes up empty.
 	const devicePeer = deviceSources[0]?.peer;
 	const devicePeerInfo = devicePeer === undefined ? undefined : peers.find(p => p.peer === devicePeer);
-	// validate against every Send name, not just this device's, since the names share one space
-	const allSinkNames = sinks.valueSeq().toArray().map(s => s.name);
 
 	return (
 		<Stack className={ classes.instanceWrap } onFocus={ onFieldFocusIn } onBlur={ onFieldFocusOut } style={ keyboardPad ? { paddingBottom: "60vh" } : undefined } >
@@ -145,7 +145,7 @@ export const LinkDevicePage: FC<Record<never, never>> = () => {
 							<Button
 								leftSection={ <IconElement path={ mdiPlus } /> }
 								variant="default"
-								onClick={ () => setAddSinkOpen(true) }
+								onClick={ onAddSink }
 							>
 								Add Send
 							</Button>
@@ -192,7 +192,6 @@ export const LinkDevicePage: FC<Record<never, never>> = () => {
 								<LinkAudioSinkRow
 									key={ sink.id }
 									sink={ sink }
-									usedNames={ allSinkNames }
 									first={ i === 0 }
 									last={ i === deviceSinks.length - 1 }
 									onMove={ canReorder ? onMoveSink : undefined }
@@ -219,8 +218,6 @@ export const LinkDevicePage: FC<Record<never, never>> = () => {
 					</Stack>
 				)
 			}
-
-			<AddSinkModal open={ addSinkOpen } usedNames={ allSinkNames } onClose={ () => setAddSinkOpen(false) } />
 		</Stack>
 	);
 };

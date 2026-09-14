@@ -9,6 +9,10 @@ import {
 	LinkAudioSourceRecord,
 	parseLinkAudioChannels
 } from "../models/linkAudio";
+import { DialogResult, showConfirmDialog, showTextInputDialog } from "../lib/dialogs";
+import { showNotification } from "./notifications";
+import { NotificationLevel } from "../models/notification";
+import { getLinkAudioSinks } from "../selectors/linkAudio";
 
 export enum LinkAudioActionType {
 	INIT = "INIT_LINK_AUDIO",
@@ -224,6 +228,34 @@ export const removeLinkAudioSourceOnRemote = (peer: string, channel: string): Ap
 		}));
 	};
 
+// Trigger Link Source Channel Delete with Dialog
+export const triggerRemoveLinkAudioSourceOnRemote = (source: LinkAudioSourceRecord): AppThunk =>
+	async (dispatch) => {
+		try {
+
+			const dialogResult = await showConfirmDialog({
+				text: `Are you sure you want to delete the Link receive ${source.label}?`,
+				actions: {
+					confirm: { label: "Delete", color: "red" }
+				}
+			});
+
+			if (dialogResult === DialogResult.Cancel) {
+				return;
+			}
+
+			dispatch(removeLinkAudioSourceOnRemote(source.peer, source.channel));
+
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: "Error while trying to delete Link receive",
+				message: "Please check the console for further details."
+			}));
+			console.error(err);
+		}
+	};
+
 // jack_transport_link's source/remove accepts either (peer, channel) or a bare slot key. Removing
 // by key avoids re-deriving an identity we already hold, which matters when tearing down a whole
 // device whose channels may have gone off the network.
@@ -251,12 +283,85 @@ export const addLinkAudioSinkOnRemote = (name: string): AppThunk =>
 		}));
 	};
 
+export const triggerAddLinkAudioSinkOnRemote = (): AppThunk =>
+	async (dispatch, getState) => {
+		try {
+
+			const currentSinks = getLinkAudioSinks(getState());
+			let suggestedSinkName: string = "";
+			for (let i = 1; ; i++) {
+				const name = `Send ${i}`;
+				if (!currentSinks.find(s => s.name === name)) {
+					suggestedSinkName = name;
+					break;
+				}
+			}
+
+			const dialogResult = await showTextInputDialog({
+				actions: {
+					confirm: { label: "Add" }
+				},
+				text: "Announced to the Link session so other peers can subscribe to it.",
+				label: "Send Channel Name",
+				// jack_transport_link rejects an empty or colliding name, so catch it here for a real
+				// error message instead of a silently reverted field.
+				validate: (v: string) => {
+					const value = v.trim();
+					if (!value?.length) return "Please provide a valid, non empty name.";
+					if (currentSinks.some(s => s.name === value)) return "That name is already used";
+					return true;
+				},
+				value: suggestedSinkName
+			});
+
+			if (dialogResult === DialogResult.Cancel || dialogResult === DialogResult.Discard) return;
+
+			dispatch(addLinkAudioSinkOnRemote(dialogResult));
+
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: "Error while trying to create Link send",
+				message: "Please check the console for further details."
+			}));
+			console.error(err);
+		}
+	};
+
 export const removeLinkAudioSinkOnRemote = (name: string): AppThunk =>
 	() => {
 		oscQueryBridge.sendPacket(writePacket({
 			address: `${oscLinkAudioPrefix}/sinks/remove`,
 			args: [{ type: "s", value: name }]
 		}));
+	};
+
+// Trigger Link Sink Channel Delete with Dialog
+export const triggerRemoveLinkAudioSinkOnRemote = (sink: LinkAudioSinkRecord): AppThunk =>
+	async (dispatch) => {
+		try {
+
+			const dialogResult = await showConfirmDialog({
+				text: `Are you sure you want to delete the Link send channel ${ sink.name }?`,
+				actions: {
+					confirm: { label: "Delete", color: "red" }
+				}
+			});
+
+			if (dialogResult === DialogResult.Cancel) {
+				return;
+			}
+
+			dispatch(removeLinkAudioSinkOnRemote(sink.name));
+
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: "Error while trying to delete Link send",
+				message: "Please check the console for further details."
+			}));
+			console.error(err);
+		}
 	};
 
 export const setLinkAudioSinkOrderOnRemote = (keys: string[]): AppThunk =>
@@ -324,4 +429,40 @@ export const setLinkAudioSinkNameOnRemote = (key: string, name: string): AppThun
 			address: `${oscLinkAudioPrefix}/sinks/list/${key}/name`,
 			args: [{ type: "s", value: name }]
 		}));
+	};
+
+export const triggerLinkAudioSinkNameOnRemote = (sink: LinkAudioSinkRecord): AppThunk =>
+	async (dispatch, getState) => {
+		try {
+
+			const currentSinks = getLinkAudioSinks(getState());
+
+			const dialogResult = await showTextInputDialog({
+				actions: {
+					confirm: { label: "Rename" }
+				},
+				text: "Please name the Link send channel",
+				label: "Send Name",
+				// jack_transport_link rejects an empty or colliding name, so catch it here for a real
+				// error message instead of a silently reverted field.
+				validate: (v: string) => {
+					const value = v.trim();
+					if (!value?.length) return "Please provide a valid, non empty name.";
+					if (currentSinks.some(s => s.key !== sink.key && s.name === value)) return "That name is already used";
+					return true;
+				},
+				value: sink.name
+			});
+
+			if (dialogResult === DialogResult.Cancel || dialogResult === DialogResult.Discard) return;
+
+			dispatch(setLinkAudioSinkNameOnRemote(sink.key, dialogResult));
+		} catch (err) {
+			dispatch(showNotification({
+				level: NotificationLevel.error,
+				title: `Error while trying to rename Link send channel ${sink.name}`,
+				message: "Please check the console for further details."
+			}));
+			console.log(err);
+		}
 	};

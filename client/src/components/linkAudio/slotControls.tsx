@@ -1,20 +1,18 @@
 import { FC } from "react";
-import { ActionIcon, Group } from "@mantine/core";
-import { mdiArrowDown, mdiArrowUp, mdiTrashCan } from "@mdi/js";
+import { ActionIcon, Group, Menu } from "@mantine/core";
+import { mdiArrowDown, mdiArrowUp, mdiDotsVertical, mdiPencil, mdiTrashCan } from "@mdi/js";
 import { IconElement } from "../elements/icon";
 
-export type SlotControlsProps = {
+export type CommonSlotControlsProps = {
 	first: boolean;
 	last: boolean;
 	// omitted when the slot list is too short to reorder
 	onUp?: () => void;
 	onDown?: () => void;
-	onRemove: () => void;
+	onTriggerRemove: () => void;
 };
 
-// Up / down / delete controls shared by both slot row types. Reorder is buttons rather than
-// drag-and-drop: no new dependency, and it works on the Move's touch screen.
-export const SlotControls: FC<SlotControlsProps> = ({ first, last, onUp, onDown, onRemove }) => (
+export const ReceiveSlotControls: FC<CommonSlotControlsProps> = ({ first, last, onUp, onDown, onTriggerRemove }) => (
 	<Group gap="xs" wrap="nowrap" >
 		{
 			onUp && onDown ? (
@@ -28,8 +26,48 @@ export const SlotControls: FC<SlotControlsProps> = ({ first, last, onUp, onDown,
 				</>
 			) : null
 		}
-		<ActionIcon variant="default" color="red" onClick={ onRemove } aria-label="Remove" >
-			<IconElement path={ mdiTrashCan } />
-		</ActionIcon>
+		<Menu position="bottom-end" >
+			<Menu.Target>
+				<ActionIcon variant="subtle" color="gray" size="md">
+					<IconElement path={ mdiDotsVertical } />
+				</ActionIcon>
+			</Menu.Target>
+			<Menu.Dropdown>
+				<Menu.Item color="red" leftSection={<IconElement path={mdiTrashCan} />} onClick={onTriggerRemove } >Delete</Menu.Item>
+			</Menu.Dropdown>
+		</Menu>
+	</Group>
+);
+
+export type SendSlotControlProps = CommonSlotControlsProps & {
+	onTriggerRename: () => void;
+};
+
+export const SendSlotControls: FC<SendSlotControlProps> = ({ first, last, onUp, onDown, onTriggerRemove, onTriggerRename }) => (
+	<Group gap="xs" wrap="nowrap" >
+		{
+			onUp && onDown ? (
+				<>
+					<ActionIcon variant="default" disabled={first} onClick={onUp} aria-label="Move up" >
+						<IconElement path={mdiArrowUp} />
+					</ActionIcon>
+					<ActionIcon variant="default" disabled={last} onClick={onDown} aria-label="Move down" >
+						<IconElement path={mdiArrowDown} />
+					</ActionIcon>
+				</>
+			) : null
+		}
+		<Menu position="bottom-end" >
+			<Menu.Target>
+				<ActionIcon variant="subtle" color="gray" size="md">
+					<IconElement path={mdiDotsVertical} />
+				</ActionIcon>
+			</Menu.Target>
+			<Menu.Dropdown>
+				<Menu.Item leftSection={<IconElement path={mdiPencil} />} onClick={onTriggerRename} >Rename</Menu.Item>
+				<Menu.Divider />
+				<Menu.Item color="red" leftSection={<IconElement path={mdiTrashCan} />} onClick={onTriggerRemove} >Delete</Menu.Item>
+			</Menu.Dropdown>
+		</Menu>
 	</Group>
 );
