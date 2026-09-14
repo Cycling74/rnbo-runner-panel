@@ -3,6 +3,7 @@ import { ParameterSortAttr, ParamSize, SettingsTab, SortOrder } from "../lib/con
 
 export enum AppSetting {
 	colorScheme = "colorscheme",
+	addNodeMenuGroupThreshold = "add_node_menu_group_threshold",
 	debugMessageOutput = "message_out_debug",
 	keyboardMIDIInput = "keyboard_midi_input",
 	paramSortAttribute = "parameter_sort_attribute",
@@ -13,6 +14,7 @@ export enum AppSetting {
 
 export enum AppSettingType {
 	Boolean,
+	Numeric,
 	String,
 	Switch
 }
@@ -23,6 +25,8 @@ export type AppSettingValue = string | number | boolean;
 export type AppSettingRecordProps = {
 	id: AppSetting;
 	description?: string;
+	max?: number;
+	min?: number;
 	options?: AppSettingOptions;
 	tab: SettingsTab.UI,
 	title: string;
@@ -31,6 +35,15 @@ export type AppSettingRecordProps = {
 }
 
 export const appSettingDefaults: Record<AppSetting, Omit<AppSettingRecordProps, "id">> = {
+	[AppSetting.addNodeMenuGroupThreshold]: {
+		description: "Once the Add Node menu lists more than this many patchers it groups them by name. Each category holds roughly this many entries.",
+		max: 200,
+		min: 2,
+		tab: SettingsTab.UI,
+		title: "Add Node Menu: Group After",
+		type: AppSettingType.Numeric,
+		value: 10
+	},
 	[AppSetting.colorScheme]: {
 		description: "Select the color scheme of the user interface",
 		tab: SettingsTab.UI,
@@ -90,6 +103,8 @@ export const appSettingDefaults: Record<AppSetting, Omit<AppSettingRecordProps, 
 export class AppSettingRecord extends ImmuRecord<AppSettingRecordProps>({
 	id: "" as AppSetting,
 	description: undefined,
+	max: undefined,
+	min: undefined,
 	options: undefined,
 	tab: SettingsTab.UI,
 	title: "",

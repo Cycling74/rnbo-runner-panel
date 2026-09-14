@@ -1,0 +1,3 @@
+#disable rustc-wrapper because kache for instance breaks cross building
+[build]
+rustc-wrapper = ""

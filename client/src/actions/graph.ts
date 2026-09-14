@@ -407,7 +407,7 @@ export const initPorts = (jackPortsInfo: OSCQueryRNBOJackPortInfo): AppThunk =>
 
 			const node: GraphNodeRecord = GraphNodeRecord.fromDescription(
 				port.nodeId,
-				port.isPatcherInstancePort ? NodeType.Patcher : NodeType.System,
+				port.nodeType,
 				port.instanceId
 			);
 
@@ -514,8 +514,8 @@ export const setPortProperties = (id: GraphPortRecord["id"], properties: string)
 			dispatch(setNodePosition(pos));
 		}
 
-		const node = getNode(state, port.nodeId) || GraphNodeRecord.fromDescription(port.nodeId, port.isPatcherInstancePort ? NodeType.Patcher : NodeType.System);
-		dispatch(setNode(node.set("type", port.isPatcherInstancePort ? NodeType.Patcher : NodeType.System)));
+		const node = getNode(state, port.nodeId) || GraphNodeRecord.fromDescription(port.nodeId, port.nodeType);
+		dispatch(setNode(node.set("type", port.nodeType)));
 	};
 
 // Trigger Updates on remote OSCQuery Runner

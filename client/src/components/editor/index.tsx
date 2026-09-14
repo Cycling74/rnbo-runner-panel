@@ -4,6 +4,7 @@ import ReactFlow, { Connection, Edge, EdgeChange, Node, NodeChange, ReactFlowIns
 import { GraphConnectionRecord, GraphNodeRecord, NodeType } from "../../models/graph";
 import EditorPatcherNode from "./patcherNode";
 import EditorSystemNode from "./systemNode";
+import EditorLinkAudioNode from "./linkAudioNode";
 import { EdgeDataProps, EditorEdgeProps, EditorNodeProps, NodeDataProps } from "./util";
 import { isValidConnection } from "../../lib/editorUtils";
 import { RootStateType } from "../../lib/store";
@@ -16,6 +17,7 @@ import { IconElement } from "../elements/icon";
 import { mdiFitToScreen, mdiLock, mdiLockOpen, mdiMinus, mdiPlus, mdiSitemap } from "@mdi/js";
 import { maxEditorZoom, minEditorZoom } from "../../lib/constants";
 import { EditorNodeDesc } from "../../selectors/graph";
+import { linkDevicePath } from "../../lib/deviceRoutes";
 import { getHotkeyHandler } from "@mantine/hooks";
 import { useLocation, useNavigate } from "react-router";
 
@@ -41,7 +43,8 @@ export type GraphEditorProps = {
 
 const nodeTypes: Record<NodeType, ComponentType<EditorNodeProps>> = {
 	[NodeType.Patcher]: EditorPatcherNode,
-	[NodeType.System]: EditorSystemNode
+	[NodeType.System]: EditorSystemNode,
+	[NodeType.LinkAudio]: EditorLinkAudioNode
 };
 
 const edgeTypes: Record<typeof RNBOGraphEdgeType, ComponentType<EditorEdgeProps>> = {
@@ -94,12 +97,17 @@ const GraphEditor: FunctionComponent<GraphEditorProps> = memo(function WrappedFl
 	}, [connections, nodeInfo, onEdgesChange, onNodesChange]);
 
 	const onNodeDoubleClick = useCallback((e: React.MouseEvent, node: Node<NodeDataProps>) => {
-		if (node.type !== NodeType.Patcher) return;
-		navigate({ pathname: `/instances/${encodeURIComponent(node.data.node.instanceId)}`, search });
+		if (node.type === NodeType.Patcher) {
+			navigate({ pathname: `/instances/${encodeURIComponent(node.data.node.instanceId)}`, search });
+			return;
+		}
+		if (node.type === NodeType.LinkAudio) {
+			navigate({ pathname: linkDevicePath(node.data.node.id), search });
+		}
 	}, [search, navigate]);
 
 	const onDeleteNode = useCallback((node: GraphNodeRecord) => {
-		if (node.type !== NodeType.Patcher) return;
+		if (node.type !== NodeType.Patcher && node.type !== NodeType.LinkAudio) return;
 		onNodesChange([{ id: node.id, type: "remove" }]);
 	}, [onNodesChange]);
 
@@ -115,7 +123,7 @@ const GraphEditor: FunctionComponent<GraphEditorProps> = memo(function WrappedFl
 				x: x,
 				y: y
 			},
-			deletable: node.type === NodeType.Patcher,
+			deletable: node.type === NodeType.Patcher || node.type === NodeType.LinkAudio,
 			selected: node.selected,
 			type: node?.type,
 			data: {

@@ -5,7 +5,7 @@ import { initRunnerInfo, setRunnerInfoValue, setAppStatus, setConnectionEndpoint
 import { AppDispatch, store } from "../lib/store";
 import { ReconnectingWebsocket } from "../lib/reconnectingWs";
 import { AppStatus, JackInfoKey, RunnerCmdHighWaterMarkCount, RunnerCmdMethod, RunnerCmdResultCode, RunnerCmdWriteMethod, SystemInfoKey, WebSocketState } from "../lib/constants";
-import { OSCQueryRNBOState, OSCQueryRNBOInstance, OSCQueryRNBOPatchersState, OSCQueryRNBOSetsState, OSCValue, OSCQueryRNBOInstancesMetaState, OSCQuerySetMeta, RunnerCmdResponse } from "../lib/types";
+import { OSCQueryRNBOState, OSCQueryRNBOInstance, OSCQueryRNBOPatchersState, OSCQueryRNBOSetsState, OSCValue, OSCQueryRNBOInstancesMetaState, OSCQuerySetMeta, RunnerCmdResponse, OSCQueryRNBOJackLinkAudio, OSCQueryValueType } from "../lib/types";
 import { deletePortAliases, initConnections, initPorts, setPortAliases, updateSetMetaFromRemote, updateSourcePortConnections, deletePortById, setPortProperties, addPort } from "../actions/graph";
 import { addInstance, deleteInstanceById, initInstances, initPatchers, updatePatcherUUID, removeInstanceDataRefByPath, updateInstanceDataRefMeta, updateInstanceDataRefs, updateInstanceParameterDisplayName, updateInstanceAlias } from "../actions/patchers";
 import { initRunnerConfig, updateRunnerConfig } from "../actions/settings";
@@ -26,6 +26,11 @@ import {
 import { showNotification } from "../actions/notifications";
 import { NotificationLevel } from "../models/notification";
 import { initTransport, updateTransportStatus } from "../actions/transport";
+import {
+	initLinkAudio, setLinkAudioAvailable, setLinkAudioPeers, setLinkAudioPeerName,
+	setLinkAudioSourceOrder, setLinkAudioSinkOrder, setLinkAudioLatencyMs, setLinkAudioSyncToIncoming,
+	setLinkEnabled, updateLinkAudioSource, updateLinkAudioSink
+} from "../actions/linkAudio";
 import { deserializeSetMeta } from "../lib/meta";
 import { initStreamRecording, updateStreamRecordingActiveState, updateStreamRecordingCapturedTime } from "../actions/recording";
 
@@ -120,6 +125,23 @@ const setViewPathMatcher = /^\/rnbo\/inst\/control\/sets\/views\/list\/(?<id>\d+
 
 // TODO const setsPresetsCurrentNamePath = "/rnbo/inst/control/sets/current/name";
 const setsPresetsLoadPath = "/rnbo/inst/control/sets/presets/load";
+
+const linkAudioPath = "/rnbo/jack/link/audio";
+const linkEnabledPath = "/rnbo/jack/link/enabled";
+const linkAudioAvailablePath = `${linkAudioPath}/available`;
+const linkAudioChannelsPath = `${linkAudioPath}/channels`;
+const linkAudioPeerNamePath = `${linkAudioPath}/peer_name`;
+const linkAudioLatencyMsPath = `${linkAudioPath}/latency_ms`;
+const linkAudioSyncToIncomingPath = `${linkAudioPath}/sync_to_incoming`;
+const linkAudioSourcesOrderPath = `${linkAudioPath}/sources/order`;
+const linkAudioSinksOrderPath = `${linkAudioPath}/sinks/order`;
+
+// Slot nodes are named after the slot key, not a positional index, and live under `list` so the
+// key can't be confused with a sibling command node ("add" and friends are siblings of `list`).
+// A rename changes the key, so it shows up as one node removed and another added — which the
+// path-added/removed handlers already turn into a subtree re-read.
+const linkAudioSlotMatcher = /^\/rnbo\/jack\/link\/audio\/(?<dir>sources|sinks)\/list\/(?<key>[^/]+)(?<rest>\/\S+)?$/;
+const linkAudioValueMatcher = /^\/rnbo\/jack\/link\/audio\/(?<dir>sources|sinks)\/list\/(?<key>[^/]+)\/(?<prop>peer|channel|name|connected|receiving|buffered_ms|dropouts|arrival_offset_ms|jitter_ms)$/;
 
 const configPathMatcher = /^\/rnbo\/config\/(?<name>.+)$/;
 const jackConfigPathMatcher = /^\/rnbo\/jack\/config\/(?<name>.+)$/;
@@ -318,6 +340,10 @@ export class OSCQueryBridgeControllerPrivate {
 		// Init Transport
 		this.dispatch(initTransport(state.CONTENTS.jack?.CONTENTS?.transport));
 
+		// Init Link Audio (+ the sibling master Link on/off toggle)
+		this.dispatch(initLinkAudio(state.CONTENTS.jack?.CONTENTS?.link?.CONTENTS?.audio));
+		this.dispatch(setLinkEnabled(state.CONTENTS.jack?.CONTENTS?.link?.CONTENTS?.enabled?.TYPE !== OSCQueryValueType.False));
+
 		// Init Recording
 		this.dispatch(initStreamRecording(state.CONTENTS.jack?.CONTENTS?.record));
 
@@ -448,6 +474,12 @@ export class OSCQueryBridgeControllerPrivate {
 
 	private async _onPathAdded(path: string): Promise<void> {
 
+		// Link Audio slot (sources/list/<key> or sinks/list/<key>) added -> re-read the subtree
+		if (linkAudioSlotMatcher.test(path)) {
+			const info = await this._requestState<OSCQueryRNBOJackLinkAudio>(linkAudioPath);
+			return void this.dispatch(initLinkAudio(info));
+		}
+
 		// Handle Instances and Patcher Nodes first
 		const instanceMatch = path.match(instancePathMatcher);
 		if (instanceMatch?.groups?.id !== undefined) {
@@ -532,6 +564,12 @@ export class OSCQueryBridgeControllerPrivate {
 	}
 
 	private async _onPathRemoved(path: string): Promise<void> {
+
+		// Link Audio slot (sources/list/<key> or sinks/list/<key>) removed -> re-read the subtree
+		if (linkAudioSlotMatcher.test(path)) {
+			const info = await this._requestState<OSCQueryRNBOJackLinkAudio>(linkAudioPath);
+			return void this.dispatch(initLinkAudio(info));
+		}
 
 		// Removed Patcher
 		if (patchersPathMatcher.test(path)) {
@@ -685,8 +723,69 @@ export class OSCQueryBridgeControllerPrivate {
 			if (packet.args?.length) return void this.dispatch(updateTransportStatus({ rolling: (packet.args as unknown as [boolean])?.[0] }));
 		}
 
+		if (packet.address === "/rnbo/jack/transport/linksync") {
+			if (packet.args?.length) return void this.dispatch(updateTransportStatus({ linkSync: (packet.args as unknown as [boolean])?.[0] }));
+		}
 		if (packet.address === "/rnbo/jack/transport/sync") {
 			if (packet.args?.length) return void this.dispatch(updateTransportStatus({ sync: (packet.args as unknown as [boolean])?.[0] }));
+		}
+
+		// Master Link on/off (sibling of the audio subtree)
+		if (packet.address === linkEnabledPath) {
+			return void this.dispatch(setLinkEnabled((packet.args as unknown as [boolean])?.[0] ?? true));
+		}
+
+		// Link Audio value updates
+		if (packet.address === linkAudioAvailablePath) {
+			return void this.dispatch(setLinkAudioAvailable((packet.args as unknown as [boolean])?.[0] || false));
+		}
+		if (packet.address === linkAudioChannelsPath) {
+			return void this.dispatch(setLinkAudioPeers((packet.args as unknown as [string])?.[0] || "[]"));
+		}
+		if (packet.address === linkAudioPeerNamePath) {
+			return void this.dispatch(setLinkAudioPeerName((packet.args as unknown as [string])?.[0] || ""));
+		}
+		if (packet.address === linkAudioLatencyMsPath) {
+			return void this.dispatch(setLinkAudioLatencyMs((packet.args as unknown as [number])?.[0] ?? 100));
+		}
+		if (packet.address === linkAudioSyncToIncomingPath) {
+			return void this.dispatch(setLinkAudioSyncToIncoming((packet.args as unknown as [boolean])?.[0] ?? false));
+		}
+		if (packet.address === linkAudioSourcesOrderPath) {
+			const args = (packet.args as unknown as OSCValue[]) || [];
+			return void this.dispatch(setLinkAudioSourceOrder(args.filter(a => typeof a === "string") as string[]));
+		}
+		if (packet.address === linkAudioSinksOrderPath) {
+			const args = (packet.args as unknown as OSCValue[]) || [];
+			return void this.dispatch(setLinkAudioSinkOrder(args.filter(a => typeof a === "string") as string[]));
+		}
+		const linkAudioValueMatch = packet.address.match(linkAudioValueMatcher);
+		if (linkAudioValueMatch?.groups) {
+			const key = linkAudioValueMatch.groups.key;
+			const prop = linkAudioValueMatch.groups.prop;
+			const args = (packet.args as unknown as OSCValue[]) || [];
+			if (linkAudioValueMatch.groups.dir === "sources") {
+				if (prop === "peer") {
+					return void this.dispatch(updateLinkAudioSource(key, { peer: typeof args[0] === "string" ? args[0] : "" }));
+				} else if (prop === "channel") {
+					return void this.dispatch(updateLinkAudioSource(key, { channel: typeof args[0] === "string" ? args[0] : "" }));
+				} else if (prop === "connected") {
+					return void this.dispatch(updateLinkAudioSource(key, { connected: (packet.args as unknown as [boolean])?.[0] === true }));
+				} else if (prop === "receiving") {
+					return void this.dispatch(updateLinkAudioSource(key, { receiving: (packet.args as unknown as [boolean])?.[0] === true }));
+				} else if (prop === "buffered_ms") {
+					return void this.dispatch(updateLinkAudioSource(key, { bufferedMs: typeof args[0] === "number" ? args[0] : 0 }));
+				} else if (prop === "arrival_offset_ms") {
+					return void this.dispatch(updateLinkAudioSource(key, { arrivalOffsetMs: typeof args[0] === "number" ? args[0] : 0 }));
+				} else if (prop === "dropouts") {
+					return void this.dispatch(updateLinkAudioSource(key, { dropouts: typeof args[0] === "number" ? args[0] : 0 }));
+				} else if (prop === "jitter_ms") {
+					return void this.dispatch(updateLinkAudioSource(key, { jitterMs: typeof args[0] === "number" ? args[0] : 0 }));
+				}
+			} else if (linkAudioValueMatch.groups.dir === "sinks" && prop === "name") {
+				return void this.dispatch(updateLinkAudioSink(key, { name: (args[0] as string) || "" }));
+			}
+			return;
 		}
 
 		if (packet.address === "/rnbo/inst/control/sets/initial") {
