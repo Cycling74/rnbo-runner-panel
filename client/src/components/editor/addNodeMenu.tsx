@@ -3,7 +3,7 @@ import { PatcherExportRecord } from "../../models/patcher";
 import { Seq } from "immutable";
 import { ActionIcon, Alert, Anchor, Menu, Text, Tooltip, useMantineTheme } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
-import { mdiCastAudio, mdiCheck, mdiChevronLeft, mdiChevronRight, mdiPlus, mdiPlusBoxOutline } from "@mdi/js";
+import { mdiCastAudio, mdiCheck, mdiChevronLeft, mdiChevronRight, mdiFileExport, mdiPlus, mdiPlusBoxOutline } from "@mdi/js";
 import { IconElement } from "../elements/icon";
 import { groupPatchersByName } from "../../lib/patcherGroups";
 import { LinkAudioPeerInfo, LinkAudioSourceRecord } from "../../models/linkAudio";
@@ -16,7 +16,7 @@ type PatcherMenuEntryProps = {
 
 const PatcherMenuEntry: FC<PatcherMenuEntryProps> = ({ patcher, onLoad }) => {
 	return (
-		<Menu.Item onClick={ () => onLoad(patcher) } >
+		<Menu.Item onClick={() => onLoad(patcher)} leftSection={<IconElement path={mdiFileExport} />} >
 			{ patcher.name }
 		</Menu.Item>
 	);

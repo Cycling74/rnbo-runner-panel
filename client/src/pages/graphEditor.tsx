@@ -26,9 +26,8 @@ import { mdiCamera, mdiContentSave } from "@mdi/js";
 import { initEditor, unmountEditor } from "../actions/editor";
 import { getGraphEditorLockedState } from "../selectors/editor";
 import { AddNodeMenu } from "../components/editor/addNodeMenu";
-import { AddSinkModal } from "../components/linkAudio/addSlot";
-import { getLinkAudioAvailable, getLinkAudioPeers, getLinkAudioSinksOrdered, getLinkAudioSourcesOrdered, getLinkEnabled } from "../selectors/linkAudio";
-import { addLinkAudioSourceOnRemote } from "../actions/linkAudio";
+import { getLinkAudioAvailable, getLinkAudioPeers, getLinkAudioSourcesOrdered, getLinkEnabled } from "../selectors/linkAudio";
+import { addLinkAudioSourceOnRemote, triggerAddLinkAudioSinkOnRemote } from "../actions/linkAudio";
 import { getAppSetting } from "../selectors/settings";
 import { AppSetting } from "../models/settings";
 import { GraphSetMenu } from "../components/editor/graphMenu";
@@ -53,7 +52,6 @@ export const GraphEditorPage: FC<Record<never, never>> = () => {
 		linkEnabled,
 		linkPeers,
 		linkSources,
-		linkSinks,
 		groupThresholdSetting
 	] = useAppSelector((state: RootStateType) => [
 		getSortedPatcherExports(state, PatcherSortAttr.Name, SortOrder.Asc),
@@ -69,14 +67,14 @@ export const GraphEditorPage: FC<Record<never, never>> = () => {
 		getLinkEnabled(state),
 		getLinkAudioPeers(state),
 		getLinkAudioSourcesOrdered(state),
-		getLinkAudioSinksOrdered(state),
 		getAppSetting(state, AppSetting.addNodeMenuGroupThreshold)
 	]);
 
 	const [presetDrawerIsOpen, { close: closePresetDrawer, toggle: togglePresetDrawer }] = useDisclosure();
-	// lives here rather than in the menu: a Mantine Menu.Dropdown unmounts its children when it
-	// closes, which a modal opened from inside it would not survive
-	const [addSinkIsOpen, { close: closeAddSink, open: openAddSink }] = useDisclosure();
+
+	const onAddSink = useCallback(() => {
+		dispatch(triggerAddLinkAudioSinkOnRemote());
+	}, [dispatch]);
 
 	// Instances
 	const onAddPatcherInstance = useCallback((patcher: PatcherExportRecord) => {
@@ -208,7 +206,7 @@ export const GraphEditorPage: FC<Record<never, never>> = () => {
 							peers={ linkPeers }
 							sources={ linkSources }
 							onAddReceive={ onAddLinkReceive }
-							onAddSend={ openAddSink }
+							onAddSend={ onAddSink }
 						/>
 						<Tooltip label="Open Graph Preset Menu">
 							<ActionIcon onClick={ togglePresetDrawer } variant="default" size="lg" >
@@ -271,11 +269,6 @@ export const GraphEditorPage: FC<Record<never, never>> = () => {
 				onRenamePreset={ onRenamePreset }
 				onOverwritePreset={ onOverwritePreset }
 				presets={ graphPresets }
-			/>
-			<AddSinkModal
-				open={ addSinkIsOpen }
-				usedNames={ linkSinks.map(s => s.name) }
-				onClose={ closeAddSink }
 			/>
 		</>
 	);

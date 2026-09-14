@@ -1,15 +1,16 @@
 import { FC, useCallback } from "react";
-import { ActionIcon, Group, Paper, Text, Tooltip } from "@mantine/core";
-import { mdiRestart } from "@mdi/js";
-import { IconElement } from "../elements/icon";
-import { LinkAudioNameInput } from "./nameInput";
-import { SlotControls } from "./slotControls";
+import { ActionIcon, Group, Paper, SimpleGrid, Text, Tooltip } from "@mantine/core";
+import { ReceiveSlotControls, SendSlotControls } from "./slotControls";
 import { useAppDispatch } from "../../hooks/useAppDispatch";
 import {
-	removeLinkAudioSinkOnRemote, removeLinkAudioSourceOnRemote,
-	resetLinkAudioSourceDropoutsOnRemote, setLinkAudioSinkNameOnRemote
+	resetLinkAudioSourceDropoutsOnRemote,
+	triggerLinkAudioSinkNameOnRemote,
+	triggerRemoveLinkAudioSinkOnRemote,
+	triggerRemoveLinkAudioSourceOnRemote
 } from "../../actions/linkAudio";
 import { LinkAudioSinkRecord, LinkAudioSourceRecord } from "../../models/linkAudio";
+import { IconElement } from "../elements/icon";
+import { mdiRestart } from "@mdi/js";
 
 export type LinkAudioSourceRowProps = {
 	source: LinkAudioSourceRecord;
@@ -20,13 +21,11 @@ export type LinkAudioSourceRowProps = {
 };
 
 export const LinkAudioSourceRow: FC<LinkAudioSourceRowProps> = ({ source, first, last, onMove }) => {
-	const dispatch = useAppDispatch();
 
-	// No confirmation: re-adding is a single click, and the slot's ports are derived from its
-	// identity so nothing is lost by removing it.
-	const onRemove = useCallback(() => {
-		dispatch(removeLinkAudioSourceOnRemote(source.peer, source.channel));
-	}, [dispatch, source.peer, source.channel]);
+	const dispatch = useAppDispatch();
+	const onTriggerRemove = useCallback(() => {
+		dispatch(triggerRemoveLinkAudioSourceOnRemote(source));
+	}, [dispatch, source]);
 
 	const onUp = useCallback(() => onMove?.(source.key, -1), [onMove, source.key]);
 	const onDown = useCallback(() => onMove?.(source.key, 1), [onMove, source.key]);
@@ -65,28 +64,28 @@ export const LinkAudioSourceRow: FC<LinkAudioSourceRowProps> = ({ source, first,
 					}
 					{
 						source.connected ? (
-							<Group gap="md" mt={ 2 } align="center" >
-								<Text size="xs" c="dimmed" >Buffer: { Math.round(source.bufferedMs) } ms</Text>
-								<Text size="xs" c="dimmed" >Jitter: { source.jitterMs.toFixed(1) } ms</Text>
-								<Text size="xs" c="dimmed" >Behind: { Math.round(source.arrivalOffsetMs) } ms</Text>
-								<Group gap={ 4 } wrap="nowrap" align="center" >
-									<Text size="xs" c={ source.dropouts > 0 ? "red" : "dimmed" } >Dropouts: { source.dropouts }</Text>
+							<SimpleGrid cols={{ base: 2, md: 4 }} spacing="md" verticalSpacing={0} mt="xs" >
+								<Text size="xs" c="dimmed" >Buffer: {Math.round(source.bufferedMs)} ms</Text>
+								<Text size="xs" c="dimmed" >Jitter: {source.jitterMs.toFixed(1)} ms</Text>
+								<Text size="xs" c="dimmed" >Behind: {Math.round(source.arrivalOffsetMs)} ms</Text>
+								<Group gap={4} wrap="nowrap" align="flex-start" >
+									<Text size="xs" c={source.dropouts > 0 ? "red" : "dimmed"} >Dropouts: {source.dropouts}</Text>
 									<Tooltip label="Reset dropout count" >
-										<ActionIcon variant="subtle" size="sm" onClick={ onResetDropouts } aria-label="Reset dropout count" >
-											<IconElement path={ mdiRestart } />
+										<ActionIcon variant="subtle" size="xs" onClick={onResetDropouts} aria-label="Reset dropout count" >
+											<IconElement path={mdiRestart} />
 										</ActionIcon>
 									</Tooltip>
 								</Group>
-							</Group>
+							</SimpleGrid>
 						) : null
 					}
 				</div>
-				<SlotControls
+				<ReceiveSlotControls
 					first={ first }
 					last={ last }
 					onUp={ onMove ? onUp : undefined }
 					onDown={ onMove ? onDown : undefined }
-					onRemove={ onRemove }
+					onTriggerRemove={ onTriggerRemove }
 				/>
 			</Group>
 		</Paper>
@@ -95,50 +94,44 @@ export const LinkAudioSourceRow: FC<LinkAudioSourceRowProps> = ({ source, first,
 
 export type LinkAudioSinkRowProps = {
 	sink: LinkAudioSinkRecord;
-	usedNames: string[];
 	first: boolean;
 	last: boolean;
 	onMove?: (key: string, delta: number) => void;
 };
 
-export const LinkAudioSinkRow: FC<LinkAudioSinkRowProps> = ({ sink, usedNames, first, last, onMove }) => {
+export const LinkAudioSinkRow: FC<LinkAudioSinkRowProps> = ({ sink, first, last, onMove }) => {
 	const dispatch = useAppDispatch();
 
-	const onName = useCallback((name: string) => {
-		dispatch(setLinkAudioSinkNameOnRemote(sink.key, name));
-	}, [dispatch, sink.key]);
 
-	const onRemove = useCallback(() => {
-		dispatch(removeLinkAudioSinkOnRemote(sink.name));
-	}, [dispatch, sink.name]);
+	const onTriggerRename = useCallback(() => {
+		dispatch(triggerLinkAudioSinkNameOnRemote(sink));
+	}, [dispatch, sink]);
+
+	const onTriggerRemove = useCallback(() => {
+		dispatch(triggerRemoveLinkAudioSinkOnRemote(sink));
+	}, [dispatch, sink]);
 
 	const onUp = useCallback(() => onMove?.(sink.key, -1), [onMove, sink.key]);
 	const onDown = useCallback(() => onMove?.(sink.key, 1), [onMove, sink.key]);
 
-	// jack_transport_link rejects an empty or colliding name, so catch it here for a real
-	// error message instead of a silently reverted field.
-	const validate = useCallback((v: string): string | null => {
-		if (!v.trim().length) return "Name is required";
-		if (usedNames.some(n => n !== sink.name && n === v)) return "That name is already used";
-		return null;
-	}, [usedNames, sink.name]);
-
 	return (
 		<Paper withBorder p="sm" >
-			<Group align="flex-end" wrap="nowrap" >
-				<LinkAudioNameInput
+			<Group justify="space-between" align="flex-start" wrap="nowrap" >
+				{/* <LinkAudioNameInput
 					label="Channel Name"
 					placeholder="Channel name"
 					value={ sink.name }
 					error={ validate }
 					onCommit={ onName }
-				/>
-				<SlotControls
+				/> */}
+				<Text fw={500} >{sink.name}</Text>
+				<SendSlotControls
 					first={ first }
 					last={ last }
 					onUp={ onMove ? onUp : undefined }
 					onDown={ onMove ? onDown : undefined }
-					onRemove={ onRemove }
+					onTriggerRename={ onTriggerRename }
+					onTriggerRemove={ onTriggerRemove }
 				/>
 			</Group>
 		</Paper>
