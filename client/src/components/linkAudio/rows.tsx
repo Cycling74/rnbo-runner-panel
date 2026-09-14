@@ -117,13 +117,6 @@ export const LinkAudioSinkRow: FC<LinkAudioSinkRowProps> = ({ sink, first, last,
 	return (
 		<Paper withBorder p="sm" >
 			<Group justify="space-between" align="flex-start" wrap="nowrap" >
-				{/* <LinkAudioNameInput
-					label="Channel Name"
-					placeholder="Channel name"
-					value={ sink.name }
-					error={ validate }
-					onCommit={ onName }
-				/> */}
 				<Text fw={500} >{sink.name}</Text>
 				<SendSlotControls
 					first={ first }
