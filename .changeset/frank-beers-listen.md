@@ -2,4 +2,8 @@
 "@rnbo-runner-panel/client": patch
 ---
 
-Added a simple transport location indication and rewind
+Updated the transport control UI
+
+* Added a simple transport location indication and rewind
+* Added link sync toggle
+* Added time signature UI
