@@ -116,11 +116,10 @@ enum OSCQueryCommand {
 // close event. Without this the UI keeps claiming Ready while talking to nothing,
 // and the reconnect logic never runs because nothing told it to.
 //
-// The probe path is one _init() already requires -- it reads state.CONTENTS.patchers
+// The probe path is one _init() already requires -- it reads the runner info,
 // unguarded, unlike the optional nodes around it -- so a runner missing this node
-// would fail to initialise long before the heartbeat ran. Its reply is also small:
-// 67 bytes measured against a 1.4.5 runner, answered in 2ms.
-const HEARTBEAT_PATH = "/rnbo/patchers";
+// would fail to initialise long before the heartbeat ran.
+const HEARTBEAT_PATH = "/rnbo/info/version";
 const HEARTBEAT_INTERVAL_MS = 10000;
 const HEARTBEAT_TIMEOUT_MS = 5000;
 
