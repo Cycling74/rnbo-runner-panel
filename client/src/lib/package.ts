@@ -54,7 +54,7 @@ export enum PackageItemUploadStatus {
 }
 
 export type PackageUploadStatus = {
-	datafiles: Map<DataFileRecord["fileName"], PackageItemUploadStatus>;
+	datafiles: Map<DataFileRecord["path"], PackageItemUploadStatus>;
 	patchers: Map<PatcherExportRecord["name"], PackageItemUploadStatus>;
 	sets: Map<GraphSetRecord["name"], PackageItemUploadStatus>;
 };
@@ -71,8 +71,9 @@ export const getPackageUploadStatus = (
 
 	for (const e of uploadInfo?.datafiles || []) {
 		// datafiles don't yet have a uuid or md5, they're just skipped if they already exist
-		const existing = datafiles.find(d => d.fileName === e.name);
-		const s = existing ? PackageItemUploadStatus.Skip : PackageItemUploadStatus.Install;
+		// Datafile names in package are relative paths
+		const existing = datafiles.get(e.name);
+		const s = existing && !existing.isDir ? PackageItemUploadStatus.Skip : PackageItemUploadStatus.Install;
 		datafilestatus.set(e.name, s);
 	}
 
