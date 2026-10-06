@@ -1,10 +1,10 @@
-import { Alert, Badge, Button, Center, Fieldset, Group, Modal, Paper, RingProgress, Stack, Table, Text } from "@mantine/core";
+import { Alert, Badge, Button, Center, Fieldset, Group, Modal, Paper, RingProgress, Stack, Switch, Table, Text } from "@mantine/core";
 import { FC, FormEvent, memo, ReactNode, useCallback, useState } from "react";
 import { useIsMobileDevice } from "../../hooks/useIsMobileDevice";
 import { FileWithPath } from "@mantine/dropzone";
 import { IconElement } from "../elements/icon";
 import { mdiClose, mdiEqual, mdiFileExport, mdiFileMusic, mdiGroup, mdiInformationOutline, mdiLoading, mdiPackageUp, mdiPlus, mdiReloadAlert, mdiUpload } from "@mdi/js";
-import { useAppSelector } from "../../hooks/useAppDispatch";
+import { useAppDispatch, useAppSelector } from "../../hooks/useAppDispatch";
 import { TableHeaderCell } from "../elements/tableHeaderCell";
 import { ResourceType, SystemInfoKey } from "../../lib/constants";
 import { FileDropZone } from "../page/fileDropZone";
@@ -14,7 +14,7 @@ import { getPackageUploadStatus, PackageUploadStatus, PackageItemUploadStatus, r
 import { getDataFiles } from "../../selectors/datafiles";
 import { getPatcherExports } from "../../selectors/patchers";
 import { getGraphSets } from "../../selectors/sets";
-import { installPackageOnRunner } from "../../controller/cmd";
+import { installPackageOnRemote, PackagePostUploadConfig } from "../../actions/package";
 import { uploadFileToRemote } from "../../lib/files";
 import { RunnerFileType } from "../../lib/constants";
 
@@ -165,7 +165,7 @@ type PackageUploadConfirmFormProps = {
 	status: PackageUploadStatus;
 	info: PackageInfoRecord;
 	onCancel: () => void;
-	onSubmit: () => void;
+	onSubmit: (config: PackagePostUploadConfig) => void;
 	supportsRNBOVersion: boolean;
 	supportsTarget: boolean;
 };
@@ -178,12 +178,6 @@ const PackageUploadConfirmForm: FC<PackageUploadConfirmFormProps> = ({
 	supportsRNBOVersion,
 	supportsTarget
 }) => {
-
-	const onTriggerSubmit = useCallback((e: FormEvent<HTMLFormElement>) => {
-		e.preventDefault();
-		onSubmit();
-	}, [onSubmit]);
-
 	const [
 		supportsUpload,
 		rnboVersion,
@@ -193,6 +187,20 @@ const PackageUploadConfirmForm: FC<PackageUploadConfirmFormProps> = ({
 		getRunnerInfoRecord(state, SystemInfoKey.RNBOVersion),
 		getRunnerInfoRecord(state, SystemInfoKey.RNBOCompatVersion)
 	]);
+
+	const supportsPostInstallConfig = info.sets.size === 1;
+	const primaryGraphName = supportsPostInstallConfig ? info.sets.first()?.name : undefined;
+	const [loadAfterInstall, setLoadAfterInstall] = useState(false);
+	const [loadOnStartup, setLoadOnStartup] = useState(false);
+
+	const onTriggerSubmit = useCallback((e: FormEvent<HTMLFormElement>) => {
+		e.preventDefault();
+		onSubmit({
+			loadGraph: loadAfterInstall ? primaryGraphName : undefined,
+			setInitialGraph: loadOnStartup ? primaryGraphName : undefined
+		});
+	}, [onSubmit, primaryGraphName, loadAfterInstall, loadOnStartup]);
+
 
 	const statusCounts: Record<PackageItemUploadStatus, number> = {
 		[PackageItemUploadStatus.Install]: 0,
@@ -295,6 +303,26 @@ const PackageUploadConfirmForm: FC<PackageUploadConfirmFormProps> = ({
 					</Stack>
 				</Fieldset>
 				{
+					supportsPostInstallConfig ? (
+						<Fieldset legend="Options" >
+							<Stack gap="md">
+								<Switch
+									label="Load after Install"
+									description={ `Load ${primaryGraphName} after installation, replacing the current graph and any unsaved changes.` }
+									checked={ loadAfterInstall }
+									onChange={ (event) => setLoadAfterInstall(event.currentTarget.checked) }
+								/>
+								<Switch
+									label="Load on Startup"
+									description={ `Load ${primaryGraphName} when the runner starts.` }
+									checked={ loadOnStartup }
+									onChange={ (event) => setLoadOnStartup(event.currentTarget.checked) }
+								/>
+							</Stack>
+						</Fieldset>
+					) : null
+				}
+				{
 					!supportsUpload ? (
 						<Alert variant="light" color="red">
 							The runner does not support the selected package.
@@ -373,6 +401,7 @@ export const PackageUploadModal: FC<PackageUploadModalProps> = memo(function Wra
 	onClose
 }) {
 
+	const dispatch = useAppDispatch();
 	const [uploadState, setUploadState] = useState<PackageUploadState>({ step: PackageUploadStep.Select });
 
 	const [
@@ -413,7 +442,7 @@ export const PackageUploadModal: FC<PackageUploadModalProps> = memo(function Wra
 		}
 	}, [setUploadState, datafiles, patcherExports, graphSets]);
 
-	const onSubmit = useCallback(async () => {
+	const onSubmit = useCallback(async (config: PackagePostUploadConfig) => {
 		try {
 			if (uploadState.step !== PackageUploadStep.Confirm || !uploadState.file) {
 				throw new Error("Missing package file to upload");
@@ -429,14 +458,14 @@ export const PackageUploadModal: FC<PackageUploadModalProps> = memo(function Wra
 
 			setUploadState({ step: PackageUploadStep.Installing });
 
-			await installPackageOnRunner(uploadState.file?.name);
+			await dispatch(installPackageOnRemote(uploadState.file.name, config));
 			setUploadState({ step: PackageUploadStep.Complete });
 
 		} catch (err) {
 			console.error(err);
 			setUploadState({ error: err, step: PackageUploadStep.Error });
 		}
-	}, [origin, setUploadState, uploadState]);
+	}, [dispatch, origin, setUploadState, uploadState]);
 
 	const onCancel = useCallback(() => {
 		setUploadState({ step: PackageUploadStep.Select });
