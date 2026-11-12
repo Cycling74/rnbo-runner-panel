@@ -9,7 +9,11 @@ jobs:
 
   release:
 
-    runs-on: ubuntu-latest
+    # jammy: its cross compilers link against glibc 2.35, the same glibc the
+    # rnbo.oscquery.runner debs and the Ableton Move SDK are built against.
+    # The resulting binaries need glibc >= 2.34 at runtime (the newest symbol
+    # version they actually use), matching the runner debs.
+    runs-on: ubuntu-22.04
     name: Create Release
     outputs:
       version: ${{ steps.vstep.outputs.version }}
@@ -50,15 +54,26 @@ jobs:
         run: |
           npm run build:client
 
+      - name: Install Cross Compilers
+        if: steps.changesets.outputs.published == 'true'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-aarch64-linux-gnu gcc-arm-linux-gnueabihf
+
       - name: Build Server Binaries
         if: steps.changesets.outputs.published == 'true'
         uses: zijiren233/cargo-cross@v1
+        env:
+          CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: aarch64-linux-gnu-gcc
+          CARGO_TARGET_ARMV7_UNKNOWN_LINUX_GNUEABIHF_LINKER: arm-linux-gnueabihf-gcc
         with:
           command: build
           targets: |
             aarch64-unknown-linux-gnu
             armv7-unknown-linux-gnueabihf
           profile: release
+          # use the apt compilers above instead of downloading a toolchain
+          no-toolchain-setup: true
 
       - name: Build Debian Packages
         if: steps.changesets.outputs.published == 'true'
