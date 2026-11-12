@@ -5,5 +5,14 @@
     "@rnbo-runner-panel/client": "2.4.1",
     "@rnbo-runner-panel/server": "2.4.1"
   },
-  "changesets": []
+  "changesets": [
+    "frank-beers-listen",
+    "funky-boxes-refuse",
+    "good-walls-bet",
+    "heavy-taxes-grow",
+    "lazy-camels-tickle",
+    "major-stamps-drop",
+    "reconnect-backoff",
+    "reconnect-heartbeat"
+  ]
 }
