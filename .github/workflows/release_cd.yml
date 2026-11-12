@@ -87,6 +87,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           artifacts: "build/*.deb"
           bodyFile: release_body.md
+          prerelease: ${{ contains(steps.vstep.outputs.version, '-') }}
 
       - name: Create PR to merge back main to develop
         if: steps.changesets.outputs.published == 'true'
