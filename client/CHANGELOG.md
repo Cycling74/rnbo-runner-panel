@@ -1,5 +1,35 @@
 # @rnbo-runner-panel/client
 
+## 2.5.0-beta.0
+
+### Minor Changes
+
+- [#360](https://github.com/Cycling74/rnbo-runner-panel/pull/360) [`d1bfa71`](https://github.com/Cycling74/rnbo-runner-panel/commit/d1bfa71cc8b4892bdf147aa50ca67e8d1a056535) - Added support for [Link Audio](https://www.ableton.com/en/link/) via [Jack Tranport Link](https://github.com/x37v/jack_transport_link).
+
+### Patch Changes
+
+- [#362](https://github.com/Cycling74/rnbo-runner-panel/pull/362) [`21583d6`](https://github.com/Cycling74/rnbo-runner-panel/commit/21583d6ae5f6ce438fd1bdd100b38e537df7b3cf) - Updated the transport control UI
+
+  - Added a simple transport location indication and rewind
+  - Added link sync toggle
+  - Added time signature UI
+
+- [#362](https://github.com/Cycling74/rnbo-runner-panel/pull/362) [`21583d6`](https://github.com/Cycling74/rnbo-runner-panel/commit/21583d6ae5f6ce438fd1bdd100b38e537df7b3cf) - Added support for toggling transport sync to link on/off
+
+- [#365](https://github.com/Cycling74/rnbo-runner-panel/pull/365) [`78dc2b9`](https://github.com/Cycling74/rnbo-runner-panel/commit/78dc2b97a6e0ed9d04b205d8e8bff175b3f937af) - Fix package datafile duplicate in subdirectory detection
+
+  Before this a datafile that wasn't at the top level of the datafiles directory would always be installed even if it was already on disk.
+
+- [#364](https://github.com/Cycling74/rnbo-runner-panel/pull/364) [`13f18a2`](https://github.com/Cycling74/rnbo-runner-panel/commit/13f18a2c64b3923ee39ab88d38ba4a55bc266130) - Added optional "Load after Install" and "Load on Startup" to the Package Install dialog when there is only 1 graph in a package.
+
+- [#360](https://github.com/Cycling74/rnbo-runner-panel/pull/360) [`6ba8a4a`](https://github.com/Cycling74/rnbo-runner-panel/commit/6ba8a4a541452c59c8671cc5100099222fb6a8d2) - Using Jack's order metadata to sort ports for a client, if present
+
+- [#363](https://github.com/Cycling74/rnbo-runner-panel/pull/363) [`895404c`](https://github.com/Cycling74/rnbo-runner-panel/commit/895404c12984f7ee4e5e6fe8b0df09f582a32747) - Keep retrying the runner connection instead of giving up after ten quick attempts.
+  Reconnects now use exponential backoff (500ms up to 30s) and are unbounded once a connection has been established, so an outage that outlasts the old ~5s budget no longer leaves the UI dead until a manual reload. A pending backoff is cut short when the browser comes back online or the tab becomes visible again. The initial connect keeps a bounded retry count, so an unreachable endpoint still reports an error.
+
+- [#363](https://github.com/Cycling74/rnbo-runner-panel/pull/363) [`47f20d6`](https://github.com/Cycling74/rnbo-runner-panel/commit/47f20d684e82d6053f113b4d4b9a967a16e86793) - Notice when the connection to the runner has died, instead of showing a working UI that is talking to nothing.
+  An idle WebSocket whose network path disappears (a cable pulled, a runner powered off) stays open and fires no close event, so the panel had no way to find out until TCP eventually gave up minutes later. It now probes a small OSCQuery node when the connection has been idle for 10s and treats a 5s silence as a disconnect, which surfaces the reconnecting state and starts the reconnect.
+
 ## 2.4.1
 
 ### Patch Changes
