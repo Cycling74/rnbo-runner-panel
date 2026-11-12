@@ -9,7 +9,8 @@ class RNBORunnerPanelConan(ConanFile):
 	license = "MIT"
 	#compiler is always rustc, this package holds an executable and not something to be linked to
 	settings = { "os": ["Linux"], "arch": "armv8" }
-	exports_sources = "*", "!build","!out", "!node_modules", "!server/target"
+	# Cargo workspace builds go in the root target directory; keep both locations out of source exports.
+	exports_sources = "*", "!build", "!out", "!node_modules", "!target", "!server/target"
 
 	def build(self):
 		self.run("npm ci")
