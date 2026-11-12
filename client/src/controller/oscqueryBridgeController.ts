@@ -5,7 +5,7 @@ import { initRunnerInfo, setRunnerInfoValue, setAppStatus, setConnectionEndpoint
 import { AppDispatch, store } from "../lib/store";
 import { ReconnectingWebsocket } from "../lib/reconnectingWs";
 import { AppStatus, JackInfoKey, RunnerCmdHighWaterMarkCount, RunnerCmdMethod, RunnerCmdResultCode, RunnerCmdWriteMethod, SystemInfoKey, WebSocketState } from "../lib/constants";
-import { OSCQueryRNBOState, OSCQueryRNBOInstance, OSCQueryRNBOPatchersState, OSCQueryRNBOSetsState, OSCValue, OSCQueryRNBOInstancesMetaState, OSCQuerySetMeta, RunnerCmdResponse } from "../lib/types";
+import { OSCQueryRNBOState, OSCQueryRNBOInstance, OSCQueryRNBOPatchersState, OSCQueryRNBOSetsState, OSCValue, OSCQueryRNBOInstancesMetaState, OSCQuerySetMeta, RunnerCmdResponse, OSCQueryRNBOJackLinkAudio, OSCQueryValueType } from "../lib/types";
 import { deletePortAliases, initConnections, initPorts, setPortAliases, updateSetMetaFromRemote, updateSourcePortConnections, deletePortById, setPortProperties, addPort } from "../actions/graph";
 import { addInstance, deleteInstanceById, initInstances, initPatchers, updatePatcherUUID, removeInstanceDataRefByPath, updateInstanceDataRefMeta, updateInstanceDataRefs, updateInstanceParameterDisplayName, updateInstanceAlias } from "../actions/patchers";
 import { initRunnerConfig, updateRunnerConfig } from "../actions/settings";
@@ -26,6 +26,11 @@ import {
 import { showNotification } from "../actions/notifications";
 import { NotificationLevel } from "../models/notification";
 import { initTransport, updateTransportStatus } from "../actions/transport";
+import {
+	initLinkAudio, setLinkAudioAvailable, setLinkAudioPeers, setLinkAudioPeerName,
+	setLinkAudioSourceOrder, setLinkAudioSinkOrder, setLinkAudioLatencyMs, setLinkAudioSyncToIncoming,
+	setLinkEnabled, updateLinkAudioSource, updateLinkAudioSink
+} from "../actions/linkAudio";
 import { deserializeSetMeta } from "../lib/meta";
 import { initStreamRecording, updateStreamRecordingActiveState, updateStreamRecordingCapturedTime } from "../actions/recording";
 
@@ -105,6 +110,19 @@ enum OSCQueryCommand {
 	ATTRIBUTES_CHANGED = "ATTRIBUTES_CHANGED"
 }
 
+// Liveness probe for an otherwise idle connection. Pulling a cable leaves an idle
+// TCP connection looking perfectly healthy -- no bytes are in flight, so neither
+// end notices the path is gone, the socket stays readyState OPEN and fires no
+// close event. Without this the UI keeps claiming Ready while talking to nothing,
+// and the reconnect logic never runs because nothing told it to.
+//
+// The probe path is one _init() already requires -- it reads the runner info,
+// unguarded, unlike the optional nodes around it -- so a runner missing this node
+// would fail to initialise long before the heartbeat ran.
+const HEARTBEAT_PATH = "/rnbo/info/version";
+const HEARTBEAT_INTERVAL_MS = 10000;
+const HEARTBEAT_TIMEOUT_MS = 5000;
+
 const portPropertiesPathMatcher = /^\/rnbo\/jack\/info\/ports\/properties\/(?<port>.+)$/;
 const portAliasPathMatcher = /^\/rnbo\/jack\/info\/ports\/aliases\/(?<port>.+)$/;
 const patchersPathMatcher = /^\/rnbo\/patchers/;
@@ -120,6 +138,23 @@ const setViewPathMatcher = /^\/rnbo\/inst\/control\/sets\/views\/list\/(?<id>\d+
 
 // TODO const setsPresetsCurrentNamePath = "/rnbo/inst/control/sets/current/name";
 const setsPresetsLoadPath = "/rnbo/inst/control/sets/presets/load";
+
+const linkAudioPath = "/rnbo/jack/link/audio";
+const linkEnabledPath = "/rnbo/jack/link/enabled";
+const linkAudioAvailablePath = `${linkAudioPath}/available`;
+const linkAudioChannelsPath = `${linkAudioPath}/channels`;
+const linkAudioPeerNamePath = `${linkAudioPath}/peer_name`;
+const linkAudioLatencyMsPath = `${linkAudioPath}/latency_ms`;
+const linkAudioSyncToIncomingPath = `${linkAudioPath}/sync_to_incoming`;
+const linkAudioSourcesOrderPath = `${linkAudioPath}/sources/order`;
+const linkAudioSinksOrderPath = `${linkAudioPath}/sinks/order`;
+
+// Slot nodes are named after the slot key, not a positional index, and live under `list` so the
+// key can't be confused with a sibling command node ("add" and friends are siblings of `list`).
+// A rename changes the key, so it shows up as one node removed and another added — which the
+// path-added/removed handlers already turn into a subtree re-read.
+const linkAudioSlotMatcher = /^\/rnbo\/jack\/link\/audio\/(?<dir>sources|sinks)\/list\/(?<key>[^/]+)(?<rest>\/\S+)?$/;
+const linkAudioValueMatcher = /^\/rnbo\/jack\/link\/audio\/(?<dir>sources|sinks)\/list\/(?<key>[^/]+)\/(?<prop>peer|channel|name|connected|receiving|buffered_ms|dropouts|arrival_offset_ms|jitter_ms)$/;
 
 const configPathMatcher = /^\/rnbo\/config\/(?<name>.+)$/;
 const jackConfigPathMatcher = /^\/rnbo\/jack\/config\/(?<name>.+)$/;
@@ -141,6 +176,10 @@ export class OSCQueryBridgeControllerPrivate {
 	}
 
 	private _ws: ReconnectingWebsocket | null = null;
+
+	private _heartbeatTimer: ReturnType<typeof setInterval> | null = null;
+	private _heartbeatEvents: AbortController | null = null;
+	private _lastMessageAt: number = 0;
 
 	// Pending OSCQuery node-description requests, keyed by path. Replies are
 	// routed by the single _onMessage listener (see below) rather than by
@@ -318,6 +357,10 @@ export class OSCQueryBridgeControllerPrivate {
 		// Init Transport
 		this.dispatch(initTransport(state.CONTENTS.jack?.CONTENTS?.transport));
 
+		// Init Link Audio (+ the sibling master Link on/off toggle)
+		this.dispatch(initLinkAudio(state.CONTENTS.jack?.CONTENTS?.link?.CONTENTS?.audio));
+		this.dispatch(setLinkEnabled(state.CONTENTS.jack?.CONTENTS?.link?.CONTENTS?.enabled?.TYPE !== OSCQueryValueType.False));
+
 		// Init Recording
 		this.dispatch(initStreamRecording(state.CONTENTS.jack?.CONTENTS?.record));
 
@@ -397,6 +440,7 @@ export class OSCQueryBridgeControllerPrivate {
 	};
 
 	private _onMessage = async (evt: MessageEvent): Promise<void> => {
+		this._lastMessageAt = Date.now();
 		try {
 
 			if (typeof evt.data === "string") {
@@ -447,6 +491,12 @@ export class OSCQueryBridgeControllerPrivate {
 	};
 
 	private async _onPathAdded(path: string): Promise<void> {
+
+		// Link Audio slot (sources/list/<key> or sinks/list/<key>) added -> re-read the subtree
+		if (linkAudioSlotMatcher.test(path)) {
+			const info = await this._requestState<OSCQueryRNBOJackLinkAudio>(linkAudioPath);
+			return void this.dispatch(initLinkAudio(info));
+		}
 
 		// Handle Instances and Patcher Nodes first
 		const instanceMatch = path.match(instancePathMatcher);
@@ -532,6 +582,12 @@ export class OSCQueryBridgeControllerPrivate {
 	}
 
 	private async _onPathRemoved(path: string): Promise<void> {
+
+		// Link Audio slot (sources/list/<key> or sinks/list/<key>) removed -> re-read the subtree
+		if (linkAudioSlotMatcher.test(path)) {
+			const info = await this._requestState<OSCQueryRNBOJackLinkAudio>(linkAudioPath);
+			return void this.dispatch(initLinkAudio(info));
+		}
 
 		// Removed Patcher
 		if (patchersPathMatcher.test(path)) {
@@ -685,8 +741,87 @@ export class OSCQueryBridgeControllerPrivate {
 			if (packet.args?.length) return void this.dispatch(updateTransportStatus({ rolling: (packet.args as unknown as [boolean])?.[0] }));
 		}
 
+		if (packet.address === "/rnbo/jack/transport/linksync") {
+			if (packet.args?.length) return void this.dispatch(updateTransportStatus({ linkSync: (packet.args as unknown as [boolean])?.[0] }));
+		}
 		if (packet.address === "/rnbo/jack/transport/sync") {
 			if (packet.args?.length) return void this.dispatch(updateTransportStatus({ sync: (packet.args as unknown as [boolean])?.[0] }));
+		}
+
+		// Master Link on/off (sibling of the audio subtree)
+		if (packet.address === linkEnabledPath) {
+			return void this.dispatch(setLinkEnabled((packet.args as unknown as [boolean])?.[0] ?? true));
+		}
+
+		// Link Audio value updates
+		if (packet.address === linkAudioAvailablePath) {
+			return void this.dispatch(setLinkAudioAvailable((packet.args as unknown as [boolean])?.[0] || false));
+		}
+		if (packet.address === linkAudioChannelsPath) {
+			return void this.dispatch(setLinkAudioPeers((packet.args as unknown as [string])?.[0] || "[]"));
+		}
+		if (packet.address === linkAudioPeerNamePath) {
+			return void this.dispatch(setLinkAudioPeerName((packet.args as unknown as [string])?.[0] || ""));
+		}
+		if (packet.address === linkAudioLatencyMsPath) {
+			return void this.dispatch(setLinkAudioLatencyMs((packet.args as unknown as [number])?.[0] ?? 100));
+		}
+		if (packet.address === linkAudioSyncToIncomingPath) {
+			return void this.dispatch(setLinkAudioSyncToIncoming((packet.args as unknown as [boolean])?.[0] ?? false));
+		}
+		if (packet.address === linkAudioSourcesOrderPath) {
+			const args = (packet.args as unknown as OSCValue[]) || [];
+			return void this.dispatch(setLinkAudioSourceOrder(args.filter(a => typeof a === "string") as string[]));
+		}
+		if (packet.address === linkAudioSinksOrderPath) {
+			const args = (packet.args as unknown as OSCValue[]) || [];
+			return void this.dispatch(setLinkAudioSinkOrder(args.filter(a => typeof a === "string") as string[]));
+		}
+		const linkAudioValueMatch = packet.address.match(linkAudioValueMatcher);
+		if (linkAudioValueMatch?.groups) {
+			const key = linkAudioValueMatch.groups.key;
+			const prop = linkAudioValueMatch.groups.prop;
+			const args = (packet.args as unknown as OSCValue[]) || [];
+			if (linkAudioValueMatch.groups.dir === "sources") {
+				if (prop === "peer") {
+					return void this.dispatch(updateLinkAudioSource(key, { peer: typeof args[0] === "string" ? args[0] : "" }));
+				} else if (prop === "channel") {
+					return void this.dispatch(updateLinkAudioSource(key, { channel: typeof args[0] === "string" ? args[0] : "" }));
+				} else if (prop === "connected") {
+					return void this.dispatch(updateLinkAudioSource(key, { connected: (packet.args as unknown as [boolean])?.[0] === true }));
+				} else if (prop === "receiving") {
+					return void this.dispatch(updateLinkAudioSource(key, { receiving: (packet.args as unknown as [boolean])?.[0] === true }));
+				} else if (prop === "buffered_ms") {
+					return void this.dispatch(updateLinkAudioSource(key, { bufferedMs: typeof args[0] === "number" ? args[0] : 0 }));
+				} else if (prop === "arrival_offset_ms") {
+					return void this.dispatch(updateLinkAudioSource(key, { arrivalOffsetMs: typeof args[0] === "number" ? args[0] : 0 }));
+				} else if (prop === "dropouts") {
+					return void this.dispatch(updateLinkAudioSource(key, { dropouts: typeof args[0] === "number" ? args[0] : 0 }));
+				} else if (prop === "jitter_ms") {
+					return void this.dispatch(updateLinkAudioSource(key, { jitterMs: typeof args[0] === "number" ? args[0] : 0 }));
+				}
+			} else if (linkAudioValueMatch.groups.dir === "sinks" && prop === "name") {
+				return void this.dispatch(updateLinkAudioSink(key, { name: (args[0] as string) || "" }));
+			}
+			return;
+		}
+
+		if (packet.address === "/rnbo/jack/transport/bar_beat") {
+			if (packet.args?.length >= 2) {
+				const args = packet.args as unknown as [number, number];
+				return void this.dispatch(updateTransportStatus({ bar_beat: args }));
+			}
+		}
+
+		if (packet.address === "/rnbo/jack/transport/time_sig_available") {
+			if (packet.args?.length) return void this.dispatch(updateTransportStatus({ timeSignatureAvailable: (packet.args as unknown as [boolean])?.[0] }));
+		}
+
+		if (packet.address === "/rnbo/jack/transport/time_sig") {
+			if (packet.args?.length >= 2) {
+				const args = packet.args as unknown as [number, number];
+				return void this.dispatch(updateTransportStatus({ time_signature: args }));
+			}
 		}
 
 		if (packet.address === "/rnbo/inst/control/sets/initial") {
@@ -930,6 +1065,53 @@ export class OSCQueryBridgeControllerPrivate {
 		return this._ws?.readyState === WebSocketState.OPEN;
 	}
 
+	private _startHeartbeat(): void {
+		this._stopHeartbeat();
+		this._lastMessageAt = Date.now();
+		this._heartbeatTimer = setInterval(this._heartbeat, HEARTBEAT_INTERVAL_MS);
+
+		// Browsers throttle timers in hidden tabs to roughly once a minute, so the
+		// interval above effectively stops while the user is elsewhere and a
+		// disconnect can go undetected the whole time. Probe the moment the tab is
+		// shown again, rather than waiting for the next tick -- otherwise coming
+		// back to a dead connection costs another HEARTBEAT_INTERVAL_MS before we
+		// so much as ask.
+		this._heartbeatEvents = new AbortController();
+		const { signal } = this._heartbeatEvents;
+		window.addEventListener("online", this._heartbeat, { signal });
+		document.addEventListener("visibilitychange", this._onVisibilityChange, { signal });
+	}
+
+	private _onVisibilityChange = (): void => {
+		if (document.visibilityState === "visible") void this._heartbeat();
+	};
+
+	private _stopHeartbeat(): void {
+		if (this._heartbeatTimer) {
+			clearInterval(this._heartbeatTimer);
+			this._heartbeatTimer = null;
+		}
+		this._heartbeatEvents?.abort();
+		this._heartbeatEvents = null;
+	}
+
+	private _heartbeat = async (): Promise<void> => {
+		// Skip while connecting or reconnecting; that path reports itself.
+		if (this._ws?.readyState !== WebSocketState.OPEN) return;
+
+		// Traffic is proof of life, so a busy connection is never probed.
+		if (Date.now() - this._lastMessageAt < HEARTBEAT_INTERVAL_MS) return;
+
+		try {
+			await this._requestState(HEARTBEAT_PATH, HEARTBEAT_TIMEOUT_MS);
+		} catch {
+			// No reply in time. The socket still claims to be open, so drop it and
+			// let the reconnect path run -- which is also what finally moves the UI
+			// off Ready and onto Reconnecting.
+			this._ws?.reconnect();
+		}
+	};
+
 	public async connect({ hostname, port }: { hostname: string; port: string }): Promise<void> {
 
 		this._ws = new ReconnectingWebsocket({ hostname, port });
@@ -949,6 +1131,7 @@ export class OSCQueryBridgeControllerPrivate {
 			this._ws.on("message", this._onMessage);
 
 			await this._init();
+			this._startHeartbeat();
 		} catch (err) {
 			this.dispatch(setAppStatus(AppStatus.Error, new Error(`Failed to connect to start up: ${err.message}`)));
 			console.log(err);
@@ -958,6 +1141,7 @@ export class OSCQueryBridgeControllerPrivate {
 	}
 
 	public close(): void {
+		this._stopHeartbeat();
 		this._rejectAllPendingStateRequests(new Error("The connection to the RNBO Runner was closed"));
 		this._ws?.close();
 		this._ws?.removeAllListeners();

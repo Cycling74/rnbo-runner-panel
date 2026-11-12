@@ -158,7 +158,13 @@
 			transform: translate(25%, -50%);
 
 			&:before {
-				content: attr(data-c74-name);
+				/* `direction: rtl` is what puts the ellipsis on the *left*, so a clipped label keeps
+				   its tail (the end nearest the handle). It also makes this an RTL paragraph though,
+				   and bidi then reorders any name that doesn't start with a strong-LTR character:
+				   a JACK pretty-name like "3-Audio R" renders as "Audio R-3". Wrapping the content in
+				   an LTR isolate (LRI … PDI, both zero-width) keeps the run ordered left-to-right
+				   while leaving the RTL truncation and right-edge alignment intact. */
+				content: "\2066" attr(data-c74-name) "\2069";
 				direction: rtl;
 				right: var(--label-offset);
 			}

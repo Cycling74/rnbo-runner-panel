@@ -1,0 +1,9 @@
+{
+  "mode": "pre",
+  "tag": "beta",
+  "initialVersions": {
+    "@rnbo-runner-panel/client": "2.4.1",
+    "@rnbo-runner-panel/server": "2.4.1"
+  },
+  "changesets": []
+}

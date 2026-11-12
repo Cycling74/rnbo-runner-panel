@@ -215,6 +215,15 @@ export const saveGraphSetOnRemote = (givenName: string, ensureUniqueName: boolea
 		}
 	};
 
+// Load directly when the caller has already confirmed replacing the current graph.
+export const loadGraphSetByNameOnRemote = (name: string): AppThunk =>
+	() => {
+		oscQueryBridge.sendPacket(writePacket({
+			address: "/rnbo/inst/control/sets/load",
+			args: [{ type: "s", value: name }]
+		}));
+	};
+
 export const loadGraphSetOnRemote = (set: GraphSetRecord): AppThunk =>
 	async (dispatch, getState) => {
 		try {
@@ -257,11 +266,7 @@ export const loadGraphSetOnRemote = (set: GraphSetRecord): AppThunk =>
 				}
 			}
 
-			const message = {
-				address: "/rnbo/inst/control/sets/load",
-				args: [ { type: "s", value: set.name } ]
-			};
-			oscQueryBridge.sendPacket(writePacket(message));
+			dispatch(loadGraphSetByNameOnRemote(set.name));
 
 		} catch (err) {
 			dispatch(showNotification({
@@ -308,6 +313,15 @@ export const triggerLoadGraphSetDialog = (): AppThunk =>
 		}
 	};
 
+export const setInitialGraphOnRemote = (name: string): AppThunk =>
+	(dispatch) => {
+		dispatch(setRunnerConfig(ConfigKey.AutoStartLastSet, true));
+		oscQueryBridge.sendPacket(writePacket({
+			address: "/rnbo/inst/control/sets/initial",
+			args: [{ type: "s", value: name }]
+		}));
+	};
+
 export const triggerStartupGraphSetDialog = (): AppThunk =>
 	async (dispatch, getState) => {
 
@@ -342,22 +356,12 @@ export const triggerStartupGraphSetDialog = (): AppThunk =>
 					dispatch(setRunnerConfig(ConfigKey.AutoStartLastSet, false));
 					return;
 				case OnLoadGraphSetSetting.LastSet: {
-					dispatch(setRunnerConfig(ConfigKey.AutoStartLastSet, true));
-					const message = {
-						address: "/rnbo/inst/control/sets/initial",
-						args: [{ type: "s", value: "" }]
-					};
-					oscQueryBridge.sendPacket(writePacket(message));
+					dispatch(setInitialGraphOnRemote(""));
 					return;
 				}
 				default: {
 					// Specific Graph
-					dispatch(setRunnerConfig(ConfigKey.AutoStartLastSet, true));
-					const message = {
-						address: "/rnbo/inst/control/sets/initial",
-						args: [{ type: "s", value: dialogResult }]
-					};
-					oscQueryBridge.sendPacket(writePacket(message));
+					dispatch(setInitialGraphOnRemote(dialogResult));
 					return;
 				}
 			}

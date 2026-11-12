@@ -18,8 +18,9 @@ import { getDataFilesSortedByName } from "../selectors/datafiles";
 import InstanceKeyboardModal from "../components/keyroll/modal";
 import { IconElement } from "../components/elements/icon";
 import { mdiCamera, mdiChartSankeyVariant, mdiDotsVertical, mdiPencil, mdiPiano, mdiTrashCan } from "@mdi/js";
-import { InstanceSelectTitle } from "../components/instance/title";
-import { PatcherInstanceRecord } from "../models/instance";
+import { DeviceSelectTitle } from "../components/instance/deviceTitle";
+import { patcherDeviceValue } from "../lib/deviceRoutes";
+import { getLinkDevices } from "../selectors/linkDevices";
 import { Link, useLocation, useNavigate, useParams } from "react-router";
 
 export const InstancePage: FC<Record<never, never>> = () => {
@@ -44,6 +45,7 @@ export const InstancePage: FC<Record<never, never>> = () => {
 		dataRefs,
 		appStatus,
 		instances,
+		linkDevices,
 		datafiles,
 		enabledMessageOuput,
 		enabledMIDIKeyboard,
@@ -61,6 +63,7 @@ export const InstancePage: FC<Record<never, never>> = () => {
 			currentInstance ? getPatcherInstanceDataRefsByInstanceId(state, currentInstance.id) : undefined,
 			getAppStatus(state),
 			getPatcherInstances(state),
+			getLinkDevices(state),
 			getDataFilesSortedByName(state, SortOrder.Asc),
 			getAppSetting(state, AppSetting.debugMessageOutput),
 			getAppSetting(state, AppSetting.keyboardMIDIInput),
@@ -71,8 +74,8 @@ export const InstancePage: FC<Record<never, never>> = () => {
 		];
 	});
 
-	const onChangeInstance = useCallback((instance: PatcherInstanceRecord) => {
-		navigate({ pathname: `/instances/${encodeURIComponent(instance.id)}`, search });
+	const onChangeDevice = useCallback((pathname: string) => {
+		navigate({ pathname, search });
 	}, [navigate, search]);
 
 	const onUnloadInstance = useCallback((e: MouseEvent<HTMLButtonElement>) => {
@@ -131,10 +134,11 @@ export const InstancePage: FC<Record<never, never>> = () => {
 		<Stack className={ classes.instanceWrap } >
 			<Group justify="space-between" wrap="nowrap">
 				<div style={{ flex: "1 2 50%" }} >
-					<InstanceSelectTitle
-						currentInstanceId={ currentInstance.id }
+					<DeviceSelectTitle
+						currentValue={ patcherDeviceValue(currentInstance.id) }
 						instances={ instances }
-						onChangeInstance={ onChangeInstance }
+						linkDevices={ linkDevices }
+						onChangeDevice={ onChangeDevice }
 					/>
 				</div>
 				<Group style={{ flex: "0" }} wrap="nowrap" gap="xs" >
