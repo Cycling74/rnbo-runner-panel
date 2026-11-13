@@ -1,5 +1,7 @@
 # @rnbo-runner-panel/client
 
+## 2.5.0-beta.1
+
 ## 2.5.0-beta.0
 
 ### Minor Changes
