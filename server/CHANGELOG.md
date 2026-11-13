@@ -1,5 +1,11 @@
 # @rnbo-runner-panel/server
 
+## 2.5.0-beta.1
+
+### Patch Changes
+
+- [#372](https://github.com/Cycling74/rnbo-runner-panel/pull/372) [`f9d879f`](https://github.com/Cycling74/rnbo-runner-panel/commit/f9d879f802f467280a1c0cfa5504d133e1b5b3d3) - Releases now include `rnbo-runner-panel_<version>_move.tar.gz`, the same build as the arm64 package laid out for the Ableton Move.
+
 ## 2.5.0-beta.0
 
 ## 2.4.1
