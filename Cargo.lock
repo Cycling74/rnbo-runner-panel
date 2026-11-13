@@ -1586,7 +1586,7 @@ dependencies = [
 
 [[package]]
 name = "rnbo-runner-panel"
-version = "2.5.0-beta.0"
+version = "2.5.0-beta.1"
 dependencies = [
  "clap",
  "futures-util",
