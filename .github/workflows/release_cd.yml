@@ -87,6 +87,16 @@ jobs:
           PKG_NAME: ${{ secrets.RNBO_DEB_PKG_NAME }}
           PKG_VERSION: ${{ steps.vstep.outputs.version }}
 
+      # The same aarch64 binary and web content as the arm64 deb, laid out as bin/ and share/ for the
+      # Ableton Move, where there is no dpkg. The Move's RNBO takeover package is built from this.
+      - name: Build Move Package
+        if: steps.changesets.outputs.published == 'true'
+        run: |
+          node scripts/package-linux.mjs arm64 ./build/linux-aarch64 ./target/aarch64-unknown-linux-gnu/release/rnbo-runner-panel
+          tar --owner=0 --group=0 -czf "./build/rnbo-runner-panel_${PKG_VERSION}_move.tar.gz" -C ./build/linux-aarch64/usr bin share
+        env:
+          PKG_VERSION: ${{ steps.vstep.outputs.version }}
+
       - name: Build Release Notes
         if: steps.changesets.outputs.published == 'true'
         env:
@@ -100,7 +110,7 @@ jobs:
           tag: v${{ steps.vstep.outputs.version }}
           commit: ${{ github.sha }}
           token: ${{ secrets.GITHUB_TOKEN }}
-          artifacts: "build/*.deb"
+          artifacts: "build/*.deb,build/*_move.tar.gz"
           bodyFile: release_body.md
           prerelease: ${{ contains(steps.vstep.outputs.version, '-') }}
 
